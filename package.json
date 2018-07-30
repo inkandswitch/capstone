@@ -2,12 +2,13 @@
   "name": "capstone",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --config webpack.config.js --watch"
   },
   "author": "Ink & Switch",
-  "license": "UNLICENSED",
   "devDependencies": {
     "webpack": "^4.16.3",
     "webpack-chrome-extension-reloader": "^0.8.3",
