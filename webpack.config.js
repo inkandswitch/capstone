@@ -31,7 +31,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin(["dist"]),
     new WebpackChromeReloaderPlugin(),
     new CopyWebpackPlugin(["./src/manifest.json", "./src/index.html"]),
     new HtmlWebpackPlugin({
