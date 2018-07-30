@@ -1,18 +1,22 @@
 const path = require("path")
-const ChromeExtensionReloader = require("webpack-chrome-extension-reloader")
+const WebpackChromeReloaderPlugin = require("webpack-chrome-extension-reloader")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const CleanWebpackPlugin = require("clean-webpack-plugin")
+const CopyWebpackPlugin = require("copy-webpack-plugin")
 
 module.exports = {
   mode: "development",
-  entry: "./src/main.tsx",
+  entry: { 
+    "main": "./src/main.tsx",
+    "background": "./src/entry.chrome.js",
+  },
   devtool: "inline-source-map",
   devServer: {
     contentBase: "./dist",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "main.bundle.js",
+    filename: "[name].js",
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
@@ -28,9 +32,8 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(["dist"]),
-    new ChromeExtensionReloader({
-      port: 9090,
-    }),
+    new WebpackChromeReloaderPlugin(),
+    new CopyWebpackPlugin(["./src/manifest.json", "./src/index.html"]),
     new HtmlWebpackPlugin({
       title: "Capstone",
     }),

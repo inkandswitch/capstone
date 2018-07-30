@@ -5,7 +5,7 @@
   "permissions": ["webview", "system.network"],
   "app": {
     "background": {
-      "scripts": ["chrome-app.js"]
+      "scripts": ["background.js"]
     }
   },
   "sockets": {
