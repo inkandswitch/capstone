@@ -5,7 +5,7 @@ module.exports = {
   mode: "development",
   entry: {
     main: "./src/main.tsx",
-    background: "./src/entry.chrome.js",
+    background: "./src/entry.chrome.ts",
   },
   devtool: "inline-source-map",
   output: {
