@@ -33,6 +33,7 @@ module.exports = {
   plugins: [
     new WebpackChromeReloaderPlugin(),
     new CopyWebpackPlugin(["./src/manifest.json", "./src/index.html"]),
+    new CopyWebpackPlugin([{from: "src/assets", to: 'assets'}]),
     new HtmlWebpackPlugin({
       title: "Capstone",
     }),

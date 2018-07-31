@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "react": "^16.4.1",
-    "react-dom": "^16.4.1"
+    "react-dom": "^16.4.1",
+    "react-draggable": "^3.0.5"
   }
 }
