@@ -24,6 +24,8 @@
     "webpack-cli": "^3.1.0"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.115",
+    "lodash": "^4.17.10",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-draggable": "^3.0.5"
