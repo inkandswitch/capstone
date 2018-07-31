@@ -8,5 +8,5 @@
     "allowJs": true,
     "sourceMap": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/main.ts", "src/entry.chrome.ts"]
 }
