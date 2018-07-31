@@ -1,8 +1,8 @@
 import * as React from "react"
 
 import { Card } from "../types"
-import Board from "./board"
-import Archive from "./archive"
+import Board from "./Board"
+import Archive from "./Archive"
 import { BOARD_WIDTH, WINDOW_HEIGHT } from "../constants"
 import * as Types from "../types"
 
