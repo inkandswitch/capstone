@@ -6,8 +6,11 @@ import Archive from "./archive"
 import { BOARD_WIDTH, WINDOW_HEIGHT } from "../constants"
 import * as Types from "../types"
 
+interface Cards {
+  [s: string]: Card
+}
 interface AppState {
-  cards: { [s: string]: Card }
+  cards: Cards
   highestBoardZ: number
   mouseX: number
   mouseY: number
@@ -29,16 +32,18 @@ const sampleImages = [
 const sampleCards = 50
 const sampleProbImage = 0.2
 
-export default class App extends React.PureComponent<undefined, AppState> {
+export default class App extends React.PureComponent<{}, AppState> {
   constructor(props: any) {
     super(props)
-    let cards = {}
+    let cards: Cards = {}
     for (let i = 0; i < sampleCards; i++) {
       const x = Math.floor(Math.random() * (BOARD_WIDTH - 150)) + 1
       const y = Math.floor(Math.random() * (WINDOW_HEIGHT - 100)) + 1
       const id = "c" + i
       const imageCard = Math.random() < sampleProbImage
+
       cards[id] = {
+        isBeingDraggedFromArchive: false,
         id: id,
         x: x,
         y: y,
@@ -124,7 +129,7 @@ export default class App extends React.PureComponent<undefined, AppState> {
     )
   }
 
-  onMouseMove = (e: React.SyntheticEvent) => {
+  onMouseMove = (e: React.MouseEvent) => {
     const newState = Object.assign({}, this.state, {
       mouseX: e.clientX,
       mouseY: e.clientY,
@@ -132,7 +137,7 @@ export default class App extends React.PureComponent<undefined, AppState> {
     this.setState(newState)
   }
 
-  onMouseUp = (e: React.SyntheticEvent) => {
+  onMouseUp = (e: React.MouseEvent) => {
     const newCards = Object.assign({}, this.state.cards)
     Object.keys(this.state.cards).map((id: string) => {
       const card = this.state.cards[id]
