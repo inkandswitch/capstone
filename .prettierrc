@@ -1,0 +1,12 @@
+{
+  "overrides": [
+    {
+      "files": "*.{ts,js,tsx,jsx}",
+      "options": {
+        "semi": false,
+        "trailingComma": "all",
+        "jsxBracketSameLine": true
+      }
+    }
+  ]
+}
