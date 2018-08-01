@@ -1,5 +1,6 @@
 const path = require("path")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
+const env = process.env.NODE_ENV
 
 module.exports = {
   mode: "development",
@@ -23,13 +24,30 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
+        test: /\.css$/,
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              importLoaders: 1,
+            },
+          },
+          "postcss-loader",
+        ],
+      },
+      {
         test: /\.(png|svg|jpg|gif)$/,
-        use: "file-loader",
+        use: {
+          loader: "file-loader",
+          options: {
+            outputPath: "assets/",
+            name: file =>
+              env === "development" ? "[name].[ext]" : "[hash].[ext]",
+          },
+        },
       },
     ],
   },
-  plugins: [
-    new CopyWebpackPlugin(["./src/manifest.json", "./src/index.html"]),
-    new CopyWebpackPlugin([{ from: "src/assets", to: "assets" }]),
-  ],
+  plugins: [new CopyWebpackPlugin(["./src/manifest.json", "./src/index.html"])],
 }

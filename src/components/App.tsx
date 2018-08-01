@@ -24,9 +24,9 @@ const sampleTexts = [
 ]
 
 const sampleImages = [
-  "./assets/leonardo_polyhedra.png",
-  "./assets/leonardo_anatomy.jpg",
-  "./assets/leonardo_hoist.jpg",
+  require("../assets/leonardo_polyhedra.png"),
+  require("../assets/leonardo_anatomy.jpg"),
+  require("../assets/leonardo_hoist.jpg"),
 ]
 
 const sampleCards = 50
