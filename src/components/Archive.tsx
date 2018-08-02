@@ -11,7 +11,7 @@ interface ArchiveProps {
 export default class Archive extends React.PureComponent<ArchiveProps, any> {
   render() {
     return (
-      <div style={archiveStyle} className="archive">
+      <div style={archiveStyle} className="Archive">
         <ul style={{ padding: 0 }}>
           {Object.keys(this.props.cards)
             .sort()

@@ -1,20 +1,22 @@
 import * as React from "react"
 
-import { Card } from "../types"
+import * as Types from "../types"
 import Board from "./Board"
 import Archive from "./Archive"
 import { BOARD_WIDTH, WINDOW_HEIGHT } from "../constants"
-import * as Types from "../types"
+import Card from "./Card"
 
 interface Cards {
-  [s: string]: Card
+  [s: string]: Types.Card
 }
-interface AppState {
+interface State {
   cards: Cards
   highestBoardZ: number
   mouseX: number
   mouseY: number
 }
+
+export interface Props {}
 
 const sampleTexts = [
   "Leonardo da Vinci was a proto-scientist with his mix of empiricism and reasoning by analogy",
@@ -32,8 +34,8 @@ const sampleImages = [
 const sampleCards = 50
 const sampleProbImage = 0.2
 
-export default class App extends React.PureComponent<{}, AppState> {
-  constructor(props: any) {
+export default class App extends React.PureComponent<Props, State> {
+  constructor(props: Props) {
     super(props)
     let cards: Cards = {}
     for (let i = 0; i < sampleCards; i++) {
@@ -65,7 +67,7 @@ export default class App extends React.PureComponent<{}, AppState> {
     }
   }
 
-  liftBoardCardZ = (card: Card) => {
+  liftBoardCardZ = (card: Types.Card) => {
     const newHighestBoardZ = this.state.highestBoardZ + 1
     const newCard = Object.assign({}, card, { z: newHighestBoardZ })
     const newCards = Object.assign({}, this.state.cards, { [card.id]: newCard })
@@ -76,7 +78,7 @@ export default class App extends React.PureComponent<{}, AppState> {
     this.setState(newState)
   }
 
-  mouseDownArchiveCard = (card: Card) => {
+  mouseDownArchiveCard = (card: Types.Card) => {
     const newHighestBoardZ = 500000000000
     const newCard = Object.assign({}, card, {
       z: newHighestBoardZ,
@@ -97,26 +99,20 @@ export default class App extends React.PureComponent<{}, AppState> {
       if (card.isBeingDraggedFromArchive) {
         optionalDiv = (
           <div
-            className="card"
-            style={Object.assign(
-              {},
-              Types.cardStyle,
-              { zIndex: card.z },
-              { top: this.state.mouseY },
-              { left: this.state.mouseX },
-            )}>
-            {card.image ? (
-              <img src={card.image} style={Types.cardImageStyle} />
-            ) : (
-              card.text
-            )}
+            style={{
+              zIndex: card.z,
+              top: this.state.mouseY,
+              left: this.state.mouseX,
+              position: "absolute",
+            }}>
+            <Card text={card.text} image={card.image} />
           </div>
         )
       }
     })
     return (
       <div
-        className="app"
+        className="App"
         onMouseMove={this.onMouseMove}
         onMouseUp={this.onMouseUp}>
         <Board cards={this.state.cards} liftBoardCardZ={this.liftBoardCardZ} />
