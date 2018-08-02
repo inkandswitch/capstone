@@ -2,6 +2,7 @@ import * as React from "react"
 import Draggable from "react-draggable"
 import * as Types from "../types"
 import Card from "./Card"
+import DraggableCard from "./DraggableCard"
 
 interface BoardProps {
   cards: { [s: string]: Types.Card }
@@ -18,20 +19,18 @@ export default class Board extends React.PureComponent<BoardProps, any> {
   render() {
     return (
       <div style={boardStyle} className="Board">
-        {Object.keys(this.props.cards).map((id: string) => {
+        {Object.keys(this.props.cards).map(id => {
           const card = this.props.cards[id]
+
           if (!card.onBoard) {
             return null
           }
+
           return (
-            <Draggable
-              key={card.id}
-              defaultPosition={{ x: card.x, y: card.y }}
-              onStart={() => this.props.liftBoardCardZ(card)}>
-              <div style={{ position: "absolute" }}>
-                <Card text={card.text} image={card.image} />
-              </div>
-            </Draggable>
+            <DraggableCard
+              card={card}
+              onDragStart={this.props.liftBoardCardZ}
+            />
           )
         })}
       </div>
