@@ -28,6 +28,7 @@ export default class Board extends React.PureComponent<BoardProps, any> {
 
           return (
             <DraggableCard
+              key={card.id}
               card={card}
               onDragStart={this.props.liftBoardCardZ}
             />
