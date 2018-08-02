@@ -39,7 +39,7 @@ export default class Board extends React.PureComponent<BoardProps, any> {
   }
 }
 
-const boardStyle = {
+const boardStyle: React.CSSProperties = {
   width: 800,
   height: 400,
   position: "absolute",
