@@ -5,6 +5,7 @@ import Board from "./Board"
 import Archive from "./Archive"
 import { BOARD_WIDTH, WINDOW_HEIGHT } from "../constants"
 import Card from "./Card"
+import { assoc, random } from "lodash/fp"
 
 interface Cards {
   [s: string]: Types.Card
@@ -39,8 +40,8 @@ export default class App extends React.PureComponent<Props, State> {
     super(props)
     let cards: Cards = {}
     for (let i = 0; i < sampleCards; i++) {
-      const x = Math.floor(Math.random() * (BOARD_WIDTH - 150)) + 1
-      const y = Math.floor(Math.random() * (WINDOW_HEIGHT - 100)) + 1
+      const x = random(0, BOARD_WIDTH - 150)
+      const y = random(0, WINDOW_HEIGHT - 100)
       const id = "c" + i
       const imageCard = Math.random() < sampleProbImage
 
@@ -68,18 +69,15 @@ export default class App extends React.PureComponent<Props, State> {
   }
 
   liftBoardCardZ = (card: Types.Card) => {
-    const newHighestBoardZ = this.state.highestBoardZ + 1
-    const newCard = Object.assign({}, card, { z: newHighestBoardZ })
-    const newCards = Object.assign({}, this.state.cards, { [card.id]: newCard })
-    const newState = Object.assign({}, this.state, {
-      highestBoardZ: newHighestBoardZ,
-      cards: newCards,
-    })
-    this.setState(newState)
+    const highestBoardZ = this.state.highestBoardZ + 1
+
+    this.setState(assoc(["cards", card.id, "z"], highestBoardZ))
+
+    this.setState({ highestBoardZ })
   }
 
   mouseDownArchiveCard = (card: Types.Card) => {
-    const newHighestBoardZ = 500000000000
+    const newHighestBoardZ = 1
     const newCard = Object.assign({}, card, {
       z: newHighestBoardZ,
       isBeingDraggedFromArchive: true,
@@ -135,13 +133,14 @@ export default class App extends React.PureComponent<Props, State> {
 
   onMouseUp = (e: React.MouseEvent) => {
     const newCards = Object.assign({}, this.state.cards)
+
     Object.keys(this.state.cards).map((id: string) => {
       const card = this.state.cards[id]
       if (card.isBeingDraggedFromArchive) {
         const newCard = Object.assign({}, card, {
           x: this.state.mouseX,
           y: this.state.mouseY,
-          z: 5000000000,
+          z: 1,
           onBoard: true,
           isBeingDraggedFromArchives: false,
         })

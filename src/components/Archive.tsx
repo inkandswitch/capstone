@@ -44,7 +44,7 @@ const archiveStyle: React.CSSProperties = {
   width: ARCHIVE_WIDTH,
   minHeight: WINDOW_HEIGHT,
   maxHeight: WINDOW_HEIGHT,
-  zIndex: 50000000,
+  zIndex: 1,
   background: "#42444d",
   overflowY: "scroll",
   overflowX: "hidden",

@@ -42,4 +42,6 @@ export default class Board extends React.PureComponent<BoardProps, any> {
 const boardStyle = {
   width: 800,
   height: 400,
+  position: "absolute",
+  zIndex: 0,
 }

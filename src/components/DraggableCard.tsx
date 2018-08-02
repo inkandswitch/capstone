@@ -17,7 +17,7 @@ export default class DraggableCard extends React.PureComponent<Props> {
         key={card.id}
         defaultPosition={{ x: card.x, y: card.y }}
         onStart={() => this.props.onDragStart(card)}>
-        <div style={{ position: "absolute" }}>
+        <div style={{ position: "absolute", willChange: "transform" }}>
           <Card text={card.text} image={card.image} />
         </div>
       </Draggable>
