@@ -1,5 +1,5 @@
-import * as React from "react"
-import Draggable from "react-draggable"
+import * as Preact from "preact"
+import Draggable from "../draggable/index"
 import * as Types from "../types"
 import Card from "./Card"
 
@@ -8,7 +8,11 @@ export interface Props {
   onDragStart: (card: Types.Card) => void
 }
 
-export default class DraggableCard extends React.PureComponent<Props> {
+export default class DraggableCard extends Preact.Component<Props> {
+  shouldComponentUpdate(nextProps: Props) {
+    return (this.props.card !== nextProps.card)
+  }
+
   render() {
     const { card } = this.props
 
@@ -17,9 +21,7 @@ export default class DraggableCard extends React.PureComponent<Props> {
         key={card.id}
         defaultPosition={{ x: card.x, y: card.y }}
         onStart={() => this.props.onDragStart(card)}>
-        <div style={{ position: "absolute", willChange: "transform" }}>
-          <Card text={card.text} image={card.image} />
-        </div>
+        <Card text={card.text} image={card.image} z={card.z} />
       </Draggable>
     )
   }

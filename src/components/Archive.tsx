@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as Preact from "preact"
 
 import { Card } from "../types"
 import { WINDOW_HEIGHT, ARCHIVE_WIDTH } from "../constants"
@@ -8,7 +8,12 @@ interface ArchiveProps {
   mouseDownArchiveCard: (card: Card) => void
 }
 
-export default class Archive extends React.PureComponent<ArchiveProps, any> {
+export default class Archive extends Preact.Component<ArchiveProps, any> {
+
+  shouldComponentUpdate(nextProps: ArchiveProps) {
+    return (this.props.cards !== nextProps.cards)
+  }
+
   render() {
     return (
       <div style={archiveStyle} className="Archive">
@@ -37,7 +42,7 @@ export default class Archive extends React.PureComponent<ArchiveProps, any> {
   }
 }
 
-const archiveStyle: React.CSSProperties = {
+const archiveStyle = {
   position: "absolute",
   right: 0,
   top: 0,
@@ -50,7 +55,7 @@ const archiveStyle: React.CSSProperties = {
   overflowX: "hidden",
 }
 
-const summaryCardStyle: React.CSSProperties = {
+const summaryCardStyle = {
   background: "#4d4f57",
   borderRadius: "4px",
   listStyleType: "none",
@@ -64,7 +69,7 @@ const summaryCardStyle: React.CSSProperties = {
   overflow: "hidden",
 }
 
-const summaryCardImageStyle: React.CSSProperties = {
+const summaryCardImageStyle = {
   height: "90%",
   pointerEvents: "none",
 }

@@ -1,10 +1,10 @@
-import * as React from "react"
+import * as Preact from "preact"
 
 interface Props {
-  onPointerDown?: (event: React.PointerEvent) => void
+  onPointerDown?: (event: PointerEvent) => void
 }
 
-export default class Window extends React.PureComponent<Props> {
+export default class Window extends Preact.Component<Props> {
   render() {
     return null
   }

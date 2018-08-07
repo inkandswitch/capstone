@@ -1,23 +1,32 @@
-import * as React from "react"
+import * as Preact from "preact"
 
 export interface Props {
   image?: string
   text?: string
+  z: number
 }
 
-export default class Card extends React.PureComponent<Props> {
-  render() {
-    const { image, text, ...rest } = this.props
+export default class Card extends Preact.Component<Props> {
 
+  // TODO: We'll need to update this when we expect other props.
+  // We basically want fast shallow compare of props & nextProps.
+  shouldComponentUpdate(nextProps: Props) {
+    return (this.props.image !== nextProps.image) ||
+           (this.props.text !== nextProps.text) ||
+           (this.props.z !== nextProps.z)
+  }
+
+  render() {
+    const { image, text, z, ...rest } = this.props
     return (
-      <div className="Card" style={style.card} {...rest}>
+      <div className="Card" style={Object.assign({zIndex: z}, style.card)} {...rest}>
         {image ? <img src={image} style={style.image} /> : text}
       </div>
     )
   }
 }
 
-const style: { [name: string]: React.CSSProperties } = {
+const style = {
   card: {
     height: 90,
     width: 150,

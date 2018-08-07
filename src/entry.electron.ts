@@ -1,8 +1,4 @@
 import { app, BrowserWindow } from "electron"
-import installExtension, {
-  REACT_DEVELOPER_TOOLS,
-} from "electron-devtools-installer"
-import { enableLiveReload } from "electron-compile"
 
 import { WINDOW_WIDTH, WINDOW_HEIGHT } from "./constants"
 
@@ -11,10 +7,6 @@ import { WINDOW_WIDTH, WINDOW_HEIGHT } from "./constants"
 let mainWindow: Electron.BrowserWindow | null = null
 
 const isDevMode = process.execPath.match(/[\\/]electron/)
-
-if (isDevMode) {
-  enableLiveReload({ strategy: "react-hmr" })
-}
 
 const createWindow = async () => {
   process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true"
@@ -27,12 +19,6 @@ const createWindow = async () => {
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`)
-
-  // Open the DevTools.
-  if (isDevMode) {
-    await installExtension(REACT_DEVELOPER_TOOLS)
-    mainWindow.webContents.openDevTools()
-  }
 
   // Emitted when the window is closed.
   mainWindow.on("closed", () => {

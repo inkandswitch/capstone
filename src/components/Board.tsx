@@ -1,5 +1,4 @@
-import * as React from "react"
-import Draggable from "react-draggable"
+import * as Preact from "preact"
 import * as Types from "../types"
 import Card from "./Card"
 import DraggableCard from "./DraggableCard"
@@ -9,11 +8,15 @@ interface BoardProps {
   liftBoardCardZ: (card: Types.Card) => void
 }
 
-export default class Board extends React.PureComponent<BoardProps, any> {
+export default class Board extends Preact.Component<BoardProps, any> {
   constructor(props: BoardProps) {
     super(props)
     const numberOfCards = Object.keys(props.cards).length
     this.state = { highestZ: numberOfCards }
+  }
+
+  shouldComponentUpdate(nextProps: BoardProps) {
+    return (this.props.cards !== nextProps.cards)
   }
 
   render() {
@@ -39,7 +42,7 @@ export default class Board extends React.PureComponent<BoardProps, any> {
   }
 }
 
-const boardStyle: React.CSSProperties = {
+const boardStyle = {
   width: 800,
   height: 400,
   position: "absolute",
