@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as Preact from "preact"
 
 import * as Types from "../types"
 import Board from "./Board"
@@ -26,16 +26,17 @@ const sampleTexts = [
   "Misconception around his flying machines and other fantastical devices most likely designed for theather performances, not the real world",
 ]
 
+// TODO: why doesn't `require("...")` work here anymore?
 const sampleImages = [
-  require("../assets/leonardo_polyhedra.png"),
-  require("../assets/leonardo_anatomy.jpg"),
-  require("../assets/leonardo_hoist.jpg"),
+  "../assets/leonardo_polyhedra.png",
+  "../assets/leonardo_anatomy.jpg",
+  "../assets/leonardo_hoist.jpg",
 ]
 
 const sampleCards = 50
 const sampleProbImage = 0.2
 
-export default class App extends React.PureComponent<Props, State> {
+export default class App extends Preact.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     let cards: Cards = {}
@@ -123,7 +124,7 @@ export default class App extends React.PureComponent<Props, State> {
     )
   }
 
-  onMouseMove = (e: React.MouseEvent) => {
+  onMouseMove = (e: MouseEvent) => {
     const newState = Object.assign({}, this.state, {
       mouseX: e.clientX,
       mouseY: e.clientY,
@@ -131,7 +132,7 @@ export default class App extends React.PureComponent<Props, State> {
     this.setState(newState)
   }
 
-  onMouseUp = (e: React.MouseEvent) => {
+  onMouseUp = (e: MouseEvent) => {
     const newCards = Object.assign({}, this.state.cards)
 
     Object.keys(this.state.cards).map((id: string) => {

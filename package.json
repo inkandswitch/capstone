@@ -12,8 +12,6 @@
   "devDependencies": {
     "@types/chrome": "^0.0.71",
     "@types/chrome-apps": "^0.0.1",
-    "@types/react": "^16.4.7",
-    "@types/react-dom": "^16.0.6",
     "awesome-typescript-loader": "^5.2.0",
     "copy-webpack-plugin": "^4.5.2",
     "css-loader": "^1.0.0",
@@ -27,10 +25,10 @@
     "webpack-cli": "^3.1.0"
   },
   "dependencies": {
+    "@types/classnames": "^2.2.6",
     "@types/lodash": "^4.14.115",
+    "classnames": "^2.2.6",
     "lodash": "^4.17.10",
-    "react": "^16.4.1",
-    "react-dom": "^16.4.1",
-    "react-draggable": "^3.0.5"
+    "preact": "^8.3.0"
   }
 }
