@@ -104,7 +104,7 @@ export default class App extends Preact.Component<Props, State> {
               left: this.state.mouseX,
               position: "absolute",
             }}>
-            <Card text={card.text} image={card.image} z={card.z} />
+            <Card text={card.text} image={card.image} />
           </div>
         )
       }

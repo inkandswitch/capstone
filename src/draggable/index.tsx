@@ -58,6 +58,7 @@ interface DraggableProps {
   defaultClassNameDragging?: string,
   defaultPosition: ControlPosition,
   position?: ControlPosition,
+  z: number,
 }
 
 export default class Draggable extends Preact.Component<DraggableProps, DraggableState> {
@@ -336,7 +337,7 @@ export default class Draggable extends Preact.Component<DraggableProps, Draggabl
 
     // Compute merged styles.
     // TODO: Should probably refactor this.
-    const style = Object.assign({}, createCSSTransform(transformOpts), {position: "absolute", willChange: "transform"})
+    const style = Object.assign({zIndex: this.props.z}, createCSSTransform(transformOpts), {position: "absolute", willChange: "transform"})
 
     // Compute merged class names. Mark with class while dragging.
     const {
