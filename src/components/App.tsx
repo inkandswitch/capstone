@@ -5,6 +5,7 @@ import Board from "./Board"
 import Archive from "./Archive"
 import { BOARD_WIDTH, WINDOW_HEIGHT } from "../constants"
 import Card from "./Card"
+import Canvas from "./Canvas"
 import { assoc, random } from "lodash/fp"
 
 interface Cards {
@@ -54,9 +55,9 @@ export default class App extends React.PureComponent<Props, State> {
         onBoard: true,
         image: imageCard
           ? sampleImages[Math.floor(Math.random() * sampleImages.length)]
-          : null,
+          : undefined,
         text: imageCard
-          ? null
+          ? undefined
           : sampleTexts[Math.floor(Math.random() * sampleTexts.length)],
       }
     }
@@ -113,6 +114,7 @@ export default class App extends React.PureComponent<Props, State> {
         className="App"
         onMouseMove={this.onMouseMove}
         onMouseUp={this.onMouseUp}>
+        <Canvas />
         <Board cards={this.state.cards} liftBoardCardZ={this.liftBoardCardZ} />
         <Archive
           cards={this.state.cards}
