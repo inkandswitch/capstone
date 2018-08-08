@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "noImplicitAny": true,
+    "strictNullChecks": true,
     "module": "commonjs",
     "target": "es2015",
     "jsx": "react",
@@ -9,5 +10,5 @@
     "allowJs": true,
     "sourceMap": true
   },
-  "include": ["src/main.ts", "src/entry.chrome.ts"]
+  "include": ["src/**/*"]
 }

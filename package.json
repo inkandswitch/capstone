@@ -27,6 +27,7 @@
   "dependencies": {
     "@types/classnames": "^2.2.6",
     "@types/lodash": "^4.14.115",
+    "automerge": "^0.8.0",
     "classnames": "^2.2.6",
     "lodash": "^4.17.10",
     "preact": "^8.3.0"

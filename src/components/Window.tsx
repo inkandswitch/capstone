@@ -17,7 +17,7 @@ export default class Window extends Preact.Component<Props> {
     window.removeEventListener("pointerdown", this.pointerDown)
   }
 
-  pointerDown = event => {
+  pointerDown = (event: PointerEvent) => {
     this.props.onPointerDown && this.props.onPointerDown(event)
   }
 }

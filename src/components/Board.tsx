@@ -1,50 +1,51 @@
 import * as Preact from "preact"
-import * as Types from "../types"
+import { maxBy } from "lodash/fp"
 import Card from "./Card"
-import DraggableCard from "./DraggableCard"
+import Base from "./Base"
+// import DraggableCard from "./DraggableCard"
+import Content from "./Content"
 
-interface BoardProps {
-  cards: { [s: string]: Types.Card }
-  liftBoardCardZ: (card: Types.Card) => void
+interface CardModel {
+  x: number
+  y: number
+  z: number
+  type: string
+  id: string
 }
 
-export default class Board extends Preact.Component<BoardProps, any> {
-  constructor(props: BoardProps) {
-    super(props)
-    const numberOfCards = Object.keys(props.cards).length
-    this.state = { highestZ: numberOfCards }
+export interface Model {
+  cards: { [id: string]: CardModel }
+  topZ: number
+}
+
+export default class Board extends Base<Model> {
+  defaults(): Model {
+    return {
+      cards: {},
+      topZ: 0,
+    }
   }
 
-  shouldComponentUpdate(nextProps: BoardProps) {
-    return (this.props.cards !== nextProps.cards)
-  }
-
-  render() {
+  show({ cards, topZ }: Model) {
     return (
-      <div style={boardStyle} className="Board">
-        {Object.keys(this.props.cards).map(id => {
-          const card = this.props.cards[id]
+      <div style={style.board} className="Board">
+        {/* {Object.keys(cards).map(id => {
+          const card = cards[id]
 
-          if (!card.onBoard) {
-            return null
-          }
-
-          return (
-            <DraggableCard
-              key={card.id}
-              card={card}
-              onDragStart={this.props.liftBoardCardZ}
-            />
-          )
-        })}
+          return <DraggableCard key={card.id} card={card} onDragStart={topZ} />
+        })} */}
       </div>
     )
   }
 }
 
-const boardStyle = {
-  width: 800,
-  height: 400,
-  position: "absolute",
-  zIndex: 0,
+Content.register("Board", Board)
+
+const style = {
+  board: {
+    width: 800,
+    height: 400,
+    position: "absolute",
+    zIndex: 0,
+  },
 }
