@@ -9,7 +9,7 @@ export interface Props {
 }
 
 export interface State<T> {
-  doc: Doc<T>
+  doc?: Doc<T>
 }
 
 // The base component that most document-based components should inherit from
@@ -22,7 +22,7 @@ export default abstract class Base<T> extends Preact.Component<
 
     if (props.id == null) {
       this.state = {
-        doc: this.store.create(this.defaults()),
+        doc: this.store && this.store.create(this.defaults()),
       }
     }
   }
@@ -30,17 +30,16 @@ export default abstract class Base<T> extends Preact.Component<
   abstract defaults(): T
   abstract show(doc: Doc<T>): Preact.ComponentChild
 
-  get store(): Store {
-    return this.context.store
+  get store(): Store | undefined {
+    return window.store
   }
 
-  get doc(): Doc<T> {
+  get doc(): Doc<T> | undefined {
     return this.state.doc
   }
 
-  change(callback: ChangeFn<T>): Doc<T> {
-    callback(this.doc)
-    return this.doc
+  change(callback: ChangeFn<T>): void {
+    if (this.doc) callback(this.doc)
   }
 
   render() {

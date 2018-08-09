@@ -7,7 +7,6 @@ interface Props {
 
 export default class Root extends Preact.Component<Props> {
   getChildContext() {
-    console.log(this.props.store)
     return {
       store: this.props.store,
     }
