@@ -2,7 +2,7 @@ import * as Preact from "preact"
 
 interface Widget extends Preact.Component<{ id: string }, any> {}
 
-type WidgetClass = {
+export type WidgetClass = {
   new (...k: any[]): Widget
 }
 

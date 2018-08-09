@@ -1,7 +1,7 @@
 import { random } from "lodash/fp"
-import * as Automerge from "automerge"
 import * as Preact from "preact"
 import Widget from "./Widget"
+import Content from "./Content"
 
 export interface Model {
   content: string
@@ -15,9 +15,22 @@ export default class Text extends Widget<Model> {
   }
 
   show({ content }: Model) {
-    return content
+    return <span style={style.Text}>{content}</span>
   }
 }
+
+const style = {
+  Text: {
+    fontSize: 16,
+    fontFamily: "serif",
+    padding: 10,
+    textAlign: "justify",
+    color: "#333",
+    lineHeight: 1.5,
+  },
+}
+
+Content.register("Text", Text)
 
 const samples = [
   "Leonardo da Vinci was a proto-scientist with his mix of empiricism and reasoning by analogy",

@@ -27,7 +27,7 @@ const style = {
     pointerEvents: "none",
     display: "block",
     width: "100%",
-    height: "100%", // TODO make this work with auto height
+    height: "auto",
   },
 }
 

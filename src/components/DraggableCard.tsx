@@ -12,7 +12,8 @@ interface CardModel {
 
 export interface Props {
   card: CardModel
-  onDragStart: (id: string) => void
+  index: number
+  onDragStart: (idx: number) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
@@ -22,7 +23,7 @@ export default class DraggableCard extends Preact.Component<Props> {
 
   render() {
     const { card } = this.props
-
+    console.log(card.z)
     return (
       <Draggable
         key={card.id}
@@ -35,6 +36,6 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   start = () => {
-    this.props.onDragStart(this.props.card.id)
+    this.props.onDragStart(this.props.index)
   }
 }

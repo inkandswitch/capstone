@@ -13,26 +13,27 @@ interface CardModel {
 }
 
 export interface Model {
-  cards: { [id: string]: CardModel }
+  cards: CardModel[]
   topZ: number
 }
 
 export default class Board extends Widget<Model> {
   defaults(): Model {
     return {
-      cards: {},
+      cards: [],
       topZ: 0,
     }
   }
 
   show({ cards, topZ }: Model) {
     return (
-      <div style={style.Board} className="Board">
+      <div style={style.Board}>
         <div style={style.Page}>
-          {Object.values(cards).map(card => {
+          {cards.map((card, idx) => {
             return (
               <DraggableCard
-                key={card.id}
+                key={idx}
+                index={idx}
                 card={card}
                 onDragStart={this.dragStart}
               />
@@ -43,10 +44,10 @@ export default class Board extends Widget<Model> {
     )
   }
 
-  dragStart = (id: string) => {
+  dragStart = (idx: number) => {
     this.change(doc => {
       doc.topZ += 1
-      doc.cards[id] && (doc.cards[id].z = doc.topZ)
+      doc.cards[idx] && (doc.cards[idx].z = doc.topZ)
     })
   }
 }
