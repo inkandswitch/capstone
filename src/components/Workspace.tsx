@@ -1,12 +1,12 @@
 import * as Preact from "preact"
-import Base, { AnyDoc } from "./Base"
+import Widget, { AnyDoc } from "./Widget"
 import Content from "./Content"
 
 export interface Model {
   boardId?: string
 }
 
-export default class Workspace extends Base<Model> {
+export default class Workspace extends Widget<Model> {
   defaults(): Model {
     return {}
   }

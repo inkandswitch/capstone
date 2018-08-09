@@ -1,13 +1,13 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import Base from "./Base"
+import Widget from "./Widget"
 import Content from "./Content"
 
 export interface Model {
   src: string
 }
 
-export default class Image extends Base<Model> {
+export default class Image extends Widget<Model> {
   defaults(): Model {
     return {
       src: samples[random(1, samples.length) - 1],

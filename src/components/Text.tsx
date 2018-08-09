@@ -1,13 +1,13 @@
 import { random } from "lodash/fp"
 import * as Automerge from "automerge"
 import * as Preact from "preact"
-import Base from "./Base"
+import Widget from "./Widget"
 
 export interface Model {
   content: string
 }
 
-export default class Text extends Base<Model> {
+export default class Text extends Widget<Model> {
   defaults(): Model {
     return {
       content: samples[random(1, samples.length) - 1],

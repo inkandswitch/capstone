@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import Card from "./Card"
-import Base from "./Base"
+import Widget from "./Widget"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 
@@ -17,7 +17,7 @@ export interface Model {
   topZ: number
 }
 
-export default class Board extends Base<Model> {
+export default class Board extends Widget<Model> {
   defaults(): Model {
     return {
       cards: {},

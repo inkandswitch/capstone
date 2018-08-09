@@ -14,10 +14,10 @@ export interface State<T> {
 }
 
 // The base component that most document-based components should inherit from
-export default abstract class Base<T> extends Preact.Component<
-  Props,
-  State<T>
-> {
+export default abstract class Widget<
+  T,
+  P extends Props
+> extends Preact.Component<P, State<T>> {
   constructor(props: Props, ctx: any) {
     super()
 
@@ -34,7 +34,10 @@ export default abstract class Base<T> extends Preact.Component<
   }
 
   abstract defaults(): T
-  abstract show(doc: Doc<T>): Preact.ComponentChild
+  abstract show(
+    doc: Doc<T>,
+    props?: Preact.RenderableProps<Props>,
+  ): Preact.ComponentChild
 
   get store(): Store | undefined {
     return window.store
