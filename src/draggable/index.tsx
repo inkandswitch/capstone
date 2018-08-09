@@ -73,7 +73,7 @@ interface DraggableProps {
   axis?: "both" | "x" | "y" | "none"
   bounds?: DraggableBounds | string | false
   defaultClassName?: string
-  defaultClassNameDragging: string
+  defaultClassNameDragging?: string
   defaultPosition: ControlPosition
   position?: ControlPosition
   z: number
@@ -385,7 +385,7 @@ export default class Draggable extends Preact.Component<
     // Compute merged class names. Mark with class while dragging.
     const { defaultClassName, defaultClassNameDragging } = this.props
     const className = classNames(defaultClassName, {
-      [defaultClassNameDragging]: this.state.dragging,
+      [defaultClassNameDragging || ""]: this.state.dragging,
     })
 
     return (

@@ -1,8 +1,7 @@
 import * as Preact from "preact"
-import { maxBy } from "lodash/fp"
 import Card from "./Card"
 import Base from "./Base"
-// import DraggableCard from "./DraggableCard"
+import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 
 interface CardModel {
@@ -29,13 +28,22 @@ export default class Board extends Base<Model> {
   show({ cards, topZ }: Model) {
     return (
       <div style={style.board} className="Board">
-        {/* {Object.keys(cards).map(id => {
+        {Object.keys(cards).map(id => {
           const card = cards[id]
 
-          return <DraggableCard key={card.id} card={card} onDragStart={topZ} />
-        })} */}
+          return (
+            <DraggableCard key={id} card={card} onDragStart={this.dragStart} />
+          )
+        })}
       </div>
     )
+  }
+
+  dragStart = (id: string) => {
+    this.change(doc => {
+      doc.topZ += 1
+      doc.cards[id] && (doc.cards[id].z = doc.topZ)
+    })
   }
 }
 

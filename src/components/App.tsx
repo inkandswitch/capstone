@@ -17,7 +17,7 @@ export default class App extends Preact.Component {
     return (
       <Root store={this.store}>
         <div style={style.App}>
-          <Content type="Workspace" />
+          <Content type="Workspace" id="id0" />
         </div>
       </Root>
     )

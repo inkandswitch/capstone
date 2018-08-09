@@ -17,7 +17,7 @@ declare module "automerge" {
   type Text = List<string>
 
   interface Object {
-    readonly objectId: string
+    readonly _objectId: string
     readonly [key: string]: Readonly<Value>
   }
 

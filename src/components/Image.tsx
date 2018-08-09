@@ -15,11 +15,21 @@ export default class Image extends Base<Model> {
   }
 
   show({ src }: Model) {
-    return <img src={src} />
+    return <img style={style.Image} src={src} />
   }
 }
 
 Content.register("Image", Image)
+
+const style = {
+  Image: {
+    objectFit: "cover",
+    pointerEvents: "none",
+    display: "block",
+    width: "100%",
+    height: "100%", // TODO make this work with auto height
+  },
+}
 
 const samples = [
   require("../assets/leonardo_polyhedra.png"),

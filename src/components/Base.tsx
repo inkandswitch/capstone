@@ -1,5 +1,6 @@
 import * as Preact from "preact"
-import { Doc, AnyDoc, ChangeFn } from "automerge"
+import { defaultsDeep } from "lodash"
+import { change, Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 
 export { Doc, AnyDoc }
@@ -24,6 +25,11 @@ export default abstract class Base<T> extends Preact.Component<
       this.state = {
         doc: this.store && this.store.create(this.defaults()),
       }
+    } else {
+      const doc = this.store && this.store.open(props.id)
+      this.state = {
+        doc: doc && this.decode(doc),
+      }
     }
   }
 
@@ -38,8 +44,14 @@ export default abstract class Base<T> extends Preact.Component<
     return this.state.doc
   }
 
+  decode(doc: AnyDoc): Doc<T> {
+    return change(doc as Doc<T>, doc => {
+      defaultsDeep(doc, this.defaults())
+    })
+  }
+
   change(callback: ChangeFn<T>): void {
-    if (this.doc) callback(this.doc)
+    if (this.doc && this.store) this.store.change(this.doc, "", callback)
   }
 
   render() {
