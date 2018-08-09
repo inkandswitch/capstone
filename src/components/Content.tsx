@@ -1,13 +1,16 @@
 import * as Preact from "preact"
 
-interface Widget extends Preact.Component<{ id: string }, any> {}
+interface Widget extends Preact.Component<{ id: string; view: View }, any> {}
 
 export type WidgetClass = {
   new (...k: any[]): Widget
 }
 
+export type View = "default" | "preview"
+
 export interface Props {
   type: string
+  view?: View
   id?: string
 }
 
@@ -28,9 +31,10 @@ export default class Content extends Preact.Component<Props & any> {
 
   render() {
     const Widget = this.find()
+    const view = this.props.view || "default"
 
     return Widget ? (
-      <Widget id={this.props.id} {...this.props} />
+      <Widget id={this.props.id} view={view} {...this.props} />
     ) : (
       <Missing type={this.props.type} />
     )

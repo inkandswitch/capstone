@@ -4,7 +4,7 @@ import Store from "../data/Store"
 import Root from "./Root"
 import Content from "./Content"
 
-// import "./Archive"
+import "./Archive"
 import "./Board"
 import "./Image"
 import "./Text"

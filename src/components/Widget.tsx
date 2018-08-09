@@ -2,12 +2,13 @@ import * as Preact from "preact"
 import { defaultsDeep } from "lodash"
 import { change, Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
-import Content, { WidgetClass } from "./Content"
+import Content, { WidgetClass, View } from "./Content"
 
 export { Doc, AnyDoc }
 
 export interface Props {
   id: string
+  view: View
 }
 
 export interface State<T> {
@@ -51,6 +52,10 @@ export default abstract class Widget<
 
   get doc(): Doc<T> | undefined {
     return this.state.doc
+  }
+
+  get view(): string {
+    return this.props.view
   }
 
   decode(doc: AnyDoc): Doc<T> {
