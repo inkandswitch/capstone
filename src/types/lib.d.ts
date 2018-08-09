@@ -5,4 +5,9 @@ declare global {
   interface Window {
     store?: Store
   }
+
+  interface Object {
+    values<T>(obj: { [k: string]: T }): T[]
+    values(obj: object): any[]
+  }
 }

@@ -35,7 +35,6 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   start = () => {
-    console.log(this.props.card)
     this.props.onDragStart(this.props.card.id)
   }
 }

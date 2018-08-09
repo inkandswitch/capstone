@@ -27,14 +27,18 @@ export default class Board extends Base<Model> {
 
   show({ cards, topZ }: Model) {
     return (
-      <div style={style.board} className="Board">
-        {Object.keys(cards).map(id => {
-          const card = cards[id]
-
-          return (
-            <DraggableCard key={id} card={card} onDragStart={this.dragStart} />
-          )
-        })}
+      <div style={style.Board} className="Board">
+        <div style={style.Page}>
+          {Object.values(cards).map(card => {
+            return (
+              <DraggableCard
+                key={card.id}
+                card={card}
+                onDragStart={this.dragStart}
+              />
+            )
+          })}
+        </div>
       </div>
     )
   }
@@ -50,10 +54,22 @@ export default class Board extends Base<Model> {
 Content.register("Board", Board)
 
 const style = {
-  board: {
-    width: 800,
-    height: 400,
+  Board: {
+    width: "100%",
+    height: "100%",
     position: "absolute",
     zIndex: 0,
+    backgroundColor: "#eee",
+  },
+  Page: {
+    backgroundColor: "#fff",
+    margin: 10,
+    borderRadius: 10,
+    boxShadow: "0 0 10px rgba(0,0,0,0.2)",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 }
