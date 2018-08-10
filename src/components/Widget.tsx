@@ -54,6 +54,10 @@ export default abstract class Widget<
     return this.state.doc
   }
 
+  set doc(doc: Doc<T> | undefined) {
+    this.setState({ doc })
+  }
+
   get view(): string {
     return this.props.view
   }
@@ -65,7 +69,8 @@ export default abstract class Widget<
   }
 
   change(callback: ChangeFn<T>): void {
-    if (this.doc && this.store) this.store.change(this.doc, "", callback)
+    if (this.doc && this.store)
+      this.doc = this.store.change(this.doc, "", callback)
   }
 
   render() {
