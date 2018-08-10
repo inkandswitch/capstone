@@ -23,7 +23,7 @@ export default class DraggableCard extends Preact.Component<Props> {
 
   render() {
     const { card } = this.props
-    console.log(card.z)
+
     return (
       <Draggable
         key={card.id}

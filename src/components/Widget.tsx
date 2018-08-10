@@ -72,7 +72,7 @@ export default abstract class Widget<
     return this.doc ? this.show(this.doc) : this.loading()
   }
 
-  loading() {
+  loading(): Preact.ComponentChild {
     return "Loading..."
   }
 }
