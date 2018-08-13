@@ -3,13 +3,13 @@ import Card from "./Card"
 import Widget from "./Widget"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
+import { AnyDoc } from "automerge"
 
 interface CardModel {
   x: number
   y: number
   z: number
-  type: string
-  id: string
+  url: string
 }
 
 export interface Model {
@@ -18,10 +18,10 @@ export interface Model {
 }
 
 export default class Board extends Widget<Model> {
-  defaults(): Model {
+  static decode(doc: AnyDoc): Model {
     return {
-      cards: [],
-      topZ: 0,
+      cards: Content.array(doc.cards),
+      topZ: Content.number(doc.topZ, 0),
     }
   }
 
@@ -35,8 +35,9 @@ export default class Board extends Widget<Model> {
                 key={idx}
                 index={idx}
                 card={card}
-                onDragStart={this.dragStart}
-              />
+                onDragStart={this.dragStart}>
+                <Content url={card.url} />
+              </DraggableCard>
             )
           })}
         </div>

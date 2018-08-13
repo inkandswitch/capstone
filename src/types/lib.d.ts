@@ -1,13 +1,33 @@
-import Store from "../data/Store"
+import Content from "../components/Content"
 
 declare global {
   function require(path: string): any
   interface Window {
-    store?: Store
+    Content: typeof Content
   }
 
-  interface Object {
-    values<T>(obj: { [k: string]: T }): T[]
-    values(obj: object): any[]
+  const Buffer: BufferConstructor
+
+  type Encoding =
+    | "ascii"
+    | "utf8"
+    | "utf16le"
+    | "ucs2"
+    | "base64"
+    | "latin1"
+    | "binary"
+    | "hex"
+
+  interface Buffer {
+    toString(encoding?: Encoding): string
+  }
+
+  interface BufferConstructor {
+    prototype: Buffer
+
+    isBuffer(obj: Buffer): true
+    isBuffer(obj: any): false
+
+    from(str: string, type?: string): Buffer
   }
 }

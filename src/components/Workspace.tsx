@@ -1,20 +1,25 @@
 import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import Content from "./Content"
+import { Doc } from "automerge"
 
 export interface Model {
-  boardId?: string
+  boardUrl: string
+  archiveUrl: string
 }
 
 export default class Workspace extends Widget<Model> {
-  defaults(): Model {
-    return {}
+  static decode(doc: AnyDoc): Model {
+    return {
+      boardUrl: Content.link("Board", doc.boardUrl),
+      archiveUrl: Content.link("Archive", doc.archiveUrl),
+    }
   }
 
-  show({ boardId }: Model) {
+  show({ boardUrl }: Doc<Model>) {
     return (
       <div class="Workspace">
-        <Content type="Board" id={boardId} />
+        <Content url={boardUrl} />
       </div>
     )
   }

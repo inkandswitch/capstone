@@ -1,6 +1,6 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import Widget from "./Widget"
+import Widget, { AnyDoc } from "./Widget"
 import Content from "./Content"
 
 export interface Model {
@@ -8,9 +8,9 @@ export interface Model {
 }
 
 export default class Text extends Widget<Model> {
-  defaults(): Model {
+  static decode(doc: AnyDoc): Model {
     return {
-      content: samples[random(1, samples.length) - 1],
+      content: Content.string(doc.content, sample()),
     }
   }
 
@@ -31,6 +31,8 @@ const style = {
 }
 
 Content.register("Text", Text)
+
+const sample = () => samples[random(1, samples.length) - 1]
 
 const samples = [
   "Leonardo da Vinci was a proto-scientist with his mix of empiricism and reasoning by analogy",

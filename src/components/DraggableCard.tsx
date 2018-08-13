@@ -6,8 +6,6 @@ interface CardModel {
   x: number
   y: number
   z: number
-  type: string
-  id: string
 }
 
 export interface Props {
@@ -22,15 +20,14 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   render() {
-    const { card } = this.props
+    const {
+      card: { x, y, z },
+      children,
+    } = this.props
 
     return (
-      <Draggable
-        key={card.id}
-        defaultPosition={{ x: card.x, y: card.y }}
-        onStart={this.start}
-        z={card.z}>
-        <Card type={card.type} id={card.id} />
+      <Draggable defaultPosition={{ x, y }} onStart={this.start} z={z}>
+        <Card>{children}</Card>
       </Draggable>
     )
   }

@@ -1,5 +1,5 @@
 import { change, init, Doc, AnyDoc, ChangeFn } from "automerge"
-import { defaultsDeep, mapValues } from "lodash"
+import { defaults, mapValues } from "lodash"
 import sample from "./sample"
 
 export default class Store {
@@ -7,14 +7,18 @@ export default class Store {
     makeDoc(id, json),
   )
 
-  create<T>(defs: T, msg: string = "Create"): Doc<T> {
-    return this.change(<Doc<T>>init(), msg, doc => {
-      defaultsDeep(doc, defs)
-    })
+  create<T>(decode: (doc: AnyDoc) => T, msg: string = "Create"): Doc<T> {
+    return this.decode(init(), msg, decode)
   }
 
   open(id: string): AnyDoc | undefined {
     return this.docs[id]
+  }
+
+  decode<T>(doc: AnyDoc, msg: string, dec: (doc: AnyDoc) => T): Doc<T> {
+    return this.update(<Doc<T>>change(doc, msg, doc => {
+      defaults(doc, dec(doc))
+    }))
   }
 
   update<T>(doc: Doc<T>): Doc<T> {
@@ -29,6 +33,6 @@ export default class Store {
 
 function makeDoc(id: string, json: object): AnyDoc {
   return change(init(id), "Init", doc => {
-    defaultsDeep(doc, json)
+    defaults(doc, json)
   })
 }

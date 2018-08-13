@@ -1,6 +1,6 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import Widget from "./Widget"
+import Widget, { AnyDoc } from "./Widget"
 import Content from "./Content"
 
 export interface Model {
@@ -8,9 +8,9 @@ export interface Model {
 }
 
 export default class Image extends Widget<Model> {
-  defaults(): Model {
+  static decode(doc: AnyDoc): Model {
     return {
-      src: samples[random(1, samples.length) - 1],
+      src: Content.string(doc.src, sample()),
     }
   }
 
@@ -30,6 +30,8 @@ const style = {
     height: "auto",
   },
 }
+
+const sample = () => samples[random(1, samples.length) - 1]
 
 const samples = [
   require("../assets/leonardo_polyhedra.png"),

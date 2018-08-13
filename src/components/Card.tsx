@@ -1,17 +1,11 @@
 import * as Preact from "preact"
-import Content from "./Content"
 
-export interface Props {
-  type: string
-  id?: string
-}
-
-export default class Card extends Preact.Component<Props> {
+export default class Card extends Preact.Component {
   render() {
-    const { type, id, ...rest } = this.props
+    const { children, ...rest } = this.props
     return (
-      <div className="Card" style={style.Card} {...rest}>
-        <Content type={type} id={id} />
+      <div style={style.Card} {...rest}>
+        {children}
       </div>
     )
   }

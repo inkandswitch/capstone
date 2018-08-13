@@ -1,6 +1,7 @@
 import * as Preact from "preact"
 
 import Store from "../data/Store"
+import * as Link from "../data/Link"
 import Root from "./Root"
 import Content from "./Content"
 
@@ -10,14 +11,19 @@ import "./Image"
 import "./Text"
 import "./Workspace"
 
-export default class App extends Preact.Component {
-  store: Store = (window.store = new Store())
+window.Content = Content
 
+Content.store = new Store()
+
+export default class App extends Preact.Component {
   render() {
+    // TODO: get url from persistent storage
+    const url = Link.format({ type: "Workspace", id: "id0" })
+
     return (
-      <Root store={this.store}>
+      <Root store={Content.store}>
         <div style={style.App}>
-          <Content type="Workspace" id="id0" />
+          <Content url={url} />
         </div>
       </Root>
     )

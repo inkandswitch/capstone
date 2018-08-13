@@ -7,7 +7,7 @@ import Content, { WidgetClass, View } from "./Content"
 export { Doc, AnyDoc }
 
 export interface Props {
-  id: string
+  url: string
   view: View
 }
 
@@ -15,7 +15,7 @@ export interface State<T> {
   doc?: Doc<T>
 }
 
-export function register<T extends WidgetClass>(Component: T) {
+export function register<T extends WidgetClass<T>>(Component: T) {
   Content.register(Component.name, Component)
   return Component
 }
@@ -28,26 +28,14 @@ export default abstract class Widget<
   constructor(props: Props, ctx: any) {
     super()
 
-    if (props.id == null) {
-      this.state = {
-        doc: this.store && this.store.create(this.defaults()),
-      }
-    } else {
-      const doc = this.store && this.store.open(props.id)
-      this.state = {
-        doc: doc && this.decode(doc),
-      }
-    }
+    const doc = Content.open<T>(props.url)
+    this.state = { doc }
   }
 
-  abstract defaults(): T
-  abstract show(
-    doc: Doc<T>,
-    props?: Preact.RenderableProps<Props>,
-  ): Preact.ComponentChild
+  abstract show(doc: Doc<T>): Preact.ComponentChild
 
-  get store(): Store | undefined {
-    return window.store
+  get store(): Store {
+    return Content.store
   }
 
   get doc(): Doc<T> | undefined {
@@ -60,12 +48,6 @@ export default abstract class Widget<
 
   get view(): string {
     return this.props.view
-  }
-
-  decode(doc: AnyDoc): Doc<T> {
-    return change(doc as Doc<T>, doc => {
-      defaultsDeep(doc, this.defaults())
-    })
   }
 
   change(callback: ChangeFn<T>): void {

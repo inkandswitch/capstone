@@ -1,28 +1,71 @@
 import * as Preact from "preact"
+import * as Link from "../data/Link"
+import { AnyDoc, Doc } from "automerge"
+import Store from "../data/Store"
 
-interface Widget extends Preact.Component<{ id: string; view: View }, any> {}
+interface Widget extends Preact.Component<{ url: string; view: View }, any> {}
 
-export type WidgetClass = {
+export type WidgetClass<T> = {
   new (...k: any[]): Widget
+  decode(doc: AnyDoc): T
 }
 
 export type View = "default" | "preview"
 
 export interface Props {
-  type: string
+  url: string
   view?: View
-  id?: string
 }
 
-export default class Content extends Preact.Component<Props & any> {
-  static registry: { [type: string]: WidgetClass } = {}
+export default class Content extends Preact.Component<Props & unknown> {
+  static registry: { [type: string]: WidgetClass<any> } = {}
 
-  static register(type: string, component: WidgetClass) {
+  static store: Store
+
+  /// Decoding helpers:
+
+  static link(type: string, existing: any): string {
+    return typeof existing === "string" ? existing : this.create(type)
+  }
+
+  static array<T>(existing: any): Array<T> {
+    return Array.isArray(existing) ? existing : []
+  }
+
+  static number(existing: any, def: number): number {
+    return typeof existing === "number" ? existing : def
+  }
+
+  static string(existing: any, def: string): string {
+    return typeof existing === "string" ? existing : def
+  }
+
+  /// Registry:
+
+  // Creates an initialized document of the given type and returns its URL
+  static create(type: string): string {
+    const doc = this.store.create(this.find(type).decode)
+    return Link.format({ type, id: doc._actorId })
+  }
+
+  // Opens an initialized document at the given URL
+  static open<T>(url: string): Doc<T> {
+    const { type, id } = Link.parse(url)
+    const widget = this.find(type)
+    const doc = this.store.open(id)
+
+    return doc && this.store.decode(doc, "Migrate", widget.decode)
+  }
+
+  static register(type: string, component: WidgetClass<any>) {
     this.registry[type] = component
   }
 
-  find(): WidgetClass | null {
-    return this.registry[this.props.type] || null
+  static find(type: string): WidgetClass<any> {
+    const widget = this.registry[type]
+    if (!widget) throw new Error(`Widget not found in registry: '${type}'`)
+
+    return widget
   }
 
   get registry() {
@@ -30,14 +73,15 @@ export default class Content extends Preact.Component<Props & any> {
   }
 
   render() {
-    const Widget = this.find()
+    const { url, type } = Link.parse(this.props.url)
+    const Widget = Content.find(type)
     const view = this.props.view || "default"
 
-    return Widget ? (
-      <Widget id={this.props.id} view={view} {...this.props} />
-    ) : (
-      <Missing type={this.props.type} />
-    )
+    if (!Widget) {
+      return <Missing type={type} />
+    }
+
+    return <Widget url={url} view={view} {...this.props} />
   }
 }
 
