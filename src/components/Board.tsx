@@ -1,5 +1,4 @@
 import * as Preact from "preact"
-import Card from "./Card"
 import Widget from "./Widget"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"

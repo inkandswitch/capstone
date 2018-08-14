@@ -10,6 +10,7 @@ import "./Image"
 import "./Text"
 import "./Workspace"
 
+// Used for debugging from the console:
 window.Content = Content
 
 Content.store = new Store()

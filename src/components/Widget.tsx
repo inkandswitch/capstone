@@ -1,6 +1,5 @@
 import * as Preact from "preact"
-import { defaultsDeep } from "lodash"
-import { change, Doc, AnyDoc, ChangeFn } from "automerge"
+import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import Content, { WidgetClass, View } from "./Content"
 
