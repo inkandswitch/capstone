@@ -33,7 +33,11 @@ Given a document URL, a widget can be rendered using `Content`:
 
 ### Building a widget
 
-Each widget must also provide a `static decode(doc)` function. This is used to ensure the document has the expected properties.
+Every widget must implement a `static decode(doc)` method which translates a
+free-form document which you hope contains your data into a definitive data
+structure you can render. The decode method helps to guarantee that later in
+your code you won't encounter runtime errors caused by unexpected `null` or
+`undefined` fields or subfields.
 
 To make widgets easier to build, a base `Widget` class is provided.
 A basic widget looks like this:
