@@ -51,8 +51,12 @@ export default abstract class Widget<
   }
 
   change(callback: ChangeFn<T>): void {
-    if (this.doc && this.store)
-      this.doc = this.store.change(this.doc, "", callback)
+    if (!this.doc) {
+      // TODO: handle this case better.
+      throw new Error("Cannot call change before the document has loaded.")
+    }
+
+    this.doc = this.store.change(this.doc, "", callback)
   }
 
   render() {
