@@ -1,50 +1,76 @@
 import * as Preact from "preact"
-import * as Types from "../types"
-import Card from "./Card"
+import Widget from "./Widget"
 import DraggableCard from "./DraggableCard"
+import Content from "./Content"
+import { AnyDoc } from "automerge"
 
-interface BoardProps {
-  cards: { [s: string]: Types.Card }
-  liftBoardCardZ: (card: Types.Card) => void
+interface CardModel {
+  x: number
+  y: number
+  z: number
+  url: string
 }
 
-export default class Board extends Preact.Component<BoardProps, any> {
-  constructor(props: BoardProps) {
-    super(props)
-    const numberOfCards = Object.keys(props.cards).length
-    this.state = { highestZ: numberOfCards }
+export interface Model {
+  cards: CardModel[]
+  topZ: number
+}
+
+export default class Board extends Widget<Model> {
+  static decode(doc: AnyDoc): Model {
+    return {
+      cards: Content.array(doc.cards),
+      topZ: Content.number(doc.topZ, 0),
+    }
   }
 
-  shouldComponentUpdate(nextProps: BoardProps) {
-    return (this.props.cards !== nextProps.cards)
-  }
-
-  render() {
+  show({ cards, topZ }: Model) {
     return (
-      <div style={boardStyle} className="Board">
-        {Object.keys(this.props.cards).map(id => {
-          const card = this.props.cards[id]
-
-          if (!card.onBoard) {
-            return null
-          }
-
-          return (
-            <DraggableCard
-              key={card.id}
-              card={card}
-              onDragStart={this.props.liftBoardCardZ}
-            />
-          )
-        })}
+      <div style={style.Board}>
+        <div style={style.Page}>
+          {cards.map((card, idx) => {
+            return (
+              <DraggableCard
+                key={idx}
+                index={idx}
+                card={card}
+                onDragStart={this.dragStart}>
+                <Content mode="embed" url={card.url} />
+              </DraggableCard>
+            )
+          })}
+        </div>
       </div>
     )
   }
+
+  dragStart = (idx: number) => {
+    this.change(doc => {
+      doc.topZ += 1
+      doc.cards[idx] && (doc.cards[idx].z = doc.topZ)
+    })
+  }
 }
 
-const boardStyle = {
-  width: 800,
-  height: 400,
-  position: "absolute",
-  zIndex: 0,
+Content.register("Board", Board)
+
+const style = {
+  Board: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    zIndex: 0,
+    backgroundColor: "#eee",
+  },
+  Page: {
+    backgroundColor: "#fff",
+    margin: 10,
+    borderRadius: 10,
+    boxShadow: "0 0 10px rgba(0,0,0,0.2)",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
 }
