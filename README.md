@@ -7,6 +7,11 @@ yarn install
 yarn start
 ```
 
+We're using [`prettier`](https://prettier.io/) for code formatting.
+It should be recommended in the extensions tab of VSCode, and there is
+support for [other editors](https://prettier.io/docs/en/editors.html) as well.
+Otherwise, you can format the code by running `yarn format`.
+
 ## Widgets
 
 Widgets are Preact components that handle the rendering and construction of a document.
