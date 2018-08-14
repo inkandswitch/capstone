@@ -19,16 +19,17 @@ Widgets are Preact components that handle the rendering and construction of a do
 A widget component is required to accept two props:
 
 - `url` is a document URL of the form: `capstone://Image/5M23ked3t3UBQGDS5uDqWVNsffebBhmo3PjguECRt7xH/HDP`
-- `view` is a string enum informing the widget how it's expected to render. Possible values are:
-  - `"default"` is how the widget is rendered on the board.
-  - `"preview"` is about the same as a card on the board, but should not be interactive.
+- `mode` is a string enum informing the widget how it's expected to render<sup>[1](#footnote1)</sup>. Possible values are:
+  - `"fullscreen"`: the widget is full screen.
+  - `"embed"`: the widget is embeded in another document (e.g. on the board).
+  - `"preview"`: same as "embed", but the widget should not expect user interaction.
 
 ### Using a widget
 
 Given a document URL, a widget can be rendered using `Content`:
 
 ```typescript
-<Content url={url} view="preview" />
+<Content url={url} mode="preview" />
 ```
 
 ### Building a widget
@@ -75,3 +76,18 @@ export default Counter extends Widget<Model> {
 
 Content.register("Counter", Counter) // Register the widget with Content, so other components can render it.
 ```
+
+## Footnotes
+
+[<a name="footnote1">1</a>]: `mode` is intended to give the widget a general
+sense of what it can expect about the context it is rendering into. For example,
+a widget receiving `"fullscreen"` can expect that it is (almost) the only thing
+rendered on the screen. The widget might then show additional controls, or enable
+a richer set of gestures.
+
+Similarly, `"preview"` is informing the widget that it is being rendered as a
+preview and will not receive user input events. The widget might hide
+interactive controls in this mode.
+
+`mode` is not explicitly saying anything about the _size_ of the widget, which
+will likely be provided via a separate prop.

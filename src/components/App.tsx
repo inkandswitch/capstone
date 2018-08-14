@@ -23,7 +23,7 @@ export default class App extends Preact.Component {
     return (
       <Root store={Content.store}>
         <div style={style.App}>
-          <Content url={url} />
+          <Content mode="fullscreen" url={url} />
         </div>
       </Root>
     )

@@ -3,18 +3,18 @@ import * as Link from "../data/Link"
 import { AnyDoc, Doc } from "automerge"
 import Store from "../data/Store"
 
-interface Widget extends Preact.Component<{ url: string; view: View }, any> {}
+interface Widget extends Preact.Component<{ url: string; mode: Mode }, any> {}
 
 export type WidgetClass<T> = {
   new (...k: any[]): Widget
   decode(doc: AnyDoc): T
 }
 
-export type View = "default" | "preview"
+export type Mode = "fullscreen" | "embed" | "preview"
 
 export interface Props {
   url: string
-  view?: View
+  mode: Mode
 }
 
 export default class Content extends Preact.Component<Props & unknown> {
@@ -73,15 +73,15 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   render() {
+    const { mode } = this.props
     const { url, type } = Link.parse(this.props.url)
     const Widget = Content.find(type)
-    const view = this.props.view || "default"
 
     if (!Widget) {
       return <Missing type={type} />
     }
 
-    return <Widget url={url} view={view} {...this.props} />
+    return <Widget url={url} mode={mode} {...this.props} />
   }
 }
 

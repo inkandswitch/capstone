@@ -19,7 +19,7 @@ export default class Workspace extends Widget<Model> {
   show({ boardUrl }: Doc<Model>) {
     return (
       <div class="Workspace">
-        <Content url={boardUrl} />
+        <Content mode={this.mode} url={boardUrl} />
       </div>
     )
   }

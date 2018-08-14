@@ -1,13 +1,13 @@
 import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
-import Content, { WidgetClass, View } from "./Content"
+import Content, { WidgetClass, Mode } from "./Content"
 
 export { Doc, AnyDoc }
 
 export interface Props {
   url: string
-  view: View
+  mode: Mode
 }
 
 export interface State<T> {
@@ -45,8 +45,8 @@ export default abstract class Widget<
     this.setState({ doc })
   }
 
-  get view(): string {
-    return this.props.view
+  get mode(): Mode {
+    return this.props.mode
   }
 
   change(callback: ChangeFn<T>): void {

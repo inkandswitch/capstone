@@ -35,7 +35,7 @@ export default class Board extends Widget<Model> {
                 index={idx}
                 card={card}
                 onDragStart={this.dragStart}>
-                <Content url={card.url} />
+                <Content mode="embed" url={card.url} />
               </DraggableCard>
             )
           })}
