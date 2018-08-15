@@ -4,6 +4,8 @@ import { Id } from "hypermerge"
 
 export const SCHEME = "capstone"
 
+export type Url = string
+
 export interface Link {
   readonly url: string
   readonly type: string

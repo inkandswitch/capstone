@@ -1,6 +1,7 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
+import * as Reify from "../data/Reify"
 import Content from "./Content"
 
 export interface Model {
@@ -10,7 +11,7 @@ export interface Model {
 export default class Image extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
-      src: Content.string(doc.src, sample()),
+      src: Reify.string(doc.src, sample),
     }
   }
 
@@ -31,7 +32,7 @@ const style = {
   },
 }
 
-const sample = () => samples[random(1, samples.length) - 1]
+const sample = (): string => samples[random(1, samples.length) - 1]
 
 const samples = [
   require("../assets/leonardo_polyhedra.png"),

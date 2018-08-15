@@ -22,24 +22,6 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static store: Store
 
-  /// Reification helpers:
-
-  static link(type: string, existing: any): string {
-    return typeof existing === "string" ? existing : this.create(type)
-  }
-
-  static array<T>(existing: any): Array<T> {
-    return Array.isArray(existing) ? existing : []
-  }
-
-  static number(existing: any, def: number): number {
-    return typeof existing === "number" ? existing : def
-  }
-
-  static string(existing: any, def: string): string {
-    return typeof existing === "string" ? existing : def
-  }
-
   /// Registry:
 
   // Creates an initialized document of the given type and returns its URL
