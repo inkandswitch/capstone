@@ -16,18 +16,18 @@ export default class Store {
   }
 
   reify<T>(doc: AnyDoc, msg: string, reifyFn: (doc: AnyDoc) => T): Doc<T> {
-    return this.update(<Doc<T>>change(doc, msg, doc => {
+    return this.replace(<Doc<T>>change(doc, msg, doc => {
       defaults(doc, reifyFn(doc))
     }))
   }
 
-  update<T>(doc: Doc<T>): Doc<T> {
+  replace<T>(doc: Doc<T>): Doc<T> {
     this.docs[doc._actorId] = doc
     return doc
   }
 
   change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>) {
-    return this.update(change(doc, msg, cb))
+    return this.replace(change(doc, msg, cb))
   }
 }
 
