@@ -1,5 +1,6 @@
 import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
+import * as Reify from "../data/Reify"
 import Content from "./Content"
 import { Doc } from "automerge"
 
@@ -9,10 +10,10 @@ export interface Model {
 }
 
 export default class Workspace extends Widget<Model> {
-  static decode(doc: AnyDoc): Model {
+  static reify(doc: AnyDoc): Model {
     return {
-      boardUrl: Content.link("Board", doc.boardUrl),
-      archiveUrl: Content.link("Archive", doc.archiveUrl),
+      boardUrl: Reify.link(doc.boardUrl, () => Content.create("Board")),
+      archiveUrl: Reify.link(doc.archiveUrl, () => Content.create("Archive")),
     }
   }
 

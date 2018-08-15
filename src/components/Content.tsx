@@ -7,7 +7,7 @@ interface Widget extends Preact.Component<{ url: string; mode: Mode }, any> {}
 
 export type WidgetClass<T> = {
   new (...k: any[]): Widget
-  decode(doc: AnyDoc): T
+  reify(doc: AnyDoc): T
 }
 
 export type Mode = "fullscreen" | "embed" | "preview"
@@ -22,29 +22,11 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static store: Store
 
-  /// Decoding helpers:
-
-  static link(type: string, existing: any): string {
-    return typeof existing === "string" ? existing : this.create(type)
-  }
-
-  static array<T>(existing: any): Array<T> {
-    return Array.isArray(existing) ? existing : []
-  }
-
-  static number(existing: any, def: number): number {
-    return typeof existing === "number" ? existing : def
-  }
-
-  static string(existing: any, def: string): string {
-    return typeof existing === "string" ? existing : def
-  }
-
   /// Registry:
 
   // Creates an initialized document of the given type and returns its URL
   static create(type: string): string {
-    const doc = this.store.create(this.find(type).decode)
+    const doc = this.store.create(this.find(type).reify)
     return Link.format({ type, id: doc._actorId })
   }
 
@@ -54,7 +36,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     const widget = this.find(type)
     const doc = this.store.open(id)
 
-    return doc && this.store.decode(doc, "Migrate", widget.decode)
+    return doc && this.store.reify(doc, "Migrate", widget.reify)
   }
 
   static register(type: string, component: WidgetClass<any>) {

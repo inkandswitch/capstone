@@ -34,9 +34,9 @@ Given a document URL, a widget can be rendered using `Content`:
 
 ### Building a widget
 
-Every widget must implement a `static decode(doc)` method which translates a
+Every widget must implement a `static reify(doc)` method which translates a
 free-form document which you hope contains your data into a definitive data
-structure you can render. The decode method helps to guarantee that later in
+structure you can render. The reify method helps to guarantee that later in
 your code you won't encounter runtime errors caused by unexpected `null` or
 `undefined` fields or subfields.
 
@@ -54,7 +54,7 @@ interface Model {
 }
 
 export default Counter extends Widget<Model> {
-  static decode(doc: AnyDoc): Model {
+  static reify(doc: AnyDoc): Model {
     return {
       count: Content.number(doc.count, 0), // Content.number ensures that doc.count is a number, and provides 0 as a default
     }

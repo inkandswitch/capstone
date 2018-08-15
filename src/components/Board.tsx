@@ -2,7 +2,8 @@ import * as Preact from "preact"
 import Widget from "./Widget"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
-import { AnyDoc } from "automerge"
+import * as Reify from "../data/Reify"
+import { AnyDoc, Doc } from "automerge"
 
 interface CardModel {
   x: number
@@ -17,10 +18,10 @@ export interface Model {
 }
 
 export default class Board extends Widget<Model> {
-  static decode(doc: AnyDoc): Model {
+  static reify(doc: AnyDoc): Model {
     return {
-      cards: Content.array(doc.cards),
-      topZ: Content.number(doc.topZ, 0),
+      cards: Reify.array(doc.cards),
+      topZ: Reify.number(doc.topZ),
     }
   }
 
