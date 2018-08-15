@@ -9,6 +9,7 @@ import "./Board"
 import "./Image"
 import "./Text"
 import "./Workspace"
+import "./Archive"
 
 // Used for debugging from the console:
 window.Content = Content

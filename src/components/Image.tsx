@@ -27,8 +27,10 @@ const style = {
     objectFit: "cover",
     pointerEvents: "none",
     display: "block",
-    width: "100%",
-    height: "auto",
+    // width: "auto",
+    // height: "auto",
+    maxWidth: "100%",
+    maxHeight: "100%",
   },
 }
 

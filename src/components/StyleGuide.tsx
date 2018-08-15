@@ -1,27 +1,25 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
-import * as Reify from "../data/Reify"
 import Content from "./Content"
 
-export interface Model {
-  content: string
-}
+export interface Model {}
 
-export default class Text extends Widget<Model> {
-  static reify(doc: AnyDoc): Model {
+export default class StyleGuide extends Widget<Model> {
+  static decode(doc: AnyDoc): Model {
     return {
-      content: Reify.string(doc.content, sample),
+      content: Content.string(doc.content, sample()),
     }
   }
 
-  show({ content }: Model) {
-    return <div style={style.Text}>{content}</div>
+  show() {
+    const { url } = this.props
+    return <div style={style.StyleGuide} />
   }
 }
 
 const style = {
-  Text: {
+  StyleGuide: {
     fontSize: 16,
     fontFamily: "serif",
     padding: 10,
@@ -32,9 +30,9 @@ const style = {
   },
 }
 
-Content.register("Text", Text)
+Content.register("StyleGuide", StyleGuide)
 
-const sample = (): string => samples[random(1, samples.length) - 1]
+const sample = () => samples[random(1, samples.length) - 1]
 
 const samples = [
   "Leonardo da Vinci was a proto-scientist with his mix of empiricism and reasoning by analogy",
