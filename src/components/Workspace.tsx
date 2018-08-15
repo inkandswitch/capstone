@@ -9,7 +9,7 @@ export interface Model {
 }
 
 export default class Workspace extends Widget<Model> {
-  static decode(doc: AnyDoc): Model {
+  static reify(doc: AnyDoc): Model {
     return {
       boardUrl: Content.link("Board", doc.boardUrl),
       archiveUrl: Content.link("Archive", doc.archiveUrl),

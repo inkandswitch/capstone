@@ -8,7 +8,7 @@ export interface Model {
 }
 
 export default class Text extends Widget<Model> {
-  static decode(doc: AnyDoc): Model {
+  static reify(doc: AnyDoc): Model {
     return {
       content: Content.string(doc.content, sample()),
     }

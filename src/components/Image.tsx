@@ -8,7 +8,7 @@ export interface Model {
 }
 
 export default class Image extends Widget<Model> {
-  static decode(doc: AnyDoc): Model {
+  static reify(doc: AnyDoc): Model {
     return {
       src: Content.string(doc.src, sample()),
     }
