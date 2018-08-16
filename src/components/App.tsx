@@ -29,7 +29,6 @@ export default class App extends Preact.Component<{}, State> {
     let archiveUrl = Content.create("Archive")
     workspaceUrl
       .then(workspaceUrl => {
-        this.setState({ url: workspaceUrl })
         return Content.open<Workspace.Model>(workspaceUrl)
       })
       .then(workspace =>
