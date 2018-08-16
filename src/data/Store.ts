@@ -11,8 +11,13 @@ export default class Store {
     return this.replace(init())
   }
 
-  open(id: string): AnyDoc | undefined {
-    return this.docs[id]
+  open(id: string): Promise<AnyDoc> {
+    return new Promise(
+      (resolve, reject) =>
+        this.docs[id]
+          ? resolve(this.docs[id])
+          : reject(new Error("no such doc to open")),
+    )
   }
 
   replace(doc: AnyDoc): AnyDoc {
