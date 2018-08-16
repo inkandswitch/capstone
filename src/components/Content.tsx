@@ -26,15 +26,16 @@ export default class Content extends Preact.Component<Props & unknown> {
   /// Registry:
 
   // Creates an initialized document of the given type and returns its URL
-  static create(type: string): string {
-    const doc = this.store.create()
-    return Link.format({ type, id: doc._actorId })
+  static create(type: string): Promise<string> {
+    return this.store
+      .create()
+      .then(doc => Link.format({ type, id: doc._actorId }))
   }
 
   // Opens an initialized document at the given URL
   static open<T>(url: string): Promise<Doc<T>> {
     const { type, id } = Link.parse(url)
-    const widget = this.find(type)
+    const widget = this.find(type) as WidgetClass<T>
     const doc = this.store.open(id)
     return doc.then(doc => Reify.reify(doc, widget.reify))
   }

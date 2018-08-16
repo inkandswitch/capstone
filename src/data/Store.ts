@@ -7,8 +7,8 @@ export default class Store {
     makeDoc(id, json),
   )
 
-  create(): AnyDoc {
-    return this.replace(init())
+  create(): Promise<AnyDoc> {
+    return new Promise(resolve => resolve(this.replace(init())))
   }
 
   open(id: string): Promise<AnyDoc> {

@@ -9,17 +9,43 @@ import "./Board"
 import "./Image"
 import "./Text"
 import "./Workspace"
+import * as Workspace from "./Workspace"
 
 // Used for debugging from the console:
 window.Content = Content
 
 Content.store = new Store()
 
-export default class App extends Preact.Component {
-  render() {
-    // TODO: get url from persistent storage
-    const url = Link.format({ type: "Workspace", id: "id0" })
+type State = {
+  url: string
+}
 
+export default class App extends Preact.Component<{}, State> {
+  constructor() {
+    super()
+    // initialize the workspace at startup (since we have no persistence)
+    let workspaceUrl = Content.create("Workspace")
+    let boardUrl = Content.create("Board")
+    let archiveUrl = Content.create("Archive")
+    workspaceUrl
+      .then(workspaceUrl => {
+        this.setState({ url: workspaceUrl })
+        return Content.open<Workspace.Model>(workspaceUrl)
+      })
+      .then(workspace =>
+        Promise.all([boardUrl, archiveUrl]).then(([boardUrl, archiveUrl]) =>
+          Content.store.change(workspace, "adding initial urls", doc => {
+            doc.boardUrl = boardUrl
+            doc.archiveUrl = archiveUrl
+          }),
+        ),
+      )
+  }
+  render() {
+    const { url } = this.state
+    if (!url) {
+      return null
+    }
     return (
       <Root store={Content.store}>
         <div style={style.App}>
