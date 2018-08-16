@@ -7,11 +7,11 @@ export default class Store {
     makeDoc(id, json),
   )
 
-  dontKeepThis = 0
+  dontKeepThisCurrentId = 0
 
   create(): Promise<AnyDoc> {
-    return new Promise(resolve =>
-      resolve(this.replace(init("id" + this.dontKeepThis++))),
+    return Promise.resolve(
+      this.replace(init("storeId" + this.dontKeepThisCurrentId++)),
     )
   }
 
