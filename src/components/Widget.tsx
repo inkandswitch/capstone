@@ -55,7 +55,8 @@ export default abstract class Widget<
       throw new Error("Cannot call change before the document has loaded.")
     }
 
-    this.doc = this.store.change(this.doc, "", callback)
+    // type hack
+    this.doc = this.store.change(this.doc, "", callback) as Doc<T>
   }
 
   render() {

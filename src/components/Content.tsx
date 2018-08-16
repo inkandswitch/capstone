@@ -2,6 +2,7 @@ import * as Preact from "preact"
 import * as Link from "../data/Link"
 import { AnyDoc, Doc } from "automerge"
 import Store from "../data/Store"
+import * as Reify from "../data/Reify"
 
 interface Widget extends Preact.Component<{ url: string; mode: Mode }, any> {}
 
@@ -26,7 +27,7 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   // Creates an initialized document of the given type and returns its URL
   static create(type: string): string {
-    const doc = this.store.create(this.find(type).reify)
+    const doc = this.store.create()
     return Link.format({ type, id: doc._actorId })
   }
 
@@ -36,7 +37,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     const widget = this.find(type)
     const doc = this.store.open(id)
 
-    return doc && this.store.reify(doc, "Migrate", widget.reify)
+    return doc && Reify.reify(doc, widget.reify)
   }
 
   static register(type: string, component: WidgetClass<any>) {

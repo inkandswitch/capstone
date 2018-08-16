@@ -7,21 +7,15 @@ export default class Store {
     makeDoc(id, json),
   )
 
-  create<T>(reify: (doc: AnyDoc) => T, msg: string = "Create"): Doc<T> {
-    return this.reify(init(), msg, reify)
+  create(): AnyDoc {
+    return init()
   }
 
   open(id: string): AnyDoc | undefined {
     return this.docs[id]
   }
 
-  reify<T>(doc: AnyDoc, msg: string, reifyFn: (doc: AnyDoc) => T): Doc<T> {
-    return this.replace(<Doc<T>>change(doc, msg, doc => {
-      defaults(doc, reifyFn(doc))
-    }))
-  }
-
-  replace<T>(doc: Doc<T>): Doc<T> {
+  replace(doc: AnyDoc): AnyDoc {
     this.docs[doc._actorId] = doc
     return doc
   }
