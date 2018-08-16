@@ -20,8 +20,13 @@ export default class Store {
     return doc
   }
 
-  change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>) {
-    return this.replace(change(doc, msg, cb))
+  change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>): Promise<Doc<T>> {
+    return new Promise(
+      (resolve, reject) =>
+        doc
+          ? resolve(this.replace(change(doc, msg, cb)) as Doc<T>)
+          : reject(new Error("replace failed")),
+    )
   }
 }
 

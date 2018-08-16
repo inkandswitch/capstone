@@ -41,10 +41,6 @@ export default abstract class Widget<
     return this.state.doc
   }
 
-  set doc(doc: Doc<T> | undefined) {
-    this.setState({ doc })
-  }
-
   get mode(): Mode {
     return this.props.mode
   }
@@ -55,8 +51,9 @@ export default abstract class Widget<
       throw new Error("Cannot call change before the document has loaded.")
     }
 
-    // type hack
-    this.doc = this.store.change(this.doc, "", callback) as Doc<T>
+    this.store
+      .change(this.doc, "", callback)
+      .then(doc => this.setState({ doc }))
   }
 
   render() {
