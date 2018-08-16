@@ -25,20 +25,21 @@ export default class App extends Preact.Component<{}, State> {
     super()
     // initialize the workspace at startup (since we have no persistence)
     let workspaceUrl = Content.create("Workspace")
-    let boardUrl = Content.create("Board")
     let archiveUrl = Content.create("Archive")
     workspaceUrl
       .then(workspaceUrl => {
         return Content.open<Workspace.Model>(workspaceUrl)
       })
-      .then(workspace =>
-        Promise.all([boardUrl, archiveUrl]).then(([boardUrl, archiveUrl]) =>
+      .then(workspace => {
+        Promise.all([archiveUrl]).then(([archiveUrl]) =>
           Content.store.change(workspace, "adding initial urls", doc => {
-            doc.boardUrl = boardUrl
+            doc.boardUrl = Link.format({ type: "Board", id: "id1" }) // use sample data
             doc.archiveUrl = archiveUrl
           }),
-        ),
-      )
+        )
+        return workspaceUrl
+      })
+      .then(workspaceUrl => this.setState({ url: workspaceUrl }))
   }
   render() {
     const { url } = this.state
