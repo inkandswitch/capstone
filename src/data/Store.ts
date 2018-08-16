@@ -8,7 +8,7 @@ export default class Store {
   )
 
   create(): AnyDoc {
-    return init()
+    return this.replace(init())
   }
 
   open(id: string): AnyDoc | undefined {
