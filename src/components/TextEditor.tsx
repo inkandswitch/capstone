@@ -1,6 +1,7 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
 import * as CodeMirror from "codemirror"
+import "codemirror/lib/codemirror.css"
 
 export interface Props {
   content: string
