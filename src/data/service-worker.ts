@@ -1,20 +1,22 @@
-import Store from './store'
+import StoreBackend from "./StoreBackend"
 
-this.store = new Store()
+class ServiceWorker {
+let store = new StoreBackend()
 
-self.addEventListener('install', function(event) {
+self.addEventListener("install", function(event) {
   // Perform install steps
-  console.log('Install hook');
-}) 
-
-self.addEventListener('message', (event) => {
-  let { command, id, doc } = event.data
-  switch (command) {
-    case "OpenDoc":
-      return event.ports[0].postMessage(this.store.open(id))
-    case "Update":
-      return this.docs[id] = doc
-  }
-
+  console.log("Install hook")
 })
 
+self.addEventListener("message", event => {
+  let { command, id, doc } = event.data
+  switch (command) {
+    case "Create":
+      store.create().then((doc) => event.ports[0].postMessage(doc) )
+    case "OpenDoc":
+      return event.ports[0].postMessage(store.open(id))
+    case "Update":
+      return (this.docs[id] = doc)
+  }
+})
+}
