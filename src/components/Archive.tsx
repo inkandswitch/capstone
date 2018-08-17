@@ -8,45 +8,77 @@ export interface Model {
   docs: Array<{
     url: string
   }>
+  selected: string[]
 }
 
 export default class Archive extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
       docs: Reify.array(doc.docs),
+      selected: Reify.array(doc.selected),
     }
   }
 
-  show({ docs }: Model) {
+  show({ docs, selected }: Model) {
     return (
       <div style={style.Archive}>
         <div style={style.Items}>
           {docs.map(({ url }) => (
-            <Archive.Item url={url} />
+            <Item
+              url={url}
+              isSelected={selected.includes(url)}
+              onToggleSelect={this.toggleSelect}
+            />
           ))}
         </div>
+        <div style={style.Selection} />
       </div>
     )
   }
 
-  static Item = class Item extends Preact.Component<{ url: string }> {
-    render() {
-      const { url } = this.props
-      return (
-        <div style={style.Item} draggable onDragStart={this.dragStart}>
-          <Content mode="preview" url={url} />
-        </div>
-      )
-    }
-
-    dragStart = (event: DragEvent) => {
-      const { url } = this.props
-      event.dataTransfer.effectAllowed = "link"
-      event.dataTransfer.setData("application/capstone-url", url)
-    }
+  toggleSelect = (url: string) => {
+    this.change(doc => {
+      const idx = doc.selected.indexOf(url)
+      if (idx >= 0) {
+        doc.selected.splice(idx, 1)
+      } else {
+        doc.selected.push(url)
+      }
+    })
   }
 }
 
+interface ItemProps {
+  url: string
+  isSelected: boolean
+  onToggleSelect: (url: string) => void
+}
+
+class Item extends Preact.Component<ItemProps> {
+  render() {
+    const { url, isSelected } = this.props
+    return (
+      <div
+        style={{ ...style.Item, ...(isSelected ? style.Item_selected : {}) }}
+        draggable
+        onClick={this.click}
+        onDragStart={this.dragStart}>
+        <Content mode="preview" url={url} />
+      </div>
+    )
+  }
+
+  // TODO: replace this with <Touch onTap={...}>...</Touch>
+  click = () => {
+    this.props.onToggleSelect(this.props.url)
+  }
+
+  dragStart = (event: DragEvent) => {
+    const { url } = this.props
+    event.dataTransfer.effectAllowed = "link"
+    event.dataTransfer.setData("application/capstone-url", url)
+  }
+}
 const style = {
   Archive: {
     backgroundColor: "rgba(97, 101, 117, 0.9)",
@@ -58,12 +90,13 @@ const style = {
     height: "50%",
     overflow: "auto",
     zIndex: 1,
+    padding: 20,
   },
 
   Items: {
     display: "flex",
     height: 200,
-    alignItems: "center",
+    alignItems: "stretch",
     color: "#333",
   },
 
@@ -74,6 +107,17 @@ const style = {
     maxHeight: 200,
     position: "relative",
     backgroundColor: "#fff",
+  },
+
+  Item_selected: {
+    boxShadow: "0 0 0 2px #D769FA",
+  },
+
+  Selection: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    margin: 10,
   },
 }
 
