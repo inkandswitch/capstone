@@ -1,31 +1,26 @@
 import { change, init, Doc, AnyDoc, ChangeFn } from "automerge"
 import { defaults, mapValues } from "lodash"
-import sample from "./sample"
+import StoreBackend from "./StoreBackend"
 
 export default class Store {
-  docs: { [id: string]: AnyDoc } = mapValues(sample, (json, id) =>
-    makeDoc(id, json),
-  )
+  backend: StoreBackend
+
+  constructor() {
+    this.backend = new StoreBackend()
+  }
 
   dontKeepThisCurrentId = 0
 
   create(): Promise<AnyDoc> {
-    return Promise.resolve(
-      this.replace(init("storeId" + this.dontKeepThisCurrentId++)),
-    )
+    return this.backend.create()
   }
 
   open(id: string): Promise<AnyDoc> {
-    return new Promise(
-      (resolve, reject) =>
-        this.docs[id]
-          ? resolve(this.docs[id])
-          : reject(new Error("no such doc to open")),
-    )
+    return this.backend.open(id)
   }
 
   replace(doc: AnyDoc): AnyDoc {
-    this.docs[doc._actorId] = doc
+    this.backend.replace(doc)
     return doc
   }
 
@@ -37,10 +32,4 @@ export default class Store {
           : reject(new Error("replace failed")),
     )
   }
-}
-
-function makeDoc(id: string, json: object): AnyDoc {
-  return change(init(id), "Init", doc => {
-    defaults(doc, json)
-  })
 }
