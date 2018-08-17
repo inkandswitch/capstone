@@ -33,6 +33,7 @@ export default class App extends Preact.Component {
 
 const style = {
   App: {
+    fontFamily: "system-ui",
     position: "fixed",
     top: 0,
     left: 0,

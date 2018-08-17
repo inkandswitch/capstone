@@ -51,7 +51,12 @@ export default class Board extends Widget<Model> {
 
       case "embed":
       case "preview":
-        return <div>Some Board</div>
+        return (
+          <div style={style.Preview.Board}>
+            <div style={style.Preview.Title}>Untitled Board</div>
+            <div style={style.Preview.SubTitle}>{cards.length} cards</div>
+          </div>
+        )
     }
   }
 
@@ -101,5 +106,21 @@ const style = {
     left: 0,
     right: 0,
     bottom: 0,
+  },
+
+  Preview: {
+    Board: {
+      padding: 10,
+      fontSize: 16,
+      textAlign: "center",
+      backgroundColor: "#fff",
+    },
+    Title: {
+      fontSize: 20,
+      color: "#333",
+    },
+    SubTitle: {
+      color: "#666",
+    },
   },
 }

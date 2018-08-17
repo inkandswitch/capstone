@@ -64,6 +64,7 @@ const style = {
     display: "flex",
     height: 200,
     alignItems: "center",
+    color: "#333",
   },
 
   Item: {
