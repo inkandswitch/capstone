@@ -20,9 +20,10 @@ self.addEventListener("message", event => {
     case "Open":
       store.open(id).then(doc => {
         console.log("open", doc)
-        event.ports[0].postMessage(doc)})
+        event.ports[0].postMessage(doc)
+      })
       break
     case "Replace":
-      return (this.docs[id] = doc)
+      return store.replace(id, doc)
   }
 })

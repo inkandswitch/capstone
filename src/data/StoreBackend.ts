@@ -12,13 +12,11 @@ export default class Store {
   dontKeepThisCurrentId = 0
 
   create(): Promise<StoreId> {
-    return new Promise (
-      resolve => {
-        const storeId = "storeId" + this.dontKeepThisCurrentId++
-        this.replace(storeId, {})
-        resolve(storeId)
-      }
-    )
+    return new Promise(resolve => {
+      const storeId = "storeId" + this.dontKeepThisCurrentId++
+      this.replace(storeId, {})
+      resolve(storeId)
+    })
   }
 
   open(id: StoreId): Promise<AnyDoc> {
@@ -26,7 +24,7 @@ export default class Store {
       (resolve, reject) =>
         this.docs[id]
           ? resolve(this.docs[id])
-          : reject(new Error("no such doc to open")),
+          : reject(new Error("no such doc to open: " + id)),
     )
   }
 
