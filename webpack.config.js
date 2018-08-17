@@ -7,7 +7,7 @@ module.exports = {
   entry: {
     main: "./src/main.tsx",
     background: "./src/entry.chrome.ts",
-    worker: "./src/service-worker.ts"
+    worker: "./src/data/service-worker.ts",
   },
   devtool: "inline-source-map",
   output: {

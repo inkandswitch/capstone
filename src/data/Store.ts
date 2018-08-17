@@ -1,26 +1,24 @@
 import { change, init, Doc, AnyDoc, ChangeFn } from "automerge"
 import { defaults, mapValues } from "lodash"
-import StoreBackend from "./StoreBackend"
+import StoreProxy from "./StoreProxy"
 
 export default class Store {
-  backend: StoreBackend
+  proxy: StoreProxy
 
   constructor() {
-    this.backend = new StoreBackend()
+    this.proxy = new StoreProxy()
   }
 
-  dontKeepThisCurrentId = 0
-
   create(): Promise<AnyDoc> {
-    return this.backend.create()
+    return this.proxy.create()
   }
 
   open(id: string): Promise<AnyDoc> {
-    return this.backend.open(id)
+    return this.proxy.open(id)
   }
 
   replace(doc: AnyDoc): AnyDoc {
-    this.backend.replace(doc)
+    this.proxy.replace(doc)
     return doc
   }
 

@@ -1,6 +1,5 @@
 import StoreBackend from "./StoreBackend"
 
-class ServiceWorker {
 let store = new StoreBackend()
 
 self.addEventListener("install", function(event) {
@@ -9,14 +8,16 @@ self.addEventListener("install", function(event) {
 })
 
 self.addEventListener("message", event => {
-  let { command, id, doc } = event.data
+  let { command, args = {} } = event.data
+  let { id, doc } = args
   switch (command) {
     case "Create":
-      store.create().then((doc) => event.ports[0].postMessage(doc) )
-    case "OpenDoc":
-      return event.ports[0].postMessage(store.open(id))
-    case "Update":
+      store.create().then(doc => event.ports[0].postMessage(doc))
+      break
+    case "Open":
+      store.open(id).then(doc => event.ports[0].postMessage(doc))
+      break
+    case "Replace":
       return (this.docs[id] = doc)
   }
 })
-}
