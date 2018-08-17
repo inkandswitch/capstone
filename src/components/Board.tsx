@@ -30,7 +30,10 @@ export default class Board extends Widget<Model> {
       case "fullscreen":
         return (
           <div style={style.Board}>
-            <div style={style.Page}>
+            <div
+              style={style.Page}
+              onDragOver={this.dragOver}
+              onDrop={this.drop}>
               {cards.map((card, idx) => {
                 return (
                   <DraggableCard
@@ -50,6 +53,26 @@ export default class Board extends Widget<Model> {
       case "preview":
         return <div>Some Board</div>
     }
+  }
+
+  dragOver = (event: DragEvent) => {
+    if (!event.dataTransfer.types.includes("application/capstone-url")) return
+
+    event.preventDefault()
+  }
+
+  drop = (event: DragEvent) => {
+    const url = event.dataTransfer.getData("application/capstone-url")
+    event.preventDefault()
+
+    this.change(doc => {
+      doc.cards.push({
+        url,
+        x: event.x,
+        y: event.y,
+        z: ++doc.topZ,
+      })
+    })
   }
 
   dragStart = (idx: number) => {

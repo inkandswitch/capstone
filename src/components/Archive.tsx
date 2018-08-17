@@ -22,13 +22,28 @@ export default class Archive extends Widget<Model> {
       <div style={style.Archive}>
         <div style={style.Items}>
           {docs.map(({ url }) => (
-            <div style={style.Item}>
-              <Content mode="preview" url={url} />
-            </div>
+            <Archive.Item url={url} />
           ))}
         </div>
       </div>
     )
+  }
+
+  static Item = class Item extends Preact.Component<{ url: string }> {
+    render() {
+      const { url } = this.props
+      return (
+        <div style={style.Item} draggable onDragStart={this.dragStart}>
+          <Content mode="preview" url={url} />
+        </div>
+      )
+    }
+
+    dragStart = (event: DragEvent) => {
+      const { url } = this.props
+      event.dataTransfer.effectAllowed = "link"
+      event.dataTransfer.setData("application/capstone-url", url)
+    }
   }
 }
 
@@ -37,10 +52,10 @@ const style = {
     backgroundColor: "rgba(97, 101, 117, 0.9)",
     color: "#fff",
     position: "absolute",
-    top: 0,
+    top: "50%",
     left: 0,
     width: "100%",
-    height: "100%",
+    height: "50%",
     overflow: "auto",
     zIndex: 1,
   },
