@@ -69,7 +69,6 @@ const style = {
     fontSize: 16,
     fontFamily: "serif",
     padding: 10,
-    textAlign: "justify",
     color: "#333",
     lineHeight: 1.5,
     position: "relative",
