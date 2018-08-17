@@ -29,7 +29,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   static create(type: string): Promise<string> {
     return this.store
       .create()
-      .then(doc => Link.format({ type, id: doc._actorId }))
+      .then(id => Link.format({ type, id }))
   }
 
   // Opens an initialized document at the given URL

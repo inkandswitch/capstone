@@ -10,12 +10,17 @@ self.addEventListener("install", function(event) {
 self.addEventListener("message", event => {
   let { command, args = {} } = event.data
   let { id, doc } = args
+  console.log(command, args)
   switch (command) {
     case "Create":
-      store.create().then(doc => event.ports[0].postMessage(doc))
+      store.create().then(id => {
+        event.ports[0].postMessage(id)
+      })
       break
     case "Open":
-      store.open(id).then(doc => event.ports[0].postMessage(doc))
+      store.open(id).then(doc => {
+        console.log("open", doc)
+        event.ports[0].postMessage(doc)})
       break
     case "Replace":
       return (this.docs[id] = doc)

@@ -52,6 +52,7 @@ export default class Board extends Widget<Model> {
     this.change(doc => {
       doc.topZ += 1
       doc.cards[idx] && (doc.cards[idx].z = doc.topZ)
+      return doc
     })
   }
 }

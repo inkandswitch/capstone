@@ -1,6 +1,7 @@
 import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
+import * as Link from "../data/Link"
 import Content, { WidgetClass, Mode } from "./Content"
 
 export { Doc, AnyDoc }
@@ -50,8 +51,9 @@ export default abstract class Widget<
       throw new Error("Cannot call change before the document has loaded.")
     }
 
+    const { id } = Link.parse(this.props.url)
     this.store
-      .change(this.doc, "", callback)
+      .change(id, this.doc, "", callback)
       .then(doc => this.setState({ doc }))
   }
 

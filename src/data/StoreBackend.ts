@@ -1,6 +1,8 @@
-import { change, init, Doc, AnyDoc, ChangeFn } from "automerge"
+import { AnyDoc } from "automerge"
 import { defaults, mapValues } from "lodash"
 import sample from "./sample"
+
+type StoreId = string
 
 export default class Store {
   docs: { [id: string]: AnyDoc } = mapValues(sample, (json, id) =>
@@ -9,13 +11,17 @@ export default class Store {
 
   dontKeepThisCurrentId = 0
 
-  create(): Promise<AnyDoc> {
-    return Promise.resolve(
-      this.replace(init("storeId" + this.dontKeepThisCurrentId++)),
+  create(): Promise<StoreId> {
+    return new Promise (
+      resolve => {
+        const storeId = "storeId" + this.dontKeepThisCurrentId++
+        this.replace(storeId, {})
+        resolve(storeId)
+      }
     )
   }
 
-  open(id: string): Promise<AnyDoc> {
+  open(id: StoreId): Promise<AnyDoc> {
     return new Promise(
       (resolve, reject) =>
         this.docs[id]
@@ -24,23 +30,17 @@ export default class Store {
     )
   }
 
-  replace(doc: AnyDoc): AnyDoc {
-    this.docs[doc._actorId] = doc
+  replace(id: StoreId, doc: AnyDoc): AnyDoc {
+    this.docs[id] = doc
     return doc
-  }
-
-  change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>): Promise<Doc<T>> {
-    return new Promise(
-      (resolve, reject) =>
-        doc
-          ? resolve(this.replace(change(doc, msg, cb)) as Doc<T>)
-          : reject(new Error("replace failed")),
-    )
   }
 }
 
-function makeDoc(id: string, json: object): AnyDoc {
-  return change(init(id), "Init", doc => {
-    defaults(doc, json)
-  })
+function init(): AnyDoc {
+  return {} as AnyDoc
+}
+
+function makeDoc(id: StoreId, json: object): AnyDoc {
+  let empty = init()
+  return defaults(empty, json)
 }

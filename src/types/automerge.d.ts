@@ -19,12 +19,10 @@ declare module "automerge" {
   type Text = List<string>
 
   interface Object {
-    readonly _objectId: string
     readonly [key: string]: Readonly<Value>
   }
 
   interface AnyDoc extends Object {
-    readonly _actorId: string
   }
 
   // includes _actorId and any properties in T, all other keys are 'unknown'
@@ -55,6 +53,6 @@ declare module "automerge" {
   type EditDoc<T> = AnyEditDoc & T
 
   interface ChangeFn<T> {
-    (doc: EditDoc<T>): void
+    (doc: Doc<T>): Doc<T>
   }
 }

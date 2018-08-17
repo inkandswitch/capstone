@@ -1,5 +1,4 @@
-import { change, init, Doc, AnyDoc, ChangeFn } from "automerge"
-import { defaults, mapValues } from "lodash"
+import { Doc, AnyDoc, ChangeFn } from "automerge"
 import StoreProxy from "./StoreProxy"
 
 export default class Store {
@@ -9,7 +8,7 @@ export default class Store {
     this.proxy = new StoreProxy()
   }
 
-  create(): Promise<AnyDoc> {
+  create(): Promise<string> {
     return this.proxy.create()
   }
 
@@ -17,16 +16,16 @@ export default class Store {
     return this.proxy.open(id)
   }
 
-  replace(doc: AnyDoc): AnyDoc {
-    this.proxy.replace(doc)
+  replace(id: string, doc: AnyDoc): AnyDoc {
+    this.proxy.replace(id, doc)
     return doc
   }
 
-  change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>): Promise<Doc<T>> {
+  change<T>(id: string, doc: Doc<T>, msg: string, cb: ChangeFn<T>): Promise<Doc<T>> {
     return new Promise(
       (resolve, reject) =>
         doc
-          ? resolve(this.replace(change(doc, msg, cb)) as Doc<T>)
+          ? resolve(this.replace(id, cb(doc)) as Doc<T>)
           : reject(new Error("replace failed")),
     )
   }

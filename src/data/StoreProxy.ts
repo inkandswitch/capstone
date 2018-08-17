@@ -24,16 +24,27 @@ export default class StoreProxy {
     })
   }
 
-  open(id: String): Promise<AnyDoc> {
+  open(id: string): Promise<AnyDoc> {
     return this.sendMessage("Open", { id })
   }
 
-  create(): Promise<AnyDoc> {
-    return this.sendMessage("Create")
+  create(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      var messageChannel = new MessageChannel()
+      messageChannel.port1.onmessage = function(event) {
+        if (event.data.error) {
+          reject(event.data.error)
+        } else {
+          resolve(event.data)
+        }
+      }
+      const command = "Create"
+      this.serviceWorker.postMessage({ command: "Create" }, [messageChannel.port2])
+    })
   }
 
-  replace(doc: AnyDoc): AnyDoc {
-    this.sendMessage("Replace", { doc })
+  replace(id: string, doc: AnyDoc): AnyDoc {
+    this.sendMessage("Replace", { id, doc })
     return doc
   }
 

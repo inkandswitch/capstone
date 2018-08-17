@@ -31,12 +31,14 @@ export default class App extends Preact.Component<{}, State> {
         return Content.open<Workspace.Model>(workspaceUrl)
       })
       .then(workspace => {
-        Promise.all([archiveUrl]).then(([archiveUrl]) =>
-          Content.store.change(workspace, "adding initial urls", doc => {
+        Promise.all([workspaceUrl, archiveUrl]).then(([workspaceUrl, archiveUrl]) => {
+          const { type, id } = Link.parse(workspaceUrl)
+          Content.store.change(id, workspace, "adding initial urls", doc => {
             doc.boardUrl = Link.format({ type: "Board", id: "id1" }) // use sample data
             doc.archiveUrl = archiveUrl
-          }),
-        )
+            return doc
+          })
+        })
         return workspaceUrl
       })
       .then(workspaceUrl => this.setState({ url: workspaceUrl }))
