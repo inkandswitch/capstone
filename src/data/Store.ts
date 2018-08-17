@@ -7,27 +7,35 @@ export default class Store {
     makeDoc(id, json),
   )
 
-  create<T>(reify: (doc: AnyDoc) => T, msg: string = "Create"): Doc<T> {
-    return this.reify(init(), msg, reify)
+  dontKeepThisCurrentId = 0
+
+  create(): Promise<AnyDoc> {
+    return Promise.resolve(
+      this.replace(init("storeId" + this.dontKeepThisCurrentId++)),
+    )
   }
 
-  open(id: string): AnyDoc | undefined {
-    return this.docs[id]
+  open(id: string): Promise<AnyDoc> {
+    return new Promise(
+      (resolve, reject) =>
+        this.docs[id]
+          ? resolve(this.docs[id])
+          : reject(new Error("no such doc to open")),
+    )
   }
 
-  reify<T>(doc: AnyDoc, msg: string, reifyFn: (doc: AnyDoc) => T): Doc<T> {
-    return this.replace(<Doc<T>>change(doc, msg, doc => {
-      defaults(doc, reifyFn(doc))
-    }))
-  }
-
-  replace<T>(doc: Doc<T>): Doc<T> {
+  replace(doc: AnyDoc): AnyDoc {
     this.docs[doc._actorId] = doc
     return doc
   }
 
-  change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>) {
-    return this.replace(change(doc, msg, cb))
+  change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>): Promise<Doc<T>> {
+    return new Promise(
+      (resolve, reject) =>
+        doc
+          ? resolve(this.replace(change(doc, msg, cb)) as Doc<T>)
+          : reject(new Error("replace failed")),
+    )
   }
 }
 

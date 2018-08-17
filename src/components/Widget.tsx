@@ -27,8 +27,7 @@ export default abstract class Widget<
   constructor(props: Props, ctx: any) {
     super()
 
-    const doc = Content.open<T>(props.url)
-    this.state = { doc }
+    const doc = Content.open<T>(props.url).then(doc => this.setState({ doc }))
   }
 
   abstract show(doc: Doc<T>): Preact.ComponentChild
@@ -41,10 +40,6 @@ export default abstract class Widget<
     return this.state.doc
   }
 
-  set doc(doc: Doc<T> | undefined) {
-    this.setState({ doc })
-  }
-
   get mode(): Mode {
     return this.props.mode
   }
@@ -55,7 +50,9 @@ export default abstract class Widget<
       throw new Error("Cannot call change before the document has loaded.")
     }
 
-    this.doc = this.store.change(this.doc, "", callback)
+    this.store
+      .change(this.doc, "", callback)
+      .then(doc => this.setState({ doc }))
   }
 
   render() {

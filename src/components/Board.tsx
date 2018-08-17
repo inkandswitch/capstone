@@ -26,6 +26,9 @@ export default class Board extends Widget<Model> {
   }
 
   show({ cards, topZ }: Model) {
+    if (!cards) {
+      return null
+    }
     return (
       <div style={style.Board}>
         <div style={style.Page}>

@@ -12,8 +12,8 @@ export interface Model {
 export default class Workspace extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
-      boardUrl: Reify.link(doc.boardUrl, () => Content.create("Board")),
-      archiveUrl: Reify.link(doc.archiveUrl, () => Content.create("Archive")),
+      boardUrl: Reify.link(doc.boardUrl),
+      archiveUrl: Reify.link(doc.archiveUrl),
     }
   }
 

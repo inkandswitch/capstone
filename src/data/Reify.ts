@@ -1,6 +1,12 @@
 import { Url } from "./Link"
+import { AnyDoc, Doc } from "automerge"
+import { defaults } from "lodash"
 
-export function link(existing: any, fallback: () => Url): string {
+export function reify<T>(doc: AnyDoc, reifyFn: (doc: AnyDoc) => T): Doc<T> {
+  return <Doc<T>>defaults(doc, reifyFn(doc))
+}
+
+export function link(existing: any, fallback: () => Url = () => ""): string {
   return typeof existing === "string" ? existing : fallback()
 }
 
