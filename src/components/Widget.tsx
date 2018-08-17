@@ -1,6 +1,7 @@
 import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
+import * as Link from "../data/Link"
 import Content, { WidgetClass, Mode } from "./Content"
 
 export { Doc, AnyDoc }
@@ -31,6 +32,16 @@ export default abstract class Widget<
     this.state = { doc }
   }
 
+  componentDidMount() {
+    const { id } = Link.parse(this.props.url)
+    Content.store.subscribe(id, this.receiveChange)
+  }
+
+  componentWillUnmount() {
+    const { id } = Link.parse(this.props.url)
+    Content.store.unsubscribe(id, this.receiveChange)
+  }
+
   abstract show(doc: Doc<T>): Preact.ComponentChild
 
   get store(): Store {
@@ -56,6 +67,10 @@ export default abstract class Widget<
     }
 
     this.doc = this.store.change(this.doc, "", callback)
+  }
+
+  receiveChange = (doc: AnyDoc) => {
+    this.doc = doc as Doc<T> // HACK: reify this
   }
 
   render() {
