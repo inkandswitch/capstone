@@ -82,6 +82,7 @@ class Item extends Preact.Component<ItemProps> {
 const style = {
   Archive: {
     backgroundColor: "rgba(97, 101, 117, 0.9)",
+    boxShadow: "0 0 20px rgba(0,0,0,0.3)",
     color: "#fff",
     position: "absolute",
     top: "50%",
@@ -90,23 +91,26 @@ const style = {
     height: "50%",
     overflow: "auto",
     zIndex: 1,
-    padding: 20,
   },
 
   Items: {
     display: "flex",
     height: 200,
-    alignItems: "stretch",
+    alignItems: "center", // TODO: "stretch" is better for vert images
     color: "#333",
+    overflow: "auto",
+    maxWidth: "100%",
+    padding: 40,
   },
 
   Item: {
     marginRight: 10,
-    marginTop: 10,
+    maxHeight: "100%",
     maxWidth: 200,
-    maxHeight: 200,
+    minWidth: 150,
     position: "relative",
     backgroundColor: "#fff",
+    overflow: "hidden",
   },
 
   Item_selected: {
