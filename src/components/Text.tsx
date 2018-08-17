@@ -3,6 +3,7 @@ import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
+import TextEditor from "./TextEditor"
 
 export interface Model {
   content: string
@@ -16,7 +17,11 @@ export default class Text extends Widget<Model> {
   }
 
   show({ content }: Model) {
-    return <span style={style.Text}>{content}</span>
+    return (
+      <TextEditor content={content}>
+        <span style={style.Text}>{content}</span>
+      </TextEditor>
+    )
   }
 }
 
