@@ -23,6 +23,18 @@ type State = {
 export default class App extends Preact.Component<{}, State> {
   constructor() {
     super()
+
+    var swarm = require("discovery-swarm")
+
+    var sw = swarm({ utp: false })
+
+    sw.listen(1001)
+    sw.join("quelle-disastre") // can be any id/name/hash
+
+    sw.on("connection", function(connection: any) {
+      console.log("found + connected to peer")
+    })
+
     // initialize the workspace at startup (since we have no persistence)
     let workspaceUrl = Content.create("Workspace")
     let archiveUrl = Content.create("Archive")
