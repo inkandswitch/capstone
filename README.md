@@ -12,6 +12,11 @@ It should be recommended in the extensions tab of VSCode, and there is
 support for [other editors](https://prettier.io/docs/en/editors.html) as well.
 Otherwise, you can format the code by running `yarn format`.
 
+## Dev Tools
+
+`yarn repl`: Start a TypeScript REPL
+`yarn format`: Format all `src/*` code with prettier
+
 ## Widgets
 
 Widgets are Preact components that handle the rendering and construction of a document.
