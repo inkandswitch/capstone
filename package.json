@@ -5,7 +5,8 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache ts-node node_modules/.bin/tape 'src/**/*-test.ts' | tap-spec",
+    "test": "TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache tape -r ts-node/register 'src/**/*-test.ts' | tap-spec",
+    "test-watch": "TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache tape-watch -r ts-node/register -p tap-spec 'src/**/*-test.ts'",
     "start": "webpack --watch",
     "format": "prettier --write 'src/**/*.{js,ts,txx}'",
     "repl": "TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache ts-node"
@@ -25,6 +26,7 @@
     "style-loader": "^0.21.0",
     "tap-spec": "^5.0.0",
     "tape": "^4.9.1",
+    "tape-watch": "^2.3.0",
     "ts-loader": "^4.4.2",
     "ts-node": "^7.0.1",
     "typescript": "^3.0.1",

@@ -14,6 +14,8 @@ Otherwise, you can format the code by running `yarn format`.
 
 ## Dev Tools
 
+`yarn test`: Run tests
+`yarn test-watch`: Run tests when src files change
 `yarn repl`: Start a TypeScript REPL
 `yarn format`: Format all `src/*` code with prettier
 
