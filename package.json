@@ -15,8 +15,8 @@
   "devDependencies": {
     "@types/chrome": "^0.0.71",
     "@types/chrome-apps": "^0.0.1",
-    "@types/tape": "^4.2.32",
     "@types/codemirror": "^0.0.59",
+    "@types/tape": "^4.2.32",
     "awesome-typescript-loader": "^5.2.0",
     "copy-webpack-plugin": "^4.5.2",
     "cross-env": "^5.2.0",
@@ -37,11 +37,13 @@
   },
   "dependencies": {
     "@types/classnames": "^2.2.6",
+    "@types/diff-match-patch": "^1.0.32",
     "@types/lodash": "^4.14.115",
     "automerge": "^0.8.0",
     "bs58": "^4.0.1",
     "classnames": "^2.2.6",
     "codemirror": "^5.39.0",
+    "diff-match-patch": "^1.0.1",
     "js-crc": "^0.2.0",
     "lodash": "^4.17.10",
     "preact": "^8.3.0"

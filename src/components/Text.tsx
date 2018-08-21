@@ -3,7 +3,7 @@ import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
-import TextEditor from "./TextEditor"
+import TextEditor, { Change } from "./TextEditor"
 
 export interface Model {
   content: string
@@ -20,10 +20,17 @@ export default class Text extends Widget<Model> {
 
   show({ content }: Model) {
     return (
-      <TextEditor content={content} isFocused={this.props.isFocused}>
+      <TextEditor
+        content={content}
+        isFocused={this.props.isFocused}
+        onChange={this.onChange}>
         <span style={style.Text}>{content}</span>
       </TextEditor>
     )
+  }
+
+  onChange = (changes: Change[]) => {
+    console.log(changes)
   }
 }
 
