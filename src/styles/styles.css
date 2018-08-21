@@ -1,0 +1,7 @@
+.CodeMirror {
+  /* Set height, width, borders, and global font properties here */
+  font-family: Arial, Helvetica, sans-serif;
+  height: 300px;
+  color: gray;
+  direction: ltr;
+}

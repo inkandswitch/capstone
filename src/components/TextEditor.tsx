@@ -2,6 +2,7 @@ import { random } from "lodash/fp"
 import * as Preact from "preact"
 import * as CodeMirror from "codemirror"
 import "codemirror/lib/codemirror.css"
+import "../styles/styles.css"
 
 export interface Props {
   content: string
@@ -53,13 +54,9 @@ export default class TextEditor extends Preact.Component<Props, State> {
       <div
         className="CodeMirrorEditor"
         onKeyDown={this.onKeyDown}
-        style={style.Text}>
-        <div
-          id={`editor-test`}
-          className="CodeMirrorEditor__editor"
-          ref={(el: HTMLElement) => (this.wrapper = el)}
-        />
-      </div>
+        ref={(el: HTMLElement) => (this.wrapper = el)}
+        style={style.Text}
+      />
     )
   }
 }
@@ -67,7 +64,6 @@ export default class TextEditor extends Preact.Component<Props, State> {
 const style = {
   Text: {
     fontSize: 16,
-    fontFamily: "serif",
     padding: 10,
     color: "#333",
     lineHeight: 1.5,

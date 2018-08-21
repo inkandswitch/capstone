@@ -30,23 +30,51 @@ export default class Board extends Widget<Model> {
       return null
     }
     return (
-      <div style={style.Board}>
-        <div style={style.Page}>
-          {cards.map((card, idx) => {
-            return (
-              <DraggableCard
-                key={idx}
-                index={idx}
-                card={card}
-                onDragStart={this.dragStart}>
-                <Content mode="embed" url={card.url} />
-              </DraggableCard>
-            )
-          })}
-        </div>
+      <div style={style.Board} onDblClick={this.onDblClick}>
+        {cards.map((card, idx) => {
+          return (
+            <DraggableCard
+              key={idx}
+              index={idx}
+              card={card}
+              onDragStart={this.dragStart}>
+              <Content mode="embed" url={card.url} />
+            </DraggableCard>
+          )
+        })}
       </div>
     )
   }
+
+  onDblClick = ({ x, y }: MouseEvent) => {
+    const url = Content.create("Text")
+    this.change(doc => {
+      const z = doc.topZ++
+      doc.cards.push({ x, y, z, url })
+      return doc
+    })
+  }
+
+  // onDblClick(e: PointerEvent) {
+  //   switch (e.pointerType) {
+  //     case "mouse":
+  //       console.log("mouse")
+  //       break
+  //     case "pen":
+  //       console.log("pen")
+  //       break
+  //     case "touch":
+  //       console.log("touch")
+  //       break
+  //   }
+  // console.log(e.pointerType)
+  // console.log("pointer up " + e.clientX)
+  // let url = Content.create("Text")
+  // let doc = Content.open(url)
+  // this.doc.change()
+
+  // console.log(url)
+  // }
 
   dragStart = (idx: number) => {
     this.change(doc => {
@@ -65,17 +93,6 @@ const style = {
     height: "100%",
     position: "absolute",
     zIndex: 0,
-    backgroundColor: "#eee",
-  },
-  Page: {
     backgroundColor: "#fff",
-    margin: 10,
-    borderRadius: 10,
-    boxShadow: "0 0 10px rgba(0,0,0,0.2)",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 }
