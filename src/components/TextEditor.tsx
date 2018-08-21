@@ -6,6 +6,7 @@ import "../styles/styles.css"
 
 export interface Props {
   content: string
+  isFocused: boolean
 }
 
 export interface State {
@@ -19,7 +20,7 @@ export default class TextEditor extends Preact.Component<Props, State> {
     if (!this.wrapper) return
 
     let codeMirror = CodeMirror(this.wrapper, {
-      autofocus: false, //this.props.uniquelySelected,
+      autofocus: this.props.isFocused,
       lineNumbers: false,
       lineWrapping: true,
       scrollbarStyle: "null",

@@ -15,6 +15,7 @@ interface CardModel {
 export interface Model {
   cards: CardModel[]
   topZ: number
+  locallyFocusedCardURL?: string
 }
 
 export default class Board extends Widget<Model> {
@@ -22,10 +23,11 @@ export default class Board extends Widget<Model> {
     return {
       cards: Reify.array(doc.cards),
       topZ: Reify.number(doc.topZ),
+      locallyFocusedCardURL: undefined,
     }
   }
 
-  show({ cards, topZ }: Model) {
+  show({ cards, topZ, locallyFocusedCardURL }: Model) {
     if (!cards) {
       return null
     }
@@ -38,7 +40,11 @@ export default class Board extends Widget<Model> {
               index={idx}
               card={card}
               onDragStart={this.dragStart}>
-              <Content mode="embed" url={card.url} />
+              <Content
+                mode="embed"
+                url={card.url}
+                isFocused={card.url === locallyFocusedCardURL}
+              />
             </DraggableCard>
           )
         })}
@@ -47,11 +53,13 @@ export default class Board extends Widget<Model> {
   }
 
   onDblClick = ({ x, y }: MouseEvent) => {
-    const url = Content.create("Text")
-    this.change(doc => {
-      const z = doc.topZ++
-      doc.cards.push({ x, y, z, url })
-      return doc
+    Content.create("Text").then(url => {
+      this.change(doc => {
+        const z = doc.topZ++
+        doc.cards.push({ x, y, z, url })
+        doc.locallyFocusedCardURL = url
+        return doc
+      })
     })
   }
 

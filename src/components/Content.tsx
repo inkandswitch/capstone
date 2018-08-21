@@ -16,6 +16,7 @@ export type Mode = "fullscreen" | "embed" | "preview"
 export interface Props {
   url: string
   mode: Mode
+  isFocused: boolean
 }
 
 export default class Content extends Preact.Component<Props & unknown> {
@@ -27,9 +28,7 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   // Creates an initialized document of the given type and returns its URL
   static create(type: string): Promise<string> {
-    return this.store
-      .create()
-      .then(id => Link.format({ type, id }))
+    return this.store.create().then(id => Link.format({ type, id }))
   }
 
   // Opens an initialized document at the given URL

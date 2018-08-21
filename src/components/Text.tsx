@@ -12,13 +12,15 @@ export interface Model {
 export default class Text extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
-      content: Reify.string(doc.content, sample),
+      content: Reify.string(doc.content, () => {
+        return ""
+      }),
     }
   }
 
   show({ content }: Model) {
     return (
-      <TextEditor content={content}>
+      <TextEditor content={content} isFocused={this.props.isFocused}>
         <span style={style.Text}>{content}</span>
       </TextEditor>
     )
