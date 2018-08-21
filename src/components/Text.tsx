@@ -31,6 +31,24 @@ export default class Text extends Widget<Model> {
 
   onChange = (changes: Change[]) => {
     console.log(changes)
+    this.change(doc => {
+      changes.forEach(change => {
+        switch (change.type) {
+          case 'removal': {
+            //doc.content.splice(change.at, change.length)
+            break
+          }
+          case 'insertion': {
+            //doc.content.insertAt(change.at, change.content.split(''))
+            break
+          }
+          default: {
+            console.log('Unknown TextEditor Change type.')
+          }
+        }
+      })
+      return doc
+    })
   }
 }
 
