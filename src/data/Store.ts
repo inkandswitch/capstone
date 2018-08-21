@@ -8,7 +8,7 @@ const HyperDiscovery = require("hyperdiscovery")
 
 var swarm = require("discovery-swarm")
 
-var sw = swarm({ utp: false })
+var sw = swarm({ utp: false, dht: false })
 
 sw.listen(1000)
 sw.join("quelle-disastre") // can be any id/name/hash

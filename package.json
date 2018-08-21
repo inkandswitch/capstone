@@ -48,6 +48,7 @@
     "chrome-net": "^3.3.1",
     "classnames": "^2.2.6",
     "hypercore": "^6.18.1",
+    "hypercore-archiver": "^4.6.0",
     "hyperdiscovery": "^8.0.0",
     "js-crc": "^0.2.0",
     "lodash": "^4.17.10",
