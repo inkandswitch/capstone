@@ -17,11 +17,12 @@ export interface Props {
   url: string
   mode: Mode
   isFocused?: boolean
+  [k: string]: unknown
 }
 
 export default class Content extends Preact.Component<Props & unknown> {
   static defaultProps = {
-    isFocused: false
+    isFocused: false,
   }
 
   static registry: { [type: string]: WidgetClass<any> } = {}
@@ -67,7 +68,7 @@ export default class Content extends Preact.Component<Props & unknown> {
       return <Missing type={type} />
     }
 
-    return <Widget url={url} mode={mode} {...this.props} />
+    return <Widget {...this.props} />
   }
 }
 

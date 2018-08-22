@@ -2,11 +2,13 @@ import * as Preact from "preact"
 import Draggable from "../draggable/index"
 import Card from "./Card"
 import { MouseTouchEvent, DraggableData } from "../draggable/types"
+import Gesture from "./Gesture"
 
 interface CardModel {
   x: number
   y: number
   z: number
+  url: string
 }
 
 export interface Props {
@@ -14,6 +16,7 @@ export interface Props {
   index: number
   onDragStart: (idx: number) => void
   onDragStop?: (x: number, y: number, idx: number) => void
+  onPinchEnd?: (url: string) => void
   [propName: string]: any
 }
 
@@ -30,16 +33,24 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <Draggable
-        bounds="parent"
-        defaultPosition={{ x, y }}
-        onStart={this.start}
-        onStop={this.stop}
-        z={z}
-        enableUserSelectHack={false}>
-        <Card {...rest}>{children}</Card>
-      </Draggable>
+      <Gesture onPinchEnd={this.onPinchEnd}>
+        <Draggable
+          bounds="parent"
+          defaultPosition={{ x, y }}
+          onStart={this.start}
+          onStop={this.stop}
+          z={z}
+          enableUserSelectHack={false}>
+          <Card {...rest}>{children}</Card>
+        </Draggable>
+      </Gesture>
     )
+  }
+
+  onPinchEnd = (event: HammerInput) => {
+    if (event.scale < 1) return // TODO: maybe build this into Gesture
+    const { onPinchEnd, card } = this.props
+    onPinchEnd && onPinchEnd(card.url)
   }
 
   start = () => {
