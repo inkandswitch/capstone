@@ -16,10 +16,14 @@ export type Mode = "fullscreen" | "embed" | "preview"
 export interface Props {
   url: string
   mode: Mode
-  isFocused: boolean
+  isFocused?: boolean
 }
 
 export default class Content extends Preact.Component<Props & unknown> {
+  static defaultProps = {
+    isFocused: false
+  }
+
   static registry: { [type: string]: WidgetClass<any> } = {}
 
   static store: Store
