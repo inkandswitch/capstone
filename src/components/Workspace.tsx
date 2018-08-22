@@ -22,7 +22,7 @@ export default class Workspace extends Widget<Model> {
 
   show({ currentUrl }: Doc<Model>) {
     return (
-      <Gesture onPinch={this.back}>
+      <Gesture onPinch={this.onPinch}>
         <div class="Workspace" style={style.Workspace}>
           <Content
             mode={this.mode}
@@ -34,9 +34,12 @@ export default class Workspace extends Widget<Model> {
     )
   }
 
-  back = (event: HammerInput) => {
+  onPinch = (event: HammerInput) => {
     if (event.scale > 1) return
+    this.back()
+  }
 
+  back = () => {
     this.change(doc => {
       const url = doc.backUrls.pop()
       if (url) {
