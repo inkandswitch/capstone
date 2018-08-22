@@ -1,13 +1,22 @@
 import { AnyDoc } from "automerge"
 import { defaults, mapValues } from "lodash"
 import sample from "./sample"
+let ram = require("random-access-memory")
+import Hypermerge from "../hypermerge"
+import { DocHandle } from "hypermerge"
 
 type StoreId = string
 
 export default class Store {
-  docs: { [id: string]: AnyDoc } = mapValues(sample, (json, id) =>
-    makeDoc(id, json),
+  docs: { [id: string]: DocHandle } = mapValues(
+    sample,
+    (json: any, id: string) => makeDoc(id, json),
   )
+
+  hypermerge = new Hypermerge({
+    storage: ram,
+    port: 0,
+  })
 
   dontKeepThisCurrentId = 0
 
@@ -20,22 +29,23 @@ export default class Store {
   }
 
   open(id: StoreId): Promise<AnyDoc> {
-    return new Promise(
-      (resolve, reject) =>
-        this.docs[id]
-          ? resolve(this.docs[id])
-          : reject(new Error("no such doc to open: " + id)),
-    )
+    return new Promise((resolve, reject) => {
+      var doc = this.hypermerge.openHandle(id)
+      this.docs[id] = doc
+      resolve(this.docs[id].get().contents)
+      // reject(new Error("no such doc to open: " + id)),
+    })
   }
 
-  replace(id: StoreId, doc: AnyDoc): AnyDoc {
-    this.docs[id] = doc
-    return doc
+  replace(id: StoreId, newDoc: AnyDoc) {
+    this.docs[id].change((doc: any) => {
+      doc.contents = { ...newDoc }
+    })
   }
 }
 
 function init(): AnyDoc {
-  return {} as AnyDoc
+  return { contents: {} } as AnyDoc
 }
 
 function makeDoc(id: StoreId, json: object): AnyDoc {

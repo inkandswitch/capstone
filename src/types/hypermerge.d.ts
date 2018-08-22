@@ -1,8 +1,11 @@
+import { change } from "automerge"
+
 declare module "hypermerge" {
   type Key = Buffer
   type Id = string
-}
 
-declare module "hypercore" {
-
+  interface DocHandle {
+    get(): any
+    change(cb: any): void
+  }
 }

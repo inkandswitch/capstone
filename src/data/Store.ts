@@ -2,21 +2,6 @@ import { Doc, AnyDoc, ChangeFn } from "automerge"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 
-const Hypercore = require("hypercore")
-var ram = require("random-access-memory")
-const HyperDiscovery = require("hyperdiscovery")
-
-var swarm = require("discovery-swarm")
-
-var sw = swarm({ utp: false, dht: false })
-
-sw.listen(1000)
-sw.join("quelle-disastre") // can be any id/name/hash
-
-sw.on("connection", function(connection: any) {
-  console.log("found + connected to peer")
-})
-
 export default class Store {
   serviceWorker: ServiceWorker
 
@@ -24,8 +9,6 @@ export default class Store {
     this.serviceWorker = navigator.serviceWorker!.controller!
     this.registerServiceWorker()
   }
-
-  core = new Hypercore(ram)
 
   dontKeepThisCurrentId = 0
 

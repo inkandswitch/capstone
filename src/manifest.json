@@ -2,7 +2,14 @@
   "manifest_version": 2,
   "name": "Capstone",
   "version": "3.1",
-  "permissions": ["webview", "system.network", "storage", ""],
+  "permissions": [
+    "webview",
+    "system.network",
+    "storage",
+    "fileSystem",
+    "unlimitedStorage",
+    ""
+  ],
   "app": {
     "background": {
       "scripts": ["background.js"]
