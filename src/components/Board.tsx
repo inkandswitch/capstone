@@ -46,8 +46,6 @@ export default class Board extends Widget<Model> {
           <div
             style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
             onPointerDown={this.onPointerDown}
-            onPointerMove={this.onPointerMove}
-            onPointerUp={this.onPointerUp}
           />
         )}
         {cards.map((card, idx) => {
@@ -57,12 +55,7 @@ export default class Board extends Widget<Model> {
               index={idx}
               card={card}
               onDragStart={this.onDragStart}
-              onPointerDown={(e: PointerEvent) => {
-                this.onPointerDownCard(e, card.url)
-              }}
-              onPointerMove={(e: PointerEvent) => {
-                this.onPointerMoveCard(e, card.url)
-              }}
+              onDragStop={this.onDragStop}
               onPointerUp={(e: PointerEvent) => {
                 this.onPointerUpCard(e, card.url)
               }}>
@@ -79,7 +72,13 @@ export default class Board extends Widget<Model> {
   }
 
   onDblClick = ({ x, y }: MouseEvent) => {
-    if (!this.boardEl) return
+    if (
+      !this.state.doc ||
+      this.state.doc.locallyFocusedCardURL ||
+      !this.boardEl
+    )
+      return
+
     const cardX = clamp(
       x - CARD_WIDTH / 2,
       0,
@@ -93,8 +92,8 @@ export default class Board extends Widget<Model> {
 
     Content.create("Text").then(url => {
       this.change(doc => {
-        const z = doc.topZ++
-        doc.cards.push({ x, y, z, url })
+        const z = (doc.topZ += 2)
+        doc.cards.push({ x: cardX, y: cardY, z, url })
         doc.locallyFocusedCardURL = url
         return doc
       })
@@ -113,6 +112,17 @@ export default class Board extends Widget<Model> {
     })
   }
 
+  onDragStop = (x: number, y: number, idx: number) => {
+    this.change(doc => {
+      const card = doc.cards[idx]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[idx] = { ...card, x: x, y: y }
+      }
+      return doc
+    })
+  }
+
   onPointerDown = (e: PointerEvent) => {
     this.change(doc => {
       doc.locallyFocusedCardURL = undefined
@@ -120,18 +130,13 @@ export default class Board extends Widget<Model> {
     })
   }
 
-  onPointerMove = (e: PointerEvent) => {}
-  onPointerUp = (e: PointerEvent) => {}
-
-  onPointerDownCard = (e: PointerEvent, url: string) => {
+  onPointerUpCard = (e: PointerEvent, url: string) => {
     if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
     this.change(doc => {
       doc.locallyFocusedCardURL = url
       return doc
     })
   }
-  onPointerMoveCard = (e: PointerEvent, url: string) => {}
-  onPointerUpCard = (e: PointerEvent, url: string) => {}
 }
 
 Content.register("Board", Board)
@@ -146,8 +151,10 @@ const style = {
     backgroundColor: "#fff",
   },
   FocusBackgroundOverlay: {
-    width: "100%",
-    height: "100%",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
     position: "absolute",
     backgroundColor: "#000",
     opacity: 0.15,

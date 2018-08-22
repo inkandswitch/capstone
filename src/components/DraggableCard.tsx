@@ -1,6 +1,7 @@
 import * as Preact from "preact"
 import Draggable from "../draggable/index"
 import Card from "./Card"
+import { MouseTouchEvent, DraggableData } from "../draggable/types"
 
 interface CardModel {
   x: number
@@ -12,6 +13,7 @@ export interface Props {
   card: CardModel
   index: number
   onDragStart: (idx: number) => void
+  onDragStop?: (x: number, y: number, idx: number) => void
   [propName: string]: any
 }
 
@@ -29,8 +31,10 @@ export default class DraggableCard extends Preact.Component<Props> {
 
     return (
       <Draggable
+        bounds="parent"
         defaultPosition={{ x, y }}
         onStart={this.start}
+        onStop={this.stop}
         z={z}
         enableUserSelectHack={false}>
         <Card {...rest}>{children}</Card>
@@ -40,5 +44,11 @@ export default class DraggableCard extends Preact.Component<Props> {
 
   start = () => {
     this.props.onDragStart(this.props.index)
+  }
+
+  stop = (e: MouseTouchEvent, data: DraggableData) => {
+    console.log(`x: ${data.x} y: ${data.y}`)
+    this.props.onDragStop &&
+      this.props.onDragStop(data.x, data.y, this.props.index)
   }
 }
