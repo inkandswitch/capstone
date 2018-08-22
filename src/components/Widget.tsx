@@ -22,14 +22,13 @@ export function register<T extends WidgetClass<T>>(Component: T) {
 }
 
 // The base component that most document-based components should inherit from
-export default abstract class Widget<
-  T,
-  P extends Props = Props
-> extends Preact.Component<P, State<T>> {
-  constructor(props: Props, ctx: any) {
-    super()
-
-    const doc = Content.open<T>(props.url).then(doc => this.setState({ doc }))
+export default abstract class Widget<T, P = {}> extends Preact.Component<
+  Partial<P> & Props,
+  State<T>
+> {
+  constructor(props: Partial<P> & Props, ctx: any) {
+    super(props, ctx)
+    Content.open<T>(props.url).then(doc => this.setState({ doc }))
   }
 
   abstract show(doc: Doc<T>): Preact.ComponentChild
