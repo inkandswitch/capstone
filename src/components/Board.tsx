@@ -22,7 +22,11 @@ export interface Model {
   locallyFocusedCardURL?: string
 }
 
-export default class Board extends Widget<Model> {
+interface Props {
+  onFullscreen?: (url: string) => void
+}
+
+export default class Board extends Widget<Model, Props> {
   boardEl?: HTMLElement
 
   static reify(doc: AnyDoc): Model {
@@ -48,6 +52,7 @@ export default class Board extends Widget<Model> {
               key={idx}
               index={idx}
               card={card}
+              onPinchEnd={this.props.onFullscreen}
               onDragStart={this.onDragStart}>
               <Content
                 mode="embed"
