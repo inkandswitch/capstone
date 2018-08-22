@@ -63,27 +63,6 @@ export default class Board extends Widget<Model> {
     })
   }
 
-  // onDblClick(e: PointerEvent) {
-  //   switch (e.pointerType) {
-  //     case "mouse":
-  //       console.log("mouse")
-  //       break
-  //     case "pen":
-  //       console.log("pen")
-  //       break
-  //     case "touch":
-  //       console.log("touch")
-  //       break
-  //   }
-  // console.log(e.pointerType)
-  // console.log("pointer up " + e.clientX)
-  // let url = Content.create("Text")
-  // let doc = Content.open(url)
-  // this.doc.change()
-
-  // console.log(url)
-  // }
-
   dragStart = (idx: number) => {
     this.change(doc => {
       doc.topZ += 1

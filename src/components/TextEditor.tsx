@@ -141,28 +141,10 @@ export default class TextEditor extends Preact.Component<Props, State> {
     this.props.onChange(changes)
   }
 
-  onKeyDown = (e: KeyboardEvent) => {
-    console.log("key pressed")
-    // if (e.key !== 'Backspace') {
-    //   this.stallDelete = true
-    // }
-    // if (!this.stallDelete) {
-    //   // we normally prevent deletion by stopping event propagation
-    //   // but if the card is already empty and we hit delete, allow it
-    //   return
-    // }
-    // if (e.key === 'Backspace' && this.state.text.length === 0) {
-    //   this.stallDelete = false
-    // }
-
-    // e.stopPropagation()
-  }
-
   render() {
     return (
       <div
         className="CodeMirrorEditor"
-        onKeyDown={this.onKeyDown}
         ref={(el: HTMLElement) => (this.wrapper = el)}
         style={style.Text}
       />

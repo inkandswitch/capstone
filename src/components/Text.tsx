@@ -18,8 +18,6 @@ export default class Text extends Widget<Model> {
   }
 
   show({ content }: Model) {
-    console.log("show")
-    console.log(content)
     return (
       <TextEditor
         content={content.join("")}
@@ -30,7 +28,6 @@ export default class Text extends Widget<Model> {
   }
 
   onChange = (changes: Change[]) => {
-    console.log(changes)
     this.change(doc => {
       changes.forEach(change => {
         switch (change.type) {
