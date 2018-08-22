@@ -22,19 +22,19 @@ export default class Workspace extends Widget<Model> {
 
   show({ currentUrl }: Doc<Model>) {
     return (
-      <Gesture onPinchEnd={this.onPinch}>
+      <Gesture onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
           <Content
             mode={this.mode}
             url={currentUrl}
-            onPinchCard={this.fullscreen}
+            onFullscreen={this.fullscreen}
           />
         </div>
       </Gesture>
     )
   }
 
-  onPinch = (event: HammerInput) => {
+  onPinchEnd = (event: HammerInput) => {
     if (event.scale > 1) return
     this.back()
   }
