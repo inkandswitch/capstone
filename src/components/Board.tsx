@@ -39,7 +39,7 @@ export default class Board extends Widget<Model> {
               key={idx}
               index={idx}
               card={card}
-              onDragStart={this.dragStart}>
+              onDragStart={this.onDragStart}>
               <Content
                 mode="embed"
                 url={card.url}
@@ -63,10 +63,14 @@ export default class Board extends Widget<Model> {
     })
   }
 
-  dragStart = (idx: number) => {
+  onDragStart = (idx: number) => {
     this.change(doc => {
       doc.topZ += 1
-      doc.cards[idx] && (doc.cards[idx].z = doc.topZ)
+      const card = doc.cards[idx]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[idx] = { ...card, z: doc.topZ }
+      }
       return doc
     })
   }
