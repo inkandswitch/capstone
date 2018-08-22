@@ -1,5 +1,5 @@
 import { Url } from "./Link"
-import { AnyDoc, Doc } from "automerge"
+import { AnyDoc, Doc, Text } from "automerge"
 import { defaults } from "lodash"
 
 export function reify<T>(doc: AnyDoc, reifyFn: (doc: AnyDoc) => T): Doc<T> {
@@ -8,6 +8,13 @@ export function reify<T>(doc: AnyDoc, reifyFn: (doc: AnyDoc) => T): Doc<T> {
 
 export function link(existing: any, fallback: () => Url = () => ""): string {
   return typeof existing === "string" ? existing : fallback()
+}
+
+export function text(
+  existing: any,
+  fallback: () => Text = () => new Text(),
+): Text {
+  return new Text()
 }
 
 export function array<T>(

@@ -1,4 +1,5 @@
 import { random } from "lodash/fp"
+import * as Automerge from "automerge"
 import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
@@ -6,26 +7,25 @@ import Content from "./Content"
 import TextEditor, { Change } from "./TextEditor"
 
 export interface Model {
-  content: string
+  content: Automerge.Text
 }
 
 export default class Text extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
-      content: Reify.string(doc.content, () => {
-        return ""
-      }),
+      content: Reify.text(doc.content),
     }
   }
 
   show({ content }: Model) {
+    console.log("show")
+    console.log(content)
     return (
       <TextEditor
-        content={content}
+        content={content.join("")}
         isFocused={this.props.isFocused}
-        onChange={this.onChange}>
-        <span style={style.Text}>{content}</span>
-      </TextEditor>
+        onChange={this.onChange}
+      />
     )
   }
 
@@ -34,16 +34,16 @@ export default class Text extends Widget<Model> {
     this.change(doc => {
       changes.forEach(change => {
         switch (change.type) {
-          case 'removal': {
+          case "removal": {
             //doc.content.splice(change.at, change.length)
             break
           }
-          case 'insertion': {
-            //doc.content.insertAt(change.at, change.content.split(''))
+          case "insertion": {
+            //doc.content.insertAt(change.at, change.content.split(""))
             break
           }
           default: {
-            console.log('Unknown TextEditor Change type.')
+            console.log("Unknown TextEditor Change type.")
           }
         }
       })
