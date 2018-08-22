@@ -50,7 +50,6 @@
     "lodash": "^4.17.10",
     "preact": "^8.3.0",
     "random-access-memory": "^3.0.0",
-    "rxjs": "^6.2.2",
     "utp": "^0.0.10"
   }
 }

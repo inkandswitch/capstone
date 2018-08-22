@@ -10,8 +10,6 @@ export default class Store {
     this.registerServiceWorker()
   }
 
-  dontKeepThisCurrentId = 0
-
   sendMessage(command: CommandMessage, args: any = {}): Promise<AnyDoc> {
     return new Promise((resolve, reject) => {
       var messageChannel = new MessageChannel()
