@@ -9,12 +9,7 @@
     "test-watch": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache tape-watch -r ts-node/register -p tap-spec 'src/**/*-test.ts'",
     "start": "webpack --watch",
     "format": "prettier --write 'src/**/*.{js,ts,txx}'",
-    "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache ts-node",
-    "discover": "node discover.js"
-  },
-  "browser": {
-    "net": "chrome-net",
-    "dgram": "chrome-dgram"
+    "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache ts-node"
   },
   "author": "Ink & Switch",
   "devDependencies": {
