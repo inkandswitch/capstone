@@ -1,18 +1,19 @@
 import { AnyDoc } from "automerge"
 import { defaults, mapValues } from "lodash"
-import sample from "./sample"
-let ram = require("random-access-memory")
+let racf = require("random-access-chrome-file")
 import Hypermerge from "../hypermerge"
 
 type StoreId = string
 
 export default class Store {
-  docs: { [id: string]: any } = mapValues(sample, (json: any, id: string) =>
+  docs: {
+    [id: string]: any
+  } = {} /*mapValues(sample, (json: any, id: string) =>
     makeDoc(id, json),
-  )
+  )*/
 
   hypermerge = new Hypermerge({
-    storage: ram,
+    storage: racf,
     port: 0,
   })
 

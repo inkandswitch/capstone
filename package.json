@@ -49,6 +49,7 @@
     "js-crc": "^0.2.0",
     "lodash": "^4.17.10",
     "preact": "^8.3.0",
+    "random-access-chrome-file": "^1.0.0",
     "random-access-memory": "^3.0.0",
     "utp": "^0.0.10"
   }
