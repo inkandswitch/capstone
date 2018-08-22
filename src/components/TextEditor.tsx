@@ -8,13 +8,13 @@ import "../styles/styles.css"
 // Text editing type definitions
 export interface Removal {
   type: "removal"
-  at: Number
-  length: Number
+  at: number
+  length: number
 }
 
 export interface Insertion {
   type: "insertion"
-  at: Number
+  at: number
   content: string
 }
 

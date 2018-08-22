@@ -7,13 +7,13 @@ import Content from "./Content"
 import TextEditor, { Change } from "./TextEditor"
 
 export interface Model {
-  content: Automerge.Text
+  content: string[]
 }
 
 export default class Text extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
-      content: Reify.text(doc.content),
+      content: Reify.array(doc.content),
     }
   }
 
@@ -35,11 +35,11 @@ export default class Text extends Widget<Model> {
       changes.forEach(change => {
         switch (change.type) {
           case "removal": {
-            //doc.content.splice(change.at, change.length)
+            doc.content.splice(change.at, change.length)
             break
           }
           case "insertion": {
-            //doc.content.insertAt(change.at, change.content.split(""))
+            doc.content.splice(change.at, 0, change.content)
             break
           }
           default: {

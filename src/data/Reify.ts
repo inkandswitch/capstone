@@ -14,7 +14,7 @@ export function text(
   existing: any,
   fallback: () => Text = () => new Text(),
 ): Text {
-  return new Text()
+  return existing instanceof Text ? existing : fallback()
 }
 
 export function array<T>(
