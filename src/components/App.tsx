@@ -23,6 +23,7 @@ type State = {
 export default class App extends Preact.Component<{}, State> {
   constructor() {
     super()
+
     // initialize the workspace at startup (since we have no persistence)
     let workspaceUrl = Content.create("Workspace")
     let archiveUrl = Content.create("Archive")

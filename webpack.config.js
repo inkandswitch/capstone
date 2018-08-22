@@ -15,6 +15,13 @@ module.exports = {
     filename: "[name].js",
   },
   resolve: {
+    alias: {
+      fs: "chrome-fs",
+      dgram: "chrome-dgram",
+      "utp-native": "utp",
+      "bittorrent-dht": path.resolve(__dirname, "stubs", "bittorrent-dht"),
+      net: "chrome-net",
+    },
     extensions: [".tsx", ".ts", ".js"],
   },
   module: {

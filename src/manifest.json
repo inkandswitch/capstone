@@ -2,12 +2,23 @@
   "manifest_version": 2,
   "name": "Capstone",
   "version": "3.1",
-  "permissions": ["webview", "system.network"],
+  "permissions": [
+    "webview",
+    "system.network",
+    "storage",
+    "fileSystem",
+    "unlimitedStorage",
+    ""
+  ],
   "app": {
     "background": {
       "scripts": ["background.js"]
     }
   },
   "sockets": {
+    "tcp": { "connect": ["*"] },
+    "udp": { "send": "*", "bind": ["*"] },
+    "tcpServer": { "listen": ["*"] },
+    "udpServer": { "listen": ["*"] }
   }
 }

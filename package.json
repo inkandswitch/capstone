@@ -42,12 +42,21 @@
     "@types/lodash": "^4.14.115",
     "automerge": "^0.8.0",
     "bs58": "^4.0.1",
+    "chrome-dgram": "^3.0.1",
+    "chrome-fs": "^10.0.0",
+    "chrome-net": "^3.3.1",
     "classnames": "^2.2.6",
+    "hypercore": "^6.18.1",
+    "hypercore-archiver": "^4.6.0",
+    "hyperdiscovery": "^8.0.0",
     "codemirror": "^5.39.0",
     "diff-match-patch": "^1.0.1",
     "hammerjs": "^2.0.8",
     "js-crc": "^0.2.0",
     "lodash": "^4.17.10",
-    "preact": "^8.3.0"
+    "preact": "^8.3.0",
+    "random-access-chrome-file": "^1.0.0",
+    "random-access-memory": "^3.0.0",
+    "utp": "^0.0.10"
   }
 }

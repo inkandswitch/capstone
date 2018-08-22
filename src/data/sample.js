@@ -19,7 +19,7 @@ export default {
   },
   id3: {
     content:
-      "Misconception around his flying machines and other fantastical devices most likely designed for theather performances, not the real world",
+      "This Misconception around his flying machines and other fantastical devices most likely designed for theather performances, not the real world",
   },
   id4: {
     docs: [
