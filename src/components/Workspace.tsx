@@ -22,7 +22,7 @@ export default class Workspace extends Widget<Model> {
 
   show({ currentUrl }: Doc<Model>) {
     return (
-      <Gesture onPinch={this.onPinch}>
+      <Gesture onPinchEnd={this.onPinch}>
         <div class="Workspace" style={style.Workspace}>
           <Content
             mode={this.mode}

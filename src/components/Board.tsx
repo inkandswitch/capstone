@@ -49,7 +49,7 @@ export default class Board extends Widget<Model, Props> {
         ref={(el: HTMLElement) => (this.boardEl = el)}>
         {cards.map((card, idx) => {
           return (
-            <Gesture onPinch={this.onPinchCard(card.url)}>
+            <Gesture onPinchEnd={this.onPinchCard(card.url)}>
               <DraggableCard
                 key={idx}
                 index={idx}
