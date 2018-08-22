@@ -56,8 +56,8 @@ export default class Board extends Widget<Model> {
               card={card}
               onDragStart={this.onDragStart}
               onDragStop={this.onDragStop}
-              onPointerUp={(e: PointerEvent) => {
-                this.onPointerUpCard(e, card.url)
+              onClick={(e: PointerEvent) => {
+                this.onClickCard(e, card.url)
               }}>
               <Content
                 mode="embed"
@@ -130,7 +130,7 @@ export default class Board extends Widget<Model> {
     })
   }
 
-  onPointerUpCard = (e: PointerEvent, url: string) => {
+  onClickCard = (e: PointerEvent, url: string) => {
     if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
     this.change(doc => {
       doc.locallyFocusedCardURL = url
