@@ -4,6 +4,10 @@ import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
 import { AnyDoc, Doc } from "automerge"
+import { CARD_HEIGHT, CARD_WIDTH } from "./Card"
+import { clamp } from "lodash"
+
+const BOARD_PADDING = 15
 
 interface CardModel {
   x: number
@@ -15,43 +19,84 @@ interface CardModel {
 export interface Model {
   cards: CardModel[]
   topZ: number
+  locallyFocusedCardURL?: string
 }
 
-export default class Board extends Widget<Model> {
+interface Props {
+  onFullscreen?: (url: string) => void
+}
+
+export default class Board extends Widget<Model, Props> {
+  boardEl?: HTMLElement
+
   static reify(doc: AnyDoc): Model {
     return {
       cards: Reify.array(doc.cards),
       topZ: Reify.number(doc.topZ),
+      locallyFocusedCardURL: undefined,
     }
   }
 
-  show({ cards, topZ }: Model) {
+  show({ cards, topZ, locallyFocusedCardURL }: Model) {
     if (!cards) {
       return null
     }
     return (
-      <div style={style.Board}>
-        <div style={style.Page}>
-          {cards.map((card, idx) => {
-            return (
-              <DraggableCard
-                key={idx}
-                index={idx}
-                card={card}
-                onDragStart={this.dragStart}>
-                <Content mode="embed" url={card.url} />
-              </DraggableCard>
-            )
-          })}
-        </div>
+      <div
+        style={style.Board}
+        onDblClick={this.onDblClick}
+        ref={(el: HTMLElement) => (this.boardEl = el)}>
+        {cards.map((card, idx) => {
+          return (
+            <DraggableCard
+              key={idx}
+              index={idx}
+              card={card}
+              onPinchEnd={this.props.onFullscreen}
+              onDragStart={this.onDragStart}>
+              <Content
+                mode="embed"
+                url={card.url}
+                isFocused={card.url === locallyFocusedCardURL}
+              />
+            </DraggableCard>
+          )
+        })}
       </div>
     )
   }
 
-  dragStart = (idx: number) => {
+  onDblClick = ({ x, y }: MouseEvent) => {
+    if (!this.boardEl) return
+    const cardX = clamp(
+      x - CARD_WIDTH / 2,
+      0,
+      this.boardEl.scrollWidth - CARD_WIDTH - 2 * BOARD_PADDING,
+    )
+    const cardY = clamp(
+      y - CARD_HEIGHT / 2,
+      0,
+      this.boardEl.scrollHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
+    )
+
+    Content.create("Text").then(url => {
+      this.change(doc => {
+        const z = doc.topZ++
+        doc.cards.push({ x: cardX, y: cardY, z, url })
+        doc.locallyFocusedCardURL = url
+        return doc
+      })
+    })
+  }
+
+  onDragStart = (idx: number) => {
     this.change(doc => {
       doc.topZ += 1
-      doc.cards[idx] && (doc.cards[idx].z = doc.topZ)
+      const card = doc.cards[idx]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[idx] = { ...card, z: doc.topZ }
+      }
       return doc
     })
   }
@@ -63,19 +108,9 @@ const style = {
   Board: {
     width: "100%",
     height: "100%",
+    padding: BOARD_PADDING,
     position: "absolute",
     zIndex: 0,
-    backgroundColor: "#eee",
-  },
-  Page: {
     backgroundColor: "#fff",
-    margin: 10,
-    borderRadius: 10,
-    boxShadow: "0 0 10px rgba(0,0,0,0.2)",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 }

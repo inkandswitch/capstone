@@ -36,7 +36,7 @@ export default class App extends Preact.Component<{}, State> {
           ([workspaceUrl, archiveUrl]) => {
             const { type, id } = Link.parse(workspaceUrl)
             Content.store.change(id, workspace, "adding initial urls", doc => {
-              doc.boardUrl = Link.format({ type: "Board", id: "id1" }) // use sample data
+              doc.currentUrl = Link.format({ type: "Board", id: "id1" }) // use sample data
               doc.archiveUrl = archiveUrl
               return doc
             })
@@ -68,5 +68,6 @@ const style = {
     left: 0,
     right: 0,
     bottom: 0,
+    overflow: "auto",
   },
 }
