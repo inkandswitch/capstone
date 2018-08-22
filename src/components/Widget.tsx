@@ -9,6 +9,7 @@ export { Doc, AnyDoc }
 export interface Props {
   url: string
   mode: Mode
+  isFocused: boolean
 }
 
 export interface State<T> {

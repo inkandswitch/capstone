@@ -15,6 +15,7 @@ interface CardModel {
 export interface Model {
   cards: CardModel[]
   topZ: number
+  locallyFocusedCardURL?: string
 }
 
 export default class Board extends Widget<Model> {
@@ -22,30 +23,44 @@ export default class Board extends Widget<Model> {
     return {
       cards: Reify.array(doc.cards),
       topZ: Reify.number(doc.topZ),
+      locallyFocusedCardURL: undefined,
     }
   }
 
-  show({ cards, topZ }: Model) {
+  show({ cards, topZ, locallyFocusedCardURL }: Model) {
     if (!cards) {
       return null
     }
     return (
-      <div style={style.Board}>
-        <div style={style.Page}>
-          {cards.map((card, idx) => {
-            return (
-              <DraggableCard
-                key={idx}
-                index={idx}
-                card={card}
-                onDragStart={this.dragStart}>
-                <Content mode="embed" url={card.url} />
-              </DraggableCard>
-            )
-          })}
-        </div>
+      <div style={style.Board} onDblClick={this.onDblClick}>
+        {cards.map((card, idx) => {
+          return (
+            <DraggableCard
+              key={idx}
+              index={idx}
+              card={card}
+              onDragStart={this.dragStart}>
+              <Content
+                mode="embed"
+                url={card.url}
+                isFocused={card.url === locallyFocusedCardURL}
+              />
+            </DraggableCard>
+          )
+        })}
       </div>
     )
+  }
+
+  onDblClick = ({ x, y }: MouseEvent) => {
+    Content.create("Text").then(url => {
+      this.change(doc => {
+        const z = doc.topZ++
+        doc.cards.push({ x, y, z, url })
+        doc.locallyFocusedCardURL = url
+        return doc
+      })
+    })
   }
 
   dragStart = (idx: number) => {
@@ -65,17 +80,6 @@ const style = {
     height: "100%",
     position: "absolute",
     zIndex: 0,
-    backgroundColor: "#eee",
-  },
-  Page: {
     backgroundColor: "#fff",
-    margin: 10,
-    borderRadius: 10,
-    boxShadow: "0 0 10px rgba(0,0,0,0.2)",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 }

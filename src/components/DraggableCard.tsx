@@ -26,7 +26,11 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <Draggable defaultPosition={{ x, y }} onStart={this.start} z={z}>
+      <Draggable
+        defaultPosition={{ x, y }}
+        onStart={this.start}
+        z={z}
+        enableUserSelectHack={false}>
         <Card>{children}</Card>
       </Draggable>
     )

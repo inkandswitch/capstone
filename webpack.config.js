@@ -30,11 +30,10 @@ module.exports = {
           "style-loader",
           {
             loader: "css-loader",
-            options: {
-              importLoaders: 1,
-            },
+            // options: {
+            //   importLoaders: 1,
+            // },
           },
-          "postcss-loader",
         ],
       },
       {
