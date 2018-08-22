@@ -3,14 +3,12 @@ import { defaults, mapValues } from "lodash"
 import sample from "./sample"
 let ram = require("random-access-memory")
 import Hypermerge from "../hypermerge"
-import { DocHandle } from "hypermerge"
 
 type StoreId = string
 
 export default class Store {
-  docs: { [id: string]: DocHandle } = mapValues(
-    sample,
-    (json: any, id: string) => makeDoc(id, json),
+  docs: { [id: string]: any } = mapValues(sample, (json: any, id: string) =>
+    makeDoc(id, json),
   )
 
   hypermerge = new Hypermerge({
