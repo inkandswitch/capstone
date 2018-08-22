@@ -33,13 +33,30 @@ export default class Board extends Widget<Model> {
     }
     return (
       <div style={style.Board} onDblClick={this.onDblClick}>
+        {locallyFocusedCardURL && (
+          <div
+            style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+            onPointerDown={this.onPointerDown}
+            onPointerMove={this.onPointerMove}
+            onPointerUp={this.onPointerUp}
+          />
+        )}
         {cards.map((card, idx) => {
           return (
             <DraggableCard
               key={idx}
               index={idx}
               card={card}
-              onDragStart={this.onDragStart}>
+              onDragStart={this.onDragStart}
+              onPointerDown={(e: PointerEvent) => {
+                this.onPointerDownCard(e, card.url)
+              }}
+              onPointerMove={(e: PointerEvent) => {
+                this.onPointerMoveCard(e, card.url)
+              }}
+              onPointerUp={(e: PointerEvent) => {
+                this.onPointerUpCard(e, card.url)
+              }}>
               <Content
                 mode="embed"
                 url={card.url}
@@ -55,7 +72,7 @@ export default class Board extends Widget<Model> {
   onDblClick = ({ x, y }: MouseEvent) => {
     Content.create("Text").then(url => {
       this.change(doc => {
-        const z = doc.topZ++
+        const z = (doc.topZ += 2)
         doc.cards.push({ x, y, z, url })
         doc.locallyFocusedCardURL = url
         return doc
@@ -65,7 +82,7 @@ export default class Board extends Widget<Model> {
 
   onDragStart = (idx: number) => {
     this.change(doc => {
-      doc.topZ += 1
+      doc.topZ += 2
       const card = doc.cards[idx]
       if (card) {
         // XXX: Remove once backend/store handles object immutability.
@@ -74,6 +91,26 @@ export default class Board extends Widget<Model> {
       return doc
     })
   }
+
+  onPointerDown = (e: PointerEvent) => {
+    this.change(doc => {
+      doc.locallyFocusedCardURL = undefined
+      return doc
+    })
+  }
+
+  onPointerMove = (e: PointerEvent) => {}
+  onPointerUp = (e: PointerEvent) => {}
+
+  onPointerDownCard = (e: PointerEvent, url: string) => {
+    if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
+    this.change(doc => {
+      doc.locallyFocusedCardURL = url
+      return doc
+    })
+  }
+  onPointerMoveCard = (e: PointerEvent, url: string) => {}
+  onPointerUpCard = (e: PointerEvent, url: string) => {}
 }
 
 Content.register("Board", Board)
@@ -85,5 +122,12 @@ const style = {
     position: "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
+  },
+  FocusBackgroundOverlay: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    backgroundColor: "#000",
+    opacity: 0.15,
   },
 }
