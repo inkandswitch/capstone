@@ -67,5 +67,6 @@ const style = {
     left: 0,
     right: 0,
     bottom: 0,
+    overflow: "auto",
   },
 }
