@@ -61,21 +61,22 @@ export default class Board extends Widget<Model> {
     )
   }
 
-  onDblClick = ({ clientX, clientY }: MouseEvent) => {
+  onDblClick = ({ x, y }: MouseEvent) => {
+    if (!this.boardEl) return
+    const cardX = clamp(
+      x - CARD_WIDTH / 2,
+      0,
+      this.boardEl.scrollWidth - CARD_WIDTH - 2 * BOARD_PADDING,
+    )
+    const cardY = clamp(
+      y - CARD_HEIGHT / 2,
+      0,
+      this.boardEl.scrollHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
+    )
+
     Content.create("Text").then(url => {
       this.change(doc => {
-        if (!this.boardEl) return doc
         const z = doc.topZ++
-        let cardX = clamp(
-          clientX - CARD_WIDTH / 2,
-          0,
-          this.boardEl.offsetWidth - CARD_WIDTH - 2 * BOARD_PADDING,
-        )
-        let cardY = clamp(
-          clientY - CARD_HEIGHT / 2,
-          0,
-          this.boardEl.offsetHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
-        )
         doc.cards.push({ x: cardX, y: cardY, z, url })
         doc.locallyFocusedCardURL = url
         return doc
