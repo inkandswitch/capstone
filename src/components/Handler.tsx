@@ -37,7 +37,6 @@ export default abstract class Handler<
   handlerFor(name: string) {
     return (event: Event) => {
       if (!this.props[name] || !this.filter(event)) return
-      this.stop(event)
       this.props[name](event)
     }
   }

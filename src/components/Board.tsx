@@ -6,6 +6,7 @@ import * as Reify from "../data/Reify"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_HEIGHT, CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
+import Gesture from "./Gesture"
 
 const BOARD_PADDING = 15
 
@@ -22,7 +23,11 @@ export interface Model {
   locallyFocusedCardURL?: string
 }
 
-export default class Board extends Widget<Model> {
+interface Props {
+  onPinchCard: (url: string) => void
+}
+
+export default class Board extends Widget<Model, Props> {
   boardEl?: HTMLElement
 
   static reify(doc: AnyDoc): Model {
@@ -44,17 +49,19 @@ export default class Board extends Widget<Model> {
         ref={(el: HTMLElement) => (this.boardEl = el)}>
         {cards.map((card, idx) => {
           return (
-            <DraggableCard
-              key={idx}
-              index={idx}
-              card={card}
-              onDragStart={this.onDragStart}>
-              <Content
-                mode="embed"
-                url={card.url}
-                isFocused={card.url === locallyFocusedCardURL}
-              />
-            </DraggableCard>
+            <Gesture onPinch={this.onPinchCard(card.url)}>
+              <DraggableCard
+                key={idx}
+                index={idx}
+                card={card}
+                onDragStart={this.onDragStart}>
+                <Content
+                  mode="embed"
+                  url={card.url}
+                  isFocused={card.url === locallyFocusedCardURL}
+                />
+              </DraggableCard>
+            </Gesture>
           )
         })}
       </div>
@@ -82,6 +89,13 @@ export default class Board extends Widget<Model> {
         return doc
       })
     })
+  }
+
+  onPinchCard = (url: string) => (event: HammerInput) => {
+    if (event.scale < 1) return // TODO: maybe build this into Gesture
+
+    const { onPinchCard } = this.props
+    onPinchCard && onPinchCard(url)
   }
 
   onDragStart = (idx: number) => {

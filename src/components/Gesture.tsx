@@ -21,7 +21,7 @@ export default class Gesture extends Handler<Props> {
     this.hammer = new Hammer.Manager(this.base, {
       recognizers,
     })
-    this.hammer.on("pinch", this.handle("onPinch"))
+    this.hammer.on("pinchend", this.handle("onPinch"))
   }
 
   render() {
