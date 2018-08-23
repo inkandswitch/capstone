@@ -17,6 +17,7 @@ export interface Props {
   onDragStart: (idx: number) => void
   onDragStop?: (x: number, y: number, idx: number) => void
   onPinchEnd?: (url: string) => void
+  onTap?: (url: string) => void
   [propName: string]: any
 }
 
@@ -33,7 +34,7 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <Gesture onPinchEnd={this.onPinchEnd}>
+      <Gesture onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
         <Draggable
           bounds="parent"
           defaultPosition={{ x, y }}
@@ -45,6 +46,11 @@ export default class DraggableCard extends Preact.Component<Props> {
         </Draggable>
       </Gesture>
     )
+  }
+
+  onTap = (event: HammerInput) => {
+    const { onTap, card } = this.props
+    onTap && onTap(card.url)
   }
 
   onPinchEnd = (event: HammerInput) => {

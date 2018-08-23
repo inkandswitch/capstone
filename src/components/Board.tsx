@@ -61,9 +61,7 @@ export default class Board extends Widget<Model, Props> {
               onPinchEnd={this.props.onFullscreen}
               onDragStart={this.onDragStart}
               onDragStop={this.onDragStop}
-              onClick={(e: PointerEvent) => {
-                this.onClickCard(e, card.url)
-              }}>
+              onTap={this.onTapCard}>
               <Content
                 mode="embed"
                 url={card.url}
@@ -135,7 +133,7 @@ export default class Board extends Widget<Model, Props> {
     })
   }
 
-  onClickCard = (e: PointerEvent, url: string) => {
+  onTapCard = (url: string) => {
     if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
     this.change(doc => {
       doc.locallyFocusedCardURL = url
