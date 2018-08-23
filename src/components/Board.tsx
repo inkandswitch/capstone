@@ -66,7 +66,7 @@ export default class Board extends Widget<Model, Props> {
             </DraggableCard>
           )
         })}
-        {locallyFocusedCardIndex && (
+        {locallyFocusedCardIndex !== undefined && (
           <div
             style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
             onPointerDown={this.onPointerDown}
@@ -79,7 +79,7 @@ export default class Board extends Widget<Model, Props> {
   onDblClick = ({ x, y }: MouseEvent) => {
     if (
       !this.state.doc ||
-      this.state.doc.locallyFocusedCardIndex ||
+      this.state.doc.locallyFocusedCardIndex !== undefined ||
       !this.boardEl
     )
       return
@@ -130,13 +130,13 @@ export default class Board extends Widget<Model, Props> {
   onPointerDown = (e: PointerEvent) => {
     e.preventDefault()
     this.change(doc => {
-      if (!doc.locallyFocusedCardIndex) return doc
+      if (doc.locallyFocusedCardIndex === undefined) return doc
       return this.clearCardFocus(doc)
     })
   }
 
   onTapCard = (index: number) => {
-    if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
+    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined) return
     this.change(doc => {
       return this.setCardFocus(doc, index)
     })
@@ -150,7 +150,7 @@ export default class Board extends Widget<Model, Props> {
   }
 
   clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
-    if (!doc.locallyFocusedCardIndex) return doc
+    if (doc.locallyFocusedCardIndex === undefined) return doc
     const card = doc.cards[doc.locallyFocusedCardIndex]
     doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
     doc.locallyFocusedCardIndex = undefined
