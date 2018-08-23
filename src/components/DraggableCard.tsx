@@ -3,6 +3,7 @@ import Draggable from "../draggable/index"
 import Card from "./Card"
 import { MouseTouchEvent, DraggableData } from "../draggable/types"
 import Gesture from "./Gesture"
+import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
 interface CardModel {
   x: number
@@ -18,6 +19,7 @@ export interface Props {
   onDragStop?: (x: number, y: number, idx: number) => void
   onPinchEnd?: (url: string) => void
   onTap?: (idx: number) => void
+  onDelete: (idx: number) => void
   [propName: string]: any
 }
 
@@ -34,17 +36,19 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <Gesture onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
-        <Draggable
-          bounds="parent"
-          defaultPosition={{ x, y }}
-          onStart={this.start}
-          onStop={this.stop}
-          z={z}
-          enableUserSelectHack={false}>
-          <Card {...rest}>{children}</Card>
-        </Draggable>
-      </Gesture>
+      <StrokeRecognizer only={["X"]} onStroke={this.onStroke}>
+        <Gesture onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
+          <Draggable
+            bounds="parent"
+            defaultPosition={{ x, y }}
+            onStart={this.start}
+            onStop={this.stop}
+            z={z}
+            enableUserSelectHack={false}>
+            <Card {...rest}>{children}</Card>
+          </Draggable>
+        </Gesture>
+      </StrokeRecognizer>
     )
   }
 
@@ -58,6 +62,13 @@ export default class DraggableCard extends Preact.Component<Props> {
     if (event.scale < 1) return // TODO: maybe build this into Gesture
     const { onPinchEnd, card } = this.props
     onPinchEnd && onPinchEnd(card.url)
+  }
+
+  onStroke = (stroke: Stroke) => {
+    switch (stroke.name) {
+      case "X":
+        this.props.onDelete(this.props.index)
+    }
   }
 
   start = () => {

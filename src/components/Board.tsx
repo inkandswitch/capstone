@@ -46,7 +46,7 @@ export default class Board extends Widget<Model, Props> {
     }
 
     return (
-      <StrokeRecognizer onStroke={this.onStroke}>
+      <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
         <PenGesture onDoubleTap={this.onPenDoubleTapBoard}>
           <div
             style={style.Board}
@@ -57,6 +57,7 @@ export default class Board extends Widget<Model, Props> {
                   key={idx}
                   index={idx}
                   card={card}
+                  onDelete={this.deleteCard}
                   onPinchEnd={this.props.onNavigate}
                   onDragStart={this.onDragStart}
                   onDragStop={this.onDragStop}
@@ -170,6 +171,13 @@ export default class Board extends Widget<Model, Props> {
       case "box":
         this.createCard("Text", stroke.bounds.left, stroke.bounds.top)
     }
+  }
+
+  deleteCard = (idx: number) => {
+    this.change(doc => {
+      doc.cards.splice(idx, 1)
+      return doc
+    })
   }
 
   async createCard(type: string, x: number, y: number): Promise<string> {
