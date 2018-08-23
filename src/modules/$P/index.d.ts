@@ -4,7 +4,7 @@ export class Recognizer {
   constructor()
 
   AddGesture(name: string, points: Point[]): number
-  Recognize(points: Point[]): Result
+  Recognize(points: Point[], only?: string[]): Result
 }
 
 export class Point {

@@ -19,6 +19,7 @@ export interface Stroke {
 export interface Props {
   onStroke: (stroke: Stroke) => void
   delay?: number
+  only?: string[]
   children: JSX.Element
   // TODO: list of valid patterns
 }
@@ -38,6 +39,13 @@ DEFAULT_RECOGNIZER.AddGesture("box", [
   new $P.Point(1, 1, 0),
   new $P.Point(1, 0, 0),
   new $P.Point(0, 0, 0),
+])
+
+DEFAULT_RECOGNIZER.AddGesture("X", [
+  new $P.Point(30, 146, 1),
+  new $P.Point(106, 222, 1),
+  new $P.Point(30, 225, 2),
+  new $P.Point(106, 146, 2),
 ])
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
@@ -69,7 +77,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   }
 
   _recognize = () => {
-    const result = this.recognizer.Recognize(this.points)
+    const result = this.recognizer.Recognize(this.points, this.props.only)
 
     if (result.Score > 0) {
       this.props.onStroke({
