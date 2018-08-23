@@ -39,13 +39,11 @@ export default class Board extends Widget<Model, Props> {
   }
 
   componentDidMount() {
-    document.addEventListener("input", this.onInput)
-    document.addEventListener("compositionend", this.onCompositionEnd)
+    document.addEventListener("focusout", this.onFocusOut)
   }
 
   componentDidUnmount() {
-    document.removeEventListener("input", this.onInput)
-    document.removeEventListener("compositionend", this.onCompositionEnd)
+    document.removeEventListener("focusout", this.onFocusOut)
   }
 
   show({ cards, topZ, locallyFocusedCardIndex }: Model) {
@@ -134,25 +132,22 @@ export default class Board extends Widget<Model, Props> {
 
   onPointerDown = (e: PointerEvent) => {
     e.preventDefault()
-    this.change(doc => {
-      if (!doc.locallyFocusedCardIndex) return doc
-      return this.clearCardFocus(doc)
-    })
+    this.clearCardFocus()
   }
 
   onTapCard = (index: number) => {
     if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
     this.change(doc => {
-      return this.setCardFocus(doc, index)
+      if (!doc.locallyFocusedCardIndex) return doc
+      const card = doc.cards[doc.locallyFocusedCardIndex]
+      doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
+      doc.locallyFocusedCardIndex = undefined
+      return doc
     })
   }
 
-  onInput = (e: UIEvent) => {
-    console.log("on input")
-  }
-
-  onCompositionEnd = (e: UIEvent) => {
-    console.log("on compositionend")
+  onFocusOut = (e: UIEvent) => {
+    this.clearCardFocus()
   }
 
   setCardFocus = (doc: Doc<Model>, cardIndex: number): Doc<Model> => {
@@ -162,12 +157,15 @@ export default class Board extends Widget<Model, Props> {
     return doc
   }
 
-  clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
-    if (!doc.locallyFocusedCardIndex) return doc
-    const card = doc.cards[doc.locallyFocusedCardIndex]
-    doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
-    doc.locallyFocusedCardIndex = undefined
-    return doc
+  clearCardFocus = () => {
+    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex) return
+    this.change(doc => {
+      if (!doc.locallyFocusedCardIndex) return doc
+      const card = doc.cards[doc.locallyFocusedCardIndex]
+      doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
+      doc.locallyFocusedCardIndex = undefined
+      return doc
+    })
   }
 }
 
