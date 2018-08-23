@@ -46,12 +46,6 @@ export default class Board extends Widget<Model, Props> {
         style={style.Board}
         onDblClick={this.onDblClick}
         ref={(el: HTMLElement) => (this.boardEl = el)}>
-        {locallyFocusedCardURL && (
-          <div
-            style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-            onPointerDown={this.onPointerDown}
-          />
-        )}
         {cards.map((card, idx) => {
           return (
             <DraggableCard
@@ -70,6 +64,12 @@ export default class Board extends Widget<Model, Props> {
             </DraggableCard>
           )
         })}
+        {locallyFocusedCardURL && (
+          <div
+            style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+            onPointerDown={this.onPointerDown}
+          />
+        )}
       </div>
     )
   }
@@ -95,7 +95,7 @@ export default class Board extends Widget<Model, Props> {
 
     Content.create("Text").then(url => {
       this.change(doc => {
-        const z = (doc.topZ += 2)
+        const z = (doc.topZ += 1)
         doc.cards.push({ x: cardX, y: cardY, z, url })
         doc.locallyFocusedCardURL = url
         return doc
@@ -105,7 +105,7 @@ export default class Board extends Widget<Model, Props> {
 
   onDragStart = (idx: number) => {
     this.change(doc => {
-      doc.topZ += 2
+      doc.topZ += 1
       const card = doc.cards[idx]
       if (card) {
         // XXX: Remove once backend/store handles object immutability.
