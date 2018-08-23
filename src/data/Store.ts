@@ -31,7 +31,6 @@ export default class Store {
     let args = {}
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ command, args }, function(response) {
-        console.log("create response", response)
         resolve(response)
       })
     })

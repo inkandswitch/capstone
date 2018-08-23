@@ -1,13 +1,21 @@
 import { AnyDoc } from "automerge"
 import { defaults, mapValues } from "lodash"
 import sample from "./sample"
+import Hypermerge from "../hypermerge"
+let racf = require("random-access-chrome-file")
 
 type StoreId = string
 
 export default class Store {
+  hypermerge: Hypermerge
+
   docs: { [id: string]: AnyDoc } = mapValues(sample, (json, id) =>
     makeDoc(id, json),
   )
+
+  constructor() {
+    this.hypermerge = new Hypermerge({ storage: racf })
+  }
 
   dontKeepThisCurrentId = 0
 
