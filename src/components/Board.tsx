@@ -49,7 +49,7 @@ export default class Board extends Widget<Model, Props> {
     return (
       <div
         style={style.Board}
-        onDblClick={this.onDblClick}
+        onPointerDown={this.onPointerDownBoard}
         ref={(el: HTMLElement) => (this.boardEl = el)}>
         {cards.map((card, idx) => {
           return (
@@ -76,13 +76,16 @@ export default class Board extends Widget<Model, Props> {
     )
   }
 
-  onDblClick = ({ x, y }: MouseEvent) => {
+  onPointerDownBoard = (e: PointerEvent) => {
     if (
       !this.state.doc ||
       this.state.doc.locallyFocusedCardIndex !== undefined ||
+      e.pointerType !== "pen" ||
       !this.boardEl
     )
       return
+
+    const { x, y } = e
 
     const cardX = clamp(
       x - CARD_WIDTH / 2,
@@ -129,6 +132,7 @@ export default class Board extends Widget<Model, Props> {
 
   onPointerDown = (e: PointerEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     this.change(doc => {
       if (doc.locallyFocusedCardIndex === undefined) return doc
       return this.clearCardFocus(doc)
@@ -136,7 +140,8 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onTapCard = (index: number) => {
-    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined) return
+    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined)
+      return
     this.change(doc => {
       return this.setCardFocus(doc, index)
     })

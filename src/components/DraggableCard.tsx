@@ -38,7 +38,6 @@ export default class DraggableCard extends Preact.Component<Props> {
       <Gesture onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
         <Draggable
           bounds="parent"
-          disabled={this.props.disabled}
           defaultPosition={{ x, y }}
           onStart={this.start}
           onStop={this.stop}
