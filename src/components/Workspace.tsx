@@ -27,7 +27,7 @@ export default class Workspace extends Widget<Model> {
           <Content
             mode={this.mode}
             url={currentUrl}
-            onFullscreen={this.navigateTo}
+            onNavigate={this.navigateTo}
           />
         </div>
       </Gesture>
