@@ -23,7 +23,9 @@ export interface Props {
 
 export default class DraggableCard extends Preact.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
-    return this.props.card !== nextProps.card
+    return (
+      this.props.card !== nextProps.card
+    )
   }
 
   render() {

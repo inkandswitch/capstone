@@ -60,6 +60,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   render() {
+    console.log("content render")
     const { mode } = this.props
     const { url, type } = Link.parse(this.props.url)
     const Widget = Content.find(type)
