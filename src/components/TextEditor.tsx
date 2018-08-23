@@ -106,10 +106,8 @@ export default class TextEditor extends Preact.Component<Props, State> {
   }
 
   ensureFocus = (isFocused: boolean) => {
-    console.log("ensure focus")
     if (!this.codeMirror) return
     if (isFocused && !this.codeMirror.hasFocus()) {
-      console.log("actually get focus")
       this.codeMirror.focus()
     }
   }
