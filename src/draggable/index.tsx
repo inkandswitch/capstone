@@ -70,6 +70,7 @@ interface DraggableProps {
   offsetParent?: HTMLElement | null
   handle?: string | null
   onStart?: DraggableEventHandler
+  onStop?: DraggableEventHandler
   axis?: "both" | "x" | "y" | "none"
   bounds?: DraggableBounds | string | false
   defaultClassName?: string
@@ -309,6 +310,13 @@ export default class Draggable extends Preact.Component<
     }
     const { x, y } = position as ControlPosition
     const coreEvent = createCoreData(this, x, y)
+
+    const shouldUpdate =
+      this.props.onStop &&
+      this.props.onStop(e, createDraggableData(this, coreEvent))
+    if (shouldUpdate === false) {
+      return
+    }
 
     const thisNode = this.base
     if (thisNode) {

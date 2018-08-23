@@ -4,6 +4,7 @@ import * as Hammer from "hammerjs"
 
 interface Props {
   onPinchEnd?: (event: HammerInput) => void
+  onTap?: (event: HammerInput) => void
   // TODO: add other gesture recognizers
 }
 
@@ -13,16 +14,18 @@ export default class Gesture extends Handler<Props> {
   componentDidMount() {
     if (!this.base) return
 
-    const { onPinchEnd } = this.props
+    const { onPinchEnd, onTap } = this.props
 
     const recognizers: RecognizerTuple[] = []
 
     if (onPinchEnd) recognizers.push([Hammer.Pinch, { threshold: 0.5 }])
+    if (onTap) recognizers.push([Hammer.Tap])
 
     this.hammer = new Hammer.Manager(this.base, {
       recognizers,
     })
     this.hammer.on("pinchend", this.handle("onPinchEnd"))
+    this.hammer.on("tap", this.handle("onTap"))
   }
 
   render() {

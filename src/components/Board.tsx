@@ -53,7 +53,9 @@ export default class Board extends Widget<Model, Props> {
               index={idx}
               card={card}
               onPinchEnd={this.props.onNavigate}
-              onDragStart={this.onDragStart}>
+              onDragStart={this.onDragStart}
+              onDragStop={this.onDragStop}
+              onTap={this.onTapCard}>
               <Content
                 mode="embed"
                 url={card.url}
@@ -62,12 +64,24 @@ export default class Board extends Widget<Model, Props> {
             </DraggableCard>
           )
         })}
+        {locallyFocusedCardURL && (
+          <div
+            style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+            onPointerDown={this.onPointerDown}
+          />
+        )}
       </div>
     )
   }
 
   onDblClick = ({ x, y }: MouseEvent) => {
-    if (!this.boardEl) return
+    if (
+      !this.state.doc ||
+      this.state.doc.locallyFocusedCardURL ||
+      !this.boardEl
+    )
+      return
+
     const cardX = clamp(
       x - CARD_WIDTH / 2,
       0,
@@ -81,7 +95,7 @@ export default class Board extends Widget<Model, Props> {
 
     Content.create("Text").then(url => {
       this.change(doc => {
-        const z = doc.topZ++
+        const z = (doc.topZ += 1)
         doc.cards.push({ x: cardX, y: cardY, z, url })
         doc.locallyFocusedCardURL = url
         return doc
@@ -100,6 +114,33 @@ export default class Board extends Widget<Model, Props> {
       return doc
     })
   }
+
+  onDragStop = (x: number, y: number, idx: number) => {
+    this.change(doc => {
+      const card = doc.cards[idx]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[idx] = { ...card, x: x, y: y }
+      }
+      return doc
+    })
+  }
+
+  onPointerDown = (e: PointerEvent) => {
+    e.preventDefault()
+    this.change(doc => {
+      doc.locallyFocusedCardURL = undefined
+      return doc
+    })
+  }
+
+  onTapCard = (url: string) => {
+    if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
+    this.change(doc => {
+      doc.locallyFocusedCardURL = url
+      return doc
+    })
+  }
 }
 
 Content.register("Board", Board)
@@ -112,5 +153,14 @@ const style = {
     position: "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
+  },
+  FocusBackgroundOverlay: {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    backgroundColor: "#000",
+    opacity: 0.15,
   },
 }
