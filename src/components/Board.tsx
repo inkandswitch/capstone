@@ -7,6 +7,7 @@ import * as Reify from "../data/Reify"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_HEIGHT, CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
+import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
 const BOARD_PADDING = 15
 
@@ -43,35 +44,40 @@ export default class Board extends Widget<Model, Props> {
     if (!cards) {
       return null
     }
+
     return (
-      <PenGesture onDoubleTap={this.onPenDoubleTapBoard}>
-        <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
-          {cards.map((card, idx) => {
-            return (
-              <DraggableCard
-                key={idx}
-                index={idx}
-                card={card}
-                onPinchEnd={this.props.onNavigate}
-                onDragStart={this.onDragStart}
-                onDragStop={this.onDragStop}
-                onTap={this.onTapCard}>
-                <Content
-                  mode="embed"
-                  url={card.url}
-                  isFocused={card.isFocused}
-                />
-              </DraggableCard>
-            )
-          })}
-          {locallyFocusedCardIndex !== undefined && (
-            <div
-              style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-              onPointerDown={this.onPointerDown}
-            />
-          )}
-        </div>
-      </PenGesture>
+      <StrokeRecognizer onStroke={this.onStroke}>
+        <PenGesture onDoubleTap={this.onPenDoubleTapBoard}>
+          <div
+            style={style.Board}
+            ref={(el: HTMLElement) => (this.boardEl = el)}>
+            {cards.map((card, idx) => {
+              return (
+                <DraggableCard
+                  key={idx}
+                  index={idx}
+                  card={card}
+                  onPinchEnd={this.props.onNavigate}
+                  onDragStart={this.onDragStart}
+                  onDragStop={this.onDragStop}
+                  onTap={this.onTapCard}>
+                  <Content
+                    mode="embed"
+                    url={card.url}
+                    isFocused={idx === locallyFocusedCardIndex}
+                  />
+                </DraggableCard>
+              )
+            })}
+            {locallyFocusedCardIndex !== undefined && (
+              <div
+                style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+                onPointerDown={this.onPointerDown}
+              />
+            )}
+          </div>
+        </PenGesture>
+      </StrokeRecognizer>
     )
   }
 
@@ -157,6 +163,23 @@ export default class Board extends Widget<Model, Props> {
     doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
     doc.locallyFocusedCardIndex = undefined
     return doc
+  }
+
+  onStroke = (stroke: Stroke) => {
+    switch (stroke.name) {
+      case "box":
+        this.createCard("Text", stroke.bounds.left, stroke.bounds.top)
+    }
+  }
+
+  async createCard(type: string, x: number, y: number): Promise<string> {
+    const url = await Content.create(type)
+    this.change(doc => {
+      const z = doc.topZ++
+      doc.cards.push({ x, y, z, url })
+      return doc
+    })
+    return url
   }
 }
 
