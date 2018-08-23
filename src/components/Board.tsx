@@ -39,11 +39,13 @@ export default class Board extends Widget<Model, Props> {
   }
 
   componentDidMount() {
-    document.addEventListener("keyup", this.onKeyPress)
+    document.addEventListener("input", this.onInput)
+    document.addEventListener("compositionend", this.onCompositionEnd)
   }
 
   componentDidUnmount() {
-    document.removeEventListener("keyup", this.onKeyPress)
+    document.removeEventListener("input", this.onInput)
+    document.removeEventListener("compositionend", this.onCompositionEnd)
   }
 
   show({ cards, topZ, locallyFocusedCardIndex }: Model) {
@@ -145,9 +147,12 @@ export default class Board extends Widget<Model, Props> {
     })
   }
 
-  onKeyPress = (e: KeyboardEvent) => {
-    console.log("on key press")
-    console.log(e.keyCode)
+  onInput = (e: UIEvent) => {
+    console.log("on input")
+  }
+
+  onCompositionEnd = (e: UIEvent) => {
+    console.log("on compositionend")
   }
 
   setCardFocus = (doc: Doc<Model>, cardIndex: number): Doc<Model> => {
