@@ -39,13 +39,11 @@ export default class Board extends Widget<Model, Props> {
   }
 
   componentDidMount() {
-    document.addEventListener("input", this.onInput)
-    document.addEventListener("compositionend", this.onCompositionEnd)
+    document.addEventListener("focusout", this.onFocusOut)
   }
 
   componentDidUnmount() {
-    document.removeEventListener("input", this.onInput)
-    document.removeEventListener("compositionend", this.onCompositionEnd)
+    document.removeEventListener("focusout", this.onFocusOut)
   }
 
   show({ cards, topZ, locallyFocusedCardIndex }: Model) {
@@ -147,12 +145,11 @@ export default class Board extends Widget<Model, Props> {
     })
   }
 
-  onInput = (e: UIEvent) => {
-    console.log("on input")
-  }
-
-  onCompositionEnd = (e: UIEvent) => {
-    console.log("on compositionend")
+  onFocusOut = (e: UIEvent) => {
+    this.change(doc => {
+      if (!doc.locallyFocusedCardIndex) return doc
+      return this.clearCardFocus(doc)
+    })
   }
 
   setCardFocus = (doc: Doc<Model>, cardIndex: number): Doc<Model> => {
