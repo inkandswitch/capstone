@@ -139,8 +139,12 @@ export default class Board extends Widget<Model, Props> {
     })
   }
 
-  onTapCard = (index: number) => {
-    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined)
+  onTapCard = (e: PointerEvent, index: number) => {
+    if (
+      !this.state.doc ||
+      this.state.doc.locallyFocusedCardIndex !== undefined ||
+      e.pointerType !== "touch"
+    )
       return
     this.change(doc => {
       return this.setCardFocus(doc, index)
