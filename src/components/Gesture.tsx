@@ -28,6 +28,10 @@ export default class Gesture extends Handler<Props> {
     this.hammer.on("tap", this.handle("onTap"))
   }
 
+  filter(event: HammerInput) {
+    return event.pointerType !== "pen"
+  }
+
   render() {
     return this.child
   }
