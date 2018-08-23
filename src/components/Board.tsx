@@ -38,13 +38,9 @@ export default class Board extends Widget<Model, Props> {
     }
   }
 
-  componentDidMount() {
-    document.addEventListener("focusout", this.onFocusOut)
-  }
+  componentDidMount() {}
 
-  componentDidUnmount() {
-    document.removeEventListener("focusout", this.onFocusOut)
-  }
+  componentDidUnmount() {}
 
   show({ cards, topZ, locallyFocusedCardIndex }: Model) {
     if (!cards) {
@@ -61,6 +57,7 @@ export default class Board extends Widget<Model, Props> {
               key={idx}
               index={idx}
               card={card}
+              disabled={card.isFocused}
               onPinchEnd={this.props.onNavigate}
               onDragStart={this.onDragStart}
               onDragStop={this.onDragStop}
@@ -142,13 +139,6 @@ export default class Board extends Widget<Model, Props> {
     if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
     this.change(doc => {
       return this.setCardFocus(doc, index)
-    })
-  }
-
-  onFocusOut = (e: UIEvent) => {
-    this.change(doc => {
-      if (!doc.locallyFocusedCardIndex) return doc
-      return this.clearCardFocus(doc)
     })
   }
 

@@ -14,6 +14,7 @@ interface CardModel {
 export interface Props {
   card: CardModel
   index: number
+  disabled: boolean | undefined
   onDragStart: (idx: number) => void
   onDragStop?: (x: number, y: number, idx: number) => void
   onPinchEnd?: (url: string) => void
@@ -37,6 +38,7 @@ export default class DraggableCard extends Preact.Component<Props> {
       <Gesture onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
         <Draggable
           bounds="parent"
+          disabled={this.props.disabled}
           defaultPosition={{ x, y }}
           onStart={this.start}
           onStop={this.stop}
