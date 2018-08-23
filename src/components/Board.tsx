@@ -127,6 +127,7 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onPointerDown = (e: PointerEvent) => {
+    e.preventDefault()
     this.change(doc => {
       doc.locallyFocusedCardURL = undefined
       return doc
