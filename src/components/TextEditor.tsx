@@ -48,8 +48,7 @@ export default class TextEditor extends Preact.Component<Props, State> {
     this.codeMirror.on("change", this.onCodeMirrorChange)
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    console.log("component will receive props")
+  componentWillReceiveProps = (nextProps: Props) => {
     if (!this.codeMirror) return
 
     if (nextProps.content !== this.props.content) {
@@ -110,9 +109,6 @@ export default class TextEditor extends Preact.Component<Props, State> {
     if (!this.codeMirror) return
     if (isFocused && !this.codeMirror.hasFocus()) {
       this.codeMirror.focus()
-    } else if (!isFocused && this.codeMirror.hasFocus()) {
-      console.log("clear focus")
-      this.codeMirror.getInputField().blur()
     }
   }
 

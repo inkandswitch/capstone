@@ -14,7 +14,6 @@ interface CardModel {
   y: number
   z: number
   url: string
-  isFocused: boolean
 }
 
 export interface Model {
@@ -48,18 +47,20 @@ export default class Board extends Widget<Model, Props> {
         onDblClick={this.onDblClick}
         ref={(el: HTMLElement) => (this.boardEl = el)}>
         {cards.map((card, idx) => {
-          const isFocused = card.url === locallyFocusedCardURL
-          const key = `${idx}-${isFocused}`
           return (
             <DraggableCard
-              key={key}
+              key={idx}
               index={idx}
               card={card}
               onPinchEnd={this.props.onNavigate}
               onDragStart={this.onDragStart}
               onDragStop={this.onDragStop}
               onTap={this.onTapCard}>
-              <Content mode="embed" url={card.url} isFocused={isFocused} />
+              <Content
+                mode="embed"
+                url={card.url}
+                isFocused={card.url === locallyFocusedCardURL}
+              />
             </DraggableCard>
           )
         })}

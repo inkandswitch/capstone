@@ -18,7 +18,6 @@ export default class Text extends Widget<Model> {
   }
 
   show({ content }: Model) {
-    console.log("text render " + (this.doc && this.doc.url))
     return (
       <TextEditor
         content={content.join("")}
