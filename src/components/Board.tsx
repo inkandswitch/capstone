@@ -14,12 +14,13 @@ interface CardModel {
   y: number
   z: number
   url: string
+  isFocused?: boolean
 }
 
 export interface Model {
   cards: CardModel[]
   topZ: number
-  locallyFocusedCardURL?: string
+  locallyFocusedCardIndex?: number
 }
 
 interface Props {
@@ -33,11 +34,11 @@ export default class Board extends Widget<Model, Props> {
     return {
       cards: Reify.array(doc.cards),
       topZ: Reify.number(doc.topZ),
-      locallyFocusedCardURL: undefined,
+      locallyFocusedCardIndex: undefined,
     }
   }
 
-  show({ cards, topZ, locallyFocusedCardURL }: Model) {
+  show({ cards, topZ, locallyFocusedCardIndex }: Model) {
     if (!cards) {
       return null
     }
@@ -56,15 +57,11 @@ export default class Board extends Widget<Model, Props> {
               onDragStart={this.onDragStart}
               onDragStop={this.onDragStop}
               onTap={this.onTapCard}>
-              <Content
-                mode="embed"
-                url={card.url}
-                isFocused={card.url === locallyFocusedCardURL}
-              />
+              <Content mode="embed" url={card.url} isFocused={card.isFocused} />
             </DraggableCard>
           )
         })}
-        {locallyFocusedCardURL && (
+        {locallyFocusedCardIndex && (
           <div
             style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
             onPointerDown={this.onPointerDown}
@@ -77,7 +74,7 @@ export default class Board extends Widget<Model, Props> {
   onDblClick = ({ x, y }: MouseEvent) => {
     if (
       !this.state.doc ||
-      this.state.doc.locallyFocusedCardURL ||
+      this.state.doc.locallyFocusedCardIndex ||
       !this.boardEl
     )
       return
@@ -97,8 +94,7 @@ export default class Board extends Widget<Model, Props> {
       this.change(doc => {
         const z = (doc.topZ += 1)
         doc.cards.push({ x: cardX, y: cardY, z, url })
-        doc.locallyFocusedCardURL = url
-        return doc
+        return this.setCardFocus(doc, doc.cards.length - 1)
       })
     })
   }
@@ -129,17 +125,31 @@ export default class Board extends Widget<Model, Props> {
   onPointerDown = (e: PointerEvent) => {
     e.preventDefault()
     this.change(doc => {
-      doc.locallyFocusedCardURL = undefined
-      return doc
+      if (!doc.locallyFocusedCardIndex) return doc
+      return this.clearCardFocus(doc)
     })
   }
 
-  onTapCard = (url: string) => {
+  onTapCard = (index: number) => {
     if (!this.state.doc || this.state.doc.locallyFocusedCardURL) return
     this.change(doc => {
-      doc.locallyFocusedCardURL = url
-      return doc
+      return this.setCardFocus(doc, index)
     })
+  }
+
+  setCardFocus = (doc: Doc<Model>, cardIndex: number): Doc<Model> => {
+    const card = doc.cards[cardIndex]
+    doc.cards[cardIndex] = { ...card, isFocused: true }
+    doc.locallyFocusedCardIndex = cardIndex
+    return doc
+  }
+
+  clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
+    if (!doc.locallyFocusedCardIndex) return doc
+    const card = doc.cards[doc.locallyFocusedCardIndex]
+    doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
+    doc.locallyFocusedCardIndex = undefined
+    return doc
   }
 }
 
