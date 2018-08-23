@@ -23,7 +23,7 @@ export interface Model {
 }
 
 interface Props {
-  onFullscreen?: (url: string) => void
+  onNavigate?: (url: string) => void
 }
 
 export default class Board extends Widget<Model, Props> {
@@ -52,7 +52,7 @@ export default class Board extends Widget<Model, Props> {
               key={idx}
               index={idx}
               card={card}
-              onPinchEnd={this.props.onFullscreen}
+              onPinchEnd={this.props.onNavigate}
               onDragStart={this.onDragStart}>
               <Content
                 mode="embed"
