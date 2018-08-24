@@ -177,7 +177,7 @@ const style = {
     bottom: 0,
     left: 0,
     position: "absolute",
-    backgroundColor: "#000",
-    opacity: 0.15,
+    backgroundColor: "#616576",
+    opacity: 0.5,
   },
 }
