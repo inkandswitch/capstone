@@ -49,6 +49,7 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   onTap = (event: HammerInput) => {
+    if (event.pointerType !== "touch") return
     const { onTap, index } = this.props
     onTap && onTap(index)
   }
