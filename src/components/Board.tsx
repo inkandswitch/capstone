@@ -52,12 +52,15 @@ export default class Board extends Widget<Model, Props> {
                 key={idx}
                 index={idx}
                 card={card}
-                disabled={card.isFocused}
                 onPinchEnd={this.props.onNavigate}
                 onDragStart={this.onDragStart}
                 onDragStop={this.onDragStop}
                 onTap={this.onTapCard}>
-                <Content mode="embed" url={card.url} isFocused={card.isFocused} />
+                <Content
+                  mode="embed"
+                  url={card.url}
+                  isFocused={card.isFocused}
+                />
               </DraggableCard>
             )
           })}
@@ -134,10 +137,7 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onTapCard = (index: number) => {
-    if (
-      !this.state.doc ||
-      this.state.doc.locallyFocusedCardIndex !== undefined
-    )
+    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined)
       return
     this.change(doc => {
       return this.setCardFocus(doc, index)

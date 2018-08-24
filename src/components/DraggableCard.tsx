@@ -14,7 +14,6 @@ interface CardModel {
 export interface Props {
   card: CardModel
   index: number
-  disabled: boolean | undefined
   onDragStart: (idx: number) => void
   onDragStop?: (x: number, y: number, idx: number) => void
   onPinchEnd?: (url: string) => void
