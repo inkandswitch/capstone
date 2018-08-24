@@ -105,24 +105,24 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onDragStart = (idx: number) => {
+    if (!this.state.doc) return
+    const card = this.state.doc.cards[idx]
+    if (card.z === this.state.doc.topZ) return
     this.change(doc => {
       doc.topZ += 1
-      const card = doc.cards[idx]
-      if (card) {
-        // XXX: Remove once backend/store handles object immutability.
-        doc.cards[idx] = { ...card, z: doc.topZ }
-      }
+      // XXX: Remove once backend/store handles object immutability.
+      doc.cards[idx] = { ...card, z: doc.topZ }
       return doc
     })
   }
 
   onDragStop = (x: number, y: number, idx: number) => {
+    if (!this.state.doc) return
+    const card = this.state.doc.cards[idx]
+    if (card.x === x && card.y === y) return
     this.change(doc => {
-      const card = doc.cards[idx]
-      if (card) {
-        // XXX: Remove once backend/store handles object immutability.
-        doc.cards[idx] = { ...card, x: x, y: y }
-      }
+      // XXX: Remove once backend/store handles object immutability.
+      doc.cards[idx] = { ...card, x: x, y: y }
       return doc
     })
   }

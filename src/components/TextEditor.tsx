@@ -46,7 +46,7 @@ export default class TextEditor extends Preact.Component<Props, State> {
     })
     this.codeMirror.setValue(this.props.content)
     this.codeMirror.on("change", this.onCodeMirrorChange)
-    this.ensureFocus(this.props.isFocused)
+    this.updateFocus(this.props.isFocused)
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -56,7 +56,9 @@ export default class TextEditor extends Preact.Component<Props, State> {
       this.updateCodeMirrorContent(nextProps.content)
     }
 
-    this.ensureFocus(nextProps.isFocused)
+    if (nextProps.isFocused !== this.props.isFocused) {
+      this.updateFocus(nextProps.isFocused)
+    }
   }
 
   // Update the local code mirror instance with new content. We do this with individual operations
@@ -106,7 +108,7 @@ export default class TextEditor extends Preact.Component<Props, State> {
     }
   }
 
-  ensureFocus = (isFocused: boolean) => {
+  updateFocus = (isFocused: boolean) => {
     if (!this.codeMirror) return
     if (isFocused && !this.codeMirror.hasFocus()) {
       this.codeMirror.setOption("readOnly", false)
