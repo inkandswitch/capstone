@@ -45,12 +45,12 @@ export default class App extends Preact.Component<{}, State> {
       .then(workspaceUrl => {
         this.setState({ url: workspaceUrl })
         chrome.storage.local.set({ workspaceUrl })
-      }))
+      })
   }
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)
-    if (chrome.storage.local.get(["workspaceUrl"],(val) => {
+    chrome.storage.local.get(["workspaceUrl"],(val) => {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {

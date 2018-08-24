@@ -21,11 +21,11 @@ export default class Store {
     })
   }
 
-  open(id: StoreId): Promise<AnyDoc> {
+  open(id: StoreId): Promise<any> {
     return this.hypermerge.ready.then(() => {
       return new Promise((resolve,reject) => {
         setTimeout(() => {
-          let doc = this.hypermerge.find(id);
+          let doc: AnyDoc = <AnyDoc> this.hypermerge.find(id);
           if (doc) {
             console.log("Open StoreId",id,doc)
             resolve(doc)
@@ -40,7 +40,7 @@ export default class Store {
   replace(id: StoreId, doc: AnyDoc): AnyDoc {
     console.log("REPACE",id, doc);
     let oldDoc = this.hypermerge.find(id);
-    return this.hypermerge.change(oldDoc, (oldDoc) => {
+    return this.hypermerge.change(oldDoc, (oldDoc: any) => {
       for (let key in doc) {
         oldDoc[key] = doc[key];
       }
