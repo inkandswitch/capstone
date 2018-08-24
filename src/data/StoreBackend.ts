@@ -9,44 +9,43 @@ type StoreId = string
 export default class Store {
   hypermerge: Hypermerge
 
-  docs: { [id: string]: AnyDoc } = mapValues(sample, (json, id) =>
-    makeDoc(id, json),
-  )
-
   constructor() {
     this.hypermerge = new Hypermerge({ storage: racf })
   }
 
-  dontKeepThisCurrentId = 0
-
   create(): Promise<StoreId> {
-    return new Promise(resolve => {
-      const storeId = "storeId" + this.dontKeepThisCurrentId++
-      this.replace(storeId, {})
-      resolve(storeId)
+    return this.hypermerge.ready.then(() => {
+      let doc = this.hypermerge.create()
+      let docId = this.hypermerge.getId(doc);
+      return docId;
     })
   }
 
   open(id: StoreId): Promise<AnyDoc> {
-    return new Promise(
-      (resolve, reject) =>
-        this.docs[id]
-          ? resolve(this.docs[id])
-          : reject(new Error("no such doc to open: " + id)),
-    )
+    return this.hypermerge.ready.then(() => {
+      return new Promise((resolve,reject) => {
+        setTimeout(() => {
+          let doc = this.hypermerge.find(id);
+          if (doc) {
+            console.log("Open StoreId",id,doc)
+            resolve(doc)
+          } else {
+            reject("cant find document id " + id)
+          }
+        },200)
+      })
+    })
   }
 
   replace(id: StoreId, doc: AnyDoc): AnyDoc {
-    this.docs[id] = doc
-    return doc
+    console.log("REPACE",id, doc);
+    let oldDoc = this.hypermerge.find(id);
+    return this.hypermerge.change(oldDoc, (oldDoc) => {
+      for (let key in doc) {
+        oldDoc[key] = doc[key];
+      }
+      return oldDoc;
+    });
   }
 }
 
-function init(): AnyDoc {
-  return {} as AnyDoc
-}
-
-function makeDoc(id: StoreId, json: object): AnyDoc {
-  let empty = init()
-  return defaults(empty, json)
-}
