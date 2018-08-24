@@ -23,7 +23,7 @@ const style = {
     backgroundColor: "white",
     borderRadius: 3,
     overflow: "hidden",
-    border: "2px solid #E8E8E8",
+    border: "1px solid #E8E8E8",
     display: "grid",
     gridTemplateRows: "auto",
     gridTemplateColumns: "auto",
