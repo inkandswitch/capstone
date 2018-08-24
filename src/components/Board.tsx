@@ -1,5 +1,6 @@
 import * as Preact from "preact"
 import Widget from "./Widget"
+import PenGesture from "./PenGesture"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
@@ -38,55 +39,48 @@ export default class Board extends Widget<Model, Props> {
     }
   }
 
-  componentDidMount() {}
-
-  componentDidUnmount() {}
-
   show({ cards, topZ, locallyFocusedCardIndex }: Model) {
     if (!cards) {
       return null
     }
     return (
-      <div
-        style={style.Board}
-        onPointerDown={this.onPointerDownBoard}
-        ref={(el: HTMLElement) => (this.boardEl = el)}>
-        {cards.map((card, idx) => {
-          return (
-            <DraggableCard
-              key={idx}
-              index={idx}
-              card={card}
-              disabled={card.isFocused}
-              onPinchEnd={this.props.onNavigate}
-              onDragStart={this.onDragStart}
-              onDragStop={this.onDragStop}
-              onTap={this.onTapCard}>
-              <Content mode="embed" url={card.url} isFocused={card.isFocused} />
-            </DraggableCard>
-          )
-        })}
-        {locallyFocusedCardIndex !== undefined && (
-          <div
-            style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-            onPointerDown={this.onPointerDown}
-          />
-        )}
-      </div>
+      <PenGesture onDoubleTap={this.onPenDoubleTapBoard}>
+        <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
+          {cards.map((card, idx) => {
+            return (
+              <DraggableCard
+                key={idx}
+                index={idx}
+                card={card}
+                disabled={card.isFocused}
+                onPinchEnd={this.props.onNavigate}
+                onDragStart={this.onDragStart}
+                onDragStop={this.onDragStop}
+                onTap={this.onTapCard}>
+                <Content mode="embed" url={card.url} isFocused={card.isFocused} />
+              </DraggableCard>
+            )
+          })}
+          {locallyFocusedCardIndex !== undefined && (
+            <div
+              style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+              onPointerDown={this.onPointerDown}
+            />
+          )}
+        </div>
+      </PenGesture>
     )
   }
 
-  onPointerDownBoard = (e: PointerEvent) => {
+  onPenDoubleTapBoard = (e: PointerEvent) => {
     if (
       !this.state.doc ||
       this.state.doc.locallyFocusedCardIndex !== undefined ||
-      e.pointerType !== "pen" ||
       !this.boardEl
     )
       return
 
     const { x, y } = e
-
     const cardX = clamp(
       x - CARD_WIDTH / 2,
       0,
@@ -139,11 +133,10 @@ export default class Board extends Widget<Model, Props> {
     })
   }
 
-  onTapCard = (e: PointerEvent, index: number) => {
+  onTapCard = (index: number) => {
     if (
       !this.state.doc ||
-      this.state.doc.locallyFocusedCardIndex !== undefined ||
-      e.pointerType !== "touch"
+      this.state.doc.locallyFocusedCardIndex !== undefined
     )
       return
     this.change(doc => {
