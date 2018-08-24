@@ -14,6 +14,7 @@ interface CardModel {
 export interface Props {
   card: CardModel
   index: number
+  isFocused: boolean | undefined
   onDragStart: (idx: number) => void
   onDragStop?: (x: number, y: number, idx: number) => void
   onPinchEnd?: (url: string) => void
@@ -38,6 +39,13 @@ export default class DraggableCard extends Preact.Component<Props> {
         <Draggable
           bounds="parent"
           defaultPosition={{ x, y }}
+          /*
+          XXX: iirc this was causing bug on pixelbook (but fine in desktop mode 🙄..) 
+          where keyboard won't show up / code mirrow won't get focus.
+          might be fixed with the recent changes resulting fewer doc updates, please verify
+          if still broken, remove/comment out the line below for now, or try investigating further :)
+          */
+          disabled={this.props.isFocused}
           onStart={this.start}
           onStop={this.stop}
           z={z}

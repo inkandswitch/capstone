@@ -55,7 +55,8 @@ export default class Board extends Widget<Model, Props> {
                 onPinchEnd={this.props.onNavigate}
                 onDragStart={this.onDragStart}
                 onDragStop={this.onDragStop}
-                onTap={this.onTapCard}>
+                onTap={this.onTapCard}
+                isFocused={card.isFocused}>
                 <Content
                   mode="embed"
                   url={card.url}
