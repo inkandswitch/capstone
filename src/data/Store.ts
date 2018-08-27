@@ -27,8 +27,8 @@ export default class Store {
   }
 
   create(): Promise<string> {
-    let command = "Create"
-    let args = {}
+    const command = "Create"
+    const args = {}
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ command, args }, function(response) {
         resolve(response)

@@ -19,11 +19,11 @@ export default class StoreBackend {
     })
   }
 
-  open(id: StoreId): Promise<any> {
+  open(id: StoreId): Promise<AnyDoc> {
     return this.hypermerge.ready.then(() => {
-      return new Promise((resolve, reject) => {
+      return new Promise<AnyDoc>((resolve, reject) => {
         setTimeout(() => {
-          let doc: AnyDoc = <AnyDoc>this.hypermerge.find(id)
+          let doc = this.hypermerge.find(id)
           if (doc) {
             resolve(doc)
           } else {
