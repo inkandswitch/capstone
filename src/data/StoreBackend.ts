@@ -1,6 +1,4 @@
 import { AnyDoc } from "automerge"
-import { defaults, mapValues } from "lodash"
-import sample from "./sample"
 import Hypermerge from "../hypermerge"
 let racf = require("random-access-chrome-file")
 
@@ -16,36 +14,33 @@ export default class Store {
   create(): Promise<StoreId> {
     return this.hypermerge.ready.then(() => {
       let doc = this.hypermerge.create()
-      let docId = this.hypermerge.getId(doc);
-      return docId;
+      let docId = this.hypermerge.getId(doc)
+      return docId
     })
   }
 
   open(id: StoreId): Promise<any> {
     return this.hypermerge.ready.then(() => {
-      return new Promise((resolve,reject) => {
+      return new Promise((resolve, reject) => {
         setTimeout(() => {
-          let doc: AnyDoc = <AnyDoc> this.hypermerge.find(id);
+          let doc: AnyDoc = <AnyDoc>this.hypermerge.find(id)
           if (doc) {
-            console.log("Open StoreId",id,doc)
             resolve(doc)
           } else {
             reject("cant find document id " + id)
           }
-        },200)
+        }, 200)
       })
     })
   }
 
   replace(id: StoreId, doc: AnyDoc): AnyDoc {
-    console.log("REPACE",id, doc);
-    let oldDoc = this.hypermerge.find(id);
+    let oldDoc = this.hypermerge.find(id)
     return this.hypermerge.change(oldDoc, (oldDoc: any) => {
       for (let key in doc) {
-        oldDoc[key] = doc[key];
+        oldDoc[key] = doc[key]
       }
-      return oldDoc;
-    });
+      return oldDoc
+    })
   }
 }
-

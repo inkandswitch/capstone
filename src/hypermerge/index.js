@@ -132,10 +132,9 @@ export default class Hypermerge extends EventEmitter {
     this.core.on("ready", this._onMulticoreReady)
 
     this.ready = new Promise(resolve => {
-      this.on('ready', () => {
-        console.log("store is ready");
+      this.on("ready", () => {
         resolve()
-      });
+      })
     })
   }
 
