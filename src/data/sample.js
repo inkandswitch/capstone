@@ -8,10 +8,10 @@ export default {
   id1: {
     topZ: 0,
     cards: [
-      { x: 450, y: 50, z: 0, url: Link.format({ type: "Image", id: "id2" }) },
-      { x: 50, y: 70, z: 0, url: Link.format({ type: "Image", id: "id2" }) },
-      { x: 50, y: 50, z: 0, url: Link.format({ type: "Text", id: "id3" }) },
-      { x: 450, y: 450, z: 0, url: Link.format({ type: "Text", id: "id3" }) },
+      // { x: 450, y: 50, z: 0, url: Link.format({ type: "Image", id: "id2" }) },
+      // { x: 50, y: 70, z: 0, url: Link.format({ type: "Image", id: "id2" }) },
+      // { x: 50, y: 50, z: 0, url: Link.format({ type: "Text", id: "id3" }) },
+      // { x: 450, y: 450, z: 0, url: Link.format({ type: "Text", id: "id3" }) },
     ],
   },
   id2: {

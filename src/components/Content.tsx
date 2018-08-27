@@ -2,6 +2,7 @@ import * as Preact from "preact"
 import * as Link from "../data/Link"
 import { AnyDoc, Doc } from "automerge"
 import Store from "../data/Store"
+import * as Reify from "../data/Reify"
 
 interface Widget extends Preact.Component<{ url: string; mode: Mode }, any> {}
 
@@ -15,9 +16,15 @@ export type Mode = "fullscreen" | "embed" | "preview"
 export interface Props {
   url: string
   mode: Mode
+  isFocused?: boolean
+  [k: string]: unknown
 }
 
 export default class Content extends Preact.Component<Props & unknown> {
+  static defaultProps = {
+    isFocused: false,
+  }
+
   static registry: { [type: string]: WidgetClass<any> } = {}
 
   static store: Store
@@ -25,18 +32,16 @@ export default class Content extends Preact.Component<Props & unknown> {
   /// Registry:
 
   // Creates an initialized document of the given type and returns its URL
-  static create(type: string): string {
-    const doc = this.store.create(this.find(type).reify)
-    return Link.format({ type, id: doc._actorId })
+  static create(type: string): Promise<string> {
+    return this.store.create().then(id => Link.format({ type, id }))
   }
 
   // Opens an initialized document at the given URL
-  static open<T>(url: string): Doc<T> {
+  static open<T>(url: string): Promise<Doc<T>> {
     const { type, id } = Link.parse(url)
-    const widget = this.find(type)
+    const widget = this.find(type) as WidgetClass<T>
     const doc = this.store.open(id)
-
-    return doc && this.store.reify(doc, "Migrate", widget.reify)
+    return doc.then(doc => Reify.reify(doc, widget.reify))
   }
 
   static register(type: string, component: WidgetClass<any>) {
@@ -63,7 +68,7 @@ export default class Content extends Preact.Component<Props & unknown> {
       return <Missing type={type} />
     }
 
-    return <Widget url={url} mode={mode} {...this.props} />
+    return <Widget {...this.props} />
   }
 }
 

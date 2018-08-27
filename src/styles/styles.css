@@ -1,0 +1,11 @@
+* {
+  box-sizing: border-box;
+}
+
+.CodeMirror {
+  /* Set height, width, borders, and global font properties here */
+  font-family: Arial, Helvetica, sans-serif;
+  color: gray;
+  direction: ltr;
+  height: auto;
+}

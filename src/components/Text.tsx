@@ -1,35 +1,52 @@
 import { random } from "lodash/fp"
+import * as Automerge from "automerge"
 import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
+import TextEditor, { Change } from "./TextEditor"
 
 export interface Model {
-  content: string
+  content: string[]
 }
 
 export default class Text extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
-      content: Reify.string(doc.content, sample),
+      content: Reify.array(doc.content),
     }
   }
 
   show({ content }: Model) {
-    return <div style={style.Text}>{content}</div>
+    return (
+      <TextEditor
+        content={content.join("")}
+        isFocused={this.props.isFocused}
+        onChange={this.onChange}
+      />
+    )
   }
-}
 
-const style = {
-  Text: {
-    fontSize: 16,
-    fontFamily: "serif",
-    padding: 10,
-    textAlign: "justify",
-    backgroundColor: "#fff",
-    color: "#333",
-    lineHeight: 1.5,
-  },
+  onChange = (changes: Change[]) => {
+    this.change(doc => {
+      changes.forEach(change => {
+        switch (change.type) {
+          case "removal": {
+            doc.content.splice(change.at, change.length)
+            break
+          }
+          case "insertion": {
+            doc.content.splice(change.at, 0, change.content)
+            break
+          }
+          default: {
+            console.log("Unknown TextEditor Change type.")
+          }
+        }
+      })
+      return doc
+    })
+  }
 }
 
 Content.register("Text", Text)

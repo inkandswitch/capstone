@@ -7,6 +7,7 @@ module.exports = {
   entry: {
     main: "./src/main.tsx",
     background: "./src/entry.chrome.ts",
+    worker: "./src/data/service-worker.ts",
   },
   devtool: "inline-source-map",
   output: {
@@ -29,11 +30,10 @@ module.exports = {
           "style-loader",
           {
             loader: "css-loader",
-            options: {
-              importLoaders: 1,
-            },
+            // options: {
+            //   importLoaders: 1,
+            // },
           },
-          "postcss-loader",
         ],
       },
       {

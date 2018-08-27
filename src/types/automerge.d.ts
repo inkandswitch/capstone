@@ -5,6 +5,7 @@ declare module "automerge" {
   function change<T>(doc: Doc<T>, cb: ChangeFn<T>): Doc<T>
 
   function emptyChange<T>(doc: Doc<T>, msg: string): Doc<T>
+  const Text: TextConstructor
 
   /// Readonly document types:
 
@@ -16,16 +17,17 @@ declare module "automerge" {
   // A heterogeneous list of Values
   interface ValueList extends List<Value> {}
 
-  type Text = List<string>
+  interface TextConstructor {
+    new (): Text
+  }
+
+  interface Text extends List<string> {}
 
   interface Object {
-    readonly _objectId: string
     readonly [key: string]: Readonly<Value>
   }
 
-  interface AnyDoc extends Object {
-    readonly _actorId: string
-  }
+  interface AnyDoc extends Object {}
 
   // includes _actorId and any properties in T, all other keys are 'unknown'
   type Doc<T> = AnyDoc & T
@@ -55,6 +57,6 @@ declare module "automerge" {
   type EditDoc<T> = AnyEditDoc & T
 
   interface ChangeFn<T> {
-    (doc: EditDoc<T>): void
+    (doc: Doc<T>): Doc<T>
   }
 }

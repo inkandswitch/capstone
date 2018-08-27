@@ -40,6 +40,7 @@ export default class Shelf extends Widget<Model, Props> {
       } else {
         doc.selectedUrls.push(url)
       }
+      return doc
     })
   }
 }
