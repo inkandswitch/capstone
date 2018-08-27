@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import Widget from "./Widget"
-import PenGesture from "./PenGesture"
+import Pen from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
@@ -44,7 +44,7 @@ export default class Board extends Widget<Model, Props> {
       return null
     }
     return (
-      <PenGesture onDoubleTap={this.onPenDoubleTapBoard}>
+      <Pen onDoubleTap={this.onPenDoubleTapBoard}>
         <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
           {cards.map((card, idx) => {
             return (
@@ -71,7 +71,7 @@ export default class Board extends Widget<Model, Props> {
             />
           )}
         </div>
-      </PenGesture>
+      </Pen>
     )
   }
 

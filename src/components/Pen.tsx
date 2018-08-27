@@ -6,7 +6,7 @@ interface Props {
   onDoubleTap?: (event: PointerEvent) => void
 }
 
-export default class PenGesture extends Handler<Props> {
+export default class Pen extends Handler<Props> {
   hammer: HammerManager
 
   componentDidMount() {
@@ -17,7 +17,10 @@ export default class PenGesture extends Handler<Props> {
     const recognizers: RecognizerTuple[] = []
 
     if (onDoubleTap) {
-      recognizers.push([Hammer.Tap, { event: "doubletap", taps: 2 }])
+      recognizers.push([
+        Hammer.Tap,
+        { event: "doubletap", taps: 2, posThreshold: 20 },
+      ])
     }
 
     this.hammer = new Hammer.Manager(this.base, {

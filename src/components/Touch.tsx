@@ -8,7 +8,7 @@ interface Props {
   // TODO: add other gesture recognizers
 }
 
-export default class Gesture extends Handler<Props> {
+export default class Touch extends Handler<Props> {
   hammer: HammerManager
 
   componentDidMount() {

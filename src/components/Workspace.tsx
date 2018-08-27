@@ -3,7 +3,7 @@ import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
 import { Doc } from "automerge"
-import Gesture from "./Gesture"
+import Touch from "./Touch"
 
 export interface Model {
   backUrls: string[]
@@ -22,7 +22,7 @@ export default class Workspace extends Widget<Model> {
 
   show({ currentUrl }: Doc<Model>) {
     return (
-      <Gesture onPinchEnd={this.onPinchEnd}>
+      <Touch onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
           <Content
             mode={this.mode}
@@ -30,7 +30,7 @@ export default class Workspace extends Widget<Model> {
             onNavigate={this.navigateTo}
           />
         </div>
-      </Gesture>
+      </Touch>
     )
   }
 
