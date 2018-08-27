@@ -4,7 +4,7 @@ let racf = require("random-access-chrome-file")
 
 type StoreId = string
 
-export default class Store {
+export default class StoreBackend {
   hypermerge: Hypermerge
 
   constructor() {
