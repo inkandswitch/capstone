@@ -29,6 +29,10 @@ export default class PenGesture extends Handler<Props> {
     })
   }
 
+  filter(event: HammerInput) {
+    return event.pointerType === "pen"
+  }
+
   render() {
     return this.child
   }
