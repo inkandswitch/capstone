@@ -2,56 +2,45 @@ import { random } from "lodash/fp"
 import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
-import Content from "./Content"
+import Content, { Mode } from "./Content"
 
 export interface Model {
   docs: Array<{
     url: string
   }>
-  selected: string[]
 }
 
-export default class Archive extends Widget<Model> {
+export interface Props {
+  selected: string[]
+  onTap: (id: string) => void
+}
+
+export default class Archive extends Widget<Model, Props> {
   static reify(doc: AnyDoc): Model {
     return {
       docs: Reify.array(doc.docs),
-      selected: Reify.array(doc.selected),
     }
   }
 
-  show({ docs, selected }: Model) {
+  show({ docs }: Model) {
+    const { selected = [], onTap = () => {} } = this.props
+
     return (
       <div style={style.Archive}>
         <div style={style.Items}>
           {docs.map(({ url }) => (
-            <Item
-              url={url}
-              isSelected={selected.includes(url)}
-              onToggleSelect={this.toggleSelect}
-            />
+            <Item url={url} isSelected={selected.includes(url)} onTap={onTap} />
           ))}
         </div>
-        <div style={style.Selection} />
       </div>
     )
-  }
-
-  toggleSelect = (url: string) => {
-    this.change(doc => {
-      const idx = doc.selected.indexOf(url)
-      if (idx >= 0) {
-        doc.selected.splice(idx, 1)
-      } else {
-        doc.selected.push(url)
-      }
-    })
   }
 }
 
 interface ItemProps {
   url: string
   isSelected: boolean
-  onToggleSelect: (url: string) => void
+  onTap: (url: string) => void
 }
 
 class Item extends Preact.Component<ItemProps> {
@@ -70,7 +59,7 @@ class Item extends Preact.Component<ItemProps> {
 
   // TODO: replace this with <Touch onTap={...}>...</Touch>
   click = () => {
-    this.props.onToggleSelect(this.props.url)
+    this.props.onTap(this.props.url)
   }
 
   dragStart = (event: DragEvent) => {
@@ -85,10 +74,10 @@ const style = {
     boxShadow: "0 0 20px rgba(0,0,0,0.3)",
     color: "#fff",
     position: "absolute",
-    top: "50%",
+    top: 0,
     left: 0,
     width: "100%",
-    height: "50%",
+    height: "100%",
     overflow: "auto",
     zIndex: 1,
   },
@@ -115,13 +104,6 @@ const style = {
 
   Item_selected: {
     boxShadow: "0 0 0 2px #D769FA",
-  },
-
-  Selection: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    margin: 10,
   },
 }
 
