@@ -36,7 +36,6 @@ export default class DraggableCard extends Preact.Component<Props> {
     return (
       <Touch onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
         <Draggable
-          bounds="parent"
           defaultPosition={{ x, y }}
           onStart={this.start}
           onStop={this.stop}

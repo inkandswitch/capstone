@@ -171,6 +171,7 @@ const style = {
     position: "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
+    overflow: "hidden",
   },
   FocusBackgroundOverlay: {
     top: 0,
