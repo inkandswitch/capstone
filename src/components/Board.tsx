@@ -1,5 +1,6 @@
 import * as Preact from "preact"
 import Widget from "./Widget"
+import PenGesture from "./PenGesture"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
@@ -14,16 +15,17 @@ interface CardModel {
   y: number
   z: number
   url: string
+  isFocused?: boolean
 }
 
 export interface Model {
   cards: CardModel[]
   topZ: number
-  locallyFocusedCardURL?: string
+  locallyFocusedCardIndex?: number
 }
 
 interface Props {
-  onFullscreen?: (url: string) => void
+  onNavigate?: (url: string) => void
 }
 
 export default class Board extends Widget<Model, Props> {
@@ -33,41 +35,55 @@ export default class Board extends Widget<Model, Props> {
     return {
       cards: Reify.array(doc.cards),
       topZ: Reify.number(doc.topZ),
-      locallyFocusedCardURL: undefined,
+      locallyFocusedCardIndex: undefined,
     }
   }
 
-  show({ cards, topZ, locallyFocusedCardURL }: Model) {
+  show({ cards, topZ, locallyFocusedCardIndex }: Model) {
     if (!cards) {
       return null
     }
     return (
-      <div
-        style={style.Board}
-        onDblClick={this.onDblClick}
-        ref={(el: HTMLElement) => (this.boardEl = el)}>
-        {cards.map((card, idx) => {
-          return (
-            <DraggableCard
-              key={idx}
-              index={idx}
-              card={card}
-              onPinchEnd={this.props.onFullscreen}
-              onDragStart={this.onDragStart}>
-              <Content
-                mode="embed"
-                url={card.url}
-                isFocused={card.url === locallyFocusedCardURL}
-              />
-            </DraggableCard>
-          )
-        })}
-      </div>
+      <PenGesture onDoubleTap={this.onPenDoubleTapBoard}>
+        <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
+          {cards.map((card, idx) => {
+            return (
+              <DraggableCard
+                key={idx}
+                index={idx}
+                card={card}
+                onPinchEnd={this.props.onNavigate}
+                onDragStart={this.onDragStart}
+                onDragStop={this.onDragStop}
+                onTap={this.onTapCard}>
+                <Content
+                  mode="embed"
+                  url={card.url}
+                  isFocused={card.isFocused}
+                />
+              </DraggableCard>
+            )
+          })}
+          {locallyFocusedCardIndex !== undefined && (
+            <div
+              style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+              onPointerDown={this.onPointerDown}
+            />
+          )}
+        </div>
+      </PenGesture>
     )
   }
 
-  onDblClick = ({ x, y }: MouseEvent) => {
-    if (!this.boardEl) return
+  onPenDoubleTapBoard = (e: PointerEvent) => {
+    if (
+      !this.state.doc ||
+      this.state.doc.locallyFocusedCardIndex !== undefined ||
+      !this.boardEl
+    )
+      return
+
+    const { x, y } = e
     const cardX = clamp(
       x - CARD_WIDTH / 2,
       0,
@@ -81,10 +97,9 @@ export default class Board extends Widget<Model, Props> {
 
     Content.create("Text").then(url => {
       this.change(doc => {
-        const z = doc.topZ++
+        const z = (doc.topZ += 1)
         doc.cards.push({ x: cardX, y: cardY, z, url })
-        doc.locallyFocusedCardURL = url
-        return doc
+        return this.setCardFocus(doc, doc.cards.length - 1)
       })
     })
   }
@@ -100,6 +115,49 @@ export default class Board extends Widget<Model, Props> {
       return doc
     })
   }
+
+  onDragStop = (x: number, y: number, idx: number) => {
+    this.change(doc => {
+      const card = doc.cards[idx]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[idx] = { ...card, x: x, y: y }
+      }
+      return doc
+    })
+  }
+
+  onPointerDown = (e: PointerEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    this.change(doc => {
+      if (doc.locallyFocusedCardIndex === undefined) return doc
+      return this.clearCardFocus(doc)
+    })
+  }
+
+  onTapCard = (index: number) => {
+    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined)
+      return
+    this.change(doc => {
+      return this.setCardFocus(doc, index)
+    })
+  }
+
+  setCardFocus = (doc: Doc<Model>, cardIndex: number): Doc<Model> => {
+    const card = doc.cards[cardIndex]
+    doc.cards[cardIndex] = { ...card, isFocused: true }
+    doc.locallyFocusedCardIndex = cardIndex
+    return doc
+  }
+
+  clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
+    if (doc.locallyFocusedCardIndex === undefined) return doc
+    const card = doc.cards[doc.locallyFocusedCardIndex]
+    doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
+    doc.locallyFocusedCardIndex = undefined
+    return doc
+  }
 }
 
 Content.register("Board", Board)
@@ -112,5 +170,14 @@ const style = {
     position: "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
+  },
+  FocusBackgroundOverlay: {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    backgroundColor: "#000",
+    opacity: 0.15,
   },
 }

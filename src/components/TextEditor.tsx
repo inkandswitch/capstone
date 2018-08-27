@@ -46,9 +46,10 @@ export default class TextEditor extends Preact.Component<Props, State> {
     })
     this.codeMirror.setValue(this.props.content)
     this.codeMirror.on("change", this.onCodeMirrorChange)
+    this.ensureFocus(this.props.isFocused)
   }
 
-  componentWillReceiveProps = (nextProps: Props) => {
+  componentWillReceiveProps(nextProps: Props) {
     if (!this.codeMirror) return
 
     if (nextProps.content !== this.props.content) {
@@ -108,7 +109,11 @@ export default class TextEditor extends Preact.Component<Props, State> {
   ensureFocus = (isFocused: boolean) => {
     if (!this.codeMirror) return
     if (isFocused && !this.codeMirror.hasFocus()) {
+      this.codeMirror.setOption("readOnly", false)
       this.codeMirror.focus()
+    } else if (!isFocused && this.codeMirror.hasFocus()) {
+      this.codeMirror.getInputField().blur()
+      this.codeMirror.setOption("readOnly", "nocursor")
     }
   }
 

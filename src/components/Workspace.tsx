@@ -27,7 +27,7 @@ export default class Workspace extends Widget<Model> {
           <Content
             mode={this.mode}
             url={currentUrl}
-            onFullscreen={this.fullscreen}
+            onNavigate={this.navigateTo}
           />
         </div>
       </Gesture>
@@ -36,10 +36,10 @@ export default class Workspace extends Widget<Model> {
 
   onPinchEnd = (event: HammerInput) => {
     if (event.scale > 1) return
-    this.back()
+    this.navigateBack()
   }
 
-  back = () => {
+  navigateBack = () => {
     this.change(doc => {
       const url = doc.backUrls.pop()
       if (url) {
@@ -49,7 +49,7 @@ export default class Workspace extends Widget<Model> {
     })
   }
 
-  fullscreen = (url: string) => {
+  navigateTo = (url: string) => {
     if (this.doc && this.doc.currentUrl === url) return
 
     this.change(doc => {
