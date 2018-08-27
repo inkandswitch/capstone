@@ -23,10 +23,7 @@ export default class PenGesture extends Handler<Props> {
     this.hammer = new Hammer.Manager(this.base, {
       recognizers,
     })
-    this.hammer.on("doubletap", (e: HammerInput) => {
-      if (e.pointerType !== "pen") return
-      this.handle("onDoubleTap")(e.srcEvent)
-    })
+    this.hammer.on("doubletap", this.handle("onDoubleTap"))
   }
 
   filter(event: HammerInput) {
@@ -34,6 +31,7 @@ export default class PenGesture extends Handler<Props> {
   }
 
   render() {
-    return this.child
+    const { onDoubleTap, ...rest } = this.props
+    return Preact.cloneElement(this.child, rest)
   }
 }

@@ -33,6 +33,7 @@ export default class Gesture extends Handler<Props> {
   }
 
   render() {
-    return this.child
+    const { onPinchEnd, onTap, ...rest } = this.props
+    return Preact.cloneElement(this.child, rest)
   }
 }
