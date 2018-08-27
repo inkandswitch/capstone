@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import Widget from "./Widget"
-import Pen from "./Pen"
+import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
@@ -75,7 +75,7 @@ export default class Board extends Widget<Model, Props> {
     )
   }
 
-  onPenDoubleTapBoard = (e: PointerEvent) => {
+  onPenDoubleTapBoard = (e: PenEvent) => {
     if (
       !this.state.doc ||
       this.state.doc.locallyFocusedCardIndex !== undefined ||
@@ -83,7 +83,7 @@ export default class Board extends Widget<Model, Props> {
     )
       return
 
-    const { x, y } = e
+    const { x, y } = e.center
     const cardX = clamp(
       x - CARD_WIDTH / 2,
       0,

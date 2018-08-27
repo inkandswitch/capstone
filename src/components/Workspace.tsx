@@ -3,7 +3,7 @@ import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
 import { Doc } from "automerge"
-import Touch from "./Touch"
+import Touch, { TouchEvent } from "./Touch"
 
 export interface Model {
   backUrls: string[]
@@ -34,7 +34,7 @@ export default class Workspace extends Widget<Model> {
     )
   }
 
-  onPinchEnd = (event: HammerInput) => {
+  onPinchEnd = (event: TouchEvent) => {
     if (event.scale > 1) return
     this.navigateBack()
   }

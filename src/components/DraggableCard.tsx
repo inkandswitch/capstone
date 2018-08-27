@@ -2,7 +2,7 @@ import * as Preact from "preact"
 import Draggable from "../draggable/index"
 import Card from "./Card"
 import { MouseTouchEvent, DraggableData } from "../draggable/types"
-import Touch from "./Touch"
+import Touch, { TouchEvent } from "./Touch"
 
 interface CardModel {
   x: number
@@ -48,12 +48,12 @@ export default class DraggableCard extends Preact.Component<Props> {
     )
   }
 
-  onTap = (event: HammerInput) => {
+  onTap = (event: TouchEvent) => {
     const { onTap, index } = this.props
     onTap && onTap(index)
   }
 
-  onPinchEnd = (event: HammerInput) => {
+  onPinchEnd = (event: TouchEvent) => {
     if (event.scale < 1) return // TODO: maybe build this into Touch
     const { onPinchEnd, card } = this.props
     onPinchEnd && onPinchEnd(card.url)

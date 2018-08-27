@@ -2,8 +2,10 @@ import * as Preact from "preact"
 import Handler from "./Handler"
 import * as Hammer from "hammerjs"
 
+export type PenEvent = HammerInput
+
 interface Props {
-  onDoubleTap?: (event: PointerEvent) => void
+  onDoubleTap?: (event: PenEvent) => void
 }
 
 export default class Pen extends Handler<Props> {
@@ -29,7 +31,7 @@ export default class Pen extends Handler<Props> {
     this.hammer.on("doubletap", this.handle("onDoubleTap"))
   }
 
-  filter(event: HammerInput) {
+  filter(event: PenEvent) {
     return event.pointerType === "pen"
   }
 
