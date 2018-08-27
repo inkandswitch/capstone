@@ -21,7 +21,6 @@ export default class Workspace extends Widget<Model> {
     return (
       <div class="Workspace">
         <Content mode={this.mode} url={boardUrl} />
-        <Content mode={this.mode} url={archiveUrl} />
       </div>
     )
   }
