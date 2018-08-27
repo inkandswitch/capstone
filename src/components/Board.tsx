@@ -2,6 +2,7 @@ import * as Preact from "preact"
 import Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
+import VirtualKeyboard from "./VirtualKeyboard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
 import { AnyDoc, Doc } from "automerge"
@@ -39,39 +40,47 @@ export default class Board extends Widget<Model, Props> {
     }
   }
 
+  onVirtualKeyboardClose = () => {
+    this.change(doc => {
+      return this.clearCardFocus(doc)
+    })
+  }
+
   show({ cards, topZ, locallyFocusedCardIndex }: Model) {
     if (!cards) {
       return null
     }
     return (
-      <Pen onDoubleTap={this.onPenDoubleTapBoard}>
-        <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
-          {cards.map((card, idx) => {
-            return (
-              <DraggableCard
-                key={idx}
-                index={idx}
-                card={card}
-                onPinchEnd={this.props.onNavigate}
-                onDragStart={this.onDragStart}
-                onDragStop={this.onDragStop}
-                onTap={this.onTapCard}>
-                <Content
-                  mode="embed"
-                  url={card.url}
-                  isFocused={card.isFocused}
-                />
-              </DraggableCard>
-            )
-          })}
-          {locallyFocusedCardIndex !== undefined && (
-            <div
-              style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-              onPointerDown={this.onPointerDown}
-            />
-          )}
-        </div>
-      </Pen>
+      <VirtualKeyboard onClose={this.onVirtualKeyboardClose}>
+        <Pen onDoubleTap={this.onPenDoubleTapBoard}>
+          <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
+            {cards.map((card, idx) => {
+              return (
+                <DraggableCard
+                  key={idx}
+                  index={idx}
+                  card={card}
+                  onPinchEnd={this.props.onNavigate}
+                  onDragStart={this.onDragStart}
+                  onDragStop={this.onDragStop}
+                  onTap={this.onTapCard}>
+                  <Content
+                    mode="embed"
+                    url={card.url}
+                    isFocused={card.isFocused}
+                  />
+                </DraggableCard>
+              )
+            })}
+            {locallyFocusedCardIndex !== undefined && (
+              <div
+                style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+                onPointerDown={this.onPointerDownOverlay}
+              />
+            )}
+          </div>
+        </Pen>
+      </VirtualKeyboard>
     )
   }
 
@@ -121,20 +130,17 @@ export default class Board extends Widget<Model, Props> {
     this.change(doc => {
       const card = doc.cards[idx]
       if (card) {
-        // XXX: Remove once backend/store handles object immutability.
+        // TODO: Remove once backend/store handles object immutability.
         doc.cards[idx] = { ...card, x: x, y: y }
       }
       return doc
     })
   }
 
-  onPointerDown = (e: PointerEvent) => {
+  onPointerDownOverlay = (e: PointerEvent) => {
+    // Prevent taps on the overlay from closing the keyboard/losing input focus.
     e.preventDefault()
     e.stopPropagation()
-    this.change(doc => {
-      if (doc.locallyFocusedCardIndex === undefined) return doc
-      return this.clearCardFocus(doc)
-    })
   }
 
   onTapCard = (index: number) => {
