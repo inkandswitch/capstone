@@ -19,6 +19,7 @@ export interface Stroke {
 export interface Props {
   onStroke: (stroke: Stroke) => void
   delay?: number
+  maxScore?: number
   only?: string[]
   children: JSX.Element
   // TODO: list of valid patterns
@@ -51,6 +52,7 @@ DEFAULT_RECOGNIZER.AddGesture("X", [
 export default class StrokeRecognizer extends Preact.Component<Props> {
   static defaultProps = {
     delay: 200,
+    maxScore: 6,
   }
 
   recognizer: $P.Recognizer = DEFAULT_RECOGNIZER
@@ -77,9 +79,11 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   }
 
   _recognize = () => {
+    const { maxScore = 0 } = this.props
     const result = this.recognizer.Recognize(this.points, this.props.only)
 
-    if (result.Score > 0) {
+    if (result.Score > 0 && result.Score < maxScore) {
+      console.log("score", result.Score)
       this.props.onStroke({
         name: result.Name,
         bounds: this.bounds,
