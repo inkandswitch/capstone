@@ -217,8 +217,10 @@ export default class Draggable extends Preact.Component<
       return false
     }
 
-    // Bail if we aren't tracking this pointer.
+    // If we encounter another pointer, cancel the drag and bail. We only
+    // support drag for a single pointer at a time.
     if (e.pointerId !== this.state.pointerId) {
+      this.removeDragListeners()
       return false
     }
 
@@ -303,10 +305,13 @@ export default class Draggable extends Preact.Component<
       lastY: NaN,
     })
 
-    if (thisNode) {
-      // Remove event handlers
-      removeEvent(thisNode.ownerDocument, eventNames.move, this.handleDrag)
-      removeEvent(thisNode.ownerDocument, eventNames.stop, this.handleDragStop)
+    this.removeDragListeners()
+  }
+
+  removeDragListeners = () => {
+    if (this.base) {
+      removeEvent(this.base.ownerDocument, eventNames.move, this.handleDrag)
+      removeEvent(this.base.ownerDocument, eventNames.stop, this.handleDragStop)
     }
   }
 
@@ -317,6 +322,11 @@ export default class Draggable extends Preact.Component<
 
   onPointerUp: EventHandler<PointerEvent> = e => {
     return this.handleDragStop(e)
+  }
+
+  onPointerCancel = (e: PointerEvent) => {
+    // Handle cancel events to make sure we clean up.
+    this.handleDragStop(e)
   }
 
   render() {
@@ -357,10 +367,5 @@ export default class Draggable extends Preact.Component<
         {this.props.children}
       </div>
     )
-  }
-
-  onPointerCancel = (e: PointerEvent) => {
-    // Make sure to clean up any handlers if canceled.
-    this.handleDragStop(e)
   }
 }
