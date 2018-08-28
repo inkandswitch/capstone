@@ -3,24 +3,22 @@ import { Doc, AnyDoc, ChangeFn } from "automerge"
 type CommandMessage = "Create" | "Open" | "Replace"
 
 export default class Store {
-  serviceWorker: ServiceWorker
-
   constructor() {
-    this.serviceWorker = navigator.serviceWorker!.controller!
-    this.registerServiceWorker()
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      console.log(
+        "store received message (it shouldn't have)",
+        request,
+        sender,
+        sendResponse,
+      )
+    })
   }
 
   sendMessage(command: CommandMessage, args: any = {}): Promise<AnyDoc> {
     return new Promise((resolve, reject) => {
-      var messageChannel = new MessageChannel()
-      messageChannel.port1.onmessage = function(event) {
-        if (event.data.error) {
-          reject(event.data.error)
-        } else {
-          resolve(event.data)
-        }
-      }
-      this.serviceWorker.postMessage({ command, args }, [messageChannel.port2])
+      chrome.runtime.sendMessage({ command, args }, response => {
+        resolve(response)
+      })
     })
   }
 
@@ -29,19 +27,12 @@ export default class Store {
   }
 
   create(): Promise<string> {
+    const command = "Create"
+    const args = {}
     return new Promise((resolve, reject) => {
-      var messageChannel = new MessageChannel()
-      messageChannel.port1.onmessage = function(event) {
-        if (event.data.error) {
-          reject(event.data.error)
-        } else {
-          resolve(event.data)
-        }
-      }
-      const command = "Create"
-      this.serviceWorker.postMessage({ command: "Create" }, [
-        messageChannel.port2,
-      ])
+      chrome.runtime.sendMessage({ command, args }, function(response) {
+        resolve(response)
+      })
     })
   }
 
@@ -62,12 +53,5 @@ export default class Store {
           ? resolve(this.replace(id, cb(doc)) as Doc<T>)
           : reject(new Error("replace failed")),
     )
-  }
-
-  registerServiceWorker() {
-    navigator.serviceWorker
-      .register("worker.js")
-      .then(() => navigator.serviceWorker.ready)
-      .catch(error => console.log(error))
   }
 }

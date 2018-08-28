@@ -1,12 +1,9 @@
 import Content from "../components/Content"
 
 declare global {
-  function require(path: string): any
   interface Window {
     Content: typeof Content
   }
-
-  const Buffer: BufferConstructor
 
   type Encoding =
     | "ascii"
