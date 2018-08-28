@@ -31,14 +31,6 @@ export default abstract class Widget<T, P = {}> extends Preact.Component<
     Content.open<T>(props.url).then(doc => this.setState({ doc }))
   }
 
-  componentDidMount() {
-    const { id } = Link.parse(this.props.url)
-  }
-
-  componentWillUnmount() {
-    const { id } = Link.parse(this.props.url)
-  }
-
   abstract show(doc: Doc<T>): Preact.ComponentChild
 
   get store(): Store {
