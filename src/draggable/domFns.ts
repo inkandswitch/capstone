@@ -1,6 +1,6 @@
 import { findInArray, isFunction, int } from "./shims"
 import browserPrefix, { browserPrefixToKey } from "./getPrefix"
-import { ControlPosition, MouseTouchEvent } from "./types"
+import { ControlPosition } from "./types"
 
 let matchesSelectorFunc = ""
 export function matchesSelector(el: Node, selector: string): boolean {
