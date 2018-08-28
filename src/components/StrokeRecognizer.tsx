@@ -1,7 +1,7 @@
 import * as Preact from "preact"
 import Handler from "./Handler"
 import * as $P from "../modules/$P"
-import Pen from "./Pen"
+import Pen, { PenEvent } from "./Pen"
 import { debounce } from "lodash"
 
 interface Bounds {
@@ -66,13 +66,13 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     )
   }
 
-  onMove = ({ x, y }: PointerEvent) => {
+  onMove = ({ center: { x, y } }: PenEvent) => {
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
     this.recognize()
   }
 
-  onUp = (event: PointerEvent) => {
+  onUp = (event: PenEvent) => {
     this.strokeId += 1
   }
 

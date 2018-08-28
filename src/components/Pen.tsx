@@ -7,6 +7,8 @@ export type PenEvent = HammerInput
 
 interface Props {
   onDoubleTap?: (event: PenEvent) => void
+  onMove?: (event: PenEvent) => void
+  onUp?: (event: PenEvent) => void
 }
 
 export default class Pen extends Handler<Props> {
@@ -15,7 +17,7 @@ export default class Pen extends Handler<Props> {
   componentDidMount() {
     if (!this.base) return
 
-    const { onDoubleTap } = this.props
+    const { onDoubleTap, onMove, onUp } = this.props
 
     const recognizers: RecognizerTuple[] = []
 
@@ -26,10 +28,16 @@ export default class Pen extends Handler<Props> {
       ])
     }
 
+    if (onMove || onUp) {
+      recognizers.push([Hammer.Pan, { direction: Hammer.DIRECTION_ALL }])
+    }
+
     this.hammer = new Hammer.Manager(this.base, {
       recognizers,
     })
     this.hammer.on("doubletap", this.handle("onDoubleTap"))
+    this.hammer.on("panmove", this.handle("onMove"))
+    this.hammer.on("panend", this.handle("onUp"))
   }
 
   filter(event: PenEvent) {
@@ -37,7 +45,7 @@ export default class Pen extends Handler<Props> {
   }
 
   render() {
-    const { onDoubleTap, ...rest } = this.props
+    const { onDoubleTap, onMove, onUp, ...rest } = this.props
     return Preact.cloneElement(this.child, rest)
   }
 }
