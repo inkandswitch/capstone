@@ -219,14 +219,11 @@ export default class Draggable extends Preact.Component<
 
     // Bail if we aren't tracking this pointer.
     if (e.pointerId !== this.state.pointerId) {
-      console.log("incorrect pointer id")
-      return
+      return false
     }
 
     // Get the current drag point from the event. This is used as the offset.
-    const position = getControlPosition(e, this)
-    let { x, y } = position as ControlPosition
-
+    const { x, y } = getControlPosition(e, this)
     const coreData = createCoreData(this, x, y)
     const uiData = createDraggableData(this, coreData)
 
@@ -268,11 +265,7 @@ export default class Draggable extends Preact.Component<
       uiData.deltaY = newState.y - this.state.y
     }
 
-    this.setState(newState)
-    this.setState({
-      lastX: x,
-      lastY: y,
-    })
+    this.setState({ ...newState, lastX: x, lastY: y })
   }
 
   handleDragStop: EventHandler<PointerEvent> = e => {
@@ -359,10 +352,15 @@ export default class Draggable extends Preact.Component<
       <div
         className={className}
         style={style}
-        onPointerDown={this.onPointerDown}
-        onPointerUp={this.onPointerUp}>
+        onPointerCancel={this.onPointerCancel}
+        onPointerDown={this.onPointerDown}>
         {this.props.children}
       </div>
     )
+  }
+
+  onPointerCancel = (e: PointerEvent) => {
+    // Make sure to clean up any handlers if canceled.
+    this.handleDragStop(e)
   }
 }
