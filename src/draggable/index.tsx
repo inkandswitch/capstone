@@ -6,9 +6,7 @@ import {
   addEvent,
   removeEvent,
   addUserSelectStyles,
-  getTouchIdentifier,
   removeUserSelectStyles,
-  styleHacks,
   createCSSTransform,
 } from "./domFns"
 import {
@@ -19,29 +17,13 @@ import {
   createDraggableData,
   getBoundPosition,
 } from "./positionFns"
-import {
-  EventHandler,
-  MouseTouchEvent,
-  ControlPosition,
-  DraggableEventHandler,
-} from "./types"
+import { EventHandler, ControlPosition, DraggableEventHandler } from "./types"
 
-// Simple abstraction for dragging events names.
-const eventsFor = {
-  touch: {
-    start: "touchstart",
-    move: "touchmove",
-    stop: "touchend",
-  },
-  mouse: {
-    start: "mousedown",
-    move: "mousemove",
-    stop: "mouseup",
-  },
+const eventNames = {
+  start: "pointerdown",
+  move: "pointermove",
+  stop: "pointerup",
 }
-
-// Default to mouse events.
-let dragEventFor = eventsFor.mouse
 
 interface DraggableBounds {
   left: number
@@ -54,7 +36,7 @@ interface DraggableState {
   dragging: boolean
   lastX: number
   lastY: number
-  touchIdentifier?: number
+  pointerId?: number
   x: number
   y: number
   slackX: number
@@ -144,17 +126,15 @@ export default class Draggable extends Preact.Component<
     const thisNode = this.base
     if (thisNode) {
       const { ownerDocument } = thisNode
-      removeEvent(ownerDocument, eventsFor.mouse.move, this.handleDrag)
-      removeEvent(ownerDocument, eventsFor.touch.move, this.handleDrag)
-      removeEvent(ownerDocument, eventsFor.mouse.stop, this.handleDragStop)
-      removeEvent(ownerDocument, eventsFor.touch.stop, this.handleDragStop)
+      removeEvent(ownerDocument, eventNames.move, this.handleDrag)
+      removeEvent(ownerDocument, eventNames.stop, this.handleDragStop)
       if (this.props.enableUserSelectHack) {
         removeUserSelectStyles(ownerDocument)
       }
     }
   }
 
-  handleDragStart: EventHandler<MouseTouchEvent> = e => {
+  handleDragStart: EventHandler<PointerEvent> = e => {
     // Only accept left-clicks.
     if (
       !this.props.allowAnyClick &&
@@ -196,12 +176,10 @@ export default class Draggable extends Preact.Component<
     // Set touch identifier in component state if this is a touch event. This allows us to
     // distinguish between individual touches on multitouch screens by identifying which
     // touchpoint was set to this element.
-    const touchIdentifier = getTouchIdentifier(e)
-    this.setState({ touchIdentifier })
+    this.setState({ pointerId: e.pointerId })
 
     // Get the current drag point from the event. This is used as the offset.
-    const position = getControlPosition(e, touchIdentifier, this)
-    const { x, y } = position as ControlPosition
+    const { x, y } = getControlPosition(e, this)
 
     // Create an event object with all the data parents need to make a decision here.
     const coreEvent = createCoreData(this, x, y)
@@ -230,25 +208,23 @@ export default class Draggable extends Preact.Component<
     // Add events to the document directly so we catch when the user's mouse/touch moves outside of
     // this element. We use different events depending on whether or not we have detected that this
     // is a touch-capable device.
-    addEvent(ownerDocument, dragEventFor.move, this.handleDrag)
-    addEvent(ownerDocument, dragEventFor.stop, this.handleDragStop)
+    addEvent(ownerDocument, eventNames.move, this.handleDrag)
+    addEvent(ownerDocument, eventNames.stop, this.handleDragStop)
   }
 
-  handleDrag: EventHandler<MouseTouchEvent> = e => {
-    // Prevent scrolling on mobile devices, like ipad/iphone.
-    if (e.type === "touchmove") {
-      e.preventDefault()
-    }
-
+  handleDrag: EventHandler<PointerEvent> = e => {
     if (!this.state.dragging) {
       return false
     }
 
-    // Get the current drag point from the event. This is used as the offset.
-    const position = getControlPosition(e, this.state.touchIdentifier, this)
-    if (position == null) {
+    // Bail if we aren't tracking this pointer.
+    if (e.pointerId !== this.state.pointerId) {
+      console.log("incorrect pointer id")
       return
     }
+
+    // Get the current drag point from the event. This is used as the offset.
+    const position = getControlPosition(e, this)
     let { x, y } = position as ControlPosition
 
     const coreData = createCoreData(this, x, y)
@@ -299,15 +275,16 @@ export default class Draggable extends Preact.Component<
     })
   }
 
-  handleDragStop: EventHandler<MouseTouchEvent> = e => {
+  handleDragStop: EventHandler<PointerEvent> = e => {
     if (!this.state.dragging) {
       return
     }
 
-    const position = getControlPosition(e, this.state.touchIdentifier, this)
-    if (position == null) {
+    if (e.pointerId !== this.state.pointerId) {
       return
     }
+
+    const position = getControlPosition(e, this)
     const { x, y } = position as ControlPosition
     const coreEvent = createCoreData(this, x, y)
 
@@ -335,35 +312,17 @@ export default class Draggable extends Preact.Component<
 
     if (thisNode) {
       // Remove event handlers
-      removeEvent(thisNode.ownerDocument, dragEventFor.move, this.handleDrag)
-      removeEvent(
-        thisNode.ownerDocument,
-        dragEventFor.stop,
-        this.handleDragStop,
-      )
+      removeEvent(thisNode.ownerDocument, eventNames.move, this.handleDrag)
+      removeEvent(thisNode.ownerDocument, eventNames.stop, this.handleDragStop)
     }
   }
 
-  onMouseDown: EventHandler<MouseTouchEvent> = e => {
-    dragEventFor = eventsFor.mouse // on touchscreen laptops we could switch back to mouse
+  onPointerDown: EventHandler<PointerEvent> = e => {
+    if (e.pointerType === "pen") return
     return this.handleDragStart(e)
   }
 
-  onMouseUp: EventHandler<MouseTouchEvent> = e => {
-    dragEventFor = eventsFor.mouse
-    return this.handleDragStop(e)
-  }
-
-  // Same as onMouseDown (start drag), but now consider this a touch device.
-  onTouchStart: EventHandler<MouseTouchEvent> = e => {
-    // We're on a touch device now, so change the event handlers
-    dragEventFor = eventsFor.touch
-    return this.handleDragStart(e)
-  }
-
-  onTouchEnd: EventHandler<MouseTouchEvent> = e => {
-    // We're on a touch device now, so change the event handlers
-    dragEventFor = eventsFor.touch
+  onPointerUp: EventHandler<PointerEvent> = e => {
     return this.handleDragStop(e)
   }
 
@@ -400,10 +359,8 @@ export default class Draggable extends Preact.Component<
       <div
         className={className}
         style={style}
-        onMouseDown={this.onMouseDown}
-        onTouchStart={this.onTouchStart}
-        onMouseUp={this.onMouseUp}
-        onTouchEnd={this.onTouchEnd}>
+        onPointerDown={this.onPointerDown}
+        onPointerUp={this.onPointerUp}>
         {this.props.children}
       </div>
     )
