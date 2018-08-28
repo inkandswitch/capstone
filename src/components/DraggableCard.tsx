@@ -1,7 +1,7 @@
 import * as Preact from "preact"
 import Draggable from "../draggable/index"
 import Card from "./Card"
-import { MouseTouchEvent, DraggableData } from "../draggable/types"
+import { DraggableData } from "../draggable/types"
 import Touch, { TouchEvent } from "./Touch"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
@@ -73,7 +73,7 @@ export default class DraggableCard extends Preact.Component<Props> {
     this.props.onDragStart(this.props.index)
   }
 
-  stop = (e: MouseTouchEvent, data: DraggableData) => {
+  stop = (e: PointerEvent, data: DraggableData) => {
     this.props.onDragStop &&
       this.props.onDragStop(data.x, data.y, this.props.index)
   }
