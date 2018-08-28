@@ -1,5 +1,5 @@
 export type DraggableEventHandler = (
-  e: MouseEvent,
+  e: PointerEvent,
   data: DraggableData,
 ) => void | false
 
