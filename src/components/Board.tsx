@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import Widget from "./Widget"
-import PenGesture from "./PenGesture"
+import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
@@ -44,7 +44,7 @@ export default class Board extends Widget<Model, Props> {
       return null
     }
     return (
-      <PenGesture onDoubleTap={this.onPenDoubleTapBoard}>
+      <Pen onDoubleTap={this.onPenDoubleTapBoard}>
         <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
           {cards.map((card, idx) => {
             return (
@@ -71,11 +71,11 @@ export default class Board extends Widget<Model, Props> {
             />
           )}
         </div>
-      </PenGesture>
+      </Pen>
     )
   }
 
-  onPenDoubleTapBoard = (e: PointerEvent) => {
+  onPenDoubleTapBoard = (e: PenEvent) => {
     if (
       !this.state.doc ||
       this.state.doc.locallyFocusedCardIndex !== undefined ||
@@ -83,16 +83,16 @@ export default class Board extends Widget<Model, Props> {
     )
       return
 
-    const { x, y } = e
+    const { x, y } = e.center
     const cardX = clamp(
       x - CARD_WIDTH / 2,
       0,
-      this.boardEl.scrollWidth - CARD_WIDTH - 2 * BOARD_PADDING,
+      this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING,
     )
     const cardY = clamp(
       y - CARD_HEIGHT / 2,
       0,
-      this.boardEl.scrollHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
+      this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
     )
 
     Content.create("Text").then(url => {
@@ -106,12 +106,13 @@ export default class Board extends Widget<Model, Props> {
 
   onDragStart = (idx: number) => {
     this.change(doc => {
-      doc.topZ += 1
       const card = doc.cards[idx]
-      if (card) {
-        // XXX: Remove once backend/store handles object immutability.
-        doc.cards[idx] = { ...card, z: doc.topZ }
-      }
+      if (!card) return doc
+      if (card.z === doc.topZ) return doc
+
+      doc.topZ += 1
+      // XXX: Remove once backend/store handles object immutability.
+      doc.cards[idx] = { ...card, z: doc.topZ }
       return doc
     })
   }
@@ -170,6 +171,7 @@ const style = {
     position: "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
+    overflow: "hidden",
   },
   FocusBackgroundOverlay: {
     top: 0,

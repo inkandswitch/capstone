@@ -25,9 +25,7 @@ export default abstract class Handler<
   }
 
   // Override and return false for events that shouldn't be emitted.
-  filter(event: Event): Boolean {
-    return true
-  }
+  abstract filter(event: Event): Boolean
 
   handle = (name: string & keyof InProps) => {
     return this.handlers[name] || (this.handlers[name] = this.handlerFor(name))
