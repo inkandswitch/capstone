@@ -2,7 +2,9 @@ import * as Preact from "preact"
 import Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
-import VirtualKeyboard from "./VirtualKeyboard"
+import VirtualKeyboard, {
+  ensureVirtualKeyboardOpensOnNextFocus,
+} from "./VirtualKeyboard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
 import { AnyDoc, Doc } from "automerge"
@@ -53,7 +55,10 @@ export default class Board extends Widget<Model, Props> {
     return (
       <VirtualKeyboard onClose={this.onVirtualKeyboardClose}>
         <Pen onDoubleTap={this.onPenDoubleTapBoard}>
-          <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
+          <div
+            onDblClick={this.onDblClick}
+            style={style.Board}
+            ref={(el: HTMLElement) => (this.boardEl = el)}>
             {cards.map((card, idx) => {
               return (
                 <DraggableCard
@@ -84,6 +89,11 @@ export default class Board extends Widget<Model, Props> {
     )
   }
 
+  onDblClick = (e: Event) => {
+    if (this.state.doc && this.state.doc.locallyFocusedCardIndex) return
+    ensureVirtualKeyboardOpensOnNextFocus()
+  }
+
   onPenDoubleTapBoard = (e: PenEvent) => {
     if (
       !this.state.doc ||
@@ -103,6 +113,8 @@ export default class Board extends Widget<Model, Props> {
       0,
       this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
     )
+
+    ensureVirtualKeyboardOpensOnNextFocus()
 
     Content.create("Text").then(url => {
       this.change(doc => {
@@ -146,6 +158,7 @@ export default class Board extends Widget<Model, Props> {
   onTapCard = (index: number) => {
     if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined)
       return
+    //ensureVirtualKeyboardOpensOnNextFocus()
     this.change(doc => {
       return this.setCardFocus(doc, index)
     })

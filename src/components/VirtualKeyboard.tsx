@@ -10,6 +10,18 @@ interface Model {
   isVirtualKeyboardOpen: boolean
 }
 
+export function ensureVirtualKeyboardOpensOnNextFocus() {
+  let transferInput = document.getElementById("__VirtualKeyboard_input__")
+  if (!transferInput) {
+    transferInput = document.createElement("input")
+    transferInput.setAttribute("type", "text")
+    transferInput.id = "__VirtualKeyboard_input__"
+    document.body.appendChild(transferInput)
+  }
+  transferInput.focus()
+  transferInput.click()
+}
+
 /* Simple Virtual (On-screen) Keyboard listener.
 *
 * NOTE: Does not work for the floating keyboard. There is no way to detect floating keyboard open or close.
