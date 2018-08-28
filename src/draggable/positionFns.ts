@@ -1,6 +1,5 @@
 import { isNum, int } from "./shims"
 import {
-  getTouch,
   innerWidth,
   innerHeight,
   offsetXYFromParent,
@@ -9,12 +8,7 @@ import {
 } from "./domFns"
 
 import Draggable from "./index"
-import {
-  Bounds,
-  ControlPosition,
-  DraggableData,
-  MouseTouchEvent,
-} from "./types"
+import { Bounds, ControlPosition, DraggableData } from "./types"
 
 export function getBoundPosition(
   draggable: Draggable,
@@ -101,18 +95,14 @@ export function canDragY(draggable: Draggable): boolean {
 
 // Get {x, y} positions from event.
 export function getControlPosition(
-  e: MouseTouchEvent,
-  touchIdentifier: number | void,
+  e: PointerEvent,
   draggable: Draggable,
-): ControlPosition | void {
-  const touchObj =
-    typeof touchIdentifier === "number" ? getTouch(e, touchIdentifier) : null
-  if (typeof touchIdentifier === "number" && !touchObj) return // not the right touch
+): ControlPosition {
   const node = findDOMNode(draggable)
   // User can provide an offsetParent if desired.
   const offsetParent =
     draggable.props.offsetParent || node.offsetParent || node.ownerDocument.body
-  return offsetXYFromParent(touchObj || e, offsetParent as HTMLElement)
+  return offsetXYFromParent(e, offsetParent as HTMLElement)
 }
 
 // Create an data object exposed by <Draggable>'s events

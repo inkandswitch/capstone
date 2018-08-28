@@ -164,5 +164,6 @@ const style = {
     color: "#333",
     lineHeight: 1.5,
     position: "relative",
+    touchAction: "none",
   },
 }
