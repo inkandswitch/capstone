@@ -3,7 +3,10 @@ import Content from "../components/Content"
 declare global {
   interface Window {
     Content: typeof Content
+    visualViewport: VisualViewport
   }
+
+  interface VisualViewport extends EventTarget {}
 
   type Encoding =
     | "ascii"

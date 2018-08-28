@@ -112,8 +112,8 @@ export default class TextEditor extends Preact.Component<Props, State> {
       this.codeMirror.setOption("readOnly", false)
       this.codeMirror.focus()
     } else if (!isFocused && this.codeMirror.hasFocus()) {
-      this.codeMirror.getInputField().blur()
       this.codeMirror.setOption("readOnly", "nocursor")
+      this.codeMirror.getInputField().blur()
     }
   }
 
