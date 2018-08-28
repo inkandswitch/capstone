@@ -22,7 +22,11 @@ chrome.app.runtime.onLaunched.addListener(() => {
     },
     win => {
       mainWindow = win
-      win.fullscreen()
+      chrome.storage.local.get(["disableFullscreen"], result => {
+        if (!result.disableFullscreen) {
+          win.fullscreen()
+        }
+      })
       win.show(true) // Passing focused: true
     },
   )
