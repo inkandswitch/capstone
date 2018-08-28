@@ -87,12 +87,12 @@ export default class Board extends Widget<Model, Props> {
     const cardX = clamp(
       x - CARD_WIDTH / 2,
       0,
-      this.boardEl.scrollWidth - CARD_WIDTH - 2 * BOARD_PADDING,
+      this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING,
     )
     const cardY = clamp(
       y - CARD_HEIGHT / 2,
       0,
-      this.boardEl.scrollHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
+      this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
     )
 
     Content.create("Text").then(url => {
