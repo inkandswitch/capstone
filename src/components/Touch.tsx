@@ -2,13 +2,15 @@ import * as Preact from "preact"
 import Handler from "./Handler"
 import * as Hammer from "hammerjs"
 
+export type TouchEvent = HammerInput
+
 interface Props {
-  onPinchEnd?: (event: HammerInput) => void
-  onTap?: (event: HammerInput) => void
+  onPinchEnd?: (event: TouchEvent) => void
+  onTap?: (event: TouchEvent) => void
   // TODO: add other gesture recognizers
 }
 
-export default class Gesture extends Handler<Props> {
+export default class Touch extends Handler<Props> {
   hammer: HammerManager
 
   componentDidMount() {
@@ -28,7 +30,12 @@ export default class Gesture extends Handler<Props> {
     this.hammer.on("tap", this.handle("onTap"))
   }
 
+  filter(event: TouchEvent) {
+    return event.pointerType !== "pen"
+  }
+
   render() {
-    return this.child
+    const { onPinchEnd, onTap, ...rest } = this.props
+    return Preact.cloneElement(this.child, rest)
   }
 }

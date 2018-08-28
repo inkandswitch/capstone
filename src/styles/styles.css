@@ -9,3 +9,13 @@
   direction: ltr;
   height: auto;
 }
+
+/* CodeMirror defines "overflow: scroll !important" on .CodeMirror-scroll.
+ * This causes the .CodeMirror-scroll element to trigger pointercancel events
+ * whenever a pointerdown/pointermove chain begins on that element (because the
+ * browser things it should scroll and cancel the pointer). Override
+ * that behavior by setting explicitly setting touch-action.
+ */
+.CodeMirror .CodeMirror-scroll {
+  touch-action: none;
+}

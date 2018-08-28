@@ -22,21 +22,20 @@ type State = {
 }
 
 export default class App extends Preact.Component<{}, State> {
-  constructor() {
-    super()
-    // initialize the workspace at startup (since we have no persistence)
+  initWorkspace() {
     let workspaceUrl = Content.create("Workspace")
     let archiveUrl = Content.create("Archive")
+    let boardUrl = Content.create("Board")
     workspaceUrl
       .then(workspaceUrl => {
         return Content.open<Workspace.Model>(workspaceUrl)
       })
       .then(workspace => {
-        Promise.all([workspaceUrl, archiveUrl]).then(
-          ([workspaceUrl, archiveUrl]) => {
+        Promise.all([workspaceUrl, archiveUrl,boardUrl]).then(
+          ([workspaceUrl, archiveUrl, boardUrl]) => {
             const { type, id } = Link.parse(workspaceUrl)
             Content.store.change(id, workspace, "adding initial urls", doc => {
-              doc.currentUrl = Link.format({ type: "Board", id: "id1" }) // use sample data
+              doc.currentUrl = boardUrl
               doc.archiveUrl = archiveUrl
               return doc
             })
@@ -44,7 +43,21 @@ export default class App extends Preact.Component<{}, State> {
         )
         return workspaceUrl
       })
-      .then(workspaceUrl => this.setState({ url: workspaceUrl }))
+      .then(workspaceUrl => {
+        this.setState({ url: workspaceUrl })
+        chrome.storage.local.set({ workspaceUrl })
+      })
+  }
+  constructor() {
+    super()
+    // initialize the workspace at startup (since we have no persistence)
+    chrome.storage.local.get(["workspaceUrl"],(val) => {
+      if (val.workspaceUrl == undefined) {
+        this.initWorkspace()
+      } else {
+        this.setState({ url: val.workspaceUrl })
+      }
+    })
   }
   render() {
     const { url } = this.state

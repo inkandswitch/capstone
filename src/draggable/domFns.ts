@@ -1,6 +1,6 @@
 import { findInArray, isFunction, int } from "./shims"
 import browserPrefix, { browserPrefixToKey } from "./getPrefix"
-import { ControlPosition, MouseTouchEvent } from "./types"
+import { ControlPosition } from "./types"
 
 let matchesSelectorFunc = ""
 export function matchesSelector(el: Node, selector: string): boolean {
@@ -136,25 +136,6 @@ export function createCSSTransform({ x, y }: { x: number; y: number }): Object {
 
 export function createSVGTransform({ x, y }: { x: number; y: number }): string {
   return "translate(" + x + "," + y + ")"
-}
-
-export function getTouch(
-  e: MouseTouchEvent,
-  identifier: number,
-): { clientX: number; clientY: number } | undefined {
-  return (
-    (e.targetTouches &&
-      findInArray(e.targetTouches, (t: any) => identifier === t.identifier)) ||
-    (e.changedTouches &&
-      findInArray(e.changedTouches, (t: any) => identifier === t.identifier))
-  )
-}
-
-export function getTouchIdentifier(e: MouseTouchEvent): number | undefined {
-  if (e.targetTouches && e.targetTouches[0])
-    return e.targetTouches[0].identifier
-  if (e.changedTouches && e.changedTouches[0])
-    return e.changedTouches[0].identifier
 }
 
 // User-select Hacks:

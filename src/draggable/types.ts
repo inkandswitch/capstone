@@ -1,5 +1,5 @@
 export type DraggableEventHandler = (
-  e: MouseEvent,
+  e: PointerEvent,
   data: DraggableData,
 ) => void | false
 
@@ -24,11 +24,3 @@ export type EventHandler<T> = (e: T) => void | false
 
 // export class SVGElement extends HTMLElement {
 // }
-
-// Missing targetTouches
-export class TouchEvent2 extends TouchEvent {
-  changedTouches: TouchList
-  targetTouches: TouchList
-}
-
-export type MouseTouchEvent = MouseEvent & TouchEvent2

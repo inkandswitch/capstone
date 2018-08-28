@@ -7,7 +7,6 @@ module.exports = {
   entry: {
     main: "./src/main.tsx",
     background: "./src/entry.chrome.ts",
-    worker: "./src/data/service-worker.ts",
   },
   devtool: "inline-source-map",
   output: {
@@ -15,6 +14,13 @@ module.exports = {
     filename: "[name].js",
   },
   resolve: {
+    alias: {
+      "utp-native": "utp",
+      dgram: "chrome-dgram",
+      net: "chrome-net",
+      "bittorrent-dht": path.resolve("./stubs/bittorrent-dht.js"),
+      "random-access-file": path.resolve("./stubs/bittorrent-dht.js"),
+    },
     extensions: [".tsx", ".ts", ".js"],
   },
   module: {

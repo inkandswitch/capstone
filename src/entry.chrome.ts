@@ -1,5 +1,6 @@
-// This should be a real typescript file but we're having trouble
-// finding the AppWindow type which has a contentWindow on it.
+import StoreBackend from "./data/StoreBackend"
+import StoreComms from "./data/StoreComms"
+
 let mainWindow: chrome.app.window.AppWindow
 
 chrome.app.runtime.onLaunched.addListener(() => {
@@ -21,8 +22,19 @@ chrome.app.runtime.onLaunched.addListener(() => {
     },
     win => {
       mainWindow = win
-      win.fullscreen()
+      chrome.storage.local.get(["disableFullscreen"], result => {
+        if (!result.disableFullscreen) {
+          win.fullscreen()
+        }
+      })
       win.show(true) // Passing focused: true
     },
   )
 })
+
+let store = new StoreBackend()
+let comms = new StoreComms(store)
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>
+  comms.onMessage(request, sender, sendResponse),
+)
