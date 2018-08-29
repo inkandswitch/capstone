@@ -23,7 +23,6 @@ export interface Props {
   maxScore?: number
   only?: string[]
   children: JSX.Element
-  // TODO: list of valid patterns
 }
 
 const EMPTY_BOUNDS: Bounds = {
