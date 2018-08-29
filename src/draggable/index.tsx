@@ -332,12 +332,8 @@ export default class Draggable extends Preact.Component<
   }
 
   onPointerDown: EventHandler<PointerEvent> = e => {
-    if (e.pointerType === "pen") return
+    if (e.pointerType === "pen" || !e.isPrimary) return
     return this.handleDragStart(e)
-  }
-
-  onPointerUp: EventHandler<PointerEvent> = e => {
-    return this.handleDragStop(e)
   }
 
   onPointerCancel = (e: PointerEvent) => {
