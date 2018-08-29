@@ -62,19 +62,19 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   render() {
     return (
-      <Pen onMove={this.onMove} onUp={this.onUp}>
+      <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
         {this.props.children}
       </Pen>
     )
   }
 
-  onMove = ({ center: { x, y } }: PenEvent) => {
+  onPanMove = ({ center: { x, y } }: PenEvent) => {
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
     this.recognize()
   }
 
-  onUp = (event: PenEvent) => {
+  onPanEnd = (event: PenEvent) => {
     this.strokeId += 1
   }
 
