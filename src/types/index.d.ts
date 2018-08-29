@@ -3,6 +3,12 @@ import Content from "../components/Content"
 declare global {
   interface Window {
     Content: typeof Content
+    visualViewport: VisualViewport
+  }
+
+  interface VisualViewport extends EventTarget {
+    width: number
+    height: number
   }
 
   type Encoding =
