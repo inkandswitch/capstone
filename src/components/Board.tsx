@@ -44,37 +44,34 @@ export default class Board extends Widget<Model, Props> {
 
   show({ cards, topZ, focusedCardId }: Model) {
     return (
-      <VirtualKeyboard onClose={this.onVirtualKeyboardClose}>
-        <Pen onDoubleTap={this.onPenDoubleTapBoard}>
-          <div
-            style={style.Board}
-            ref={(el: HTMLElement) => (this.boardEl = el)}>
-            {Object.values(cards).map(card => {
-              return (
-                <DraggableCard
-                  key={card.id}
-                  card={card}
-                  onPinchEnd={this.props.onNavigate}
-                  onDragStart={this.onDragStart}
-                  onDragStop={this.onDragStop}
-                  onTap={this.onTapCard}>
-                  <Content
-                    mode="embed"
-                    url={card.url}
-                    isFocused={card.isFocused}
-                  />
-                </DraggableCard>
-              )
-            })}
-            {focusedCardId != null ? (
-              <div
-                style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-                onPointerDown={this.onPointerDown}
-              />
-            ) : null}
-          </div>
-        </Pen>
-      </VirtualKeyboard>
+      <Pen onDoubleTap={this.onPenDoubleTapBoard}>
+        <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
+          <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
+          {Object.values(cards).map(card => {
+            return (
+              <DraggableCard
+                key={card.id}
+                card={card}
+                onPinchEnd={this.props.onNavigate}
+                onDragStart={this.onDragStart}
+                onDragStop={this.onDragStop}
+                onTap={this.onTapCard}>
+                <Content
+                  mode="embed"
+                  url={card.url}
+                  isFocused={card.isFocused}
+                />
+              </DraggableCard>
+            )
+          })}
+          {focusedCardId != null ? (
+            <div
+              style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+              onPointerDown={this.onPointerDown}
+            />
+          ) : null}
+        </div>
+      </Pen>
     )
   }
 

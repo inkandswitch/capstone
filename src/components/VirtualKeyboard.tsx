@@ -3,7 +3,7 @@ import * as Preact from "preact"
 interface Props {
   onOpen?: () => void
   onClose?: () => void
-  children: JSX.Element
+  children?: JSX.Element
 }
 
 interface Model {
@@ -24,10 +24,7 @@ interface Model {
 * There is discussion around adding a virtual keyboard API here: https://bugs.chromium.org/p/chromium/issues/detail?id=856269
 */
 export default class VirtualKeyboard extends Preact.Component<Props, Model> {
-  constructor(props: Props) {
-    super(props)
-    this.state = { isVirtualKeyboardOpen: false }
-  }
+  state = { isVirtualKeyboardOpen: false }
 
   componentDidMount() {
     window.visualViewport.addEventListener(
