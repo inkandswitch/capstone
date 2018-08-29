@@ -38,6 +38,7 @@ export default class DraggableCard extends Preact.Component<Props> {
           defaultPosition={{ x, y }}
           onStart={this.start}
           onStop={this.stop}
+          onCancel={this.cancel}
           z={z}
           enableUserSelectHack={false}>
           <Card {...rest}>{children}</Card>
@@ -62,6 +63,11 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   stop = (e: PointerEvent, data: DraggableData) => {
+    this.props.onDragStop &&
+      this.props.onDragStop(data.x, data.y, this.props.card.id)
+  }
+
+  cancel = (data: DraggableData) => {
     this.props.onDragStop &&
       this.props.onDragStop(data.x, data.y, this.props.card.id)
   }

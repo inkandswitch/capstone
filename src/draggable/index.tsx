@@ -17,7 +17,12 @@ import {
   createDraggableData,
   getBoundPosition,
 } from "./positionFns"
-import { EventHandler, ControlPosition, DraggableEventHandler } from "./types"
+import {
+  EventHandler,
+  ControlPosition,
+  DraggableEventHandler,
+  DraggableData,
+} from "./types"
 
 const eventNames = {
   start: "pointerdown",
@@ -53,6 +58,7 @@ interface DraggableProps {
   handle?: string | null
   onStart?: DraggableEventHandler
   onStop?: DraggableEventHandler
+  onCancel?: (draggableData: DraggableData) => void
   axis?: "both" | "x" | "y" | "none"
   bounds?: DraggableBounds | string | false
   defaultClassName?: string
@@ -217,8 +223,10 @@ export default class Draggable extends Preact.Component<
       return false
     }
 
-    // Bail if we aren't tracking this pointer.
+    // If we encounter another pointer, cancel the drag and bail. We only
+    // support drag for a single pointer at a time.
     if (e.pointerId !== this.state.pointerId) {
+      this.handleDragCancel()
       return false
     }
 
@@ -288,6 +296,20 @@ export default class Draggable extends Preact.Component<
       return
     }
 
+    this.endDrag()
+  }
+
+  handleDragCancel = () => {
+    const { lastX, lastY } = this.state
+    // Fake coreData
+    const coreEvent = createCoreData(this, lastX, lastY)
+    const draggableData = createDraggableData(this, coreEvent)
+    this.props.onCancel && this.props.onCancel(draggableData)
+    this.endDrag()
+  }
+
+  // Clean up drag state and remove listeners.
+  endDrag = () => {
     const thisNode = this.base
     if (thisNode) {
       // Remove user-select hack
@@ -303,20 +325,20 @@ export default class Draggable extends Preact.Component<
       lastY: NaN,
     })
 
-    if (thisNode) {
-      // Remove event handlers
-      removeEvent(thisNode.ownerDocument, eventNames.move, this.handleDrag)
-      removeEvent(thisNode.ownerDocument, eventNames.stop, this.handleDragStop)
+    if (this.base) {
+      removeEvent(this.base.ownerDocument, eventNames.move, this.handleDrag)
+      removeEvent(this.base.ownerDocument, eventNames.stop, this.handleDragStop)
     }
   }
 
   onPointerDown: EventHandler<PointerEvent> = e => {
-    if (e.pointerType === "pen") return
+    if (e.pointerType === "pen" || !e.isPrimary) return
     return this.handleDragStart(e)
   }
 
-  onPointerUp: EventHandler<PointerEvent> = e => {
-    return this.handleDragStop(e)
+  onPointerCancel = (e: PointerEvent) => {
+    // Handle cancel events to make sure we clean up.
+    this.handleDragCancel()
   }
 
   render() {
@@ -357,10 +379,5 @@ export default class Draggable extends Preact.Component<
         {this.props.children}
       </div>
     )
-  }
-
-  onPointerCancel = (e: PointerEvent) => {
-    // Make sure to clean up any handlers if canceled.
-    this.handleDragStop(e)
   }
 }
