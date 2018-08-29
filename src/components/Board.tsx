@@ -5,6 +5,7 @@ import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
+import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_HEIGHT, CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
@@ -43,34 +44,46 @@ export default class Board extends Widget<Model, Props> {
 
   show({ cards, topZ, focusedCardId }: Model) {
     return (
-      <Pen onDoubleTap={this.onPenDoubleTapBoard}>
-        <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
-          {Object.values(cards).map(card => {
-            return (
-              <DraggableCard
-                key={card.id}
-                card={card}
-                onPinchEnd={this.props.onNavigate}
-                onDragStart={this.onDragStart}
-                onDragStop={this.onDragStop}
-                onTap={this.onTapCard}>
-                <Content
-                  mode="embed"
-                  url={card.url}
-                  isFocused={card.isFocused}
-                />
-              </DraggableCard>
-            )
-          })}
-          {focusedCardId != null ? (
-            <div
-              style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-              onPointerDown={this.onPointerDown}
-            />
-          ) : null}
-        </div>
-      </Pen>
+      <VirtualKeyboard onClose={this.onVirtualKeyboardClose}>
+        <Pen onDoubleTap={this.onPenDoubleTapBoard}>
+          <div
+            style={style.Board}
+            ref={(el: HTMLElement) => (this.boardEl = el)}>
+            {Object.values(cards).map(card => {
+              return (
+                <DraggableCard
+                  key={card.id}
+                  card={card}
+                  onPinchEnd={this.props.onNavigate}
+                  onDragStart={this.onDragStart}
+                  onDragStop={this.onDragStop}
+                  onTap={this.onTapCard}>
+                  <Content
+                    mode="embed"
+                    url={card.url}
+                    isFocused={card.isFocused}
+                  />
+                </DraggableCard>
+              )
+            })}
+            {focusedCardId != null ? (
+              <div
+                style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
+                onPointerDown={this.onPointerDown}
+              />
+            ) : null}
+          </div>
+        </Pen>
+      </VirtualKeyboard>
     )
+  }
+
+  onVirtualKeyboardClose = () => {
+    if (!this.doc || this.doc.focusedCardId == null) return
+
+    this.change(doc => {
+      return this.clearCardFocus(doc)
+    })
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
