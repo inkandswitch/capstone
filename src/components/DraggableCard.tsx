@@ -6,6 +6,7 @@ import Touch, { TouchEvent } from "./Touch"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
 interface CardModel {
+  id: string
   x: number
   y: number
   z: number
@@ -14,13 +15,11 @@ interface CardModel {
 
 export interface Props {
   card: CardModel
-  index: number
-  onDragStart: (idx: number) => void
-  onDragStop?: (x: number, y: number, idx: number) => void
+  onDragStart: (id: string) => void
+  onDragStop?: (x: number, y: number, id: string) => void
   onPinchEnd?: (url: string) => void
-  onTap?: (idx: number) => void
-  onDelete: (idx: number) => void
-  [propName: string]: any
+  onTap?: (id: string) => void
+  onDelete: (id: string) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
@@ -52,8 +51,8 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   onTap = (event: TouchEvent) => {
-    const { onTap, index } = this.props
-    onTap && onTap(index)
+    const { onTap, card } = this.props
+    onTap && onTap(card.id)
   }
 
   onPinchEnd = (event: TouchEvent) => {
@@ -65,16 +64,16 @@ export default class DraggableCard extends Preact.Component<Props> {
   onStroke = (stroke: Stroke) => {
     switch (stroke.name) {
       case "X":
-        this.props.onDelete(this.props.index)
+        this.props.onDelete(this.props.card.id)
     }
   }
 
   start = () => {
-    this.props.onDragStart(this.props.index)
+    this.props.onDragStart(this.props.card.id)
   }
 
   stop = (e: PointerEvent, data: DraggableData) => {
     this.props.onDragStop &&
-      this.props.onDragStop(data.x, data.y, this.props.index)
+      this.props.onDragStop(data.x, data.y, this.props.card.id)
   }
 }

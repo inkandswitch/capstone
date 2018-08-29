@@ -7,7 +7,7 @@
   font-family: Arial, Helvetica, sans-serif;
   color: gray;
   direction: ltr;
-  height: auto;
+  height: 100%;
 }
 
 /* CodeMirror defines "overflow: scroll !important" on .CodeMirror-scroll.

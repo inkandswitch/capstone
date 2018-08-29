@@ -21,7 +21,7 @@ export default class Text extends Widget<Model> {
     return (
       <TextEditor
         content={content.join("")}
-        isFocused={this.props.isFocused}
+        isFocused={this.props.mode === "fullscreen" || this.props.isFocused}
         onChange={this.onChange}
       />
     )
