@@ -80,18 +80,17 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   }
 
   _recognize = () => {
-    const { maxScore = 0 } = this.props
-    const result = this.recognizer.Recognize(this.points, this.props.only)
+    const { maxScore = 0, only } = this.props
+    const result = this.recognizer.Recognize(this.points, only)
 
     if (result.Score > 0 && result.Score < maxScore) {
-      console.log("score", result.Score)
       this.props.onStroke({
         name: result.Name,
         bounds: this.bounds,
         center: this.center(),
       })
     } else {
-      console.log("Unrecognized stroke", result)
+      // console.log("Unrecognized stroke", result)
     }
 
     this.reset()
