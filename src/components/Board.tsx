@@ -4,6 +4,7 @@ import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
 import * as Reify from "../data/Reify"
+import * as UUID from "../data/UUID"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_HEIGHT, CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
@@ -11,6 +12,7 @@ import { clamp } from "lodash"
 const BOARD_PADDING = 15
 
 interface CardModel {
+  id: string
   x: number
   y: number
   z: number
@@ -19,9 +21,9 @@ interface CardModel {
 }
 
 export interface Model {
-  cards: CardModel[]
+  cards: { [id: string]: CardModel }
   topZ: number
-  locallyFocusedCardIndex?: number
+  focusedCardId: string | null
 }
 
 interface Props {
@@ -33,24 +35,20 @@ export default class Board extends Widget<Model, Props> {
 
   static reify(doc: AnyDoc): Model {
     return {
-      cards: Reify.array(doc.cards),
+      cards: Reify.map(doc.cards),
       topZ: Reify.number(doc.topZ),
-      locallyFocusedCardIndex: undefined,
+      focusedCardId: null,
     }
   }
 
-  show({ cards, topZ, locallyFocusedCardIndex }: Model) {
-    if (!cards) {
-      return null
-    }
+  show({ cards, topZ, focusedCardId }: Model) {
     return (
       <Pen onDoubleTap={this.onPenDoubleTapBoard}>
         <div style={style.Board} ref={(el: HTMLElement) => (this.boardEl = el)}>
-          {cards.map((card, idx) => {
+          {Object.values(cards).map(card => {
             return (
               <DraggableCard
-                key={idx}
-                index={idx}
+                key={card.id}
                 card={card}
                 onPinchEnd={this.props.onNavigate}
                 onDragStart={this.onDragStart}
@@ -64,12 +62,12 @@ export default class Board extends Widget<Model, Props> {
               </DraggableCard>
             )
           })}
-          {locallyFocusedCardIndex !== undefined && (
+          {focusedCardId != null ? (
             <div
               style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
               onPointerDown={this.onPointerDown}
             />
-          )}
+          ) : null}
         </div>
       </Pen>
     )
@@ -78,7 +76,7 @@ export default class Board extends Widget<Model, Props> {
   onPenDoubleTapBoard = (e: PenEvent) => {
     if (
       !this.state.doc ||
-      this.state.doc.locallyFocusedCardIndex !== undefined ||
+      this.state.doc.focusedCardId != null ||
       !this.boardEl
     )
       return
@@ -98,31 +96,32 @@ export default class Board extends Widget<Model, Props> {
     Content.create("Text").then(url => {
       this.change(doc => {
         const z = (doc.topZ += 1)
-        doc.cards.push({ x: cardX, y: cardY, z, url })
-        return this.setCardFocus(doc, doc.cards.length - 1)
+        const id = UUID.create()
+        doc.cards[id] = { x: cardX, y: cardY, z, url, id }
+        return this.setCardFocus(doc, id)
       })
     })
   }
 
-  onDragStart = (idx: number) => {
+  onDragStart = (id: string) => {
     this.change(doc => {
-      const card = doc.cards[idx]
+      const card = doc.cards[id]
       if (!card) return doc
       if (card.z === doc.topZ) return doc
 
       doc.topZ += 1
       // XXX: Remove once backend/store handles object immutability.
-      doc.cards[idx] = { ...card, z: doc.topZ }
+      doc.cards[id] = { ...card, z: doc.topZ }
       return doc
     })
   }
 
-  onDragStop = (x: number, y: number, idx: number) => {
+  onDragStop = (x: number, y: number, id: string) => {
     this.change(doc => {
-      const card = doc.cards[idx]
+      const card = doc.cards[id]
       if (card) {
         // XXX: Remove once backend/store handles object immutability.
-        doc.cards[idx] = { ...card, x: x, y: y }
+        doc.cards[id] = { ...card, x: x, y: y }
       }
       return doc
     })
@@ -132,31 +131,30 @@ export default class Board extends Widget<Model, Props> {
     e.preventDefault()
     e.stopPropagation()
     this.change(doc => {
-      if (doc.locallyFocusedCardIndex === undefined) return doc
+      if (doc.focusedCardId == null) return doc
       return this.clearCardFocus(doc)
     })
   }
 
-  onTapCard = (index: number) => {
-    if (!this.state.doc || this.state.doc.locallyFocusedCardIndex !== undefined)
-      return
+  onTapCard = (id: string) => {
+    if (!this.state.doc || this.state.doc.focusedCardId != null) return
     this.change(doc => {
-      return this.setCardFocus(doc, index)
+      return this.setCardFocus(doc, id)
     })
   }
 
-  setCardFocus = (doc: Doc<Model>, cardIndex: number): Doc<Model> => {
-    const card = doc.cards[cardIndex]
-    doc.cards[cardIndex] = { ...card, isFocused: true }
-    doc.locallyFocusedCardIndex = cardIndex
+  setCardFocus = (doc: Doc<Model>, cardId: string): Doc<Model> => {
+    const card = doc.cards[cardId]
+    doc.cards[cardId] = { ...card, isFocused: true }
+    doc.focusedCardId = cardId
     return doc
   }
 
   clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
-    if (doc.locallyFocusedCardIndex === undefined) return doc
-    const card = doc.cards[doc.locallyFocusedCardIndex]
-    doc.cards[doc.locallyFocusedCardIndex] = { ...card, isFocused: false }
-    doc.locallyFocusedCardIndex = undefined
+    if (doc.focusedCardId == null) return doc
+    const card = doc.cards[doc.focusedCardId]
+    doc.cards[doc.focusedCardId] = { ...card, isFocused: false }
+    doc.focusedCardId = null
     return doc
   }
 }

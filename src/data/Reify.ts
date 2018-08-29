@@ -24,6 +24,15 @@ export function array<T>(
   return Array.isArray(existing) ? existing : fallback()
 }
 
+export function map<T>(
+  existing: any,
+  fallback: () => { [k: string]: T } = () => ({}),
+): { [k: string]: T } {
+  return Object.prototype.toString.call(existing) === "[object Object]"
+    ? existing
+    : fallback()
+}
+
 export function number(
   existing: any,
   fallback: () => number = () => 0,
