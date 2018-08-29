@@ -9,6 +9,7 @@ import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_HEIGHT, CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
+import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
 const BOARD_PADDING = 15
 
@@ -22,7 +23,7 @@ interface CardModel {
 }
 
 export interface Model {
-  cards: { [id: string]: CardModel }
+  cards: { [id: string]: CardModel | undefined }
   topZ: number
   focusedCardId: string | null
 }
@@ -46,36 +47,45 @@ export default class Board extends Widget<Model, Props> {
     switch (this.mode) {
       case "fullscreen":
         return (
-          <Pen onDoubleTap={this.onPenDoubleTapBoard}>
-            <div
-              style={style.Board}
-              ref={(el: HTMLElement) => (this.boardEl = el)}>
-              <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
-              {Object.values(cards).map(card => {
-                return (
-                  <DraggableCard
-                    key={card.id}
-                    card={card}
-                    onPinchEnd={this.props.onNavigate}
-                    onDragStart={this.onDragStart}
-                    onDragStop={this.onDragStop}
-                    onTap={this.onTapCard}>
-                    <Content
-                      mode="embed"
-                      url={card.url}
-                      isFocused={card.isFocused}
-                    />
-                  </DraggableCard>
-                )
-              })}
-              {focusedCardId != null ? (
-                <div
-                  style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-                  onPointerDown={this.onPointerDown}
-                />
-              ) : null}
-            </div>
-          </Pen>
+          <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
+            <Pen onDoubleTap={this.onPenDoubleTapBoard}>
+              <div
+                style={style.Board}
+                ref={(el: HTMLElement) => (this.boardEl = el)}>
+                <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
+
+                {Object.values(cards).map(card => {
+                  if (!card) return null
+
+                  return (
+                    <DraggableCard
+                      key={card.id}
+                      card={card}
+                      onDelete={this.deleteCard}
+                      onPinchEnd={this.props.onNavigate}
+                      onDragStart={this.onDragStart}
+                      onDragStop={this.onDragStop}
+                      onTap={this.onTapCard}>
+                      <Content
+                        mode="embed"
+                        url={card.url}
+                        isFocused={card.isFocused}
+                      />
+                    </DraggableCard>
+                  )
+                })}
+                {focusedCardId != null ? (
+                  <div
+                    style={{
+                      ...style.FocusBackgroundOverlay,
+                      zIndex: topZ - 1,
+                    }}
+                    onPointerDown={this.onPointerDown}
+                  />
+                ) : null}
+              </div>
+            </Pen>
+          </StrokeRecognizer>
         )
       case "embed":
       case "preview":
@@ -97,55 +107,9 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
-    if (
-      !this.state.doc ||
-      this.state.doc.focusedCardId != null ||
-      !this.boardEl
-    )
-      return
-
     const { x, y } = e.center
-    const cardX = clamp(
-      x - CARD_WIDTH / 2,
-      0,
-      this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING,
-    )
-    const cardY = clamp(
-      y - CARD_HEIGHT / 2,
-      0,
-      this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
-    )
 
-    Content.create("Text").then(url => {
-      this.change(doc => {
-        const card = this.createCard(doc, url, x, y)
-        return this.setCardFocus(doc, card.id)
-      })
-    })
-  }
-
-  dragOver = (event: DragEvent) => {
-    if (!event.dataTransfer.types.includes("application/capstone-url")) return
-
-    event.preventDefault()
-  }
-
-  drop = (event: DragEvent) => {
-    const url = event.dataTransfer.getData("application/capstone-url")
-    event.preventDefault()
-
-    this.change(doc => {
-      this.createCard(doc, url, event.x, event.y)
-      return doc
-    })
-  }
-
-  createCard(doc: Doc<Model>, url: string, x: number, y: number) {
-    const z = (doc.topZ += 1)
-    const id = UUID.create()
-    const card = { x, y, z, url, id }
-    doc.cards[id] = { x, y, z, url, id }
-    return card
+    this.createCard("Text", x, y)
   }
 
   onDragStart = (id: string) => {
@@ -190,6 +154,7 @@ export default class Board extends Widget<Model, Props> {
 
   setCardFocus = (doc: Doc<Model>, cardId: string): Doc<Model> => {
     const card = doc.cards[cardId]
+    if (!card) return doc
     doc.cards[cardId] = { ...card, isFocused: true }
     doc.focusedCardId = cardId
     return doc
@@ -198,9 +163,43 @@ export default class Board extends Widget<Model, Props> {
   clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
     if (doc.focusedCardId == null) return doc
     const card = doc.cards[doc.focusedCardId]
-    doc.cards[doc.focusedCardId] = { ...card, isFocused: false }
+    if (card) {
+      doc.cards[doc.focusedCardId] = { ...card, isFocused: false }
+    }
     doc.focusedCardId = null
     return doc
+  }
+
+  onStroke = (stroke: Stroke) => {
+    switch (stroke.name) {
+      case "box":
+        this.createCard("Text", stroke.center.x, stroke.center.y)
+    }
+  }
+
+  deleteCard = (id: string) => {
+    this.change(doc => {
+      delete doc.cards[id]
+      return this.clearCardFocus(doc)
+    })
+  }
+
+  async createCard(type: string, x: number, y: number) {
+    if (!this.doc || this.doc.focusedCardId != null) return
+    if (!this.boardEl) return
+
+    const maxX = this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING
+    const maxY = this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING
+    const cardX = clamp(x - CARD_WIDTH / 2, 0, maxX)
+    const cardY = clamp(y - CARD_HEIGHT / 2, 0, maxY)
+
+    const url = await Content.create(type)
+    this.change(doc => {
+      const id = UUID.create()
+      const z = ++doc.topZ
+      doc.cards[id] = { id, x: cardX, y: cardY, z, url }
+      return this.setCardFocus(doc, id)
+    })
   }
 }
 
