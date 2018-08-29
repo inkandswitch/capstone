@@ -6,7 +6,10 @@ declare global {
     visualViewport: VisualViewport
   }
 
-  interface VisualViewport extends EventTarget {}
+  interface VisualViewport extends EventTarget {
+    width: number
+    height: number
+  }
 
   type Encoding =
     | "ascii"
