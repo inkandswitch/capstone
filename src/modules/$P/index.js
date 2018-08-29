@@ -94,6 +94,7 @@ export function Recognizer() {
   // The $P Point-Cloud Recognizer API begins here -- 3 methods: Recognize(), AddGesture(), DeleteUserGestures()
   //
   this.Recognize = function(points, only) {
+    if (points.length < 2) return new Result("Too few points", -1, 0)
     var t0 = Date.now()
     points = Resample(points, NumPoints)
     points = Scale(points)
