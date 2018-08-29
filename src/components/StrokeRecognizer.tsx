@@ -14,6 +14,7 @@ interface Bounds {
 export interface Stroke {
   name: string
   bounds: Bounds
+  center: { x: number; y: number }
 }
 
 export interface Props {
@@ -87,6 +88,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       this.props.onStroke({
         name: result.Name,
         bounds: this.bounds,
+        center: this.center(),
       })
     } else {
       console.log("Unrecognized stroke", result)
@@ -96,6 +98,14 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   }
 
   recognize = debounce(this._recognize, this.props.delay)
+
+  center() {
+    const b = this.bounds
+    return {
+      x: (b.left + b.right) / 2,
+      y: (b.top + b.bottom) / 2,
+    }
+  }
 
   updateBounds(x: number, y: number) {
     const b = this.bounds

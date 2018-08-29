@@ -80,26 +80,9 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
-    if (
-      !this.state.doc ||
-      this.state.doc.focusedCardId != null ||
-      !this.boardEl
-    )
-      return
-
     const { x, y } = e.center
-    const cardX = clamp(
-      x - CARD_WIDTH / 2,
-      0,
-      this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING,
-    )
-    const cardY = clamp(
-      y - CARD_HEIGHT / 2,
-      0,
-      this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
-    )
 
-    this.createCard("Text", cardX, cardY)
+    this.createCard("Text", x, y)
   }
 
   onDragStart = (id: string) => {
@@ -160,26 +143,33 @@ export default class Board extends Widget<Model, Props> {
   onStroke = (stroke: Stroke) => {
     switch (stroke.name) {
       case "box":
-        this.createCard("Text", stroke.bounds.left, stroke.bounds.top)
+        this.createCard("Text", stroke.center.x, stroke.center.y)
     }
   }
 
   deleteCard = (id: string) => {
     this.change(doc => {
       delete doc.cards[id]
-      return doc
+      return this.clearCardFocus(doc)
     })
   }
 
-  async createCard(type: string, x: number, y: number): Promise<string> {
+  async createCard(type: string, x: number, y: number) {
+    if (!this.doc || this.doc.focusedCardId != null) return
+    if (!this.boardEl) return
+
+    const maxX = this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING
+    const maxY = this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING
+    const cardX = clamp(x - CARD_WIDTH / 2, 0, maxX)
+    const cardY = clamp(y - CARD_HEIGHT / 2, 0, maxY)
+
     const url = await Content.create(type)
     this.change(doc => {
       const id = UUID.create()
-      const z = doc.topZ++
-      doc.cards[id] = { id, x, y, z, url }
+      const z = ++doc.topZ
+      doc.cards[id] = { id, x: cardX, y: cardY, z, url }
       return this.setCardFocus(doc, id)
     })
-    return url
   }
 }
 
