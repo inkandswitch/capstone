@@ -111,7 +111,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       top: Math.min(b.top, y),
       right: Math.max(b.right, x),
       bottom: Math.max(b.bottom, y),
-      left: Math.min(b.bottom, x),
+      left: Math.min(b.left, x),
     }
   }
 
