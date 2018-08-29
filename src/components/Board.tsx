@@ -22,7 +22,7 @@ interface CardModel {
 }
 
 export interface Model {
-  cards: { [id: string]: CardModel }
+  cards: { [id: string]: CardModel | undefined }
   topZ: number
   focusedCardId: string | null
 }
@@ -50,6 +50,8 @@ export default class Board extends Widget<Model, Props> {
             style={style.Board}
             ref={(el: HTMLElement) => (this.boardEl = el)}>
             {Object.values(cards).map(card => {
+              if (!card) return null
+
               return (
                 <DraggableCard
                   key={card.id}
@@ -127,6 +129,7 @@ export default class Board extends Widget<Model, Props> {
 
   setCardFocus = (doc: Doc<Model>, cardId: string): Doc<Model> => {
     const card = doc.cards[cardId]
+    if (!card) return doc
     doc.cards[cardId] = { ...card, isFocused: true }
     doc.focusedCardId = cardId
     return doc
@@ -135,7 +138,9 @@ export default class Board extends Widget<Model, Props> {
   clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
     if (doc.focusedCardId == null) return doc
     const card = doc.cards[doc.focusedCardId]
-    doc.cards[doc.focusedCardId] = { ...card, isFocused: false }
+    if (card) {
+      doc.cards[doc.focusedCardId] = { ...card, isFocused: false }
+    }
     doc.focusedCardId = null
     return doc
   }
