@@ -17,7 +17,12 @@ import {
   createDraggableData,
   getBoundPosition,
 } from "./positionFns"
-import { EventHandler, ControlPosition, DraggableEventHandler } from "./types"
+import {
+  EventHandler,
+  ControlPosition,
+  DraggableEventHandler,
+  DraggableData,
+} from "./types"
 
 const eventNames = {
   start: "pointerdown",
@@ -53,6 +58,7 @@ interface DraggableProps {
   handle?: string | null
   onStart?: DraggableEventHandler
   onStop?: DraggableEventHandler
+  onCancel?: (draggableData: DraggableData) => void
   axis?: "both" | "x" | "y" | "none"
   bounds?: DraggableBounds | string | false
   defaultClassName?: string
@@ -220,7 +226,7 @@ export default class Draggable extends Preact.Component<
     // If we encounter another pointer, cancel the drag and bail. We only
     // support drag for a single pointer at a time.
     if (e.pointerId !== this.state.pointerId) {
-      this.removeDragListeners()
+      this.handleDragCancel()
       return false
     }
 
@@ -290,6 +296,20 @@ export default class Draggable extends Preact.Component<
       return
     }
 
+    this.endDrag()
+  }
+
+  handleDragCancel = () => {
+    const { lastX, lastY } = this.state
+    // Fake coreData
+    const coreEvent = createCoreData(this, lastX, lastY)
+    const draggableData = createDraggableData(this, coreEvent)
+    this.props.onCancel && this.props.onCancel(draggableData)
+    this.endDrag()
+  }
+
+  // Clean up drag state and remove listeners.
+  endDrag = () => {
     const thisNode = this.base
     if (thisNode) {
       // Remove user-select hack
@@ -305,10 +325,6 @@ export default class Draggable extends Preact.Component<
       lastY: NaN,
     })
 
-    this.removeDragListeners()
-  }
-
-  removeDragListeners = () => {
     if (this.base) {
       removeEvent(this.base.ownerDocument, eventNames.move, this.handleDrag)
       removeEvent(this.base.ownerDocument, eventNames.stop, this.handleDragStop)
@@ -326,7 +342,7 @@ export default class Draggable extends Preact.Component<
 
   onPointerCancel = (e: PointerEvent) => {
     // Handle cancel events to make sure we clean up.
-    this.handleDragStop(e)
+    this.handleDragCancel()
   }
 
   render() {
