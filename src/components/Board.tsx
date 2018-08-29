@@ -99,14 +99,7 @@ export default class Board extends Widget<Model, Props> {
       this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING,
     )
 
-    Content.create("Text").then(url => {
-      this.change(doc => {
-        const z = (doc.topZ += 1)
-        const id = UUID.create()
-        doc.cards[id] = { x: cardX, y: cardY, z, url, id }
-        return this.setCardFocus(doc, id)
-      })
-    })
+    this.createCard("Text", cardX, cardY)
   }
 
   onDragStart = (id: string) => {
@@ -184,7 +177,7 @@ export default class Board extends Widget<Model, Props> {
       const id = UUID.create()
       const z = doc.topZ++
       doc.cards[id] = { id, x, y, z, url }
-      return doc
+      return this.setCardFocus(doc, id)
     })
     return url
   }
