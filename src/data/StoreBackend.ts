@@ -1,5 +1,5 @@
 import { AnyDoc } from "automerge"
-import Hypermerge from "../hypermerge"
+import Hypermerge from "../modules/hypermerge"
 let racf = require("random-access-chrome-file")
 
 type StoreId = string

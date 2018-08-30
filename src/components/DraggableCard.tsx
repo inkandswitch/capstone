@@ -1,7 +1,7 @@
 import * as Preact from "preact"
-import Draggable from "../draggable/index"
+import Draggable from "../modules/draggable/index"
 import Card from "./Card"
-import { DraggableData } from "../draggable/types"
+import { DraggableData } from "../modules/draggable/types"
 import Touch, { TouchEvent } from "./Touch"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
