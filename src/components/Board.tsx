@@ -7,7 +7,7 @@ import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
-import { CARD_HEIGHT, CARD_WIDTH } from "./Card"
+import { CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
@@ -173,7 +173,7 @@ export default class Board extends Widget<Model, Props> {
   onStroke = (stroke: Stroke) => {
     switch (stroke.name) {
       case "box":
-        this.createCard("Text", stroke.center.x, stroke.center.y)
+        this.createCard("Text", stroke.center.x, stroke.bounds.top)
     }
   }
 
@@ -189,9 +189,9 @@ export default class Board extends Widget<Model, Props> {
     if (!this.boardEl) return
 
     const maxX = this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING
-    const maxY = this.boardEl.clientHeight - CARD_HEIGHT - 2 * BOARD_PADDING
+    const maxY = this.boardEl.clientHeight - 2 * BOARD_PADDING
     const cardX = clamp(x - CARD_WIDTH / 2, 0, maxX)
-    const cardY = clamp(y - CARD_HEIGHT / 2, 0, maxY)
+    const cardY = clamp(y, 0, maxY)
 
     const url = await Content.create(type)
     this.change(doc => {
