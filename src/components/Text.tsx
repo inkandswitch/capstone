@@ -49,17 +49,6 @@ export default class Text extends Widget<Model> {
   }
 }
 
-const style = {
-  Text: {
-    fontSize: 16,
-    fontFamily: "serif",
-    padding: 10,
-    textAlign: "justify",
-    color: "#333",
-    lineHeight: 1.5,
-  },
-}
-
 Content.register("Text", Text)
 
 const sample = (): string => samples[random(1, samples.length) - 1]

@@ -22,7 +22,10 @@ export default class Workspace extends Widget<Model> {
 
   show({ currentUrl }: Doc<Model>) {
     return (
-      <Touch onPinchEnd={this.onPinchEnd}>
+      <Touch
+        onThreeFingerSwipeDown={this.onThreeFingerSwipeDown}
+        onThreeFingerSwipeUp={this.onThreeFingerSwipeUp}
+        onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
           <Content
             mode={this.mode}
@@ -32,6 +35,20 @@ export default class Workspace extends Widget<Model> {
         </div>
       </Touch>
     )
+  }
+
+  onThreeFingerSwipeDown = (event: TouchEvent) => {
+    if (!this.doc) return
+    if (this.doc.currentUrl !== this.doc.archiveUrl) {
+      this.navigateTo(this.doc.archiveUrl)
+    }
+  }
+
+  onThreeFingerSwipeUp = (event: TouchEvent) => {
+    if (!this.doc) return
+    if (this.doc.currentUrl === this.doc.archiveUrl) {
+      this.navigateBack()
+    }
   }
 
   onPinchEnd = (event: TouchEvent) => {

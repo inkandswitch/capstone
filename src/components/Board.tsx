@@ -44,44 +44,58 @@ export default class Board extends Widget<Model, Props> {
   }
 
   show({ cards, topZ, focusedCardId }: Model) {
-    return (
-      <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
-        <Pen onDoubleTap={this.onPenDoubleTapBoard}>
-          <div
-            style={style.Board}
-            ref={(el: HTMLElement) => (this.boardEl = el)}>
-            <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
-
-            {Object.values(cards).map(card => {
-              if (!card) return null
-
-              return (
-                <DraggableCard
-                  key={card.id}
-                  card={card}
-                  onDelete={this.deleteCard}
-                  onPinchEnd={this.props.onNavigate}
-                  onDragStart={this.onDragStart}
-                  onDragStop={this.onDragStop}
-                  onTap={this.onTapCard}>
-                  <Content
-                    mode="embed"
-                    url={card.url}
-                    isFocused={card.isFocused}
-                  />
-                </DraggableCard>
-              )
-            })}
-            {focusedCardId != null ? (
+    switch (this.mode) {
+      case "fullscreen":
+        return (
+          <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
+            <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
-                style={{ ...style.FocusBackgroundOverlay, zIndex: topZ - 1 }}
-                onPointerDown={this.onPointerDown}
-              />
-            ) : null}
+                style={style.Board}
+                ref={(el: HTMLElement) => (this.boardEl = el)}>
+                <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
+
+                {Object.values(cards).map(card => {
+                  if (!card) return null
+
+                  return (
+                    <DraggableCard
+                      key={card.id}
+                      card={card}
+                      onDelete={this.deleteCard}
+                      onPinchEnd={this.props.onNavigate}
+                      onDragStart={this.onDragStart}
+                      onDragStop={this.onDragStop}
+                      onTap={this.onTapCard}>
+                      <Content
+                        mode="embed"
+                        url={card.url}
+                        isFocused={card.isFocused}
+                      />
+                    </DraggableCard>
+                  )
+                })}
+                {focusedCardId != null ? (
+                  <div
+                    style={{
+                      ...style.FocusBackgroundOverlay,
+                      zIndex: topZ - 1,
+                    }}
+                    onPointerDown={this.onPointerDown}
+                  />
+                ) : null}
+              </div>
+            </Pen>
+          </StrokeRecognizer>
+        )
+      case "embed":
+      case "preview":
+        return (
+          <div style={style.Preview.Board}>
+            <div style={style.Preview.Title}>Untitled Board</div>
+            <div style={style.Preview.SubTitle}>{cards.length} cards</div>
           </div>
-        </Pen>
-      </StrokeRecognizer>
-    )
+        )
+    }
   }
 
   onVirtualKeyboardClose = () => {
@@ -209,5 +223,21 @@ const style = {
     position: "absolute",
     backgroundColor: "#000",
     opacity: 0.15,
+  },
+
+  Preview: {
+    Board: {
+      padding: 10,
+      fontSize: 16,
+      textAlign: "center",
+      backgroundColor: "#fff",
+    },
+    Title: {
+      fontSize: 20,
+      color: "#333",
+    },
+    SubTitle: {
+      color: "#666",
+    },
   },
 }

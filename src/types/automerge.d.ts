@@ -12,7 +12,7 @@ declare module "automerge" {
   type Value = null | string | number | boolean | Object | ValueList
 
   // A homogeneous list of Values
-  interface List<T extends Value> extends ReadonlyArray<T> {}
+  interface List<T> extends ReadonlyArray<T & Value> {}
 
   // A heterogeneous list of Values
   interface ValueList extends List<Value> {}
