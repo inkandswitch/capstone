@@ -7,7 +7,8 @@
   font-family: Arial, Helvetica, sans-serif;
   color: gray;
   direction: ltr;
-  height: 100%;
+  max-height: 100%;
+  height: auto;
 }
 
 /* CodeMirror defines "overflow: scroll !important" on .CodeMirror-scroll.
@@ -18,4 +19,5 @@
  */
 .CodeMirror .CodeMirror-scroll {
   touch-action: none;
+  max-height: 500px;
 }
