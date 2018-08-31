@@ -30,6 +30,7 @@ export interface Model {
 
 interface Props {
   onNavigate?: (url: string) => void
+  onDocumentCreate?: (url: string) => void
 }
 
 export default class Board extends Widget<Model, Props> {
@@ -200,6 +201,8 @@ export default class Board extends Widget<Model, Props> {
       doc.cards[id] = { id, x: cardX, y: cardY, z, url }
       return this.setCardFocus(doc, id)
     })
+
+    if (this.props.onDocumentCreate) this.props.onDocumentCreate(url)
   }
 }
 

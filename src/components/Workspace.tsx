@@ -2,6 +2,7 @@ import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
+import { ArchiveManager } from "./Archive"
 import { Doc } from "automerge"
 import Touch, { TouchEvent } from "./Touch"
 
@@ -31,10 +32,16 @@ export default class Workspace extends Widget<Model> {
             mode={this.mode}
             url={currentUrl}
             onNavigate={this.navigateTo}
+            onDocumentCreate={this.onDocumentCreate}
           />
         </div>
       </Touch>
     )
+  }
+
+  onDocumentCreate = (url: string) => {
+    if (!this.doc) return
+    ArchiveManager.sendMessage(this.doc.archiveUrl, ["AddDocument", url])
   }
 
   onThreeFingerSwipeDown = (event: TouchEvent) => {

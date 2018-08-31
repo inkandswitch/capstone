@@ -1,7 +1,8 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import Widget, { AnyDoc, Doc } from "./Widget"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import Content, { Mode } from "./Content"
 import ArchiveItem from "./ArchiveItem"
 
@@ -16,11 +17,57 @@ export interface Props {
   onTap: (id: string) => void
 }
 
+export class ArchiveManager {
+  // TODO: extract
+  static updateCallbacks: {
+    [archiveUrl: string]: (newDoc: Doc<Model>) => void
+  } = {}
+  static register(archiveUrl: string, callback: (newDoc: Doc<Model>) => void) {
+    ArchiveManager.updateCallbacks[archiveUrl] = callback
+  }
+  static unregister(archiveUrl: string) {
+    delete ArchiveManager.updateCallbacks[archiveUrl]
+  }
+
+  static async sendMessage(archiveUrl: string, message: [string, string]) {
+    const archive = await Content.open<Model>(archiveUrl)
+    const { id } = Link.parse(archiveUrl)
+
+    if (message[0] === "AddDocument") {
+      const documentUrl = message[1]
+      const updatedDoc = await Content.store.change(
+        id,
+        archive,
+        "",
+        (doc: Doc<Model>) => {
+          doc.docs.push({ url: documentUrl })
+          return doc
+        },
+      )
+
+      if (ArchiveManager.updateCallbacks[archiveUrl]) {
+        ArchiveManager.updateCallbacks[archiveUrl](updatedDoc)
+      }
+    }
+  }
+}
+
 export default class Archive extends Widget<Model, Props> {
   static reify(doc: AnyDoc): Model {
     return {
       docs: Reify.array(doc.docs),
     }
+  }
+
+  componentDidMount() {
+    // TODO: extract this
+    ArchiveManager.register(this.props.url, doc => {
+      this.setState({ doc })
+    })
+  }
+
+  componentWillUnmount() {
+    ArchiveManager.unregister(this.props.url)
   }
 
   show({ docs }: Model) {
