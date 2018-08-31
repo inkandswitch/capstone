@@ -17,8 +17,8 @@ export interface Props {
   onTap: (id: string) => void
 }
 
+// TODO: extract
 export class ArchiveManager {
-  // TODO: extract
   static updateCallbacks: {
     [archiveUrl: string]: (newDoc: Doc<Model>) => void
   } = {}
@@ -29,12 +29,15 @@ export class ArchiveManager {
     delete ArchiveManager.updateCallbacks[archiveUrl]
   }
 
-  static async sendMessage(archiveUrl: string, message: [string, string]) {
+  static async onMessage(
+    archiveUrl: string,
+    message: { type: string; payload: any },
+  ) {
     const archive = await Content.open<Model>(archiveUrl)
     const { id } = Link.parse(archiveUrl)
 
-    if (message[0] === "AddDocument") {
-      const documentUrl = message[1]
+    if (message.type === "AddDocument") {
+      const documentUrl = message.payload
       const updatedDoc = await Content.store.change(
         id,
         archive,

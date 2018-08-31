@@ -12,6 +12,10 @@ export interface Model {
   archiveUrl: string
 }
 
+export class WorkspaceManager {
+  static onMessage(url: string, message: {}) {}
+}
+
 export default class Workspace extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {
@@ -32,16 +36,18 @@ export default class Workspace extends Widget<Model> {
             mode={this.mode}
             url={currentUrl}
             onNavigate={this.navigateTo}
-            onDocumentCreate={this.onDocumentCreate}
+            dispatch={this.onMessage}
           />
         </div>
       </Touch>
     )
   }
 
-  onDocumentCreate = (url: string) => {
+  onMessage = (message: any) => {
     if (!this.doc) return
-    ArchiveManager.sendMessage(this.doc.archiveUrl, ["AddDocument", url])
+    if (message.from !== this.doc.archiveUrl) {
+      ArchiveManager.onMessage(this.doc.archiveUrl, message)
+    }
   }
 
   onThreeFingerSwipeDown = (event: TouchEvent) => {

@@ -10,6 +10,7 @@ export interface Props {
   url: string
   mode: Mode
   isFocused: boolean
+  dispatch?: (message: any) => void
 }
 
 export interface State<T> {
@@ -43,6 +44,11 @@ export default abstract class Widget<T, P = {}> extends Preact.Component<
 
   get mode(): Mode {
     return this.props.mode
+  }
+
+  dispatch(message: any): void {
+    if (!this.props.dispatch) return
+    this.props.dispatch({ ...message, from: this.props.url })
   }
 
   change(callback: ChangeFn<T>): void {

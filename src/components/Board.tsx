@@ -30,7 +30,7 @@ export interface Model {
 
 interface Props {
   onNavigate?: (url: string) => void
-  onDocumentCreate?: (url: string) => void
+  onMessage?: (message: { from: string; type: string; payload: any }) => void
 }
 
 export default class Board extends Widget<Model, Props> {
@@ -202,7 +202,7 @@ export default class Board extends Widget<Model, Props> {
       return this.setCardFocus(doc, id)
     })
 
-    if (this.props.onDocumentCreate) this.props.onDocumentCreate(url)
+    this.dispatch({ type: "AddDocument", payload: url })
   }
 }
 
