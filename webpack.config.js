@@ -7,6 +7,8 @@ module.exports = {
   entry: {
     main: "./src/main.tsx",
     background: "./src/entry.chrome.ts",
+    "sidecar/main": "./src/apps/sidecar/main.tsx",
+    "sidecar/background": "./src/apps/sidecar/background.chrome.ts",
   },
   devtool: "inline-source-map",
   output: {
@@ -55,5 +57,18 @@ module.exports = {
       },
     ],
   },
-  plugins: [new CopyWebpackPlugin(["./src/manifest.json", "./src/index.html"])],
+  plugins: [
+    new CopyWebpackPlugin([
+      {
+        from: "{manifest.json,index.html}",
+        context: "./src",
+        to: ".",
+      },
+      {
+        from: "{manifest.json,index.html}",
+        context: "./src/apps/sidecar",
+        to: "sidecar",
+      },
+    ]),
+  ],
 }
