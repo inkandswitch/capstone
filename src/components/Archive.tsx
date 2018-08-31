@@ -57,12 +57,12 @@ const style = {
   },
 
   Items: {
-    display: "flex",
-    height: 200,
-    alignItems: "center", // TODO: "stretch" is better for vert images
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, 200px)",
+    gridAutoRows: "200px",
+    gridGap: "10px",
+    width: "100%",
     color: "#333",
-    overflow: "auto",
-    maxWidth: "100%",
     padding: 40,
   },
 }
