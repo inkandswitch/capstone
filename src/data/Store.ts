@@ -1,4 +1,4 @@
-import { Doc, AnyDoc, ChangeFn } from "automerge"
+import { Doc, AnyDoc, ChangeFn, EditDoc } from "automerge"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 
@@ -50,7 +50,7 @@ export default class Store {
     return new Promise(
       (resolve, reject) =>
         doc
-          ? resolve(this.replace(id, cb(doc)) as Doc<T>)
+          ? resolve(this.replace(id, cb(doc as EditDoc<T>)) as EditDoc<T>)
           : reject(new Error("replace failed")),
     )
   }

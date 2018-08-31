@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Link from "../data/Link"
-import { AnyDoc, Doc } from "automerge"
+import { AnyDoc, Doc, AnyEditDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 
@@ -38,11 +38,21 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   // Opens an initialized document at the given URL
-  static open<T>(url: string): Promise<Doc<T>> {
+  static async open<T>(url: string): Promise<Doc<T>> {
     const { type, id } = Link.parse(url)
     const widget = this.find(type) as WidgetClass<T>
-    const doc = this.store.open(id)
-    return doc.then(doc => Reify.reify(doc, widget.reify))
+    const doc = await this.store.open(id)
+    return Reify.reify(doc, widget.reify)
+  }
+
+  static async change(
+    url: string,
+    msg: string,
+    cb: ChangeFn<{}>,
+  ): Promise<AnyDoc> {
+    const { type, id } = Link.parse(url)
+    const doc = await this.store.open(id)
+    return this.store.change(id, doc, msg, cb)
   }
 
   static register(type: string, component: WidgetClass<any>) {

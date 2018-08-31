@@ -47,18 +47,19 @@ export default class SidecarUploader extends Widget<Model> {
               this.addText(str)
             })
         }
+      } else {
+        const file = item.getAsFile()
+        if (file) {
+        }
       }
     }
   }
 
-  async addText(contents: string) {
+  async addText(content: string) {
     const url = await Content.create("Text")
-    const { id } = Link.parse(url)
-    const doc = await Content.store.open(id)
 
-    // HACK
-    Content.store.change(id, doc, "Init", (doc: any) => {
-      doc.contents = contents
+    Content.change(url, "Init", doc => {
+      doc.content = content.split("")
       return doc
     })
 

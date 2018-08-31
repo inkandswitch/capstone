@@ -57,6 +57,6 @@ declare module "automerge" {
   type EditDoc<T> = AnyEditDoc & T
 
   interface ChangeFn<T> {
-    (doc: Doc<T>): Doc<T>
+    (doc: EditDoc<T>): EditDoc<T>
   }
 }
