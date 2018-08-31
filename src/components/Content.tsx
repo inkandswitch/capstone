@@ -16,6 +16,7 @@ export type Mode = "fullscreen" | "embed" | "preview"
 export interface Props {
   url: string
   mode: Mode
+  type?: string
   isFocused?: boolean
   [k: string]: unknown
 }
@@ -61,7 +62,7 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   render() {
     const { mode } = this.props
-    const { url, type } = Link.parse(this.props.url)
+    const type = this.props.type || Link.parse(this.props.url).type
     const Widget = Content.find(type)
 
     if (!Widget) {
