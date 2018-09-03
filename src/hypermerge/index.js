@@ -831,7 +831,7 @@ export default class Hypermerge extends EventEmitter {
     log("_onMulticoreReady")
 
     const actorIds = Object.values(this.core.archiver.feeds).map(feed =>
-      feed.Base58.encode(key),
+      Base58.encode(feed.key),
     )
 
     this._initFeeds(actorIds).then(() => {
