@@ -9,6 +9,9 @@ export default class StoreBackend {
 
   constructor() {
     this.hypermerge = new Hypermerge({ storage: racf })
+    this.hypermerge.ready.then(() => {
+      this.hypermerge.joinSwarm()
+    })
   }
 
   create(): Promise<StoreId> {
