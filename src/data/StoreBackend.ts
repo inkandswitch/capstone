@@ -20,16 +20,12 @@ export default class StoreBackend {
   }
 
   open(id: StoreId): Promise<AnyDoc> {
-    return this.hypermerge.ready.then(() => {
-      return new Promise<AnyDoc>((resolve, reject) => {
-        setTimeout(() => {
-          let doc = this.hypermerge.find(id)
-          if (doc) {
-            resolve(doc)
-          } else {
-            reject("cant find document id " + id)
-          }
-        }, 200)
+    return new Promise<AnyDoc>((resolve, reject) => {
+      let resolved = false // HACK until we can emit changes
+      const handle = this.hypermerge.openHandle(id)
+      handle.onChange((doc: AnyDoc) => {
+        if (!resolved) resolve(doc)
+        resolved = true
       })
     })
   }
