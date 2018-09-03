@@ -4241,11 +4241,12 @@ utp-native@^1.2.2, utp-native@^1.7.2:
     node-gyp-build "^3.0.0"
     readable-stream "^2.2.2"
 
-utp@^0.0.10:
+"utp@github:pvh/utp":
   version "0.0.10"
-  resolved "https://registry.yarnpkg.com/utp/-/utp-0.0.10.tgz#0423d9a923ede05e84d0198866119ac41d159fef"
+  resolved "https://codeload.github.com/pvh/utp/tar.gz/ecd264a26366601b80e2314e5127f13e8d63094f"
   dependencies:
     buffer-alloc "^1.1.0"
+    chrome-dgram "^3.0.1"
     cyclist "~0.1.0"
 
 uuid@3.1.0:
