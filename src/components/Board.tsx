@@ -30,7 +30,6 @@ export interface Model {
 
 interface Props {
   onNavigate?: (url: string) => void
-  onMessage?: (message: { from: string; type: string; payload: any }) => void
 }
 
 export default class Board extends Widget<Model, Props> {

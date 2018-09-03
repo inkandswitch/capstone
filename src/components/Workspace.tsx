@@ -2,7 +2,6 @@ import * as Preact from "preact"
 import Widget, { AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
-import { ArchiveManager } from "./Archive"
 import { Doc } from "automerge"
 import Touch, { TouchEvent } from "./Touch"
 
@@ -46,7 +45,7 @@ export default class Workspace extends Widget<Model> {
   onMessage = (message: any) => {
     if (!this.doc) return
     if (message.from !== this.doc.archiveUrl) {
-      ArchiveManager.onMessage(this.doc.archiveUrl, message)
+      Content.sendMessage(this.doc.archiveUrl, message)
     }
   }
 

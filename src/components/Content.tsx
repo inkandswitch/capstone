@@ -26,6 +26,9 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   static registry: { [type: string]: WidgetClass<any> } = {}
+  static messageHandlers: {
+    [type: string]: (url: string, message: any) => void
+  } = {}
 
   static store: Store
 
@@ -46,6 +49,18 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static register(type: string, component: WidgetClass<any>) {
     this.registry[type] = component
+  }
+
+  static registerMessageHandler(
+    type: string,
+    handler: (url: string, message: any) => void,
+  ) {
+    this.messageHandlers[type] = handler
+  }
+
+  static sendMessage(url: string, message: any) {
+    const { type } = Link.parse(url)
+    this.messageHandlers[type] && this.messageHandlers[type](url, message)
   }
 
   static find(type: string): WidgetClass<any> {

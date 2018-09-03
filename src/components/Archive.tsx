@@ -17,7 +17,6 @@ export interface Props {
   onTap: (id: string) => void
 }
 
-// TODO: extract
 export class ArchiveManager {
   static updateCallbacks: {
     [archiveUrl: string]: (newDoc: Doc<Model>) => void
@@ -43,7 +42,7 @@ export class ArchiveManager {
         archive,
         "",
         (doc: Doc<Model>) => {
-          doc.docs.push({ url: documentUrl })
+          doc.docs.unshift({ url: documentUrl })
           return doc
         },
       )
@@ -63,7 +62,7 @@ export default class Archive extends Widget<Model, Props> {
   }
 
   componentDidMount() {
-    // TODO: extract this
+    // TODO: extract this to Content or HOC.
     ArchiveManager.register(this.props.url, doc => {
       this.setState({ doc })
     })
@@ -118,3 +117,4 @@ const style = {
 }
 
 Content.register("Archive", Archive)
+Content.registerMessageHandler("Archive", ArchiveManager.onMessage)
