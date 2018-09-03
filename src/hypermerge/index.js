@@ -351,7 +351,7 @@ export default class Hypermerge extends EventEmitter {
   delete(docId) {
     log("delete", docId)
     const doc = this.find(docId)
-    this.core.archiver.remove(docId)
+    this.core.archiver.remove(Base58.decode(docId))
     delete this.feeds[docId]
     delete this.docs[docId]
     return doc

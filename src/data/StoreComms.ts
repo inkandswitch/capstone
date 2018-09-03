@@ -17,6 +17,8 @@ export default class StoreComms {
     let { command, args = {} } = request
     let { id, doc } = args
 
+    console.log("onmessage", { request })
+
     switch (command) {
       case "Create":
         this.store.create().then(id => sendResponse(id))

@@ -18,6 +18,7 @@ export default class StoreBackend {
     return this.hypermerge.ready.then(() => {
       let doc = this.hypermerge.create()
       let docId = this.hypermerge.getId(doc)
+      console.log({ docId, doc })
       return docId
     })
   }
