@@ -858,6 +858,7 @@ export default class Hypermerge extends EventEmitter {
 
   _onPeerAdded(actorId) {
     return peer => {
+      console.log("Found peer", peer)
       peer.stream.on("extension", this._onExtension(actorId, peer))
 
       this._loadMetadata(actorId).then(() => {
