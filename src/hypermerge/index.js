@@ -4,6 +4,7 @@ const Multicore = require("./multicore")
 const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
 const Debug = require("debug")
+const Base58 = require("bs58")
 
 const log = Debug("hypermerge:index")
 
@@ -391,7 +392,7 @@ export default class Hypermerge extends EventEmitter {
 
   _create(metadata, parentMetadata = {}) {
     const feed = this._trackedFeed()
-    const actorId = feed.key.toString("hex")
+    const actorId = Base58.encode(feed.key)
     log("_create", actorId)
 
     // Merge together the various sources of metadata, from lowest-priority to
@@ -449,7 +450,7 @@ export default class Hypermerge extends EventEmitter {
   // Finds or creates, and returns, a feed that is not yet tracked. See `feed`
   // for cases for `actorId`.
   _feed(actorId = null) {
-    const key = actorId ? Buffer.from(actorId, "hex") : null
+    const key = actorId ? Base58.decode(actorId) : null
     log("_feed", actorId)
     return this.core.createFeed(key)
   }
@@ -515,7 +516,7 @@ export default class Hypermerge extends EventEmitter {
   // setting up listeners for when peers are added/removed, data is
   // downloaded, etc.
   _trackFeed(feed) {
-    const actorId = feed.key.toString("hex")
+    const actorId = Base58.encode(feed.key)
     log("_trackFeed", actorId)
 
     this.feeds[actorId] = feed
@@ -800,7 +801,7 @@ export default class Hypermerge extends EventEmitter {
        *
        * @event document:updated
        *
-       * @param {string} docId - the hex id representing this document
+       * @param {string} docId - the base58 id representing this document
        * @param {Document} doc - Automerge document
        */
       this.emit("document:updated", docId, doc)
@@ -830,7 +831,7 @@ export default class Hypermerge extends EventEmitter {
     log("_onMulticoreReady")
 
     const actorIds = Object.values(this.core.archiver.feeds).map(feed =>
-      feed.key.toString("hex"),
+      feed.Base58.encode(key),
     )
 
     this._initFeeds(actorIds).then(() => {
