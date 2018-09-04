@@ -1,7 +1,8 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import Widget, { AnyDoc, Doc } from "./Widget"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import Content, { Mode } from "./Content"
 import ArchiveItem from "./ArchiveItem"
 
@@ -21,6 +22,56 @@ export default class Archive extends Widget<Model, Props> {
     return {
       docs: Reify.array(doc.docs),
     }
+  }
+
+  // Messaging and document updates.
+  // TODO: Separate this out.
+  static updateCallbacks: {
+    [archiveUrl: string]: (newDoc: Doc<Model>) => void
+  } = {}
+  static register(archiveUrl: string, callback: (newDoc: Doc<Model>) => void) {
+    this.updateCallbacks[archiveUrl] = callback
+  }
+  static unregister(archiveUrl: string) {
+    delete this.updateCallbacks[archiveUrl]
+  }
+
+  static async onMessage(
+    message: { type: string; payload: any },
+    archiveUrl: string,
+  ) {
+    const archive = await Content.open<Model>(archiveUrl)
+    const { id } = Link.parse(archiveUrl)
+
+    if (message.type === "DocumentCreated") {
+      const documentUrl = message.payload
+      const updatedDoc = await Content.store.change(
+        id,
+        archive,
+        "",
+        (doc: Doc<Model>) => {
+          doc.docs.unshift({ url: documentUrl })
+          return doc
+        },
+      )
+
+      if (Archive.updateCallbacks[archiveUrl]) {
+        Archive.updateCallbacks[archiveUrl](updatedDoc)
+      }
+    }
+  }
+
+  // Instance methods
+
+  componentDidMount() {
+    // TODO: extract this to Content or HOC.
+    Archive.register(this.props.url, doc => {
+      this.setState({ doc })
+    })
+  }
+
+  componentWillUnmount() {
+    Archive.unregister(this.props.url)
   }
 
   show({ docs }: Model) {
@@ -57,12 +108,12 @@ const style = {
   },
 
   Items: {
-    display: "flex",
-    height: 200,
-    alignItems: "center", // TODO: "stretch" is better for vert images
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, 200px)",
+    gridAutoRows: "200px",
+    gridGap: "10px",
+    width: "100%",
     color: "#333",
-    overflow: "auto",
-    maxWidth: "100%",
     padding: 40,
   },
 }

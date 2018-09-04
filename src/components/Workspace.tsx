@@ -4,6 +4,7 @@ import * as Reify from "../data/Reify"
 import Content from "./Content"
 import { Doc } from "automerge"
 import Touch, { TouchEvent } from "./Touch"
+import * as Pubsub from "../messaging/pubsub"
 
 export interface Model {
   backUrls: string[]
@@ -18,6 +19,44 @@ export default class Workspace extends Widget<Model> {
       backUrls: Reify.array(doc.backUrls),
       archiveUrl: Reify.link(doc.archiveUrl),
     }
+  }
+
+  unsubscribeCurrentUrl: Pubsub.Unsubscribe | null = null
+  unsubscribeArchiveUrl: Pubsub.Unsubscribe | null = null
+
+  componentDidMount() {
+    if (!this.doc) return
+    this.unsubscribeCurrentUrl = this.subscribe(
+      this.doc.currentUrl,
+      this.onBroadcastMessage,
+    )
+    this.unsubscribeArchiveUrl = this.subscribe(
+      this.doc.archiveUrl,
+      this.onBroadcastMessage,
+    )
+  }
+
+  componentWillUnmount() {
+    if (!this.doc) return
+    if (this.unsubscribeArchiveUrl) {
+      this.unsubscribeArchiveUrl()
+      this.unsubscribeArchiveUrl = null
+    }
+    if (this.unsubscribeCurrentUrl) {
+      this.unsubscribeCurrentUrl()
+      this.unsubscribeCurrentUrl = null
+    }
+  }
+
+  componentDidUpdate(prevProps: {}, prevState: { doc: Doc<Model> }) {
+    if (!this.state.doc) return
+    // TODO: compare previous url with current url once we no longer mutate
+    // the doc during updates.
+    this.unsubscribeCurrentUrl && this.unsubscribeCurrentUrl()
+    this.unsubscribeCurrentUrl = this.subscribe(
+      this.state.doc.currentUrl,
+      this.onBroadcastMessage,
+    )
   }
 
   show({ currentUrl }: Doc<Model>) {
@@ -35,6 +74,13 @@ export default class Workspace extends Widget<Model> {
         </div>
       </Touch>
     )
+  }
+
+  onBroadcastMessage = (message: any, url: string) => {
+    if (!this.doc) return
+    if (message.type === "DocumentCreated" && url !== this.doc.archiveUrl) {
+      this.sendMessage(this.doc.archiveUrl, message)
+    }
   }
 
   onThreeFingerSwipeDown = (event: TouchEvent) => {

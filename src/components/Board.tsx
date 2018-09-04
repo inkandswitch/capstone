@@ -200,6 +200,9 @@ export default class Board extends Widget<Model, Props> {
       doc.cards[id] = { id, x: cardX, y: cardY, z, url }
       return this.setCardFocus(doc, id)
     })
+
+    // TODO: move this to Store or Content.
+    this.broadcast({ type: "DocumentCreated", payload: url })
   }
 }
 

@@ -3,12 +3,15 @@ import * as Link from "../data/Link"
 import { AnyDoc, Doc } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
+import * as Pubsub from "../messaging/pubsub"
+import * as DirectMessaging from "../messaging/direct"
 
 interface Widget extends Preact.Component<{ url: string; mode: Mode }, any> {}
 
 export type WidgetClass<T> = {
   new (...k: any[]): Widget
   reify(doc: AnyDoc): T
+  onMessage?: DirectMessaging.MessageHandler
 }
 
 export type Mode = "fullscreen" | "embed" | "preview"
@@ -44,8 +47,30 @@ export default class Content extends Preact.Component<Props & unknown> {
     return doc.then(doc => Reify.reify(doc, widget.reify))
   }
 
+  // Register a widget for documents of the given type.
   static register(type: string, component: WidgetClass<any>) {
     this.registry[type] = component
+    if (component.onMessage) {
+      DirectMessaging.registerRecipientType(type, component.onMessage)
+    }
+  }
+
+  // Broadcast a message to subscribers for the given document url.
+  static broadcast(topic: string, message: any): void {
+    Pubsub.publish(topic, message)
+  }
+
+  // Subscribe to broadcast messages from the given document url.
+  static subscribe(
+    topic: string,
+    messageHandler: Pubsub.MessageHandler,
+  ): Pubsub.Unsubscribe {
+    return Pubsub.subscribe(topic, messageHandler)
+  }
+
+  // Send a message directly to the message handler for the given document url.
+  static sendMessage(url: string, message: any) {
+    DirectMessaging.sendMessage(url, message)
   }
 
   static find(type: string): WidgetClass<any> {
