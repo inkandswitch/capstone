@@ -201,7 +201,8 @@ export default class Board extends Widget<Model, Props> {
       return this.setCardFocus(doc, id)
     })
 
-    this.dispatch({ type: "AddDocument", payload: url })
+    // TODO: move this to Store or Content.
+    this.broadcast({ type: "DocumentCreated", payload: url })
   }
 }
 

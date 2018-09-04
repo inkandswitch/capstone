@@ -17,25 +17,33 @@ export interface Props {
   onTap: (id: string) => void
 }
 
-export class ArchiveManager {
+export default class Archive extends Widget<Model, Props> {
+  static reify(doc: AnyDoc): Model {
+    return {
+      docs: Reify.array(doc.docs),
+    }
+  }
+
+  // Messaging and document updates.
+  // TODO: Separate this out.
   static updateCallbacks: {
     [archiveUrl: string]: (newDoc: Doc<Model>) => void
   } = {}
   static register(archiveUrl: string, callback: (newDoc: Doc<Model>) => void) {
-    ArchiveManager.updateCallbacks[archiveUrl] = callback
+    this.updateCallbacks[archiveUrl] = callback
   }
   static unregister(archiveUrl: string) {
-    delete ArchiveManager.updateCallbacks[archiveUrl]
+    delete this.updateCallbacks[archiveUrl]
   }
 
   static async onMessage(
-    archiveUrl: string,
     message: { type: string; payload: any },
+    archiveUrl: string,
   ) {
     const archive = await Content.open<Model>(archiveUrl)
     const { id } = Link.parse(archiveUrl)
 
-    if (message.type === "AddDocument") {
+    if (message.type === "DocumentCreated") {
       const documentUrl = message.payload
       const updatedDoc = await Content.store.change(
         id,
@@ -47,29 +55,23 @@ export class ArchiveManager {
         },
       )
 
-      if (ArchiveManager.updateCallbacks[archiveUrl]) {
-        ArchiveManager.updateCallbacks[archiveUrl](updatedDoc)
+      if (Archive.updateCallbacks[archiveUrl]) {
+        Archive.updateCallbacks[archiveUrl](updatedDoc)
       }
     }
   }
-}
 
-export default class Archive extends Widget<Model, Props> {
-  static reify(doc: AnyDoc): Model {
-    return {
-      docs: Reify.array(doc.docs),
-    }
-  }
+  // Instance methods
 
   componentDidMount() {
     // TODO: extract this to Content or HOC.
-    ArchiveManager.register(this.props.url, doc => {
+    Archive.register(this.props.url, doc => {
       this.setState({ doc })
     })
   }
 
   componentWillUnmount() {
-    ArchiveManager.unregister(this.props.url)
+    Archive.unregister(this.props.url)
   }
 
   show({ docs }: Model) {
@@ -117,4 +119,3 @@ const style = {
 }
 
 Content.register("Archive", Archive)
-Content.registerMessageHandler("Archive", ArchiveManager.onMessage)

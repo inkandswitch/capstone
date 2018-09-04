@@ -3,6 +3,8 @@ import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Link from "../data/Link"
 import Content, { WidgetClass, Mode } from "./Content"
+import * as Pubsub from "../messaging/pubsub"
+import * as DirectMessage from "../messaging/direct"
 
 export { Doc, AnyDoc }
 
@@ -34,6 +36,8 @@ export default abstract class Widget<T, P = {}> extends Preact.Component<
 
   abstract show(doc: Doc<T>): Preact.ComponentChild
 
+  onMessage?: DirectMessage.MessageHandler
+
   get store(): Store {
     return Content.store
   }
@@ -46,9 +50,19 @@ export default abstract class Widget<T, P = {}> extends Preact.Component<
     return this.props.mode
   }
 
-  dispatch(message: any): void {
-    if (!this.props.dispatch) return
-    this.props.dispatch({ ...message, from: this.props.url })
+  broadcast(message: any): void {
+    Content.broadcast(this.props.url, message)
+  }
+
+  subscribe(
+    url: string,
+    messageHandler: (url: string, message: any) => void,
+  ): Pubsub.Unsubscribe {
+    return Content.subscribe(url, messageHandler)
+  }
+
+  sendMessage(toUrl: string, message: any): void {
+    Content.sendMessage(toUrl, message)
   }
 
   change(callback: ChangeFn<T>): void {
