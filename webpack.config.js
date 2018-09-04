@@ -16,6 +16,7 @@ module.exports = {
   resolve: {
     alias: {
       "utp-native": "utp",
+      debug: "chrome-debug",
       dgram: "chrome-dgram",
       net: "chrome-net",
       "bittorrent-dht": path.resolve("./stubs/bittorrent-dht.js"),
