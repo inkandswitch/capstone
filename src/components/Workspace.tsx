@@ -12,10 +12,6 @@ export interface Model {
   archiveUrl: string
 }
 
-export class WorkspaceManager {
-  static onMessage(url: string, message: {}) {}
-}
-
 export default class Workspace extends Widget<Model> {
   static reify(doc: AnyDoc): Model {
     return {

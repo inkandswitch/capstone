@@ -12,7 +12,6 @@ export interface Props {
   url: string
   mode: Mode
   isFocused: boolean
-  dispatch?: (message: any) => void
 }
 
 export interface State<T> {

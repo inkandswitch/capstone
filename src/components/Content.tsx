@@ -29,9 +29,6 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   static registry: { [type: string]: WidgetClass<any> } = {}
-  static messageHandlers: {
-    [type: string]: (url: string, message: any) => void
-  } = {}
 
   static store: Store
 
