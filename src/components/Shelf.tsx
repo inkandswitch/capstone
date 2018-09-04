@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Reify from "../data/Reify"
-import Widget from "./Widget"
+import createWidget, { WidgetProps } from "./Widget"
 import { AnyDoc } from "automerge"
 import ShelfCard from "./ShelfCard"
 
@@ -8,16 +8,15 @@ interface Model {
   selectedUrls: string[]
 }
 
-interface Props {}
-
-export default class Shelf extends Widget<Model, Props> {
+class Shelf extends Preact.Component<WidgetProps<Model>> {
   static reify(doc: AnyDoc): Model {
     return {
       selectedUrls: Reify.array(doc.selectedUrls),
     }
   }
 
-  show({ selectedUrls }: Model) {
+  render() {
+    const { selectedUrls } = this.props.doc
     const count = selectedUrls.length
 
     if (count <= 0) return null
@@ -33,7 +32,7 @@ export default class Shelf extends Widget<Model, Props> {
   }
 
   toggleSelect = (url: string) => {
-    this.change(doc => {
+    this.props.change(doc => {
       const idx = doc.selectedUrls.indexOf(url)
       if (idx >= 0) {
         doc.selectedUrls.splice(idx, 1)
@@ -75,3 +74,5 @@ const style = {
     minWidth: 40,
   },
 }
+
+export default createWidget("Shelf", Shelf, Shelf.reify)

@@ -1,8 +1,7 @@
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import createWidget, { WidgetProps, AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
-import { Doc } from "automerge"
 import Touch, { TouchEvent } from "./Touch"
 
 export interface Model {
@@ -11,7 +10,7 @@ export interface Model {
   archiveUrl: string
 }
 
-export default class Workspace extends Widget<Model> {
+class Workspace extends Preact.Component<WidgetProps<Model>> {
   static reify(doc: AnyDoc): Model {
     return {
       currentUrl: Reify.link(doc.currentUrl),
@@ -20,7 +19,8 @@ export default class Workspace extends Widget<Model> {
     }
   }
 
-  show({ currentUrl }: Doc<Model>) {
+  render() {
+    const { currentUrl } = this.props.doc
     return (
       <Touch
         onThreeFingerSwipeDown={this.onThreeFingerSwipeDown}
@@ -28,7 +28,7 @@ export default class Workspace extends Widget<Model> {
         onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
           <Content
-            mode={this.mode}
+            mode={this.props.mode}
             url={currentUrl}
             onNavigate={this.navigateTo}
           />
@@ -38,15 +38,15 @@ export default class Workspace extends Widget<Model> {
   }
 
   onThreeFingerSwipeDown = (event: TouchEvent) => {
-    if (!this.doc) return
-    if (this.doc.currentUrl !== this.doc.archiveUrl) {
-      this.navigateTo(this.doc.archiveUrl)
+    if (!this.props.doc) return
+    if (this.props.doc.currentUrl !== this.props.doc.archiveUrl) {
+      this.navigateTo(this.props.doc.archiveUrl)
     }
   }
 
   onThreeFingerSwipeUp = (event: TouchEvent) => {
-    if (!this.doc) return
-    if (this.doc.currentUrl === this.doc.archiveUrl) {
+    if (!this.props.doc) return
+    if (this.props.doc.currentUrl === this.props.doc.archiveUrl) {
       this.navigateBack()
     }
   }
@@ -57,7 +57,7 @@ export default class Workspace extends Widget<Model> {
   }
 
   navigateBack = () => {
-    this.change(doc => {
+    this.props.change(doc => {
       const url = doc.backUrls.pop()
       if (url) {
         doc.currentUrl = url
@@ -67,9 +67,9 @@ export default class Workspace extends Widget<Model> {
   }
 
   navigateTo = (url: string) => {
-    if (this.doc && this.doc.currentUrl === url) return
+    if (this.props.doc && this.props.doc.currentUrl === url) return
 
-    this.change(doc => {
+    this.props.change(doc => {
       doc.backUrls.push(doc.currentUrl)
       doc.currentUrl = url
       return doc
@@ -77,7 +77,7 @@ export default class Workspace extends Widget<Model> {
   }
 }
 
-Content.register("Workspace", Workspace)
+export default createWidget<Model>("Workspace", Workspace, Workspace.reify)
 
 const style = {
   Workspace: {

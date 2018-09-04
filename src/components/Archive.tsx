@@ -1,8 +1,6 @@
-import { random } from "lodash/fp"
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import createWidget, { WidgetProps, AnyDoc } from "./Widget"
 import * as Reify from "../data/Reify"
-import Content, { Mode } from "./Content"
 import ArchiveItem from "./ArchiveItem"
 
 export interface Model {
@@ -11,25 +9,25 @@ export interface Model {
   }>
 }
 
-export interface Props {
+export interface Props extends WidgetProps<Model> {
   selected: string[]
   onTap: (id: string) => void
 }
 
-export default class Archive extends Widget<Model, Props> {
+class Archive extends Preact.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       docs: Reify.array(doc.docs),
     }
   }
 
-  show({ docs }: Model) {
-    const { selected = [], onTap = () => {} } = this.props
+  render() {
+    const { doc, selected = [], onTap = () => {} } = this.props
 
     return (
       <div style={style.Archive}>
         <div style={style.Items}>
-          {docs.map(({ url }) => (
+          {doc.docs.map(({ url }) => (
             <ArchiveItem
               url={url}
               isSelected={selected.includes(url)}
@@ -67,4 +65,4 @@ const style = {
   },
 }
 
-Content.register("Archive", Archive)
+export default createWidget("Archive", Archive, Archive.reify)

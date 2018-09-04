@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import Widget from "./Widget"
+import createWidget, { WidgetProps } from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
@@ -28,11 +28,11 @@ export interface Model {
   focusedCardId: string | null
 }
 
-interface Props {
+interface Props extends WidgetProps<Model> {
   onNavigate?: (url: string) => void
 }
 
-export default class Board extends Widget<Model, Props> {
+class Board extends Preact.Component<Props> {
   boardEl?: HTMLElement
 
   static reify(doc: AnyDoc): Model {
@@ -43,8 +43,9 @@ export default class Board extends Widget<Model, Props> {
     }
   }
 
-  show({ cards, topZ, focusedCardId }: Model) {
-    switch (this.mode) {
+  render() {
+    const { cards, topZ, focusedCardId } = this.props.doc
+    switch (this.props.mode) {
       case "fullscreen":
         return (
           <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
@@ -99,9 +100,9 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onVirtualKeyboardClose = () => {
-    if (!this.doc || this.doc.focusedCardId == null) return
+    if (!this.props.doc || this.props.doc.focusedCardId == null) return
 
-    this.change(doc => {
+    this.props.change(doc => {
       return this.clearCardFocus(doc)
     })
   }
@@ -113,7 +114,7 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onDragStart = (id: string) => {
-    this.change(doc => {
+    this.props.change(doc => {
       const card = doc.cards[id]
       if (!card) return doc
       if (card.z === doc.topZ) return doc
@@ -126,7 +127,7 @@ export default class Board extends Widget<Model, Props> {
   }
 
   onDragStop = (x: number, y: number, id: string) => {
-    this.change(doc => {
+    this.props.change(doc => {
       const card = doc.cards[id]
       if (card) {
         // XXX: Remove once backend/store handles object immutability.
@@ -139,15 +140,15 @@ export default class Board extends Widget<Model, Props> {
   onPointerDown = (e: PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    this.change(doc => {
+    this.props.change(doc => {
       if (doc.focusedCardId == null) return doc
       return this.clearCardFocus(doc)
     })
   }
 
   onTapCard = (id: string) => {
-    if (!this.state.doc || this.state.doc.focusedCardId != null) return
-    this.change(doc => {
+    if (!this.props.doc || this.props.doc.focusedCardId != null) return
+    this.props.change(doc => {
       return this.setCardFocus(doc, id)
     })
   }
@@ -170,6 +171,13 @@ export default class Board extends Widget<Model, Props> {
     return doc
   }
 
+  deleteCard = (id: string) => {
+    this.props.change(doc => {
+      delete doc.cards[id]
+      return this.clearCardFocus(doc)
+    })
+  }
+
   onStroke = (stroke: Stroke) => {
     switch (stroke.name) {
       case "box":
@@ -177,15 +185,8 @@ export default class Board extends Widget<Model, Props> {
     }
   }
 
-  deleteCard = (id: string) => {
-    this.change(doc => {
-      delete doc.cards[id]
-      return this.clearCardFocus(doc)
-    })
-  }
-
   async createCard(type: string, x: number, y: number) {
-    if (!this.doc || this.doc.focusedCardId != null) return
+    if (!this.props.doc || this.props.doc.focusedCardId != null) return
     if (!this.boardEl) return
 
     const maxX = this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING
@@ -194,7 +195,7 @@ export default class Board extends Widget<Model, Props> {
     const cardY = clamp(y, 0, maxY)
 
     const url = await Content.create(type)
-    this.change(doc => {
+    this.props.change(doc => {
       const id = UUID.create()
       const z = ++doc.topZ
       doc.cards[id] = { id, x: cardX, y: cardY, z, url }
@@ -202,8 +203,6 @@ export default class Board extends Widget<Model, Props> {
     })
   }
 }
-
-Content.register("Board", Board)
 
 const style = {
   Board: {
@@ -241,3 +240,5 @@ const style = {
     },
   },
 }
+
+export default createWidget("Board", Board, Board.reify)
