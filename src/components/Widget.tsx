@@ -2,15 +2,9 @@ import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Link from "../data/Link"
-import Content, { MessageHandler, Mode } from "./Content"
+import Content, { WidgetProps as Props, MessageHandler, Mode } from "./Content"
 
 export { Doc, AnyDoc }
-
-interface Props {
-  url: string
-  mode: Mode
-  store: Store
-}
 
 interface State<T> {
   doc?: Doc<T>
@@ -36,13 +30,23 @@ export default function createWidget<T>(
   reify: (doc: AnyDoc) => T,
   messageHandler?: MessageHandler,
 ) {
-  const WidgetClass = class extends Preact.Component<Props, State<T>> {
+  const WidgetClass = class extends Preact.Component<Props<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
 
-    constructor(props: Props, ctx: any) {
+    constructor(props: Props<T>, ctx: any) {
       super(props, ctx)
       Content.open<T>(props.url).then(doc => this.setState({ doc }))
+    }
+
+    componentDidMount() {
+      Content.addDocumentUpdateListener(this.props.url, (doc: Doc<T>) => {
+        this.setState({ doc })
+      })
+    }
+
+    componentWillUnmount() {
+      Content.removeDocumentUpdateListener(this.props.url)
     }
 
     emit = (message: any) => {
@@ -60,10 +64,7 @@ export default function createWidget<T>(
         throw new Error("Cannot call change before the document has loaded.")
       }
 
-      const { id } = Link.parse(this.props.url)
-      this.props.store
-        .change(id, this.state.doc, "", cb)
-        .then(doc => this.setState({ doc }))
+      Content.change(this.props.url, this.state.doc, "", cb)
     }
 
     render() {

@@ -4,8 +4,12 @@ import { AnyDoc, Doc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 
-interface Widget
-  extends Preact.Component<{ url: string; mode: Mode; store: Store }, any> {}
+export interface WidgetProps<T> {
+  url: string
+  mode: Mode
+  store: Store
+}
+interface Widget extends Preact.Component<WidgetProps<any>, any> {}
 
 export type WidgetClass<T> = {
   new (...k: any[]): Widget
@@ -22,6 +26,8 @@ export interface Message {
 export type MessageHandler = {
   receive(message: any): void
 }
+
+export type DocumentUpdateListener<T> = (doc: Doc<T>) => void
 
 export type Mode = "fullscreen" | "embed" | "preview"
 
@@ -50,11 +56,13 @@ export abstract class DocumentActor<T> {
   }
 
   change(cb: ChangeFn<T>) {
-    return Content.store.change(this.docId, this.doc, "", cb)
+    return Content.change<T>(this.url, this.doc, "", cb)
   }
 
   emit(message: any) {
-    return Content.send({ ...message, from: this.url })
+    setTimeout(() => {
+      Content.send({ ...message, from: this.url })
+    }, 0)
   }
 
   abstract onMessage(message: any): void
@@ -65,9 +73,12 @@ export default class Content extends Preact.Component<Props & unknown> {
     isFocused: false,
   }
 
-  static ancestorMap: { [child: string]: string } = {}
   static widgetRegistry: { [type: string]: WidgetClass<any> } = {}
   static messageHandlerRegistry: { [type: string]: MessageHandler } = {}
+  static ancestorMap: { [child: string]: string } = {}
+  static documentUpdateListeners: {
+    [url: string]: DocumentUpdateListener<any>
+  } = {}
 
   static store: Store
 
@@ -84,6 +95,31 @@ export default class Content extends Preact.Component<Props & unknown> {
     const widget = this.find(type) as WidgetClass<T>
     const doc = this.store.open(id)
     return doc.then(doc => Reify.reify(doc, widget.reify))
+  }
+
+  static change<T>(url: string, doc: Doc<T>, msg: string, cb: ChangeFn<T>) {
+    const { id } = Link.parse(url)
+    Content.store.change(id, doc, "", cb)
+    //.then(doc => {
+    //  const updateListener = Content.documentUpdateListeners[id]
+    //  updateListener && updateListener(doc)
+    //})
+    // TODO: Temporary hack for optimistic updates.
+    const updateListener = Content.documentUpdateListeners[id]
+    updateListener && updateListener(doc)
+  }
+
+  static addDocumentUpdateListener(
+    url: string,
+    cb: DocumentUpdateListener<any>,
+  ) {
+    const { id } = Link.parse(url)
+    Content.documentUpdateListeners[id] = cb
+  }
+
+  static removeDocumentUpdateListener(url: string) {
+    const { id } = Link.parse(url)
+    delete Content.documentUpdateListeners[id]
   }
 
   static registerWidget(type: string, component: WidgetClass<any>) {

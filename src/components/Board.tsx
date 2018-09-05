@@ -50,7 +50,7 @@ export class BoardActor extends DocumentActor<Model> {
         const url = await this.create(type)
         this.change((doc: Doc<Model>) => {
           const z = ++doc.topZ
-          doc.cards[card.id] = { ...card, isFocused: true, url }
+          doc.cards[card.id] = { ...card, z, isFocused: true, url }
           doc.focusedCardId = card.id
           return doc
         })
