@@ -16,9 +16,7 @@ export class ArchiveActor extends DocumentActor<Model> {
   static async receive(message: any) {
     const { id } = Link.parse(message.to)
     // TODO: yikes
-    const doc =
-      Content.readCache<Model>(message.to) ||
-      (await Content.open<Model>(message.to))
+    const doc = await Content.getDoc<Model>(message.to)
     const actor = new ArchiveActor(message.to, id, doc)
     actor.onMessage(message)
   }

@@ -37,9 +37,7 @@ export class BoardActor extends DocumentActor<Model> {
   // TODO: Find a way to make this a static method of DocumentActor
   static async receive(message: any) {
     const { id } = Link.parse(message.to)
-    const doc =
-      Content.readCache<Model>(message.to) ||
-      (await Content.open<Model>(message.to))
+    const doc = await Content.getDoc<Model>(message.to)
     const actor = new this(message.to, id, doc)
     actor.onMessage(message)
   }

@@ -37,7 +37,6 @@ export default function createWidget<T>(
     constructor(props: Props<T>, ctx: any) {
       super(props, ctx)
       Content.open<T>(props.url).then(doc => {
-        Content.setCache<T>(props.url, doc)
         this.setState({ doc })
       })
     }
@@ -50,6 +49,7 @@ export default function createWidget<T>(
 
     componentWillUnmount() {
       Content.removeDocumentUpdateListener(this.props.url)
+      // TODO: Remove this once using an LRU.
       Content.unsetCache(this.props.url)
     }
 

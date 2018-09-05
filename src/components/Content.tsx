@@ -95,7 +95,11 @@ export default class Content extends Preact.Component<Props & unknown> {
     const { type, id } = Link.parse(url)
     const widget = this.find(type) as WidgetClass<T>
     const doc = this.store.open(id)
-    return doc.then(doc => Reify.reify(doc, widget.reify))
+    return doc.then(doc => {
+      const reified = Reify.reify(doc, widget.reify)
+      Content.setCache(url, reified)
+      return reified
+    })
   }
 
   static change<T>(url: string, doc: Doc<T>, msg: string, cb: ChangeFn<T>) {
@@ -109,6 +113,15 @@ export default class Content extends Preact.Component<Props & unknown> {
     // TODO: Temporary hack for optimistic updates.
     const updateListener = Content.documentUpdateListeners[id]
     updateListener && updateListener(doc)
+  }
+
+  static getDoc<T>(url: string): Promise<Doc<T>> {
+    let doc = Content.readCache<T>(url)
+    if (doc) {
+      return Promise.resolve(doc)
+    } else {
+      return Content.open(url)
+    }
   }
 
   // Unbounded Document Caching
