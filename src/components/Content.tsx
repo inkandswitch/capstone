@@ -79,6 +79,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   static documentUpdateListeners: {
     [url: string]: DocumentUpdateListener<any>
   } = {}
+  static documentCache: { [id: string]: Doc<any> } = {}
 
   static store: Store
 
@@ -101,6 +102,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     const { id } = Link.parse(url)
     Content.store.change(id, doc, "", cb)
     //.then(doc => {
+    //  Content.setCache(url, doc)
     //  const updateListener = Content.documentUpdateListeners[id]
     //  updateListener && updateListener(doc)
     //})
@@ -109,6 +111,29 @@ export default class Content extends Preact.Component<Props & unknown> {
     updateListener && updateListener(doc)
   }
 
+  // Unbounded Document Caching
+  // ===========================
+  // XXX: Documents are currently mutated, so we don't need to
+  // think to much about stale cache entries. That will change
+  // once we have proper backend/frontend communication.
+  static readCache<T>(url: string): Doc<T> | undefined {
+    const { id } = Link.parse(url)
+    const doc = Content.documentCache[id]
+    return doc
+  }
+
+  static setCache<T>(url: string, doc: Doc<T>) {
+    const { id } = Link.parse(url)
+    Content.documentCache[id] = doc
+  }
+
+  static unsetCache(url: string) {
+    const { id } = Link.parse(url)
+    delete Content.documentCache[id]
+  }
+
+  // Document Update Listeners
+  // ===========================
   static addDocumentUpdateListener(
     url: string,
     cb: DocumentUpdateListener<any>,
@@ -153,6 +178,8 @@ export default class Content extends Preact.Component<Props & unknown> {
     recipient.receive(message)
   }
 
+  // Component-ordered Document Hierarchy
+  // ====================================
   static setParent(childUrl: string, parentUrl: string) {
     Content.ancestorMap[childUrl] = parentUrl
   }

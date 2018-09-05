@@ -14,8 +14,10 @@ export interface Model {
 class WorkspaceActor extends DocumentActor<Model> {
   static async receive(message: any) {
     const { id } = Link.parse(message.to)
-    // XXX:
-    const doc = await Content.open<Model>(message.to)
+    // TODO: yikes
+    const doc =
+      Content.readCache<Model>(message.to) ||
+      (await Content.open<Model>(message.to))
     const actor = new this(message.to, id, doc)
     actor.onMessage(message)
   }

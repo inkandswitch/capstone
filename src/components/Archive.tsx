@@ -15,7 +15,10 @@ export class ArchiveActor extends DocumentActor<Model> {
   // TODO: Find a way to make this a static method of DocumentActor
   static async receive(message: any) {
     const { id } = Link.parse(message.to)
-    const doc = await Content.open<Model>(message.to)
+    // TODO: yikes
+    const doc =
+      Content.readCache<Model>(message.to) ||
+      (await Content.open<Model>(message.to))
     const actor = new ArchiveActor(message.to, id, doc)
     actor.onMessage(message)
   }
