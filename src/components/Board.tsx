@@ -2,9 +2,10 @@ import * as Preact from "preact"
 import createWidget, { WidgetProps } from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
-import Content from "./Content"
+import Content, { DocumentActor } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
+import * as Link from "../data/Link"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_WIDTH } from "./Card"
@@ -30,6 +31,37 @@ export interface Model {
 
 interface Props extends WidgetProps<Model> {
   onNavigate?: (url: string) => void
+}
+
+export class BoardActor extends DocumentActor<Model> {
+  // TODO: Find a way to make this a static method of DocumentActor
+  static async receive(message: any) {
+    const { id } = Link.parse(message.to)
+    const doc = await Content.open<Model>(message.to)
+    const actor = new this(message.to, id, doc)
+    actor.onMessage(message)
+  }
+
+  async onMessage(message: any) {
+    switch (message.type) {
+      case "CreateCard": {
+        const { type, card } = message.body
+        // TODO: yikes
+        const url = await this.create(type)
+        this.change((doc: Doc<Model>) => {
+          const z = ++doc.topZ
+          doc.cards[card.id] = { ...card, isFocused: true, url }
+          doc.focusedCardId = card.id
+          return doc
+        })
+        this.emit({ type: "DocumentCreated", body: url })
+        break
+      }
+      default: {
+        console.log(`Unknown message type: ${message.type}`)
+      }
+    }
+  }
 }
 
 class Board extends Preact.Component<Props> {
@@ -194,12 +226,12 @@ class Board extends Preact.Component<Props> {
     const cardX = clamp(x - CARD_WIDTH / 2, 0, maxX)
     const cardY = clamp(y, 0, maxY)
 
-    const url = await Content.create(type)
-    this.props.change(doc => {
-      const id = UUID.create()
-      const z = ++doc.topZ
-      doc.cards[id] = { id, x: cardX, y: cardY, z, url }
-      return this.setCardFocus(doc, id)
+    this.props.emit({
+      type: "CreateCard",
+      body: {
+        type: type,
+        card: { id: UUID.create(), x: cardX, y: cardY },
+      },
     })
   }
 }
@@ -241,4 +273,4 @@ const style = {
   },
 }
 
-export default createWidget("Board", Board, Board.reify)
+export default createWidget("Board", Board, Board.reify, BoardActor)

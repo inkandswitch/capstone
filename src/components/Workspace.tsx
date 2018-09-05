@@ -1,13 +1,35 @@
 import * as Preact from "preact"
 import createWidget, { WidgetProps, AnyDoc } from "./Widget"
+import * as Link from "../data/Link"
 import * as Reify from "../data/Reify"
-import Content from "./Content"
+import Content, { DocumentActor } from "./Content"
 import Touch, { TouchEvent } from "./Touch"
 
 export interface Model {
   backUrls: string[]
   currentUrl: string
   archiveUrl: string
+}
+
+class WorkspaceActor extends DocumentActor<Model> {
+  static async receive(message: any) {
+    const { id } = Link.parse(message.to)
+    // XXX:
+    const doc = await Content.open<Model>(message.to)
+    const actor = new this(message.to, id, doc)
+    actor.onMessage(message)
+  }
+
+  onMessage(message: any) {
+    switch (message.type) {
+      case "DocumentCreated": {
+        if (message.from !== this.doc.archiveUrl) {
+          this.emit({ ...message, to: this.doc.archiveUrl })
+        }
+        break
+      }
+    }
+  }
 }
 
 class Workspace extends Preact.Component<WidgetProps<Model>> {
@@ -77,8 +99,6 @@ class Workspace extends Preact.Component<WidgetProps<Model>> {
   }
 }
 
-export default createWidget<Model>("Workspace", Workspace, Workspace.reify)
-
 const style = {
   Workspace: {
     position: "absolute",
@@ -88,3 +108,10 @@ const style = {
     right: 0,
   },
 }
+
+export default createWidget<Model>(
+  "Workspace",
+  Workspace,
+  Workspace.reify,
+  WorkspaceActor,
+)

@@ -1,12 +1,39 @@
 import * as Preact from "preact"
-import createWidget, { WidgetProps, AnyDoc } from "./Widget"
+import createWidget, { WidgetProps, AnyDoc, Doc } from "./Widget"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
+import Content, { DocumentActor } from "./Content"
 
 export interface Model {
   docs: Array<{
     url: string
   }>
+}
+
+export class ArchiveActor extends DocumentActor<Model> {
+  // TODO: Find a way to make this a static method of DocumentActor
+  static async receive(message: any) {
+    const { id } = Link.parse(message.to)
+    const doc = await Content.open<Model>(message.to)
+    const actor = new ArchiveActor(message.to, id, doc)
+    actor.onMessage(message)
+  }
+
+  onMessage(message: any) {
+    switch (message.type) {
+      case "DocumentCreated": {
+        this.change((doc: Doc<Model>) => {
+          doc.docs.unshift({ url: message.body })
+          return doc
+        })
+        break
+      }
+      default: {
+        console.log("Unknown message type")
+      }
+    }
+  }
 }
 
 export interface Props extends WidgetProps<Model> {
@@ -65,4 +92,4 @@ const style = {
   },
 }
 
-export default createWidget("Archive", Archive, Archive.reify)
+export default createWidget("Archive", Archive, Archive.reify, ArchiveActor)

@@ -2,7 +2,7 @@ import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Link from "../data/Link"
-import Content, { WidgetClass, Mode } from "./Content"
+import Content, { MessageHandler, Mode } from "./Content"
 
 export { Doc, AnyDoc }
 
@@ -20,6 +20,7 @@ export interface WidgetProps<T> {
   doc: Doc<T>
   url: string
   mode: Mode
+  emit: (message: any) => void
   change: (cb: ChangeFn<T>) => Doc<T>
 }
 
@@ -29,15 +30,11 @@ type WrappedComponentClass = {
   new (...k: any[]): WrappedComponent
 }
 
-function register(type: string, Component: WidgetClass<any>) {
-  Content.register(type, Component)
-  return Component
-}
-
 export default function createWidget<T>(
   type: string,
   WrappedComponent: WrappedComponentClass,
   reify: (doc: AnyDoc) => T,
+  messageHandler?: MessageHandler,
 ) {
   const WidgetClass = class extends Preact.Component<Props, State<T>> {
     // TODO: update register fn to not need static reify.
@@ -46,6 +43,14 @@ export default function createWidget<T>(
     constructor(props: Props, ctx: any) {
       super(props, ctx)
       Content.open<T>(props.url).then(doc => this.setState({ doc }))
+    }
+
+    emit = (message: any) => {
+      Content.send({
+        to: this.props.url,
+        ...message,
+        from: this.props.url,
+      })
     }
 
     change = (cb: ChangeFn<T>) => {
@@ -67,6 +72,7 @@ export default function createWidget<T>(
           <WrappedComponent
             {...this.props}
             {...this.state}
+            emit={this.emit}
             change={this.change}
           />
         )
@@ -82,7 +88,10 @@ export default function createWidget<T>(
 
   // Register the widget with the Content registry.
   // XXX: Should we do this here?
-  register(type, WidgetClass)
+  Content.registerWidget(type, WidgetClass)
+  if (messageHandler) {
+    Content.registerMessageHandler(type, messageHandler)
+  }
 
   return WidgetClass
 }
