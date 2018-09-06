@@ -26,9 +26,13 @@ export default abstract class Widget<T, P = {}> extends Preact.Component<
   Partial<P> & Props,
   State<T>
 > {
+  replaceDoc: (newDoc: any) => void
+
   constructor(props: Partial<P> & Props, ctx: any) {
     super(props, ctx)
-    Content.open<T>(props.url, (doc: any) => this.setState({ doc }))
+    this.replaceDoc = Content.open<T>(props.url, (doc: any) => {
+      this.setState({ doc })
+    })
   }
 
   abstract show(doc: Doc<T>): Preact.ComponentChild
@@ -52,9 +56,8 @@ export default abstract class Widget<T, P = {}> extends Preact.Component<
     }
 
     const { id } = Link.parse(this.props.url)
-    this.store
-      .change(id, this.doc, "", callback)
-      .then(doc => this.setState({ doc }))
+
+    this.replaceDoc(callback(this.doc))
   }
 
   render() {

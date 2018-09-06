@@ -1,21 +1,27 @@
-import StoreBackend from "./StoreBackend"
+import Hypermerge from "../hypermerge"
+let racf = require("random-access-chrome-file")
 
 export default class StoreComms {
-  store: StoreBackend
+  hypermerge: Hypermerge
   docHandles: { [docId: string]: any }
 
-  constructor(store: StoreBackend) {
-    this.store = store
+  constructor() {
+    this.hypermerge = new Hypermerge({ storage: racf })
+    ;(window as any).hm = this.hypermerge
+    this.hypermerge.ready.then(() => {
+      this.hypermerge.joinSwarm({ chrome: true })
+    })
   }
 
   onConnect = (port: chrome.runtime.Port) => {
     const docId = port.name
     console.log(docId)
-    let handle = this.store.open(docId)
+    let handle = this.hypermerge.openHandle(docId)
 
     port.onMessage.addListener((
       newDoc: any /* chrome.runtime.PortMessageEvent */,
     ) => {
+      console.log("replace", docId, newDoc)
       handle.change((oldDoc: any) => {
         for (let key in newDoc) {
           oldDoc[key] = newDoc[key] as any
@@ -23,7 +29,10 @@ export default class StoreComms {
       })
     })
 
-    handle.onChange((doc: any) => port.postMessage(doc))
+    handle.onChange((doc: any) => {
+      console.log("onChange", docId, doc)
+      port.postMessage(doc)
+    })
   }
 
   onMessage = (
@@ -40,10 +49,9 @@ export default class StoreComms {
 
     switch (command) {
       case "Create":
-        this.store.create().then(id => sendResponse(id))
-        break
-      case "Replace":
-        this.store.replace(id, doc)
+        let doc = this.hypermerge.create()
+        let docId = this.hypermerge.getId(doc)
+        sendResponse(docId)
         break
       default:
         console.warn("Received an unusual message: ", request)
