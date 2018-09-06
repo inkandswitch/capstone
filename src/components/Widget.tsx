@@ -2,39 +2,37 @@ import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Link from "../data/Link"
-import Content, { WidgetProps as Props, MessageHandler, Mode } from "./Content"
+import Content, { WidgetProps, MessageHandler, Mode } from "./Content"
 
-export { Doc, AnyDoc }
+export interface Props<T> {
+  doc: Doc<T>
+  url: string
+  mode: Mode
+  emit: (message: any) => void
+  change: (cb: ChangeFn<T>) => void
+}
 
 interface State<T> {
   doc?: Doc<T>
 }
 
-export interface WidgetProps<T> {
-  doc: Doc<T>
-  url: string
-  mode: Mode
-  emit: (message: any) => void
-  change: (cb: ChangeFn<T>) => Doc<T>
-}
-
 // TODO: This is necessary to avoid Typescript warning, must be a better way.
-interface WrappedComponent extends Preact.Component<any, any> {}
-type WrappedComponentClass = {
-  new (...k: any[]): WrappedComponent
+interface WrappedComponent<T> extends Preact.Component<Props<T>, any> {}
+type WrappedComponentClass<T> = {
+  new (...k: any[]): WrappedComponent<T>
 }
 
-export default function createWidget<T>(
+export function create<T>(
   type: string,
-  WrappedComponent: WrappedComponentClass,
+  WrappedComponent: WrappedComponentClass<T>,
   reify: (doc: AnyDoc) => T,
   messageHandler?: MessageHandler,
 ) {
-  const WidgetClass = class extends Preact.Component<Props<T>, State<T>> {
+  const WidgetClass = class extends Preact.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
 
-    constructor(props: Props<T>, ctx: any) {
+    constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
       Content.open<T>(props.url).then(doc => {
         this.setState({ doc })
@@ -76,7 +74,7 @@ export default function createWidget<T>(
         return (
           <WrappedComponent
             {...this.props}
-            {...this.state}
+            doc={this.state.doc}
             emit={this.emit}
             change={this.change}
           />

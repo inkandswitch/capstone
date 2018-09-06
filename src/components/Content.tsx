@@ -9,10 +9,10 @@ export interface WidgetProps<T> {
   mode: Mode
   store: Store
 }
-interface Widget extends Preact.Component<WidgetProps<any>, any> {}
+interface Widget<T> extends Preact.Component<WidgetProps<T>, any> {}
 
 export type WidgetClass<T> = {
-  new (...k: any[]): Widget
+  new (...k: any[]): Widget<T>
   reify(doc: AnyDoc): T
 }
 

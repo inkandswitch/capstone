@@ -1,13 +1,14 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import createWidget, { WidgetProps, AnyDoc } from "./Widget"
+import { AnyDoc } from "automerge"
+import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 
 export interface Model {
   src: string
 }
 
-export interface Props extends WidgetProps<Model> {
+export interface Props extends Widget.Props<Model> {
   src: string
 }
 
@@ -44,4 +45,4 @@ const samples = [
   require("../assets/leonardo_hoist.jpg"),
 ]
 
-export default createWidget("Image", Image, Image.reify)
+export default Widget.create("Image", Image, Image.reify)

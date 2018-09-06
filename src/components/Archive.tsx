@@ -1,5 +1,6 @@
 import * as Preact from "preact"
-import createWidget, { WidgetProps, AnyDoc, Doc } from "./Widget"
+import * as Widget from "./Widget"
+import { AnyDoc, Doc } from "automerge"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
@@ -37,7 +38,7 @@ export class ArchiveActor extends DocumentActor<Model> {
   }
 }
 
-export interface Props extends WidgetProps<Model> {
+export interface Props extends Widget.Props<Model> {
   selected: string[]
   onTap: (id: string) => void
 }
@@ -93,4 +94,4 @@ const style = {
   },
 }
 
-export default createWidget("Archive", Archive, Archive.reify, ArchiveActor)
+export default Widget.create("Archive", Archive, Archive.reify, ArchiveActor)

@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Reify from "../data/Reify"
-import createWidget, { WidgetProps } from "./Widget"
+import * as Widget from "./Widget"
 import { AnyDoc } from "automerge"
 import ShelfCard from "./ShelfCard"
 
@@ -8,7 +8,7 @@ interface Model {
   selectedUrls: string[]
 }
 
-class Shelf extends Preact.Component<WidgetProps<Model>> {
+class Shelf extends Preact.Component<Widget.Props<Model>> {
   static reify(doc: AnyDoc): Model {
     return {
       selectedUrls: Reify.array(doc.selectedUrls),
@@ -75,4 +75,4 @@ const style = {
   },
 }
 
-export default createWidget("Shelf", Shelf, Shelf.reify)
+export default Widget.create("Shelf", Shelf, Shelf.reify)

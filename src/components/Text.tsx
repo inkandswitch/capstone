@@ -1,6 +1,7 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import createWidget, { WidgetProps, AnyDoc } from "./Widget"
+import * as Widget from "./Widget"
+import { AnyDoc } from "automerge"
 import * as Reify from "../data/Reify"
 import TextEditor, { Change } from "./TextEditor"
 
@@ -8,7 +9,7 @@ export interface Model {
   content: string[]
 }
 
-interface Props extends WidgetProps<Model> {
+interface Props extends Widget.Props<Model> {
   isFocused: boolean
 }
 
@@ -61,4 +62,4 @@ const samples = [
   "Misconception around his flying machines and other fantastical devices most likely designed for theather performances, not the real world",
 ]
 
-export default createWidget("Text", Text, Text.reify)
+export default Widget.create("Text", Text, Text.reify)
