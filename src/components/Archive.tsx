@@ -16,18 +16,18 @@ export interface Model {
   }>
 }
 
-type InputMessage = FullyFormedMessage & (DocumentCreated)
+type InMessage = FullyFormedMessage & (DocumentCreated)
 
-export class ArchiveActor extends DocumentActor<Model, InputMessage> {
+export class ArchiveActor extends DocumentActor<Model, InMessage> {
   // TODO: Find a way to make this a static method of DocumentActor
-  static async receive(message: InputMessage) {
+  static async receive(message: InMessage) {
     const { id } = Link.parse(message.to)
     const doc = await Content.getDoc<Model>(message.to)
     const actor = new ArchiveActor(message.to, id, doc)
     actor.onMessage(message)
   }
 
-  async onMessage(message: InputMessage) {
+  async onMessage(message: InMessage) {
     switch (message.type) {
       case "DocumentCreated": {
         this.change((doc: Doc<Model>) => {

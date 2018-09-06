@@ -81,10 +81,10 @@ export abstract class DocumentActor<
     return Content.change<T>(this.url, this.doc, "", cb)
   }
 
-  emit<N extends O>(message: N) {
+  emit(message: O) {
     setTimeout(() => {
       message.from = this.url
-      Content.send(message as N & WithSender)
+      Content.send(message as O & WithSender)
     }, 0)
   }
 

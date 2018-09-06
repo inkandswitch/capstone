@@ -16,18 +16,18 @@ export interface Model {
   archiveUrl: string
 }
 
-type InputMessage = FullyFormedMessage & (DocumentCreated)
-type OutputMessage = DocumentCreated
+type InMessage = FullyFormedMessage & (DocumentCreated)
+type OutMessage = DocumentCreated
 
-class WorkspaceActor extends DocumentActor<Model, InputMessage, OutputMessage> {
-  static async receive(message: InputMessage) {
+class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
+  static async receive(message: InMessage) {
     const { id } = Link.parse(message.to)
     const doc = await Content.getDoc<Model>(message.to)
     const actor = new this(message.to, id, doc)
     actor.onMessage(message)
   }
 
-  async onMessage(message: InputMessage) {
+  async onMessage(message: InMessage) {
     switch (message.type) {
       case "DocumentCreated": {
         if (message.from !== this.doc.archiveUrl) {

@@ -50,23 +50,19 @@ interface CreateCard extends Message {
   }
 }
 type WidgetMessage = CreateCard
-type InputMessage = FullyFormedMessage & (CreateCard)
-type OutputMessage = DocumentCreated
+type InMessage = FullyFormedMessage & (CreateCard)
+type OutMessage = DocumentCreated
 
-export class BoardActor extends DocumentActor<
-  Model,
-  InputMessage,
-  OutputMessage
-> {
+export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   // TODO: Find a way to make this a static method of DocumentActor
-  static async receive(message: InputMessage) {
+  static async receive(message: InMessage) {
     const { id } = Link.parse(message.to)
     const doc = await Content.getDoc<Model>(message.to)
     const actor = new this(message.to, id, doc)
     actor.onMessage(message)
   }
 
-  async onMessage(message: InputMessage) {
+  async onMessage(message: InMessage) {
     switch (message.type) {
       case "CreateCard": {
         const { type, card } = message.body
@@ -78,7 +74,7 @@ export class BoardActor extends DocumentActor<
           doc.focusedCardId = card.id
           return doc
         })
-        this.emit<DocumentCreated>({ type: "DocumentCreated", body: url })
+        this.emit({ type: "DocumentCreated", body: url })
         break
       }
       default: {
