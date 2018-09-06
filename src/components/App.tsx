@@ -10,6 +10,7 @@ import "./Board"
 import "./Image"
 import "./Text"
 import "./Workspace"
+import "./Shelf"
 import * as Workspace from "./Workspace"
 
 // Used for debugging from the console:
@@ -26,17 +27,19 @@ export default class App extends Preact.Component<{}, State> {
     let workspaceUrl = Content.create("Workspace")
     let archiveUrl = Content.create("Archive")
     let boardUrl = Content.create("Board")
+    let shelfUrl = Content.create("Shelf")
     workspaceUrl
       .then(workspaceUrl => {
         return Content.open<Workspace.Model>(workspaceUrl)
       })
       .then(workspace => {
-        Promise.all([workspaceUrl, archiveUrl,boardUrl]).then(
-          ([workspaceUrl, archiveUrl, boardUrl]) => {
+        Promise.all([workspaceUrl, archiveUrl, boardUrl, shelfUrl]).then(
+          ([workspaceUrl, archiveUrl, boardUrl, shelfUrl]) => {
             const { type, id } = Link.parse(workspaceUrl)
             Content.store.change(id, workspace, "adding initial urls", doc => {
               doc.currentUrl = boardUrl
               doc.archiveUrl = archiveUrl
+              doc.shelfUrl = shelfUrl
               return doc
             })
           },
@@ -51,7 +54,7 @@ export default class App extends Preact.Component<{}, State> {
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl"],(val) => {
+    chrome.storage.local.get(["workspaceUrl"], val => {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {

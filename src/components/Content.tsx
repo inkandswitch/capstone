@@ -20,7 +20,7 @@ export interface Message {
   from?: string
   to?: string
   type: string
-  body: any
+  body?: any
 }
 
 export interface WithSender {
@@ -31,8 +31,12 @@ export interface WithRecipient {
   to: string
 }
 
-export type FullyFormedMessage = Message & WithSender & WithRecipient
-export function isFullyFormed(message: Message): message is FullyFormedMessage {
+export type FullyFormedMessage<T extends Message> = Readonly<
+  T & WithSender & WithRecipient
+>
+export function isFullyFormed(
+  message: Message,
+): message is FullyFormedMessage<Message> {
   return message.to !== undefined && message.from !== undefined
 }
 
@@ -42,7 +46,7 @@ export interface DocumentCreated extends Message {
 }
 
 export type MessageHandler = {
-  receive(message: FullyFormedMessage): void
+  receive(message: FullyFormedMessage<any>): void
 }
 
 export type DocumentUpdateListener<T> = (doc: Doc<T>) => void
@@ -60,14 +64,14 @@ export interface Props {
 // TODO: would be better to have change, emit, etc. passed in via constructor.
 export class DocumentActor<
   T,
-  I extends FullyFormedMessage,
+  I extends FullyFormedMessage<any>,
   O extends Message = never
 > {
   url: string
   docId: string
   doc: Doc<T>
 
-  static receive(message: FullyFormedMessage) {
+  static receive(message: FullyFormedMessage<any>) {
     const { id } = Link.parse(message.to)
     Content.getDoc(message.to).then(doc => {
       const actor = new this(message.to, id, doc)
@@ -90,9 +94,14 @@ export class DocumentActor<
   }
 
   emit(message: O) {
+    // Conveniance for re-emitting events
+    if (message.to === this.url) {
+      delete message.to
+    }
+    message.from = this.url
+
     // XXX: Is using rIC always desired behavior?
     window.requestIdleCallback(() => {
-      message.from = this.url
       Content.send(message as O & WithSender)
     })
   }
@@ -143,10 +152,6 @@ export default class Content extends Preact.Component<Props & unknown> {
       const updateListener = Content.documentUpdateListeners[id]
       updateListener && updateListener(doc)
     })
-    // TODO: Temporary hack for "optimistic updates"
-    Content.setCache(url, doc)
-    const updateListener = Content.documentUpdateListeners[id]
-    updateListener && updateListener(doc)
   }
 
   static getDoc<T>(url: string): Promise<Doc<T>> {
@@ -239,6 +244,9 @@ export default class Content extends Preact.Component<Props & unknown> {
     delete this.ancestorMap[childUrl]
   }
 
+  // Component
+  // =========
+
   get registry() {
     return Content.widgetRegistry
   }
@@ -250,6 +258,16 @@ export default class Content extends Preact.Component<Props & unknown> {
   componentDidMount() {
     if (this.context.parentUrl) {
       Content.setParent(this.props.url, this.context.parentUrl)
+    }
+  }
+
+  // XXX: Potentially handle in componentDidUpdate instead
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.url !== this.props.url) {
+      Content.clearParent(this.props.url)
+      if (this.context.parentUrl) {
+        Content.setParent(nextProps.url, this.context.parentUrl)
+      }
     }
   }
 

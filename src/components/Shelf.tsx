@@ -3,9 +3,61 @@ import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge"
 import ShelfCard from "./ShelfCard"
+import { DocumentActor, Message, FullyFormedMessage } from "./Content"
 
 interface Model {
   selectedUrls: string[]
+}
+
+export interface AddToShelf extends Message {
+  type: "AddToShelf"
+  body: { url: string }
+}
+
+export interface ShelfContentsRequested extends Message {
+  type: "ShelfContentsRequested"
+}
+
+export interface SendShelfContents extends Message {
+  type: "SendShelfContents"
+  body: { recipientUrl: string }
+}
+
+export interface ShelfContents extends Message {
+  type: "ShelfContents"
+  body: { urls: string[] }
+}
+
+type InboundMessage = FullyFormedMessage<AddToShelf | SendShelfContents>
+type OutboundMessage = ShelfContents
+
+class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
+  async onMessage(message: InboundMessage) {
+    switch (message.type) {
+      case "AddToShelf": {
+        this.change(doc => {
+          doc.selectedUrls.unshift(message.body.url)
+          return doc
+        })
+        break
+      }
+      case "SendShelfContents": {
+        const selectedUrls = this.doc.selectedUrls
+        this.emit({
+          to: message.body.recipientUrl,
+          type: "ShelfContents",
+          body: { urls: selectedUrls },
+        })
+        this.change(doc => {
+          doc.selectedUrls = []
+          return doc
+        })
+        break
+      }
+      default: {
+      }
+    }
+  }
 }
 
 class Shelf extends Preact.Component<Widget.Props<Model>> {
@@ -75,4 +127,4 @@ const style = {
   },
 }
 
-export default Widget.create("Shelf", Shelf, Shelf.reify)
+export default Widget.create("Shelf", Shelf, Shelf.reify, ShelfActor)

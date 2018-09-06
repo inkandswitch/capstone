@@ -40,6 +40,11 @@ export default class Pen extends Handler<Props> {
     this.hammer.on("panend", this.handle("onPanEnd"))
   }
 
+  componentWillUnmount() {
+    this.hammer.off("doubletap panmove panend")
+    this.hammer.destroy()
+  }
+
   filter(event: PenEvent) {
     return event.pointerType === "pen"
   }

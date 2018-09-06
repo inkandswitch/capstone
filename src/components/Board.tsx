@@ -16,6 +16,7 @@ import { AnyDoc, Doc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import { ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const BOARD_PADDING = 15
 
@@ -49,18 +50,19 @@ interface CreateCard extends Message {
     }
   }
 }
-type WidgetMessage = CreateCard
-type InMessage = FullyFormedMessage & (CreateCard)
-type OutMessage = DocumentCreated
+
+type WidgetMessage = CreateCard | ShelfContentsRequested
+type InMessage = FullyFormedMessage<WidgetMessage | ShelfContents>
+type OutMessage = DocumentCreated | ShelfContentsRequested
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
       case "CreateCard": {
         const { type, card } = message.body
-        // TODO: yikes
+        // TODO: async creation - should we split this across multiple messages?
         const url = await this.create(type)
-        this.change((doc: Doc<Model>) => {
+        this.change(doc => {
           const z = ++doc.topZ
           doc.cards[card.id] = { ...card, z, isFocused: true, url }
           doc.focusedCardId = card.id
@@ -69,8 +71,30 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         this.emit({ type: "DocumentCreated", body: url })
         break
       }
-      default: {
-        console.log(`Unknown message type: ${message.type}`)
+      case "ShelfContentsRequested": {
+        this.emit({ type: "ShelfContentsRequested" })
+        break
+      }
+      case "ShelfContents": {
+        // TODO: x,y coordinates. Can't measure the board from here - leave empty and have the widget
+        // handle missing x, y coordinates. If using `emit` to set x,y coordinates, this will mean
+        // multiple round trips to set initial coordinates.
+        const { urls } = message.body
+        this.change(doc => {
+          for (let url of urls) {
+            const card = {
+              id: UUID.create(),
+              x: 50,
+              y: 50,
+              z: ++doc.topZ,
+              isFocused: false,
+              url,
+            }
+            doc.cards[card.id] = card
+          }
+          return doc
+        })
+        break
       }
     }
   }
@@ -152,9 +176,7 @@ class Board extends Preact.Component<Props> {
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
-    const { x, y } = e.center
-
-    this.createCard("Text", x, y)
+    this.props.emit({ type: "ShelfContentsRequested" })
   }
 
   onDragStart = (id: string) => {
