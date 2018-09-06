@@ -1,26 +1,29 @@
 import { random } from "lodash/fp"
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import { AnyDoc } from "automerge"
+import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
-import Content from "./Content"
 
 export interface Model {
   src: string
 }
 
-export default class Image extends Widget<Model> {
+export interface Props extends Widget.Props<Model> {
+  src: string
+}
+
+class Image extends Preact.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       src: Reify.string(doc.src, sample),
     }
   }
 
-  show({ src }: Model) {
+  render() {
+    const { src } = this.props.doc
     return <img style={style.Image} src={src} />
   }
 }
-
-Content.register("Image", Image)
 
 const style = {
   Image: {
@@ -41,3 +44,5 @@ const samples = [
   require("../assets/leonardo_anatomy.jpg"),
   require("../assets/leonardo_hoist.jpg"),
 ]
+
+export default Widget.create("Image", Image, Image.reify)
