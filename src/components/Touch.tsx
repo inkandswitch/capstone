@@ -65,7 +65,6 @@ export default class Touch extends Handler<Props> {
   }
 
   componentWillUnmount() {
-    this.hammer.off("pinchend tap threeFingerSwipeDown threeFingerSwipeUp")
     this.hammer.destroy()
   }
 

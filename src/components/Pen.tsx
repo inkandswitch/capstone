@@ -41,7 +41,6 @@ export default class Pen extends Handler<Props> {
   }
 
   componentWillUnmount() {
-    this.hammer.off("doubletap panmove panend")
     this.hammer.destroy()
   }
 
