@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import Content, { Mode } from "./Content"
+import Content from "./Content"
 import Touch from "./Touch"
 
 interface ArchiveItemProps {
@@ -14,9 +14,7 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
     return (
       <Touch onTap={this.onTap}>
         <div
-          style={{ ...style.Item, ...(isSelected ? style.Item_selected : {}) }}
-          draggable
-          onDragStart={this.dragStart}>
+          style={{ ...style.Item, ...(isSelected ? style.Item_selected : {}) }}>
           <Content mode="preview" url={url} />
         </div>
       </Touch>
@@ -26,22 +24,11 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
   onTap = () => {
     this.props.onTap(this.props.url)
   }
-
-  dragStart = (event: DragEvent) => {
-    const { url } = this.props
-    event.dataTransfer.effectAllowed = "link"
-    event.dataTransfer.setData("application/capstone-url", url)
-  }
 }
 
 const style = {
   Item: {
-    marginRight: 10,
-    maxHeight: "100%",
-    maxWidth: 200,
-    minWidth: 150,
     position: "relative",
-    backgroundColor: "#fff",
     overflow: "hidden",
   },
 
