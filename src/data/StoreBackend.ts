@@ -11,15 +11,9 @@ export default class StoreBackend {
 
   constructor() {
     this.hypermerge = new Hypermerge({ storage: racf })
+    ;(window as any).hm = this.hypermerge
     this.hypermerge.ready.then(() => {
       this.hypermerge.joinSwarm({ chrome: true })
-
-      let id = "7924cc8cd14a643a3fc07e1b1e973032313a455871433268264de0672ee57213";
-      console.log("test-opening",id)
-      let handle = this.hypermerge.openHandle(id);
-      handle.onChange((doc: AnyDoc) => {
-        console.log("handle.onChange()",doc);
-      })
     })
   }
 
