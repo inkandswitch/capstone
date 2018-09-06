@@ -261,7 +261,6 @@ export default class Content extends Preact.Component<Props & unknown> {
     }
   }
 
-  // XXX: Potentially handle in componentDidUpdate instead
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.url !== this.props.url) {
       Content.clearParent(this.props.url)
