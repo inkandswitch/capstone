@@ -4,16 +4,6 @@ let racf = require("random-access-chrome-file")
 
 const Base58 = require("bs58")
 
-function cleanid(id : StoreId) {
-  if (id.length == 64) {
-    return Base58.encode(Buffer.from(id,"hex"));
-  }
-  if (id.length == 44) {
-    return id;
-  }
-  throw new Error("Invalid StoreId: "+id)
-}
-
 type StoreId = string
 
 export default class StoreBackend {
@@ -22,11 +12,11 @@ export default class StoreBackend {
   constructor() {
     this.hypermerge = new Hypermerge({ storage: racf })
     this.hypermerge.ready.then(() => {
-      this.hypermerge.joinSwarm()
+      this.hypermerge.joinSwarm({ chrome: true })
 
-      let id = "1b51aea6bd8ff16a97de23af2c1b166172fba4a0f35321fc330533780120fda5";
+      let id = "7924cc8cd14a643a3fc07e1b1e973032313a455871433268264de0672ee57213";
       console.log("test-opening",id)
-      let handle = this.hypermerge.openHandle(cleanid(id));
+      let handle = this.hypermerge.openHandle(id);
       handle.onChange((doc: AnyDoc) => {
         console.log("handle.onChange()",doc);
       })
@@ -47,7 +37,7 @@ export default class StoreBackend {
       this.hypermerge.ready.then(() => {
         let resolved = false // HACK until we can emit changes
         console.log("opening",id)
-        const handle = this.hypermerge.openHandle(cleanid(id))
+        const handle = this.hypermerge.openHandle(id)
         handle.onChange((doc: AnyDoc) => {
           if (!resolved) resolve(doc)
           resolved = true

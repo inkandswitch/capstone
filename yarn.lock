@@ -753,12 +753,25 @@ chownr@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-1.0.1.tgz#e2a75042a9551908bebd25b8523d5f9769d79181"
 
+chrome-debug@orionz/debug:
+  version "3.1.0"
+  resolved "https://codeload.github.com/orionz/debug/tar.gz/04be92b72ca3a3d9b7e0b5c9c278aec07e395669"
+  dependencies:
+    ms "^2.1.1"
+
 chrome-dgram@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/chrome-dgram/-/chrome-dgram-3.0.1.tgz#42a388d04da063865a79e3ba2ae5fbf8ab0f1dba"
   dependencies:
     inherits "^2.0.1"
     run-series "^1.1.2"
+
+chrome-multicast-dns@orionz/multicast-dns#de173bd246:
+  version "7.0.2"
+  resolved "https://codeload.github.com/orionz/multicast-dns/tar.gz/de173bd24678b9eb71a065935628bb7c2761c2c9"
+  dependencies:
+    dns-packet "^4.0.0"
+    thunky "^1.0.2"
 
 chrome-net@^3.3.1:
   version "3.3.1"
@@ -2652,6 +2665,10 @@ ms@0.7.2:
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
+
+ms@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
 
 multicast-dns@^7.0.0:
   version "7.0.1"
