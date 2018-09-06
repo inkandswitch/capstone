@@ -2,7 +2,12 @@ import * as Preact from "preact"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
-import Content, { DocumentActor } from "./Content"
+import Content, {
+  DocumentActor,
+  Message,
+  FullyFormedMessage,
+  DocumentCreated,
+} from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import * as Link from "../data/Link"
@@ -29,20 +34,39 @@ export interface Model {
   focusedCardId: string | null
 }
 
-interface Props extends Widget.Props<Model> {
+interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string) => void
 }
 
-export class BoardActor extends DocumentActor<Model> {
+interface CreateCard extends Message {
+  type: "CreateCard"
+  body: {
+    type: string
+    card: {
+      id: string
+      x: number
+      y: number
+    }
+  }
+}
+type WidgetMessage = CreateCard
+type InputMessage = FullyFormedMessage & (CreateCard)
+type OutputMessage = DocumentCreated
+
+export class BoardActor extends DocumentActor<
+  Model,
+  InputMessage,
+  OutputMessage
+> {
   // TODO: Find a way to make this a static method of DocumentActor
-  static async receive(message: any) {
+  static async receive(message: InputMessage) {
     const { id } = Link.parse(message.to)
     const doc = await Content.getDoc<Model>(message.to)
     const actor = new this(message.to, id, doc)
     actor.onMessage(message)
   }
 
-  async onMessage(message: any) {
+  async onMessage(message: InputMessage) {
     switch (message.type) {
       case "CreateCard": {
         const { type, card } = message.body
@@ -54,7 +78,7 @@ export class BoardActor extends DocumentActor<Model> {
           doc.focusedCardId = card.id
           return doc
         })
-        this.emit({ type: "DocumentCreated", body: url })
+        this.emit<DocumentCreated>({ type: "DocumentCreated", body: url })
         break
       }
       default: {

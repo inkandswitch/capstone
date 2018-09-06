@@ -4,7 +4,11 @@ import { AnyDoc, Doc } from "automerge"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
-import Content, { DocumentActor } from "./Content"
+import Content, {
+  DocumentActor,
+  DocumentCreated,
+  FullyFormedMessage,
+} from "./Content"
 
 export interface Model {
   docs: Array<{
@@ -12,17 +16,23 @@ export interface Model {
   }>
 }
 
-export class ArchiveActor extends DocumentActor<Model> {
+type InputMessage = FullyFormedMessage & (DocumentCreated)
+type OutputMessage = never
+
+export class ArchiveActor extends DocumentActor<
+  Model,
+  InputMessage,
+  OutputMessage
+> {
   // TODO: Find a way to make this a static method of DocumentActor
-  static async receive(message: any) {
+  static async receive(message: InputMessage) {
     const { id } = Link.parse(message.to)
-    // TODO: yikes
     const doc = await Content.getDoc<Model>(message.to)
     const actor = new ArchiveActor(message.to, id, doc)
     actor.onMessage(message)
   }
 
-  onMessage(message: any) {
+  async onMessage(message: InputMessage) {
     switch (message.type) {
       case "DocumentCreated": {
         this.change((doc: Doc<Model>) => {

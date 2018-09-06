@@ -1,14 +1,12 @@
 import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
-import Store from "../data/Store"
-import * as Link from "../data/Link"
-import Content, { WidgetProps, MessageHandler, Mode } from "./Content"
+import Content, { WidgetProps, Message, MessageHandler, Mode } from "./Content"
 
-export interface Props<T> {
+export interface Props<T, M = never> {
   doc: Doc<T>
   url: string
   mode: Mode
-  emit: (message: any) => void
+  emit: (message: M) => void
   change: (cb: ChangeFn<T>) => void
 }
 
@@ -17,14 +15,15 @@ interface State<T> {
 }
 
 // TODO: This is necessary to avoid Typescript warning, must be a better way.
-interface WrappedComponent<T> extends Preact.Component<Props<T>, any> {}
-type WrappedComponentClass<T> = {
-  new (...k: any[]): WrappedComponent<T>
+interface WrappedComponent<T, M = never>
+  extends Preact.Component<Props<T, M>, any> {}
+type WrappedComponentClass<T, M = never> = {
+  new (...k: any[]): WrappedComponent<T, M>
 }
 
-export function create<T>(
+export function create<T, M extends Message = never>(
   type: string,
-  WrappedComponent: WrappedComponentClass<T>,
+  WrappedComponent: WrappedComponentClass<T, M>,
   reify: (doc: AnyDoc) => T,
   messageHandler?: MessageHandler,
 ) {
@@ -51,12 +50,12 @@ export function create<T>(
       Content.unsetCache(this.props.url)
     }
 
-    emit = (message: any) => {
-      Content.send({
-        to: this.props.url,
-        ...message,
-        from: this.props.url,
-      })
+    emit = (message: M) => {
+      Content.send(
+        Object.assign({ to: this.props.url }, message, {
+          from: this.props.url,
+        }),
+      )
     }
 
     change = (cb: ChangeFn<T>) => {

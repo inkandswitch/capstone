@@ -3,7 +3,11 @@ import * as Widget from "./Widget"
 import * as Link from "../data/Link"
 import * as Reify from "../data/Reify"
 import { AnyDoc } from "automerge"
-import Content, { DocumentActor } from "./Content"
+import Content, {
+  DocumentActor,
+  FullyFormedMessage,
+  DocumentCreated,
+} from "./Content"
 import Touch, { TouchEvent } from "./Touch"
 
 export interface Model {
@@ -12,16 +16,18 @@ export interface Model {
   archiveUrl: string
 }
 
-class WorkspaceActor extends DocumentActor<Model> {
-  static async receive(message: any) {
+type InputMessage = FullyFormedMessage & (DocumentCreated)
+type OutputMessage = DocumentCreated
+
+class WorkspaceActor extends DocumentActor<Model, InputMessage, OutputMessage> {
+  static async receive(message: InputMessage) {
     const { id } = Link.parse(message.to)
-    // TODO: yikes
     const doc = await Content.getDoc<Model>(message.to)
     const actor = new this(message.to, id, doc)
     actor.onMessage(message)
   }
 
-  onMessage(message: any) {
+  async onMessage(message: InputMessage) {
     switch (message.type) {
       case "DocumentCreated": {
         if (message.from !== this.doc.archiveUrl) {

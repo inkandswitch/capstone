@@ -17,14 +17,32 @@ export type WidgetClass<T> = {
 }
 
 export interface Message {
-  from: string
+  from?: string
   to?: string
   type: string
   body: any
 }
 
+export interface WithSender {
+  from: string
+}
+
+export interface WithRecipient {
+  to: string
+}
+
+export type FullyFormedMessage = Message & WithSender & WithRecipient
+export function isFullyFormed(message: Message): message is FullyFormedMessage {
+  return message.to !== undefined && message.from !== undefined
+}
+
+export interface DocumentCreated extends Message {
+  type: "DocumentCreated"
+  body: string
+}
+
 export type MessageHandler = {
-  receive(message: any): void
+  receive(message: FullyFormedMessage): void
 }
 
 export type DocumentUpdateListener<T> = (doc: Doc<T>) => void
@@ -38,12 +56,16 @@ export interface Props {
   [k: string]: unknown
 }
 
-export abstract class DocumentActor<T> {
+export abstract class DocumentActor<
+  T,
+  I extends FullyFormedMessage,
+  O extends Message = never
+> {
   url: string
   docId: string
   doc: Doc<T>
 
-  static async receive(message: any) {}
+  static async receive(message: Message) {}
 
   constructor(url: string, docId: string, doc: Doc<T>) {
     this.url = url
@@ -59,13 +81,14 @@ export abstract class DocumentActor<T> {
     return Content.change<T>(this.url, this.doc, "", cb)
   }
 
-  emit(message: any) {
+  emit<N extends O>(message: N) {
     setTimeout(() => {
-      Content.send({ ...message, from: this.url })
+      message.from = this.url
+      Content.send(message as N & WithSender)
     }, 0)
   }
 
-  abstract onMessage(message: any): void
+  abstract async onMessage(message: I): Promise<void>
 }
 
 export default class Content extends Preact.Component<Props & unknown> {
@@ -181,9 +204,9 @@ export default class Content extends Preact.Component<Props & unknown> {
     return handler
   }
 
-  static send(message: Message) {
+  static send(message: Message & WithSender) {
     message.to = message.to || Content.getParent(message.from)
-    if (!message.to) {
+    if (!isFullyFormed(message)) {
       return
     }
     const { type: recipientType } = Link.parse(message.to)
