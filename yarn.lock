@@ -4260,7 +4260,7 @@ utp-native@^1.2.2, utp-native@^1.7.2:
 
 "utp@github:pvh/utp":
   version "0.0.10"
-  resolved "https://codeload.github.com/pvh/utp/tar.gz/ecd264a26366601b80e2314e5127f13e8d63094f"
+  resolved "https://codeload.github.com/pvh/utp/tar.gz/7f8dbc2999ef3fc9235c746c3d3512b2df2b208c"
   dependencies:
     buffer-alloc "^1.1.0"
     chrome-dgram "^3.0.1"
