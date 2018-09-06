@@ -20,13 +20,6 @@ type InMessage = FullyFormedMessage & (DocumentCreated)
 type OutMessage = DocumentCreated
 
 class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
-  static async receive(message: InMessage) {
-    const { id } = Link.parse(message.to)
-    const doc = await Content.getDoc<Model>(message.to)
-    const actor = new this(message.to, id, doc)
-    actor.onMessage(message)
-  }
-
   async onMessage(message: InMessage) {
     switch (message.type) {
       case "DocumentCreated": {

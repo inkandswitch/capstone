@@ -56,7 +56,9 @@ export interface Props {
   [k: string]: unknown
 }
 
-export abstract class DocumentActor<
+// Base class for actors which act on a document.
+// TODO: would be better to have change, emit, etc. passed in via constructor.
+export class DocumentActor<
   T,
   I extends FullyFormedMessage,
   O extends Message = never
@@ -65,7 +67,13 @@ export abstract class DocumentActor<
   docId: string
   doc: Doc<T>
 
-  static async receive(message: Message) {}
+  static receive(message: FullyFormedMessage) {
+    const { id } = Link.parse(message.to)
+    Content.getDoc(message.to).then(doc => {
+      const actor = new this(message.to, id, doc)
+      actor.onMessage(message)
+    })
+  }
 
   constructor(url: string, docId: string, doc: Doc<T>) {
     this.url = url
@@ -82,13 +90,16 @@ export abstract class DocumentActor<
   }
 
   emit(message: O) {
-    setTimeout(() => {
+    // XXX: Is using rIC always desired behavior?
+    window.requestIdleCallback(() => {
       message.from = this.url
       Content.send(message as O & WithSender)
-    }, 0)
+    })
   }
 
-  abstract async onMessage(message: I): Promise<void>
+  async onMessage(message: I): Promise<void> {
+    throw new Error("Not implemented: onMessage")
+  }
 }
 
 export default class Content extends Preact.Component<Props & unknown> {
