@@ -253,6 +253,15 @@ export default class Content extends Preact.Component<Props & unknown> {
     }
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.url !== this.props.url) {
+      Content.clearParent(this.props.url)
+      if (this.context.parentUrl) {
+        Content.setParent(nextProps.url, this.context.parentUrl)
+      }
+    }
+  }
+
   componentWillUnmount() {
     if (this.context.parentUrl) {
       Content.clearParent(this.props.url)
