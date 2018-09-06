@@ -127,13 +127,13 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static change<T>(url: string, doc: Doc<T>, msg: string, cb: ChangeFn<T>) {
     const { id } = Link.parse(url)
-    Content.store.change(id, doc, "", cb)
-    //.then(doc => {
-    //  Content.setCache(url, doc)
-    //  const updateListener = Content.documentUpdateListeners[id]
-    //  updateListener && updateListener(doc)
-    //})
-    // TODO: Temporary hack for optimistic updates.
+    Content.store.change(id, doc, "", cb).then(doc => {
+      Content.setCache(url, doc)
+      const updateListener = Content.documentUpdateListeners[id]
+      updateListener && updateListener(doc)
+    })
+    // TODO: Temporary hack for "optimistic updates"
+    Content.setCache(url, doc)
     const updateListener = Content.documentUpdateListeners[id]
     updateListener && updateListener(doc)
   }
