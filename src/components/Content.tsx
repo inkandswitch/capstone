@@ -94,7 +94,7 @@ export class DocumentActor<
   }
 
   emit(message: O) {
-    // Conveniance for re-emitting events
+    // Convenience for re-emitting events
     if (message.to === this.url) {
       delete message.to
     }
