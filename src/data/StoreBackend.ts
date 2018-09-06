@@ -26,18 +26,8 @@ export default class StoreBackend {
     })
   }
 
-  open(id: StoreId): Promise<AnyDoc> {
-    return new Promise<AnyDoc>((resolve, reject) => {
-      this.hypermerge.ready.then(() => {
-        let resolved = false // HACK until we can emit changes
-        console.log("opening",id)
-        const handle = this.hypermerge.openHandle(id)
-        handle.onChange((doc: AnyDoc) => {
-          if (!resolved) resolve(doc)
-          resolved = true
-        })
-      })
-    })
+  open(id: StoreId): any {
+    return this.hypermerge.openHandle(id)
   }
 
   replace(id: StoreId, doc: AnyDoc): AnyDoc {

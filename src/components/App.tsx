@@ -23,13 +23,14 @@ type State = {
 
 export default class App extends Preact.Component<{}, State> {
   initWorkspace() {
+    /*
     let workspaceUrl = Content.create("Workspace")
     let archiveUrl = Content.create("Archive")
     let boardUrl = Content.create("Board")
     workspaceUrl
       .then(workspaceUrl => {
         console.log({ workspaceUrl })
-        return Content.open<Workspace.Model>(workspaceUrl)
+        return Content.open<Workspace.Model>(workspaceUrl, (workspace) => {})
       })
       .then(workspace => {
         Promise.all([workspaceUrl, archiveUrl, boardUrl]).then(
@@ -48,6 +49,7 @@ export default class App extends Preact.Component<{}, State> {
         this.setState({ url: workspaceUrl })
         chrome.storage.local.set({ workspaceUrl })
       })
+      */
   }
   constructor() {
     super()

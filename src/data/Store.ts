@@ -22,8 +22,12 @@ export default class Store {
     })
   }
 
-  open(id: string): Promise<AnyDoc> {
-    return this.sendMessage("Open", { id })
+  open(
+    id: string,
+    changeCallback: (message: any, port: chrome.runtime.Port) => void,
+  ) {
+    var port = chrome.runtime.connect({ name: id })
+    port.onMessage.addListener(changeCallback)
   }
 
   create(): Promise<string> {

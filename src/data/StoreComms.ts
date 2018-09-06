@@ -2,9 +2,28 @@ import StoreBackend from "./StoreBackend"
 
 export default class StoreComms {
   store: StoreBackend
+  docHandles: { [docId: string]: any }
 
   constructor(store: StoreBackend) {
     this.store = store
+  }
+
+  onConnect = (port: chrome.runtime.Port) => {
+    const docId = port.name
+    console.log(docId)
+    let handle = this.store.open(docId)
+
+    port.onMessage.addListener((
+      newDoc: any /* chrome.runtime.PortMessageEvent */,
+    ) => {
+      handle.change((oldDoc: any) => {
+        for (let key in newDoc) {
+          oldDoc[key] = newDoc[key] as any
+        }
+      })
+    })
+
+    handle.onChange((doc: any) => port.postMessage(doc))
   }
 
   onMessage = (
@@ -22,9 +41,6 @@ export default class StoreComms {
     switch (command) {
       case "Create":
         this.store.create().then(id => sendResponse(id))
-        break
-      case "Open":
-        this.store.open(id).then(doc => sendResponse(doc))
         break
       case "Replace":
         this.store.replace(id, doc)

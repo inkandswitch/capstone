@@ -38,3 +38,5 @@ let comms = new StoreComms(store)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>
   comms.onMessage(request, sender, sendResponse),
 )
+
+chrome.runtime.onConnect.addListener(port => comms.onConnect(port))

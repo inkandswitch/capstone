@@ -28,7 +28,7 @@ export default abstract class Widget<T, P = {}> extends Preact.Component<
 > {
   constructor(props: Partial<P> & Props, ctx: any) {
     super(props, ctx)
-    Content.open<T>(props.url).then(doc => this.setState({ doc }))
+    Content.open<T>(props.url, (doc: any) => this.setState({ doc }))
   }
 
   abstract show(doc: Doc<T>): Preact.ComponentChild
