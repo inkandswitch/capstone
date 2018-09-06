@@ -17,13 +17,8 @@ export interface Model {
 }
 
 type InputMessage = FullyFormedMessage & (DocumentCreated)
-type OutputMessage = never
 
-export class ArchiveActor extends DocumentActor<
-  Model,
-  InputMessage,
-  OutputMessage
-> {
+export class ArchiveActor extends DocumentActor<Model, InputMessage> {
   // TODO: Find a way to make this a static method of DocumentActor
   static async receive(message: InputMessage) {
     const { id } = Link.parse(message.to)
