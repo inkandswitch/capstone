@@ -29,7 +29,7 @@ function cleanDocId(id) {
   if (id.length == 64) {
     return Base58.encode(Buffer.from(id,"hex"));
   }
-  if (id.length == 44) {
+  if (id.length >= 32 && id.length <= 44) {
     return id;
   }
   throw new Error("Invalid StoreId: "+id)
