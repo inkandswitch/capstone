@@ -1,6 +1,7 @@
 import * as Preact from "preact"
-import createWidget, { WidgetProps, AnyDoc } from "./Widget"
+import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
+import { AnyDoc } from "automerge"
 import Content from "./Content"
 import Touch, { TouchEvent } from "./Touch"
 
@@ -10,7 +11,7 @@ export interface Model {
   archiveUrl: string
 }
 
-class Workspace extends Preact.Component<WidgetProps<Model>> {
+class Workspace extends Preact.Component<Widget.Props<Model>> {
   static reify(doc: AnyDoc): Model {
     return {
       currentUrl: Reify.link(doc.currentUrl),
@@ -38,14 +39,12 @@ class Workspace extends Preact.Component<WidgetProps<Model>> {
   }
 
   onThreeFingerSwipeDown = (event: TouchEvent) => {
-    if (!this.props.doc) return
     if (this.props.doc.currentUrl !== this.props.doc.archiveUrl) {
       this.navigateTo(this.props.doc.archiveUrl)
     }
   }
 
   onThreeFingerSwipeUp = (event: TouchEvent) => {
-    if (!this.props.doc) return
     if (this.props.doc.currentUrl === this.props.doc.archiveUrl) {
       this.navigateBack()
     }
@@ -67,7 +66,7 @@ class Workspace extends Preact.Component<WidgetProps<Model>> {
   }
 
   navigateTo = (url: string) => {
-    if (this.props.doc && this.props.doc.currentUrl === url) return
+    if (this.props.doc.currentUrl === url) return
 
     this.props.change(doc => {
       doc.backUrls.push(doc.currentUrl)
@@ -77,7 +76,7 @@ class Workspace extends Preact.Component<WidgetProps<Model>> {
   }
 }
 
-export default createWidget<Model>("Workspace", Workspace, Workspace.reify)
+export default Widget.create("Workspace", Workspace, Workspace.reify)
 
 const style = {
   Workspace: {

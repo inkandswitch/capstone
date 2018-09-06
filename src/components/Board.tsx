@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import createWidget, { WidgetProps } from "./Widget"
+import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content from "./Content"
@@ -28,7 +28,7 @@ export interface Model {
   focusedCardId: string | null
 }
 
-interface Props extends WidgetProps<Model> {
+interface Props extends Widget.Props<Model> {
   onNavigate?: (url: string) => void
 }
 
@@ -100,7 +100,7 @@ class Board extends Preact.Component<Props> {
   }
 
   onVirtualKeyboardClose = () => {
-    if (!this.props.doc || this.props.doc.focusedCardId == null) return
+    if (this.props.doc.focusedCardId == null) return
 
     this.props.change(doc => {
       return this.clearCardFocus(doc)
@@ -147,7 +147,7 @@ class Board extends Preact.Component<Props> {
   }
 
   onTapCard = (id: string) => {
-    if (!this.props.doc || this.props.doc.focusedCardId != null) return
+    if (this.props.doc.focusedCardId != null) return
     this.props.change(doc => {
       return this.setCardFocus(doc, id)
     })
@@ -186,7 +186,7 @@ class Board extends Preact.Component<Props> {
   }
 
   async createCard(type: string, x: number, y: number) {
-    if (!this.props.doc || this.props.doc.focusedCardId != null) return
+    if (this.props.doc.focusedCardId != null) return
     if (!this.boardEl) return
 
     const maxX = this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING
@@ -241,4 +241,4 @@ const style = {
   },
 }
 
-export default createWidget("Board", Board, Board.reify)
+export default Widget.create("Board", Board, Board.reify)
