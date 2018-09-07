@@ -75,6 +75,7 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         onThreeFingerSwipeUp={this.onThreeFingerSwipeUp}
         onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
+          <Content mode="embed" url={this.props.doc.shelfUrl} />
           <Content
             mode={this.props.mode}
             url={currentUrl}

@@ -36,7 +36,7 @@ class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
     switch (message.type) {
       case "AddToShelf": {
         this.change(doc => {
-          doc.selectedUrls.unshift(message.body.url)
+          doc.selectedUrls.push(message.body.url)
           return doc
         })
         break
@@ -76,30 +76,18 @@ class Shelf extends Preact.Component<Widget.Props<Model>> {
     return (
       <div style={style.Shelf}>
         {selectedUrls.map((url, idx) => (
-          <ShelfCard url={url} index={idx} onTap={this.toggleSelect} />
+          <ShelfCard key={idx} url={url} index={idx} />
         ))}
         <div style={style.Count}>{count}</div>
       </div>
     )
-  }
-
-  toggleSelect = (url: string) => {
-    this.props.change(doc => {
-      const idx = doc.selectedUrls.indexOf(url)
-      if (idx >= 0) {
-        doc.selectedUrls.splice(idx, 1)
-      } else {
-        doc.selectedUrls.push(url)
-      }
-      return doc
-    })
   }
 }
 
 const style = {
   Shelf: {
     position: "absolute",
-    top: 0,
+    bottom: 0,
     right: 0,
     margin: -50,
     boxSizing: "border-box",
