@@ -24,12 +24,4 @@ export default class Store {
       })
     })
   }
-
-  sendMessage(command: CommandMessage, args: any = {}): Promise<AnyDoc> {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ command, args }, response => {
-        resolve(response)
-      })
-    })
-  }
 }

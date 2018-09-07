@@ -27,12 +27,12 @@ const METADATA = {
 
 function cleanDocId(id) {
   if (id.length == 64) {
-    return Base58.encode(Buffer.from(id,"hex"));
+    return Base58.encode(Buffer.from(id, "hex"))
   }
   if (id.length >= 32 && id.length <= 44) {
-    return id;
+    return id
   }
-  throw new Error("Invalid StoreId: "+id)
+  throw new Error("Invalid StoreId: " + id)
 }
 
 /**
@@ -114,11 +114,7 @@ class DocHandle {
  * @param {object} [defaultMetadata={}] - default metadata that should be written for new docs
  */
 export default class Hypermerge extends EventEmitter {
-  constructor({
-    storage,
-    immutableApi = false,
-    defaultMetadata = {},
-  }) {
+  constructor({ storage, immutableApi = false, defaultMetadata = {} }) {
     super()
 
     this.immutableApi = immutableApi
@@ -144,29 +140,33 @@ export default class Hypermerge extends EventEmitter {
         resolve()
       })
     })
-
   }
 
   chromeJoinSwarm() {
     const MDNS_PORT = 5307
-    const dgram = require('chrome-dgram');
-    const socket = dgram.createSocket('udp4')
-    const mdns = require('multicast-dns')
+    const dgram = require("chrome-dgram")
+    const socket = dgram.createSocket("udp4")
+    const mdns = require("multicast-dns")
 
     socket.setMulticastTTL(255)
     socket.setMulticastLoopback(true)
 
-    chrome.system.network.getNetworkInterfaces((ifaces) => {
-      socket.on('listening', () => {
+    chrome.system.network.getNetworkInterfaces(ifaces => {
+      socket.on("listening", () => {
         for (let i = 0; i < ifaces.length; i++) {
           if (ifaces[i].prefixLength == 24) {
-            socket.addMembership('224.0.0.251', ifaces[i].address)
+            socket.addMembership("224.0.0.251", ifaces[i].address)
           }
         }
-        const multicast = mdns({ socket, bind: false, port: MDNS_PORT, multicast: false })
+        const multicast = mdns({
+          socket,
+          bind: false,
+          port: MDNS_PORT,
+          multicast: false,
+        })
         this.joinSwarm({
           dht: false,
-          dns: { multicast }
+          dns: { multicast },
         })
       })
       socket.bind(MDNS_PORT)
@@ -178,7 +178,9 @@ export default class Hypermerge extends EventEmitter {
    * Must be called after `'ready'` has been emitted. `opts` are passed to discovery-swarm.
    */
   joinSwarm(opts = {}) {
-    if (opts.chrome === true) { return this.chromeJoinSwarm(); }
+    if (opts.chrome === true) {
+      return this.chromeJoinSwarm()
+    }
     return this.ready.then(() => {
       log("joinSwarm")
 
@@ -187,9 +189,9 @@ export default class Hypermerge extends EventEmitter {
       let mergedOpts = Object.assign(
         swarmDefaults(),
         {
-         hash: false,
-         encrypt: true,
-         stream: opts => this.replicate(opts),
+          hash: false,
+          encrypt: true,
+          stream: opts => this.replicate(opts),
         },
         opts,
       )
@@ -198,7 +200,6 @@ export default class Hypermerge extends EventEmitter {
       mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
 
       this.swarm = discoverySwarm(mergedOpts)
-
 
       this.swarm.join(this.core.archiver.changes.discoveryKey)
 
@@ -256,7 +257,7 @@ export default class Hypermerge extends EventEmitter {
   openHandle(_docId) {
     this._ensureReady()
 
-    const docId = cleanDocId(_docId);
+    const docId = cleanDocId(_docId)
 
     log("openHandle", docId)
 
@@ -513,7 +514,6 @@ export default class Hypermerge extends EventEmitter {
   // * `actorId` is given and we know of the feed already - return from cache.
   _trackedFeed(actorId = null) {
     this._ensureReady()
-
 
     if (actorId && this.feeds[actorId]) {
       return this.feeds[actorId]

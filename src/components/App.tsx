@@ -23,34 +23,30 @@ type State = {
 
 export default class App extends Preact.Component<{}, State> {
   initWorkspace() {
-    /*
-    let workspaceUrl = Content.create("Workspace")
     let archiveUrl = Content.create("Archive")
     let boardUrl = Content.create("Board")
-    workspaceUrl
-      .then(workspaceUrl => {
-        console.log({ workspaceUrl })
-        return Content.open<Workspace.Model>(workspaceUrl, (workspace) => {})
-      })
-      .then(workspace => {
-        Promise.all([workspaceUrl, archiveUrl, boardUrl]).then(
-          ([workspaceUrl, archiveUrl, boardUrl]) => {
-            const { type, id } = Link.parse(workspaceUrl)
-            Content.store.change(id, workspace, "adding initial urls", doc => {
-              doc.currentUrl = boardUrl
-              doc.archiveUrl = archiveUrl
-              return doc
-            })
-          },
-        )
-        return workspaceUrl
-      })
-      .then(workspaceUrl => {
-        this.setState({ url: workspaceUrl })
-        chrome.storage.local.set({ workspaceUrl })
-      })
-      */
+
+    Content.create("Workspace").then(workspaceUrl => {
+      let workspaceUpdateFunction = Content.open<Workspace.Model>(
+        workspaceUrl,
+        (workspaceDoc: any) => {
+          Promise.all([archiveUrl, boardUrl]).then(([archiveUrl, boardUrl]) => {
+            // this is pretty yeeeech, but i'm leaving it since it should be replaced
+            // by jeff's RxJS patch
+            // what we want here is sort of a .once('update') style callback,
+            // probably from create() itself
+            if (workspaceDoc.archiveUrl) return
+            workspaceDoc.currentUrl = boardUrl
+            workspaceDoc.archiveUrl = archiveUrl
+            workspaceUpdateFunction(workspaceDoc)
+            this.setState({ url: workspaceUrl })
+            chrome.storage.local.set({ workspaceUrl })
+          })
+        },
+      )
+    })
   }
+
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)

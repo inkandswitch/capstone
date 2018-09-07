@@ -15,13 +15,9 @@ export default class StoreComms {
 
   onConnect = (port: chrome.runtime.Port) => {
     const docId = port.name
-    console.log(docId)
     let handle = this.hypermerge.openHandle(docId)
 
-    port.onMessage.addListener((
-      newDoc: any /* chrome.runtime.PortMessageEvent */,
-    ) => {
-      console.log("replace", docId, newDoc)
+    port.onMessage.addListener((newDoc: any) => {
       handle.change((oldDoc: any) => {
         for (let key in newDoc) {
           oldDoc[key] = newDoc[key] as any
@@ -30,7 +26,6 @@ export default class StoreComms {
     })
 
     handle.onChange((doc: any) => {
-      console.log("onChange", docId, doc)
       port.postMessage(doc)
     })
   }
@@ -42,16 +37,15 @@ export default class StoreComms {
   ) => {
     // XXX: we should probably check the sender, but it
     //      isn't clear to me how to do so reasonably & robustly
-    let { command, args = {} } = request
-    let { id, doc } = args
-
-    console.log("onmessage", { request })
+    let { command } = request
 
     switch (command) {
       case "Create":
-        let doc = this.hypermerge.create()
-        let docId = this.hypermerge.getId(doc)
-        sendResponse(docId)
+        this.hypermerge.ready.then(() => {
+          let doc = this.hypermerge.create()
+          let docId = this.hypermerge.getId(doc)
+          sendResponse(docId)
+        })
         break
       default:
         console.warn("Received an unusual message: ", request)
