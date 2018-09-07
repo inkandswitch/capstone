@@ -143,10 +143,6 @@ export default class Content extends Preact.Component<Props & unknown> {
       const updateListener = Content.documentUpdateListeners[id]
       updateListener && updateListener(doc)
     })
-    // TODO: Temporary hack for "optimistic updates"
-    Content.setCache(url, doc)
-    const updateListener = Content.documentUpdateListeners[id]
-    updateListener && updateListener(doc)
   }
 
   static getDoc<T>(url: string): Promise<Doc<T>> {
