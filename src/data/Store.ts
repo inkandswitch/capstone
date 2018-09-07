@@ -5,14 +5,14 @@ type CommandMessage = "Create" | "Open" | "Replace"
 export default class Store {
   open(
     id: string,
-    changeCallback: (message: any, port: chrome.runtime.Port) => void,
+    receiveChangeCallback: (message: any, port: chrome.runtime.Port) => void,
   ): (newDoc: any) => void {
     var port = chrome.runtime.connect({ name: id })
-    port.onMessage.addListener(changeCallback)
-    const replaceCallback = (newDoc: any) => {
+    port.onMessage.addListener(receiveChangeCallback)
+    const sendChangeCallback = (newDoc: any) => {
       port.postMessage(newDoc)
     }
-    return replaceCallback
+    return sendChangeCallback
   }
 
   create(): Promise<string> {
