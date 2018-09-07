@@ -116,7 +116,9 @@ class Board extends Preact.Component<Props> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
+          <StrokeRecognizer
+            onStroke={this.onStroke}
+            only={["box", "downarrow"]}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -176,7 +178,7 @@ class Board extends Preact.Component<Props> {
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
-    this.props.emit({ type: "ShelfContentsRequested" })
+    this.createCard("Text", e.center.x, e.center.y)
   }
 
   onDragStart = (id: string) => {
@@ -248,6 +250,10 @@ class Board extends Preact.Component<Props> {
     switch (stroke.name) {
       case "box":
         this.createCard("Text", stroke.center.x, stroke.bounds.top)
+        break
+      case "downarrow":
+        this.props.emit({ type: "ShelfContentsRequested" })
+        break
     }
   }
 

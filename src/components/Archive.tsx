@@ -73,7 +73,7 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onTap = (url: string) => {
+  onStrokeItem = (url: string) => {
     this.props.emit({ type: "DocumentSelected", body: { url } })
   }
 
@@ -87,7 +87,7 @@ class Archive extends Preact.Component<Props> {
             <ArchiveItem
               url={url}
               isSelected={doc.selected.includes(url)}
-              onTap={this.onTap}
+              onStroke={this.onStrokeItem}
             />
           ))}
         </div>
@@ -112,7 +112,8 @@ const style = {
 
   Items: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, 200px)",
+    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+    gridAutoRows: "1fr",
     gridGap: "10px",
     width: "100%",
     color: "#333",
