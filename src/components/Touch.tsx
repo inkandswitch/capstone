@@ -64,6 +64,10 @@ export default class Touch extends Handler<Props> {
     this.hammer.on("threeFingerSwipeUp", this.handle("onThreeFingerSwipeUp"))
   }
 
+  componentWillUnmount() {
+    this.hammer.destroy()
+  }
+
   filter(event: TouchEvent) {
     return event.pointerType !== "pen"
   }

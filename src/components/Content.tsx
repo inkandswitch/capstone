@@ -4,7 +4,8 @@ import { AnyDoc, Doc } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 
-interface Widget extends Preact.Component<{ url: string; mode: Mode }, any> {}
+interface Widget
+  extends Preact.Component<{ url: string; mode: Mode; store: Store }, any> {}
 
 export type WidgetClass<T> = {
   new (...k: any[]): Widget
@@ -71,7 +72,7 @@ export default class Content extends Preact.Component<Props & unknown> {
       return <Missing type={type} />
     }
 
-    return <Widget {...this.props} />
+    return <Widget {...this.props} store={Content.store} />
   }
 }
 
