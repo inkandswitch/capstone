@@ -1,4 +1,3 @@
-import StoreBackend from "../../data/StoreBackend"
 import StoreComms from "../../data/StoreComms"
 
 chrome.app.runtime.onLaunched.addListener(() => {
@@ -15,9 +14,14 @@ chrome.app.runtime.onLaunched.addListener(() => {
   )
 })
 
-const store = new StoreBackend()
-const comms = new StoreComms(store)
+const comms = new StoreComms()
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>
   comms.onMessage(request, sender, sendResponse),
 )
+
+chrome.runtime.onConnect.addListener(port => {
+  comms.hypermerge.ready.then(() => {
+    comms.onConnect(port)
+  })
+})

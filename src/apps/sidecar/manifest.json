@@ -14,32 +14,17 @@
   ],
   "app": {
     "background": {
-      "scripts": [
-        "background.js"
-      ]
+      "scripts": ["background.js"]
     }
   },
   "sockets": {
-    "tcp": {
-      "connect": [
-        "*"
-      ]
-    },
+    "tcp": { "connect": ["*"] },
     "udp": {
       "send": "*",
-      "bind": [
-        "*"
-      ]
+      "bind": ["*"],
+      "multicastMembership": ""
     },
-    "tcpServer": {
-      "listen": [
-        "*"
-      ]
-    },
-    "udpServer": {
-      "listen": [
-        "*"
-      ]
-    }
+    "tcpServer": { "listen": ["*"] },
+    "udpServer": { "listen": ["*"] }
   }
 }

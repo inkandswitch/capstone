@@ -1,10 +1,33 @@
-import StoreBackend from "./StoreBackend"
+import Hypermerge from "../modules/hypermerge"
+let racf = require("random-access-chrome-file")
 
 export default class StoreComms {
-  store: StoreBackend
+  hypermerge: Hypermerge
+  docHandles: { [docId: string]: any }
 
-  constructor(store: StoreBackend) {
-    this.store = store
+  constructor() {
+    this.hypermerge = new Hypermerge({ storage: racf })
+    ;(window as any).hm = this.hypermerge
+    this.hypermerge.ready.then(() => {
+      this.hypermerge.joinSwarm({ chrome: true })
+    })
+  }
+
+  onConnect = (port: chrome.runtime.Port) => {
+    const docId = port.name
+    let handle = this.hypermerge.openHandle(docId)
+
+    port.onMessage.addListener((newDoc: any) => {
+      handle.change((oldDoc: any) => {
+        for (let key in newDoc) {
+          oldDoc[key] = newDoc[key] as any
+        }
+      })
+    })
+
+    handle.onChange((doc: any) => {
+      port.postMessage(doc)
+    })
   }
 
   onMessage = (
@@ -14,18 +37,15 @@ export default class StoreComms {
   ) => {
     // XXX: we should probably check the sender, but it
     //      isn't clear to me how to do so reasonably & robustly
-    let { command, args = {} } = request
-    let { id, doc } = args
+    let { command } = request
 
     switch (command) {
       case "Create":
-        this.store.create().then(id => sendResponse(id))
-        break
-      case "Open":
-        this.store.open(id).then(doc => sendResponse(doc))
-        break
-      case "Replace":
-        this.store.replace(id, doc)
+        this.hypermerge.ready.then(() => {
+          let doc = this.hypermerge.create()
+          let docId = this.hypermerge.getId(doc)
+          sendResponse(docId)
+        })
         break
       default:
         console.warn("Received an unusual message: ", request)

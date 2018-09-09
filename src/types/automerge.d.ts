@@ -45,12 +45,13 @@ declare module "automerge" {
   type EditValue = null | string | number | boolean | EditObject | EditValueList
 
   interface EditObject {
-    readonly _objectId: string
-    [key: string]: EditValue
+    // readonly _objectId: string
+    // [key: string]: EditValue
+    [key: string]: unknown
   }
 
   interface AnyEditDoc extends EditObject {
-    readonly _actorId: string
+    // readonly _actorId: string
   }
 
   // includes _actorId and any properties in T, all other keys are 'unknown'

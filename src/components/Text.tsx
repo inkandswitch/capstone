@@ -1,23 +1,27 @@
 import { random } from "lodash/fp"
-import * as Automerge from "automerge"
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import * as Widget from "./Widget"
+import { AnyDoc } from "automerge"
 import * as Reify from "../data/Reify"
-import Content from "./Content"
 import TextEditor, { Change } from "./TextEditor"
 
 export interface Model {
   content: string[]
 }
 
-export default class Text extends Widget<Model> {
+interface Props extends Widget.Props<Model> {
+  isFocused: boolean
+}
+
+class Text extends Preact.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       content: Reify.array(doc.content),
     }
   }
 
-  show({ content }: Model) {
+  render() {
+    const { content } = this.props.doc
     return (
       <TextEditor
         content={content.join("")}
@@ -28,7 +32,7 @@ export default class Text extends Widget<Model> {
   }
 
   onChange = (changes: Change[]) => {
-    this.change(doc => {
+    this.props.change(doc => {
       changes.forEach(change => {
         switch (change.type) {
           case "removal": {
@@ -49,8 +53,6 @@ export default class Text extends Widget<Model> {
   }
 }
 
-Content.register("Text", Text)
-
 const sample = (): string => samples[random(1, samples.length) - 1]
 
 const samples = [
@@ -59,3 +61,5 @@ const samples = [
   "Studies of human and animal anatomy, often via dissection, lead to the most realistic poses and musculature of the day",
   "Misconception around his flying machines and other fantastical devices most likely designed for theather performances, not the real world",
 ]
+
+export default Widget.create("Text", Text, Text.reify)

@@ -4,7 +4,8 @@ import { AnyDoc, Doc, AnyEditDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 
-interface Widget extends Preact.Component<{ url: string; mode: Mode }, any> {}
+interface Widget
+  extends Preact.Component<{ url: string; mode: Mode; store: Store }, any> {}
 
 export type WidgetClass<T> = {
   new (...k: any[]): Widget
@@ -38,21 +39,15 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   // Opens an initialized document at the given URL
-  static async open<T>(url: string): Promise<Doc<T>> {
+
+  static open<T>(url: string, callback: Function): (newDoc: any) => void {
     const { type, id } = Link.parse(url)
     const widget = this.find(type) as WidgetClass<T>
-    const doc = await this.store.open(id)
-    return Reify.reify(doc, widget.reify)
-  }
-
-  static async change(
-    url: string,
-    msg: string,
-    cb: ChangeFn<{}>,
-  ): Promise<AnyDoc> {
-    const { type, id } = Link.parse(url)
-    const doc = await this.store.open(id)
-    return this.store.change(id, doc, msg, cb)
+    console.log("opening", id)
+    const replaceCallback = this.store.open(id, doc =>
+      callback(Reify.reify(doc, widget.reify)),
+    )
+    return replaceCallback
   }
 
   static register(type: string, component: WidgetClass<any>) {
@@ -79,7 +74,7 @@ export default class Content extends Preact.Component<Props & unknown> {
       return <Missing type={type} />
     }
 
-    return <Widget {...this.props} />
+    return <Widget {...this.props} store={Content.store} />
   }
 }
 

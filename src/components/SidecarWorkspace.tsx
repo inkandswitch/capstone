@@ -1,23 +1,29 @@
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
-import { Doc } from "automerge"
+import { AnyDoc } from "automerge"
 
 export interface Model {
   archiveUrl: string
 }
 
-export default class SidecarWorkspace extends Widget<Model> {
+interface Props extends Widget.Props<Model> {}
+
+export default class SidecarWorkspace extends Preact.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       archiveUrl: Reify.link(doc.archiveUrl),
     }
   }
 
-  show({ archiveUrl }: Doc<Model>) {
+  render() {
+    const {
+      doc: { archiveUrl },
+    } = this.props
+
     return <Content mode="fullscreen" type="SidecarUploader" url={archiveUrl} />
   }
 }
 
-Content.register("SidecarWorkspace", SidecarWorkspace)
+Widget.create("SidecarWorkspace", SidecarWorkspace, SidecarWorkspace.reify)

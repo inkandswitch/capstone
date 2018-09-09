@@ -1,9 +1,9 @@
 import * as Preact from "preact"
-import Widget, { AnyDoc } from "./Widget"
+import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import Content from "./Content"
-import { Doc } from "automerge"
+import { Doc, AnyDoc, AnyEditDoc } from "automerge"
 
 interface Model {
   docs: Array<{
@@ -11,11 +11,13 @@ interface Model {
   }>
 }
 
+interface Props extends Widget.Props<Model> {}
+
 interface State {
   isDropping: boolean
 }
 
-export default class SidecarUploader extends Widget<Model, {}, State> {
+export default class SidecarUploader extends Preact.Component<Props, State> {
   static reify(doc: AnyDoc): Model {
     return {
       docs: Reify.array(doc.docs),
@@ -24,7 +26,10 @@ export default class SidecarUploader extends Widget<Model, {}, State> {
 
   state = { isDropping: false }
 
-  show({ docs }: Doc<Model>) {
+  render() {
+    const {
+      doc: { docs },
+    } = this.props
     const { isDropping } = this.state
 
     return (
@@ -79,19 +84,20 @@ export default class SidecarUploader extends Widget<Model, {}, State> {
   async addText(content: string) {
     const url = await Content.create("Text")
 
-    Content.change(url, "Init", doc => {
+    // HACK these types are wacky, fix after store api changes
+    const replace = Content.open(url, (doc: AnyEditDoc) => {
       doc.content = content.split("")
-      return doc
+      replace(doc)
     })
 
-    this.change(doc => {
+    this.props.change(doc => {
       doc.docs.push({ url })
       return doc
     })
   }
 }
 
-Content.register("SidecarUploader", SidecarUploader)
+Widget.create("SidecarUploader", SidecarUploader, SidecarUploader.reify)
 
 const style = {
   SidecarUploader: {

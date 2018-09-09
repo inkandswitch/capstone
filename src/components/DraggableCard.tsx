@@ -38,7 +38,8 @@ export default class DraggableCard extends Preact.Component<Props> {
       <StrokeRecognizer only={["X"]} onStroke={this.onStroke} maxScore={10}>
         <Touch onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
           <Draggable
-            defaultPosition={{ x, y }}
+            defaultPosition={{ x: 0, y: 0 }}
+            position={{ x, y }}
             onStart={this.start}
             onStop={this.stop}
             onCancel={this.cancel}
