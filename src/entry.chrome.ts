@@ -39,7 +39,8 @@ let comms = new StoreComms()
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>
   comms.onMessage(request, sender, sendResponse),
 )
-
-comms.hypermerge.ready.then(() => {
-  chrome.runtime.onConnect.addListener(port => comms.onConnect(port))
+chrome.runtime.onConnect.addListener(port => {
+  comms.hypermerge.ready.then(() => {
+    comms.onConnect(port)
+  })
 })
