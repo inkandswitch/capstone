@@ -40,10 +40,13 @@ export function create<T>(
   const WidgetClass = class extends Preact.Component<WidgetProps, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
+    replaceDoc: (newDoc: any) => void
 
     constructor(props: WidgetProps, ctx: any) {
       super(props, ctx)
-      Content.open<T>(props.url).then(doc => this.setState({ doc }))
+      this.replaceDoc = Content.open<T>(props.url, (doc: any) => {
+        this.setState({ doc })
+      })
     }
 
     change = (cb: ChangeFn<T>) => {
@@ -54,9 +57,7 @@ export function create<T>(
       }
 
       const { id } = Link.parse(this.props.url)
-      this.props.store
-        .change(id, this.state.doc, "", cb)
-        .then(doc => this.setState({ doc }))
+      this.replaceDoc(cb(this.state.doc))
     }
 
     render() {

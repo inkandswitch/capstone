@@ -1,4 +1,3 @@
-import StoreBackend from "./data/StoreBackend"
 import StoreComms from "./data/StoreComms"
 
 let mainWindow: chrome.app.window.AppWindow
@@ -32,9 +31,10 @@ chrome.app.runtime.onLaunched.addListener(() => {
   )
 })
 
-let store = new StoreBackend()
-let comms = new StoreComms(store)
+let comms = new StoreComms()
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>
   comms.onMessage(request, sender, sendResponse),
 )
+
+chrome.runtime.onConnect.addListener(port => comms.onConnect(port))

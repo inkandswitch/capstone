@@ -16,10 +16,12 @@ module.exports = {
   resolve: {
     alias: {
       "utp-native": "utp",
+      debug: "chrome-debug",
       dgram: "chrome-dgram",
       net: "chrome-net",
+      "util-deprecate": path.resolve("./stubs/util-deprecate.js"),
       "bittorrent-dht": path.resolve("./stubs/bittorrent-dht.js"),
-      "random-access-file": path.resolve("./stubs/bittorrent-dht.js"),
+      "random-access-file": path.resolve("./stubs/blank.js"),
     },
     extensions: [".tsx", ".ts", ".js"],
   },

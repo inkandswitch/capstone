@@ -4,6 +4,7 @@ const Multicore = require("./multicore")
 const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
 const Debug = require("debug")
+const Base58 = require("bs58")
 
 const log = Debug("hypermerge:index")
 
@@ -22,6 +23,16 @@ const START_BLOCK = 1
 // managed by Hypermerge.
 const METADATA = {
   hypermerge: 1,
+}
+
+function cleanDocId(id) {
+  if (id.length == 64) {
+    return Base58.encode(Buffer.from(id, "hex"))
+  }
+  if (id.length >= 32 && id.length <= 44) {
+    return id
+  }
+  throw new Error("Invalid StoreId: " + id)
 }
 
 /**
@@ -100,21 +111,14 @@ class DocHandle {
  * @param {object} options
  * @param {object} options.storage - config compatible with Hypercore constructor storage param
  * @param {boolean} [options.immutableApi=false] - whether to use Immutable.js Automerge API
- * @param {number} [options.port=0] - port number to listen on
  * @param {object} [defaultMetadata={}] - default metadata that should be written for new docs
  */
 export default class Hypermerge extends EventEmitter {
-  constructor({
-    storage,
-    port = 0,
-    immutableApi = false,
-    defaultMetadata = {},
-  }) {
+  constructor({ storage, immutableApi = false, defaultMetadata = {} }) {
     super()
 
     this.immutableApi = immutableApi
     this.defaultMetadata = defaultMetadata
-    this.port = port
 
     this.isReady = false
     this.feeds = {}
@@ -138,50 +142,88 @@ export default class Hypermerge extends EventEmitter {
     })
   }
 
+  chromeJoinSwarm() {
+    const MDNS_PORT = 5307
+    const dgram = require("chrome-dgram")
+    const socket = dgram.createSocket("udp4")
+    const mdns = require("multicast-dns")
+
+    socket.setMulticastTTL(255)
+    socket.setMulticastLoopback(true)
+
+    chrome.system.network.getNetworkInterfaces(ifaces => {
+      socket.on("listening", () => {
+        for (let i = 0; i < ifaces.length; i++) {
+          if (ifaces[i].prefixLength == 24) {
+            socket.addMembership("224.0.0.251", ifaces[i].address)
+          }
+        }
+        const multicast = mdns({
+          socket,
+          bind: false,
+          port: MDNS_PORT,
+          multicast: false,
+        })
+        this.joinSwarm({
+          dht: false,
+          dns: { multicast },
+        })
+      })
+      socket.bind(MDNS_PORT)
+    })
+  }
+
   /**
    * Joins the network swarm for all documents managed by this Hypermerge instance.
    * Must be called after `'ready'` has been emitted. `opts` are passed to discovery-swarm.
    */
   joinSwarm(opts = {}) {
-    this._ensureReady()
-    log("joinSwarm")
+    if (opts.chrome === true) {
+      return this.chromeJoinSwarm()
+    }
+    return this.ready.then(() => {
+      log("joinSwarm")
 
-    this.swarm = discoverySwarm(
-      swarmDefaults(
-        Object.assign(
-          {
-            port: this.port,
-            hash: false,
-            encrypt: true,
-            stream: opts => this._replicate(opts),
-          },
-          opts,
-        ),
-      ),
-    )
+      if (opts.port == null) opts.port = 0
 
-    this.swarm.join(this.core.archiver.changes.discoveryKey)
+      let mergedOpts = Object.assign(
+        swarmDefaults(),
+        {
+          hash: false,
+          encrypt: true,
+          stream: opts => this.replicate(opts),
+        },
+        opts,
+      )
 
-    Object.values(this.feeds).forEach(feed => {
-      this.swarm.join(feed.discoveryKey)
+      // need a better deeper copy
+      mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
+
+      this.swarm = discoverySwarm(mergedOpts)
+
+      this.swarm.join(this.core.archiver.changes.discoveryKey)
+
+      Object.values(this.feeds).forEach(feed => {
+        this.swarm.join(feed.discoveryKey)
+      })
+
+      this.core.archiver.on("add", feed => {
+        this.swarm.join(feed.discoveryKey)
+      })
+
+      this.core.archiver.on("remove", feed => {
+        this.swarm.leave(feed.discoveryKey)
+      })
+
+      this.swarm.listen(opts.port)
+
+      this.swarm.once("error", err => {
+        log("joinSwarm.error", err)
+        this.swarm.listen(opts.port)
+      })
+
+      return this
     })
-
-    this.core.archiver.on("add", feed => {
-      this.swarm.join(feed.discoveryKey)
-    })
-
-    this.core.archiver.on("remove", feed => {
-      this.swarm.leave(feed.discoveryKey)
-    })
-
-    this.swarm.listen(this.port)
-
-    this.swarm.once("error", err => {
-      log("joinSwarm.error", err)
-      this.swarm.listen()
-    })
-
-    return this
   }
 
   /**
@@ -212,8 +254,10 @@ export default class Hypermerge extends EventEmitter {
     return this._actorToId(this._getActorId(doc))
   }
 
-  openHandle(docId) {
+  openHandle(_docId) {
     this._ensureReady()
+
+    const docId = cleanDocId(_docId)
 
     log("openHandle", docId)
 
@@ -350,7 +394,7 @@ export default class Hypermerge extends EventEmitter {
   delete(docId) {
     log("delete", docId)
     const doc = this.find(docId)
-    this.core.archiver.remove(docId)
+    this.core.archiver.remove(Base58.decode(docId))
     delete this.feeds[docId]
     delete this.docs[docId]
     return doc
@@ -372,6 +416,10 @@ export default class Hypermerge extends EventEmitter {
     return this.metaIndex[actorId]
   }
 
+  replicate(opts) {
+    return this.core.replicate(opts)
+  }
+
   /**
    * Send the given `msg`, which can be any JSON.stringify-able data, to all
    * peers currently listening on the feed for `actorId`.
@@ -391,7 +439,8 @@ export default class Hypermerge extends EventEmitter {
 
   _create(metadata, parentMetadata = {}) {
     const feed = this._trackedFeed()
-    const actorId = feed.key.toString("hex")
+    const actorId = Base58.encode(feed.key)
+
     log("_create", actorId)
 
     // Merge together the various sources of metadata, from lowest-priority to
@@ -449,7 +498,8 @@ export default class Hypermerge extends EventEmitter {
   // Finds or creates, and returns, a feed that is not yet tracked. See `feed`
   // for cases for `actorId`.
   _feed(actorId = null) {
-    const key = actorId ? Buffer.from(actorId, "hex") : null
+    const key = actorId ? Base58.decode(actorId) : null
+
     log("_feed", actorId)
     return this.core.createFeed(key)
   }
@@ -471,10 +521,6 @@ export default class Hypermerge extends EventEmitter {
 
     log("feed.init", actorId)
     return this._trackFeed(this._feed(actorId))
-  }
-
-  _replicate(opts) {
-    return this.core.replicate(opts)
   }
 
   // Append the given `metadata` for the given `actorId` to the corresponding
@@ -515,7 +561,8 @@ export default class Hypermerge extends EventEmitter {
   // setting up listeners for when peers are added/removed, data is
   // downloaded, etc.
   _trackFeed(feed) {
-    const actorId = feed.key.toString("hex")
+    const actorId = Base58.encode(feed.key)
+
     log("_trackFeed", actorId)
 
     this.feeds[actorId] = feed
@@ -557,6 +604,7 @@ export default class Hypermerge extends EventEmitter {
 
           this.readyIndex[docId] = true
           const doc = this.find(docId)
+          this.emit("document:ready", docId, doc)
           this._handles(docId).forEach(handle => {
             handle._ready(doc)
           })
@@ -800,7 +848,7 @@ export default class Hypermerge extends EventEmitter {
        *
        * @event document:updated
        *
-       * @param {string} docId - the hex id representing this document
+       * @param {string} docId - the base58 id representing this document
        * @param {Document} doc - Automerge document
        */
       this.emit("document:updated", docId, doc)
@@ -830,7 +878,7 @@ export default class Hypermerge extends EventEmitter {
     log("_onMulticoreReady")
 
     const actorIds = Object.values(this.core.archiver.feeds).map(feed =>
-      feed.key.toString("hex"),
+      Base58.encode(feed.key),
     )
 
     this._initFeeds(actorIds).then(() => {
@@ -940,3 +988,5 @@ export default class Hypermerge extends EventEmitter {
     }
   }
 }
+
+//module.exports = Hypermerge

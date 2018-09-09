@@ -38,11 +38,14 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   // Opens an initialized document at the given URL
-  static open<T>(url: string): Promise<Doc<T>> {
+  static open<T>(url: string, callback: Function): (newDoc: any) => void {
     const { type, id } = Link.parse(url)
     const widget = this.find(type) as WidgetClass<T>
-    const doc = this.store.open(id)
-    return doc.then(doc => Reify.reify(doc, widget.reify))
+    console.log("opening", id)
+    const replaceCallback = this.store.open(id, doc =>
+      callback(Reify.reify(doc, widget.reify)),
+    )
+    return replaceCallback
   }
 
   static register(type: string, component: WidgetClass<any>) {
