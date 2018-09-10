@@ -1,4 +1,4 @@
-export const DEFAULT_MAGNITUDE = 80
+export const DEFAULT_MAGNITUDE = 70
 export const DEFAULT_OFFSET_COORDINATES = { x: 0, y: 0 }
 
 export default function radialPosition(
