@@ -1,5 +1,5 @@
 const EventEmitter = require("events")
-const Automerge = require("automerge")
+const Backend = require("automerge/src/backend")
 const Multicore = require("./multicore")
 const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
@@ -57,19 +57,19 @@ class DocHandle {
     return null
   }
 
-  /* make a change to a document through the handle */
-  change(cb) {
-    const doc = this.hm.find(this.id)
-    this.hm.change(doc, cb)
-    return this.hm.find(this.id)
+  applyChanges(changes) {
+    const doc = this.get();
+    const [doc2, patch] = Backend.applyChanges(doc, changes, true)
+    this.hm.update(doc2)
+    return patch
   }
 
-  /* register the function you'd like called when the document is updated */
   onChange(cb) {
     this._cb = cb
     if (this.hm.readyIndex[this.id]) {
       const doc = this.hm.find(this.id)
-      cb(doc)
+      const patch = Backend.getChanges(Backend.init(), doc)
+      cb(patch)
     }
     return this
   }
@@ -80,7 +80,6 @@ class DocHandle {
     }
   }
 
-  /* register the function you'd like called when you receive a message from a peer */
   onMessage(cb) {
     this._messageCb = cb
     return this
@@ -96,12 +95,16 @@ class DocHandle {
     }
   }
 
-  _update(doc) {
-    this._cb(doc)
+  _update(newDoc) {
+    const patch = Backend.getChanges(this._doc, newDoc)
+    this._doc = newDoc
+    this._cb(patch)
   }
 
   _ready(doc) {
-    this._cb(doc)
+    const patch = Backend.getChanges(Backend.init(), doc)
+    this._doc = doc;
+    this._cb(patch)
   }
 }
 
@@ -110,14 +113,12 @@ class DocHandle {
  * All previously opened documents are automatically re-opened.
  * @param {object} options
  * @param {object} options.storage - config compatible with Hypercore constructor storage param
- * @param {boolean} [options.immutableApi=false] - whether to use Immutable.js Automerge API
  * @param {object} [defaultMetadata={}] - default metadata that should be written for new docs
  */
 export default class Hypermerge extends EventEmitter {
-  constructor({ storage, immutableApi = false, defaultMetadata = {} }) {
+  constructor({ storage, defaultMetadata = {} }) {
     super()
 
-    this.immutableApi = immutableApi
     this.defaultMetadata = defaultMetadata
 
     this.isReady = false
@@ -305,11 +306,14 @@ export default class Hypermerge extends EventEmitter {
   /**
    * Shorthand for `hm.update(Automerge.change(doc, changeFn))`.
    */
+
+/*
   change(doc, message = null, changeFn) {
     const docId = this.getId(doc)
     log("change", docId)
     return this.update(Automerge.change(doc, message, changeFn))
   }
+*/
 
   /**
    * Finds any new changes for the submitted doc for the actor,
@@ -325,7 +329,7 @@ export default class Hypermerge extends EventEmitter {
     const pDoc = this.find(docId)
     log("update", docId, actorId)
 
-    const changes = Automerge.getChanges(pDoc, doc).filter(
+    const changes = Backend.getChanges(pDoc, doc).filter(
       ({ actor }) => actor === actorId,
     )
 
@@ -355,7 +359,7 @@ export default class Hypermerge extends EventEmitter {
     const doc = this._create({ parentId }, this.metadata(parentId))
 
     return this.change(
-      Automerge.merge(doc, parent),
+      Backend.merge(doc, parent),
       `Forked from ${parentId}`,
       () => {},
     )
@@ -379,7 +383,7 @@ export default class Hypermerge extends EventEmitter {
     const source = this.find(sourceId)
 
     return this.change(
-      Automerge.merge(dest, source),
+      Backend.merge(dest, source),
       `Merged with ${sourceId}`,
       () => {},
     )
@@ -473,9 +477,7 @@ export default class Hypermerge extends EventEmitter {
   // Returns an empty Automerge document with the given `actorId`. Used as the
   // starting point for building up an in-memory doc for this process.
   _empty(actorId) {
-    return this.immutableApi
-      ? Automerge.initImmutable(actorId)
-      : Automerge.init(actorId)
+    return Backend.init(actorId)
   }
 
   // Returns true if the given `actorId` corresponds to a doc with a matching id.
@@ -739,7 +741,7 @@ export default class Hypermerge extends EventEmitter {
     log("_loadMissingDependencyBlocks", docId)
 
     const doc = this.find(docId)
-    const deps = Automerge.getMissingDeps(doc)
+    const deps = Backend.getMissingDeps(doc)
     return Promise.all(
       Object.keys(deps).map(actorId => {
         const last = deps[actorId] + 1 // last is exclusive
@@ -800,7 +802,7 @@ export default class Hypermerge extends EventEmitter {
           this.appliedSeqs[change.actor][change.seq] = true
         }
       })
-      const newDoc = Automerge.applyChanges(oldDoc, filteredChanges)
+      const [newDoc, patches] = Backend.applyChanges(oldDoc, filteredChanges)
       this._setRemote(docId, newDoc)
     }
   }

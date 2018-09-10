@@ -1,6 +1,9 @@
 import Hypermerge from "../hypermerge"
 let racf = require("random-access-chrome-file")
 
+const Debug = require("debug")
+const log = Debug("store:coms")
+
 export default class StoreComms {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any }
@@ -15,18 +18,18 @@ export default class StoreComms {
 
   onConnect = (port: chrome.runtime.Port) => {
     const docId = port.name
+    log("connect",docId);
     let handle = this.hypermerge.openHandle(docId)
 
-    port.onMessage.addListener((newDoc: any) => {
-      handle.change((oldDoc: any) => {
-        for (let key in newDoc) {
-          oldDoc[key] = newDoc[key] as any
-        }
-      })
+    port.onMessage.addListener((changes: any) => {
+      let patch = handle.applyChanges(changes)
+      log("applyChanges",changes,patch);
+      port.postMessage(patch)
     })
 
-    handle.onChange((doc: any) => {
-      port.postMessage(doc)
+    handle.onChange((patch: any) => {
+      log("patch",patch);
+      port.postMessage(patch)
     })
   }
 

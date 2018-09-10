@@ -1,4 +1,6 @@
-import { Doc, AnyDoc, ChangeFn } from "automerge"
+//import { Doc, AnyDoc, ChangeFn } from "automerge"
+import { init, getRequests, applyPatch, Doc, AnyDoc, ChangeFn } from "automerge/src/frontend"
+///import Frontend from "automerge/src/frontend"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 
@@ -7,10 +9,19 @@ export default class Store {
     id: string,
     receiveChangeCallback: (message: any, port: chrome.runtime.Port) => void,
   ): (newDoc: any) => void {
+
+    let doc = init()
+
     var port = chrome.runtime.connect({ name: id })
-    port.onMessage.addListener(receiveChangeCallback)
+    port.onMessage.addListener((patch) => {
+      doc = applyPatch(doc,patch)
+      receiveChangeCallback(doc, port)
+    })
+    // i wish this was passing me a change funciton instead
     const sendChangeCallback = (newDoc: any) => {
-      port.postMessage(newDoc)
+      let requests = getRequests(doc)
+      doc = newDoc;
+      port.postMessage(requests)
     }
     return sendChangeCallback
   }
