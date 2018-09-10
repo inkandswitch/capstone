@@ -4,6 +4,7 @@ declare global {
   interface Window {
     Content: typeof Content
     visualViewport: VisualViewport
+    requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
   }
 
   interface VisualViewport extends EventTarget {

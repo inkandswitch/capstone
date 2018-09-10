@@ -1,14 +1,35 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
+import * as Link from "../data/Link"
 import * as Reify from "../data/Reify"
 import { AnyDoc } from "automerge"
-import Content from "./Content"
+import Content, {
+  DocumentActor,
+  FullyFormedMessage,
+  DocumentCreated,
+} from "./Content"
 import Touch, { TouchEvent } from "./Touch"
 
 export interface Model {
   backUrls: string[]
   currentUrl: string
   archiveUrl: string
+}
+
+type InMessage = FullyFormedMessage & (DocumentCreated)
+type OutMessage = DocumentCreated
+
+class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
+  async onMessage(message: InMessage) {
+    switch (message.type) {
+      case "DocumentCreated": {
+        if (message.from !== this.doc.archiveUrl) {
+          this.emit({ ...message, to: this.doc.archiveUrl })
+        }
+        break
+      }
+    }
+  }
 }
 
 class Workspace extends Preact.Component<Widget.Props<Model>> {
@@ -76,8 +97,6 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
   }
 }
 
-export default Widget.create("Workspace", Workspace, Workspace.reify)
-
 const style = {
   Workspace: {
     position: "absolute",
@@ -87,3 +106,10 @@ const style = {
     right: 0,
   },
 }
+
+export default Widget.create(
+  "Workspace",
+  Workspace,
+  Workspace.reify,
+  WorkspaceActor,
+)

@@ -1,13 +1,38 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
-import { AnyDoc } from "automerge"
+import { AnyDoc, Doc } from "automerge"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
+import Content, {
+  DocumentActor,
+  DocumentCreated,
+  FullyFormedMessage,
+} from "./Content"
 
 export interface Model {
   docs: Array<{
     url: string
   }>
+}
+
+type InMessage = FullyFormedMessage & (DocumentCreated)
+
+export class ArchiveActor extends DocumentActor<Model, InMessage> {
+  async onMessage(message: InMessage) {
+    switch (message.type) {
+      case "DocumentCreated": {
+        this.change((doc: Doc<Model>) => {
+          doc.docs.unshift({ url: message.body })
+          return doc
+        })
+        break
+      }
+      default: {
+        console.log("Unknown message type")
+      }
+    }
+  }
 }
 
 export interface Props extends Widget.Props<Model> {
@@ -56,14 +81,13 @@ const style = {
   },
 
   Items: {
-    display: "flex",
-    height: 200,
-    alignItems: "center", // TODO: "stretch" is better for vert images
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, 200px)",
+    gridGap: "10px",
+    width: "100%",
     color: "#333",
-    overflow: "auto",
-    maxWidth: "100%",
     padding: 40,
   },
 }
 
-export default Widget.create("Archive", Archive, Archive.reify)
+export default Widget.create("Archive", Archive, Archive.reify, ArchiveActor)
