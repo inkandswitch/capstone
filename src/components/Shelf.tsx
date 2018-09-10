@@ -78,7 +78,6 @@ class Shelf extends Preact.Component<Widget.Props<Model>> {
         {selectedUrls.map((url, idx) => (
           <ShelfCard key={idx} url={url} index={idx} />
         ))}
-        <div style={style.Count}>{count}</div>
       </div>
     )
   }
@@ -96,22 +95,6 @@ const style = {
     width: 300,
     backgroundColor: "#7B7E8E",
     zIndex: 2,
-  },
-
-  Count: {
-    position: "absolute",
-    top: 175,
-    left: 135,
-    transform: "translate(-50%, -50%)",
-    borderRadius: 99,
-    backgroundColor: "rgba(215, 105, 250, 0.9)",
-    color: "white",
-    fontSize: 20,
-    display: "flex",
-    placeContent: "center",
-    alignItems: "center",
-    minHeight: 40,
-    minWidth: 40,
   },
 }
 
