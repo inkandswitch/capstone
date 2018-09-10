@@ -3,6 +3,7 @@ import * as Link from "../data/Link"
 import { AnyDoc, Doc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
+import { once } from "lodash"
 
 export interface WidgetProps<T> {
   url: string
@@ -66,27 +67,29 @@ export class DocumentActor<
   url: string
   docId: string
   doc: Doc<T>
+  change: Function
 
   static receive(message: FullyFormedMessage) {
-    const { id } = Link.parse(message.to)
-    Content.getDoc(message.to).then(doc => {
-      const actor = new this(message.to, id, doc)
+    const onDocumentReady = (doc: Doc<any>) => {
+      const { id } = Link.parse(message.to)
+      const actor = new this(message.to, id, doc, changeFn)
       actor.onMessage(message)
-    })
+    }
+    // TODO: this will leave a noop receiveChangeCallback attached
+    // to the port.
+    const changeFn = Content.open(message.to, once(onDocumentReady))
   }
 
-  constructor(url: string, docId: string, doc: Doc<T>) {
+  constructor(url: string, docId: string, doc: Doc<T>, changeFn: Function) {
     this.url = url
     this.docId = docId
     this.doc = doc
+    // Recreate previous change interface.
+    this.change = (cb: Function) => changeFn(cb(this.doc))
   }
 
   create(type: string) {
     return Content.create(type)
-  }
-
-  change(cb: ChangeFn<T>) {
-    return Content.change<T>(this.url, this.doc, "", cb)
   }
 
   emit(message: O) {
@@ -125,49 +128,43 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   // Opens an initialized document at the given URL
-  static open<T>(url: string): Promise<Doc<T>> {
+  static open<T>(url: string, callback: Function): (newDoc: any) => void {
     const { type, id } = Link.parse(url)
     const widget = this.find(type) as WidgetClass<T>
-    const doc = this.store.open(id)
-    return doc.then(doc => {
-      const reified = Reify.reify(doc, widget.reify)
-      Content.setCache(url, reified)
-      return reified
-    })
+    const replaceCallback = this.store.open(id, doc =>
+      callback(Reify.reify(doc, widget.reify)),
+    )
+    return replaceCallback
   }
 
-  static change<T>(url: string, doc: Doc<T>, msg: string, cb: ChangeFn<T>) {
-    const { id } = Link.parse(url)
-    Content.store.change(id, doc, "", cb).then(doc => {
-      Content.setCache(url, doc)
-      const updateListener = Content.documentUpdateListeners[id]
-      updateListener && updateListener(doc)
-    })
-  }
-
-  static getDoc<T>(url: string): Promise<Doc<T>> {
+  /*
+  static getDoc<T>(url: string): Promise<{doc: Doc<T>, change: Function}> {
     let doc = Content.readCache<T>(url)
     if (doc) {
       return Promise.resolve(doc)
     } else {
+      Content.open(url)
       return Content.open(url)
     }
   }
+  */
 
   // Unbounded Document Caching
   // ===========================
   // XXX: Documents are currently mutated, so we don't need to
   // think to much about stale cache entries. That will change
   // once we have proper backend/frontend communication.
-  static readCache<T>(url: string): Doc<T> | undefined {
+  static readCache<T>(
+    url: string,
+  ): { doc: Doc<T>; change: Function } | undefined {
     const { id } = Link.parse(url)
     const doc = Content.documentCache[id]
     return doc
   }
 
-  static setCache<T>(url: string, doc: Doc<T>) {
+  static setCache<T>(url: string, doc: Doc<T>, change: Function) {
     const { id } = Link.parse(url)
-    Content.documentCache[id] = doc
+    Content.documentCache[id] = { doc, change }
   }
 
   static unsetCache(url: string) {

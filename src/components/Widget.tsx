@@ -30,25 +30,31 @@ export function create<T, M extends Message = never>(
   const WidgetClass = class extends Preact.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
+    replaceDoc: (newDoc: any) => void
 
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
-      Content.open<T>(props.url).then(doc => {
+      this.replaceDoc = Content.open<T>(props.url, (doc: any) => {
         this.setState({ doc })
       })
     }
 
+    /*
     componentDidMount() {
       Content.addDocumentUpdateListener(this.props.url, (doc: Doc<T>) => {
         this.setState({ doc })
       })
     }
+    */
 
+    // TODO: how to remove listener?
+    /*
     componentWillUnmount() {
       Content.removeDocumentUpdateListener(this.props.url)
       // TODO: Remove this once using an LRU.
       Content.unsetCache(this.props.url)
     }
+    */
 
     emit = (message: M) => {
       Content.send(
@@ -65,7 +71,7 @@ export function create<T, M extends Message = never>(
         throw new Error("Cannot call change before the document has loaded.")
       }
 
-      Content.change(this.props.url, this.state.doc, "", cb)
+      this.replaceDoc(cb(this.state.doc))
     }
 
     render() {
