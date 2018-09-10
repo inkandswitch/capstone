@@ -1,6 +1,5 @@
 import * as Preact from "preact"
 import Content from "./Content"
-import Touch from "./Touch"
 import StrokeRecognizer from "./StrokeRecognizer"
 
 interface ArchiveItemProps {
@@ -14,12 +13,10 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
     const { url, isSelected } = this.props
     return (
       <StrokeRecognizer onStroke={this.onStroke} only={["uparrow"]}>
-        <div
-          style={{
-            ...style.Item,
-            ...(isSelected ? style.Item_selected : {}),
-          }}>
-          <Content mode="preview" url={url} />
+        <div style={style.Item}>
+          <div style={style.ItemContent}>
+            <Content mode="preview" url={url} />
+          </div>
         </div>
       </StrokeRecognizer>
     )
@@ -36,8 +33,9 @@ const style = {
     overflow: "hidden",
     height: 200,
   },
-
-  Item_selected: {
-    boxShadow: "0 0 0 2px #D769FA",
+  ItemContent: {
+    background: "#fff",
+    overflow: "hidden",
+    maxHeight: "100%'",
   },
 }
