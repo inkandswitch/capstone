@@ -86,14 +86,13 @@ class Shelf extends Preact.Component<Widget.Props<Model>> {
 const style = {
   Shelf: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
-    margin: -50,
+    bottom: -100,
+    right: -70,
     boxSizing: "border-box",
     borderRadius: 9999,
     height: 300,
     width: 300,
-    backgroundColor: "#7B7E8E",
+    backgroundColor: "#474747",
     zIndex: 2,
   },
 }

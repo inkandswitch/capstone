@@ -98,9 +98,7 @@ class Archive extends Preact.Component<Props> {
 
 const style = {
   Archive: {
-    backgroundColor: "rgba(97, 101, 117, 0.9)",
-    boxShadow: "0 0 20px rgba(0,0,0,0.3)",
-    color: "#fff",
+    backgroundColor: "#353535",
     position: "absolute",
     top: 0,
     left: 0,
@@ -116,8 +114,7 @@ const style = {
     gridAutoRows: "1fr",
     gridGap: "10px",
     width: "100%",
-    color: "#333",
-    padding: 40,
+    padding: 30,
   },
 }
 

@@ -6,12 +6,22 @@ interface Props {
   index: number
 }
 
+function radialPosition(
+  index: number,
+  offsetCoordinate: { x: number; y: number },
+  magnitude: number,
+) {
+  return {
+    x: Math.sin(index * Math.E) * magnitude + offsetCoordinate.x,
+    y: Math.cos(index * Math.E) * magnitude + offsetCoordinate.y,
+  }
+}
+
 export default class ShelfCard extends Preact.Component<Props> {
   render() {
     const { url, index } = this.props
 
-    const x = Math.sin(index * Math.E) * 40 + 135
-    const y = Math.cos(index * Math.E) * 40 + 175
+    const { x, y } = radialPosition(index, { x: 120, y: 120 }, 35)
 
     return (
       <div
