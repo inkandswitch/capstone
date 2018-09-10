@@ -1,9 +1,8 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
 import Content from "./Content"
-import { Doc, AnyDoc, AnyEditDoc } from "automerge"
+import { AnyDoc, AnyEditDoc } from "automerge"
 
 interface Model {
   docs: Array<{
@@ -38,7 +37,6 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
         onDragOver={this.onDragOver}
         onDragLeave={this.onDragLeave}
         onDrop={this.onDrop}>
-        <Content mode="fullscreen" url={this.props.url} />
         <div
           style={{
             ...style.DropStatus,
