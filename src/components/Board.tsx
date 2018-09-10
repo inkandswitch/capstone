@@ -76,9 +76,6 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         break
       }
       case "ShelfContents": {
-        // TODO: x,y coordinates. Can't measure the board from here - leave empty and have the widget
-        // handle missing x, y coordinates. If using `emit` to set x,y coordinates, this will mean
-        // multiple round trips to set initial coordinates.
         const { urls, placementPosition } = message.body
         this.change(doc => {
           urls.forEach((url, index) => {
