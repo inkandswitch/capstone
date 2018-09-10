@@ -4,7 +4,6 @@ import Content from "./Content"
 interface Props {
   url: string
   index: number
-  onTap: (url: string) => void
 }
 
 export default class ShelfCard extends Preact.Component<Props> {
@@ -19,15 +18,10 @@ export default class ShelfCard extends Preact.Component<Props> {
         style={{
           ...style.ShelfCard,
           transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(0.5) `,
-        }}
-        onClick={this.tap}>
+        }}>
         <Content mode="preview" url={url} />
       </div>
     )
-  }
-
-  tap = () => {
-    this.props.onTap(this.props.url)
   }
 }
 

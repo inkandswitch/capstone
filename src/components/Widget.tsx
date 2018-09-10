@@ -39,23 +39,6 @@ export function create<T, M extends Message = never>(
       })
     }
 
-    /*
-    componentDidMount() {
-      Content.addDocumentUpdateListener(this.props.url, (doc: Doc<T>) => {
-        this.setState({ doc })
-      })
-    }
-    */
-
-    // TODO: how to remove listener?
-    /*
-    componentWillUnmount() {
-      Content.removeDocumentUpdateListener(this.props.url)
-      // TODO: Remove this once using an LRU.
-      Content.unsetCache(this.props.url)
-    }
-    */
-
     emit = (message: M) => {
       Content.send(
         Object.assign({ to: this.props.url }, message, {
