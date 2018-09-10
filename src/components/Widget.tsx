@@ -1,6 +1,7 @@
 import * as Preact from "preact"
-import { Doc, AnyDoc, ChangeFn } from "automerge"
+import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/src/frontend"
 import Content, { WidgetProps, Message, MessageHandler, Mode } from "./Content"
+
 
 export interface Props<T, M = never> {
   doc: Doc<T>
@@ -30,11 +31,16 @@ export function create<T, M extends Message = never>(
   const WidgetClass = class extends Preact.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
-    replaceDoc: (newDoc: any) => void
+    requestChanges: (ChangeFn: any) => void
 
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
-      this.replaceDoc = Content.open<T>(props.url, (doc: any) => {
+      this.requestChanges = Content.open<T>(props.url, (doc: any) => {
+        if (getRequests(doc).length == 0) {
+          console.log("AUTHORITIVE STATE", doc)
+        } else {
+          console.log("OPTIMISTIC STATE", doc)
+        }
         this.setState({ doc })
       })
     }
@@ -54,7 +60,7 @@ export function create<T, M extends Message = never>(
         throw new Error("Cannot call change before the document has loaded.")
       }
 
-      this.replaceDoc(cb(this.state.doc))
+      this.requestChanges(cb)
     }
 
     render() {

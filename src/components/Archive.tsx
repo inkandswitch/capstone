@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
-import { AnyDoc, Doc } from "automerge"
+import { AnyDoc, Doc } from "automerge/src/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"

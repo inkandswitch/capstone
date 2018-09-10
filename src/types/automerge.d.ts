@@ -1,3 +1,4 @@
+/*
 declare module "automerge" {
   function init(actorId?: string): Doc<{}>
 
@@ -61,6 +62,7 @@ declare module "automerge" {
     (doc: Doc<T>): Doc<T>
   }
 }
+*/
 
 declare module "automerge/src/frontend" {
   function init(actorId?: string): Doc<{}>

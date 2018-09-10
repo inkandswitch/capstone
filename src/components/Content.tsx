@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Link from "../data/Link"
-import { AnyDoc, Doc, ChangeFn } from "automerge"
+import { AnyDoc, Doc, ChangeFn } from "automerge/src/frontend"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"
@@ -224,6 +224,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   render() {
+    console.log("RENDER", this.props);
     const { type } = Link.parse(this.props.url)
     let Widget
     try {

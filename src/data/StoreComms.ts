@@ -22,12 +22,12 @@ export default class StoreComms {
     let handle = this.hypermerge.openHandle(docId)
 
     port.onMessage.addListener((changes: any) => {
-      let patch = handle.applyChanges(changes)
-      log("applyChanges",changes,patch);
-      port.postMessage(patch)
+      handle.applyChanges(changes)
+      log("applyChanges",changes);
+      //port.postMessage(patch)
     })
 
-    handle.onChange((patch: any) => {
+    handle.onPatch((patch: any) => {
       log("patch",patch);
       port.postMessage(patch)
     })

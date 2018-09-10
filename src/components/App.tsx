@@ -65,6 +65,7 @@ export default class App extends Preact.Component<{}, State> {
   }
   render() {
     const { url } = this.state
+    console.log("APP RENDER",url)
     if (!url) {
       return null
     }
