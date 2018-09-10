@@ -1,3 +1,4 @@
+process.hrtime = require("browser-process-hrtime")
 import StoreComms from "../../data/StoreComms"
 
 chrome.app.runtime.onLaunched.addListener(() => {
