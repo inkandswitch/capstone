@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import Content from "./Content"
-import radialPosition from "../logic/radialPosition"
+import radialPosition, { DEFAULT_MAGNITUDE } from "../logic/radialPosition"
 
 interface Props {
   url: string
@@ -11,7 +11,11 @@ export default class ShelfCard extends Preact.Component<Props> {
   render() {
     const { url, index } = this.props
 
-    const { x, y } = radialPosition(index, { x: 120, y: 120 }, 35)
+    const { x, y } = radialPosition(
+      index,
+      { x: 130, y: 105 },
+      DEFAULT_MAGNITUDE / 2,
+    )
 
     return (
       <div

@@ -47,7 +47,7 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
       case "ShelfContentsRequested": {
         this.emit({
           type: "SendShelfContents",
-          body: { recipientUrl: message.from },
+          body: { recipientUrl: message.from, ...message.body },
           to: this.doc.shelfUrl,
         })
         this.emit({ type: "ClearSelection", to: this.doc.archiveUrl })

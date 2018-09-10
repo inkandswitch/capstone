@@ -1,4 +1,5 @@
 import * as Preact from "preact"
+import { clamp } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -14,7 +15,7 @@ import * as Link from "../data/Link"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_WIDTH } from "./Card"
-import { clamp } from "lodash"
+import radialPosition from "../logic/radialPosition"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
 
@@ -72,26 +73,30 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         break
       }
       case "ShelfContentsRequested": {
-        this.emit({ type: "ShelfContentsRequested" })
+        this.emit({ type: "ShelfContentsRequested", body: message.body })
         break
       }
       case "ShelfContents": {
         // TODO: x,y coordinates. Can't measure the board from here - leave empty and have the widget
         // handle missing x, y coordinates. If using `emit` to set x,y coordinates, this will mean
         // multiple round trips to set initial coordinates.
-        const { urls } = message.body
+        const { urls, atPosition = { x: 0, y: 0 } } = message.body
         this.change(doc => {
-          for (let url of urls) {
+          urls.forEach((url, index) => {
+            const position = radialPosition(index, atPosition as {
+              x: number
+              y: number
+            })
             const card = {
               id: UUID.create(),
-              x: 50,
-              y: 50,
+              x: position.x,
+              y: position.y,
               z: ++doc.topZ,
               isFocused: false,
               url,
             }
             doc.cards[card.id] = card
-          }
+          })
           return doc
         })
         break
@@ -252,7 +257,15 @@ class Board extends Preact.Component<Props> {
         this.createCard("Text", stroke.center.x, stroke.bounds.top)
         break
       case "downarrow":
-        this.props.emit({ type: "ShelfContentsRequested" })
+        this.props.emit({
+          type: "ShelfContentsRequested",
+          body: {
+            atPosition: {
+              x: stroke.center.x - CARD_WIDTH / 2,
+              y: stroke.bounds.top,
+            },
+          },
+        })
         break
     }
   }
