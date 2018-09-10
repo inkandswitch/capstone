@@ -14,7 +14,7 @@ import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_WIDTH } from "./Card"
-import radialPosition from "../logic/radialPosition"
+import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
 
@@ -79,7 +79,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const { urls, placementPosition } = message.body
         this.change(doc => {
           urls.forEach((url, index) => {
-            const position = radialPosition(index, placementPosition)
+            const position = Position.radial(index, placementPosition)
             const card = {
               id: UUID.create(),
               x: position.x,
