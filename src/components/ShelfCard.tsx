@@ -1,27 +1,21 @@
 import * as Preact from "preact"
 import Content from "./Content"
+import * as Position from "../logic/Position"
 
 interface Props {
   url: string
   index: number
 }
 
-function radialPosition(
-  index: number,
-  offsetCoordinate: { x: number; y: number },
-  magnitude: number,
-) {
-  return {
-    x: Math.sin(index * Math.E) * magnitude + offsetCoordinate.x,
-    y: Math.cos(index * Math.E) * magnitude + offsetCoordinate.y,
-  }
-}
-
 export default class ShelfCard extends Preact.Component<Props> {
   render() {
     const { url, index } = this.props
 
-    const { x, y } = radialPosition(index, { x: 120, y: 120 }, 35)
+    const { x, y } = Position.radial(
+      index,
+      { x: 130, y: 105 },
+      Position.RADIAL_DEFAULT_MAGNITUDE / 2,
+    )
 
     return (
       <div

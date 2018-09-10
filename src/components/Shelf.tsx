@@ -16,16 +16,17 @@ export interface AddToShelf extends Message {
 
 export interface ShelfContentsRequested extends Message {
   type: "ShelfContentsRequested"
+  body: { placementPosition: Point }
 }
 
 export interface SendShelfContents extends Message {
   type: "SendShelfContents"
-  body: { recipientUrl: string }
+  body: { recipientUrl: string; placementPosition: Point }
 }
 
 export interface ShelfContents extends Message {
   type: "ShelfContents"
-  body: { urls: string[] }
+  body: { urls: string[]; placementPosition: Point }
 }
 
 type InboundMessage = FullyFormedMessage<AddToShelf | SendShelfContents>
@@ -43,10 +44,11 @@ class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
       }
       case "SendShelfContents": {
         const selectedUrls = this.doc.selectedUrls
+        const { recipientUrl, ...rest } = message.body
         this.emit({
-          to: message.body.recipientUrl,
+          to: recipientUrl,
           type: "ShelfContents",
-          body: { urls: selectedUrls },
+          body: { urls: selectedUrls, ...rest },
         })
         this.change(doc => {
           doc.selectedUrls = []
