@@ -146,56 +146,6 @@ export default class Content extends Preact.Component<Props & unknown> {
     return replaceCallback
   }
 
-  /*
-  static getDoc<T>(url: string): Promise<{doc: Doc<T>, change: Function}> {
-    let doc = Content.readCache<T>(url)
-    if (doc) {
-      return Promise.resolve(doc)
-    } else {
-      Content.open(url)
-      return Content.open(url)
-    }
-  }
-  */
-
-  // Unbounded Document Caching
-  // ===========================
-  // XXX: Documents are currently mutated, so we don't need to
-  // think to much about stale cache entries. That will change
-  // once we have proper backend/frontend communication.
-  static readCache<T>(
-    url: string,
-  ): { doc: Doc<T>; change: Function } | undefined {
-    const { id } = Link.parse(url)
-    const doc = Content.documentCache[id]
-    return doc
-  }
-
-  static setCache<T>(url: string, doc: Doc<T>, change: Function) {
-    const { id } = Link.parse(url)
-    Content.documentCache[id] = { doc, change }
-  }
-
-  static unsetCache(url: string) {
-    const { id } = Link.parse(url)
-    delete Content.documentCache[id]
-  }
-
-  // Document Update Listeners
-  // ===========================
-  static addDocumentUpdateListener(
-    url: string,
-    cb: DocumentUpdateListener<any>,
-  ) {
-    const { id } = Link.parse(url)
-    Content.documentUpdateListeners[id] = cb
-  }
-
-  static removeDocumentUpdateListener(url: string) {
-    const { id } = Link.parse(url)
-    delete Content.documentUpdateListeners[id]
-  }
-
   static registerWidget(type: string, component: WidgetClass<any>) {
     this.widgetRegistry[type] = component
   }
