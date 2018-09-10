@@ -2,13 +2,59 @@ import * as Preact from "preact"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import { AnyDoc } from "automerge"
-import Content from "./Content"
+import Content, {
+  DocumentActor,
+  FullyFormedMessage,
+  DocumentCreated,
+} from "./Content"
 import Touch, { TouchEvent } from "./Touch"
+import { DocumentSelected, ClearSelection } from "./Archive"
+import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 
 export interface Model {
   backUrls: string[]
   currentUrl: string
   archiveUrl: string
+  shelfUrl: string
+}
+
+type InMessage = FullyFormedMessage<
+  DocumentCreated | DocumentSelected | ShelfContentsRequested
+>
+type OutMessage =
+  | DocumentCreated
+  | AddToShelf
+  | SendShelfContents
+  | ClearSelection
+
+class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
+  async onMessage(message: InMessage) {
+    switch (message.type) {
+      case "DocumentCreated": {
+        if (message.from !== this.doc.archiveUrl) {
+          this.emit({ ...message, to: this.doc.archiveUrl })
+        }
+        break
+      }
+      case "DocumentSelected": {
+        this.emit({
+          type: "AddToShelf",
+          body: message.body,
+          to: this.doc.shelfUrl,
+        })
+        break
+      }
+      case "ShelfContentsRequested": {
+        this.emit({
+          type: "SendShelfContents",
+          body: { recipientUrl: message.from },
+          to: this.doc.shelfUrl,
+        })
+        this.emit({ type: "ClearSelection", to: this.doc.archiveUrl })
+        break
+      }
+    }
+  }
 }
 
 class Workspace extends Preact.Component<Widget.Props<Model>> {
@@ -17,6 +63,7 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
       currentUrl: Reify.link(doc.currentUrl),
       backUrls: Reify.array(doc.backUrls),
       archiveUrl: Reify.link(doc.archiveUrl),
+      shelfUrl: Reify.link(doc.shelfUrl),
     }
   }
 
@@ -28,6 +75,7 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         onThreeFingerSwipeUp={this.onThreeFingerSwipeUp}
         onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
+          <Content mode="embed" url={this.props.doc.shelfUrl} />
           <Content
             mode={this.props.mode}
             url={currentUrl}
@@ -76,8 +124,6 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
   }
 }
 
-export default Widget.create("Workspace", Workspace, Workspace.reify)
-
 const style = {
   Workspace: {
     position: "absolute",
@@ -87,3 +133,10 @@ const style = {
     right: 0,
   },
 }
+
+export default Widget.create(
+  "Workspace",
+  Workspace,
+  Workspace.reify,
+  WorkspaceActor,
+)

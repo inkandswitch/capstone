@@ -1,48 +1,40 @@
 import * as Preact from "preact"
-import Content, { Mode } from "./Content"
+import Content from "./Content"
 import Touch from "./Touch"
+import StrokeRecognizer from "./StrokeRecognizer"
 
 interface ArchiveItemProps {
   url: string
   isSelected: boolean
-  onTap: (url: string) => void
+  onStroke: (url: string) => void
 }
 
 export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
   render() {
     const { url, isSelected } = this.props
     return (
-      <Touch onTap={this.onTap}>
+      <StrokeRecognizer onStroke={this.onStroke} only={["uparrow"]}>
         <div
-          style={{ ...style.Item, ...(isSelected ? style.Item_selected : {}) }}
-          draggable
-          onDragStart={this.dragStart}>
+          style={{
+            ...style.Item,
+            ...(isSelected ? style.Item_selected : {}),
+          }}>
           <Content mode="preview" url={url} />
         </div>
-      </Touch>
+      </StrokeRecognizer>
     )
   }
 
-  onTap = () => {
-    this.props.onTap(this.props.url)
-  }
-
-  dragStart = (event: DragEvent) => {
-    const { url } = this.props
-    event.dataTransfer.effectAllowed = "link"
-    event.dataTransfer.setData("application/capstone-url", url)
+  onStroke = () => {
+    this.props.onStroke(this.props.url)
   }
 }
 
 const style = {
   Item: {
-    marginRight: 10,
-    maxHeight: "100%",
-    maxWidth: 200,
-    minWidth: 150,
     position: "relative",
-    backgroundColor: "#fff",
     overflow: "hidden",
+    height: 200,
   },
 
   Item_selected: {

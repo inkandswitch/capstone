@@ -1,52 +1,50 @@
 import * as Preact from "preact"
 import { Doc, AnyDoc, ChangeFn } from "automerge"
-import Store from "../data/Store"
-import * as Link from "../data/Link"
-import Content, { WidgetClass, Mode } from "./Content"
+import Content, { WidgetProps, Message, MessageHandler, Mode } from "./Content"
 
-interface WidgetProps {
+export interface Props<T, M = never> {
+  doc: Doc<T>
   url: string
   mode: Mode
-  store: Store
+  emit: (message: M) => void
+  change: (cb: ChangeFn<T>) => void
 }
 
 interface State<T> {
   doc?: Doc<T>
 }
 
-export interface Props<T> {
-  doc: Doc<T>
-  url: string
-  mode: Mode
-  change: (cb: ChangeFn<T>) => void
-}
-
 // TODO: This is necessary to avoid Typescript warning, must be a better way.
-interface WrappedComponent<T> extends Preact.Component<Props<T>, any> {}
-type WrappedComponentClass<T> = {
-  new (...k: any[]): WrappedComponent<T>
+interface WrappedComponent<T, M = never>
+  extends Preact.Component<Props<T, M>, any> {}
+type WrappedComponentClass<T, M = never> = {
+  new (...k: any[]): WrappedComponent<T, M>
 }
 
-function register(type: string, Component: WidgetClass<any>) {
-  Content.register(type, Component)
-  return Component
-}
-
-export function create<T>(
+export function create<T, M extends Message = never>(
   type: string,
-  WrappedComponent: WrappedComponentClass<T>,
+  WrappedComponent: WrappedComponentClass<T, M>,
   reify: (doc: AnyDoc) => T,
+  messageHandler?: MessageHandler,
 ) {
-  const WidgetClass = class extends Preact.Component<WidgetProps, State<T>> {
+  const WidgetClass = class extends Preact.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
     replaceDoc: (newDoc: any) => void
 
-    constructor(props: WidgetProps, ctx: any) {
+    constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
       this.replaceDoc = Content.open<T>(props.url, (doc: any) => {
         this.setState({ doc })
       })
+    }
+
+    emit = (message: M) => {
+      Content.send(
+        Object.assign({ to: this.props.url }, message, {
+          from: this.props.url,
+        }),
+      )
     }
 
     change = (cb: ChangeFn<T>) => {
@@ -56,7 +54,6 @@ export function create<T>(
         throw new Error("Cannot call change before the document has loaded.")
       }
 
-      const { id } = Link.parse(this.props.url)
       this.replaceDoc(cb(this.state.doc))
     }
 
@@ -66,6 +63,7 @@ export function create<T>(
           <WrappedComponent
             {...this.props}
             doc={this.state.doc}
+            emit={this.emit}
             change={this.change}
           />
         )
@@ -81,7 +79,10 @@ export function create<T>(
 
   // Register the widget with the Content registry.
   // XXX: Should we do this here?
-  register(type, WidgetClass)
+  Content.registerWidget(type, WidgetClass)
+  if (messageHandler) {
+    Content.registerMessageHandler(type, messageHandler)
+  }
 
   return WidgetClass
 }

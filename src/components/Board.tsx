@@ -2,14 +2,21 @@ import * as Preact from "preact"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
-import Content from "./Content"
+import Content, {
+  DocumentActor,
+  Message,
+  FullyFormedMessage,
+  DocumentCreated,
+} from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
+import * as Link from "../data/Link"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import { clamp } from "lodash"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import { ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const BOARD_PADDING = 15
 
@@ -28,8 +35,69 @@ export interface Model {
   focusedCardId: string | null
 }
 
-interface Props extends Widget.Props<Model> {
+interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string) => void
+}
+
+interface CreateCard extends Message {
+  type: "CreateCard"
+  body: {
+    type: string
+    card: {
+      id: string
+      x: number
+      y: number
+    }
+  }
+}
+
+type WidgetMessage = CreateCard | ShelfContentsRequested
+type InMessage = FullyFormedMessage<WidgetMessage | ShelfContents>
+type OutMessage = DocumentCreated | ShelfContentsRequested
+
+export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
+  async onMessage(message: InMessage) {
+    switch (message.type) {
+      case "CreateCard": {
+        const { type, card } = message.body
+        // TODO: async creation - should we split this across multiple messages?
+        const url = await this.create(type)
+        this.change(doc => {
+          const z = ++doc.topZ
+          doc.cards[card.id] = { ...card, z, isFocused: true, url }
+          doc.focusedCardId = card.id
+          return doc
+        })
+        this.emit({ type: "DocumentCreated", body: url })
+        break
+      }
+      case "ShelfContentsRequested": {
+        this.emit({ type: "ShelfContentsRequested" })
+        break
+      }
+      case "ShelfContents": {
+        // TODO: x,y coordinates. Can't measure the board from here - leave empty and have the widget
+        // handle missing x, y coordinates. If using `emit` to set x,y coordinates, this will mean
+        // multiple round trips to set initial coordinates.
+        const { urls } = message.body
+        this.change(doc => {
+          for (let url of urls) {
+            const card = {
+              id: UUID.create(),
+              x: 50,
+              y: 50,
+              z: ++doc.topZ,
+              isFocused: false,
+              url,
+            }
+            doc.cards[card.id] = card
+          }
+          return doc
+        })
+        break
+      }
+    }
+  }
 }
 
 class Board extends Preact.Component<Props> {
@@ -48,7 +116,9 @@ class Board extends Preact.Component<Props> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
+          <StrokeRecognizer
+            onStroke={this.onStroke}
+            only={["box", "downarrow"]}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -108,9 +178,7 @@ class Board extends Preact.Component<Props> {
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
-    const { x, y } = e.center
-
-    this.createCard("Text", x, y)
+    this.createCard("Text", e.center.x, e.center.y)
   }
 
   onDragStart = (id: string) => {
@@ -182,6 +250,10 @@ class Board extends Preact.Component<Props> {
     switch (stroke.name) {
       case "box":
         this.createCard("Text", stroke.center.x, stroke.bounds.top)
+        break
+      case "downarrow":
+        this.props.emit({ type: "ShelfContentsRequested" })
+        break
     }
   }
 
@@ -194,12 +266,12 @@ class Board extends Preact.Component<Props> {
     const cardX = clamp(x - CARD_WIDTH / 2, 0, maxX)
     const cardY = clamp(y, 0, maxY)
 
-    const url = await Content.create(type)
-    this.props.change(doc => {
-      const id = UUID.create()
-      const z = ++doc.topZ
-      doc.cards[id] = { id, x: cardX, y: cardY, z, url }
-      return this.setCardFocus(doc, id)
+    this.props.emit({
+      type: "CreateCard",
+      body: {
+        type: type,
+        card: { id: UUID.create(), x: cardX, y: cardY },
+      },
     })
   }
 }
@@ -241,4 +313,4 @@ const style = {
   },
 }
 
-export default Widget.create("Board", Board, Board.reify)
+export default Widget.create("Board", Board, Board.reify, BoardActor)

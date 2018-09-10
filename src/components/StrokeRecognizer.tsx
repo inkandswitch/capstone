@@ -49,6 +49,18 @@ DEFAULT_RECOGNIZER.AddGesture("X", [
   new $P.Point(106, 146, 2),
 ])
 
+DEFAULT_RECOGNIZER.AddGesture("downarrow", [
+  new $P.Point(0, 0, 0),
+  new $P.Point(1, 1, 0),
+  new $P.Point(2, 0, 0),
+])
+
+DEFAULT_RECOGNIZER.AddGesture("uparrow", [
+  new $P.Point(0, 1, 0),
+  new $P.Point(1, 0, 0),
+  new $P.Point(2, 1, 0),
+])
+
 export default class StrokeRecognizer extends Preact.Component<Props> {
   static defaultProps = {
     delay: 200,
