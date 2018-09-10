@@ -21,7 +21,7 @@ export interface Message {
   from?: string
   to?: string
   type: string
-  body: any
+  body?: any
 }
 
 export interface WithSender {
@@ -32,8 +32,12 @@ export interface WithRecipient {
   to: string
 }
 
-export type FullyFormedMessage = Message & WithSender & WithRecipient
-export function isFullyFormed(message: Message): message is FullyFormedMessage {
+export type FullyFormedMessage<T extends Message> = Readonly<
+  T & WithSender & WithRecipient
+>
+export function isFullyFormed(
+  message: Message,
+): message is FullyFormedMessage<Message> {
   return message.to !== undefined && message.from !== undefined
 }
 
@@ -43,7 +47,7 @@ export interface DocumentCreated extends Message {
 }
 
 export type MessageHandler = {
-  receive(message: FullyFormedMessage): void
+  receive(message: FullyFormedMessage<any>): void
 }
 
 export type DocumentUpdateListener<T> = (doc: Doc<T>) => void
@@ -61,15 +65,15 @@ export interface Props {
 // TODO: would be better to have change, emit, etc. passed in via constructor.
 export class DocumentActor<
   T,
-  I extends FullyFormedMessage,
+  I extends FullyFormedMessage<any>,
   O extends Message = never
 > {
   url: string
   docId: string
   doc: Doc<T>
-  change: Function
+  change: (cb: (doc: Doc<T>) => Doc<T>) => void
 
-  static receive(message: FullyFormedMessage) {
+  static receive(message: FullyFormedMessage<any>) {
     const onDocumentReady = (doc: Doc<any>) => {
       const { id } = Link.parse(message.to)
       const actor = new this(message.to, id, doc, changeFn)
@@ -85,7 +89,7 @@ export class DocumentActor<
     this.docId = docId
     this.doc = doc
     // Recreate previous change interface.
-    this.change = (cb: Function) => changeFn(cb(this.doc))
+    this.change = (cb: (doc: Doc<T>) => Doc<T>) => changeFn(cb(this.doc))
   }
 
   create(type: string) {
@@ -93,9 +97,14 @@ export class DocumentActor<
   }
 
   emit(message: O) {
+    // Convenience for re-emitting events
+    if (message.to === this.url) {
+      delete message.to
+    }
+    message.from = this.url
+
     // XXX: Is using rIC always desired behavior?
     window.requestIdleCallback(() => {
-      message.from = this.url
       Content.send(message as O & WithSender)
     })
   }
@@ -135,56 +144,6 @@ export default class Content extends Preact.Component<Props & unknown> {
       callback(Reify.reify(doc, widget.reify)),
     )
     return replaceCallback
-  }
-
-  /*
-  static getDoc<T>(url: string): Promise<{doc: Doc<T>, change: Function}> {
-    let doc = Content.readCache<T>(url)
-    if (doc) {
-      return Promise.resolve(doc)
-    } else {
-      Content.open(url)
-      return Content.open(url)
-    }
-  }
-  */
-
-  // Unbounded Document Caching
-  // ===========================
-  // XXX: Documents are currently mutated, so we don't need to
-  // think to much about stale cache entries. That will change
-  // once we have proper backend/frontend communication.
-  static readCache<T>(
-    url: string,
-  ): { doc: Doc<T>; change: Function } | undefined {
-    const { id } = Link.parse(url)
-    const doc = Content.documentCache[id]
-    return doc
-  }
-
-  static setCache<T>(url: string, doc: Doc<T>, change: Function) {
-    const { id } = Link.parse(url)
-    Content.documentCache[id] = { doc, change }
-  }
-
-  static unsetCache(url: string) {
-    const { id } = Link.parse(url)
-    delete Content.documentCache[id]
-  }
-
-  // Document Update Listeners
-  // ===========================
-  static addDocumentUpdateListener(
-    url: string,
-    cb: DocumentUpdateListener<any>,
-  ) {
-    const { id } = Link.parse(url)
-    Content.documentUpdateListeners[id] = cb
-  }
-
-  static removeDocumentUpdateListener(url: string) {
-    const { id } = Link.parse(url)
-    delete Content.documentUpdateListeners[id]
   }
 
   static registerWidget(type: string, component: WidgetClass<any>) {
@@ -231,6 +190,9 @@ export default class Content extends Preact.Component<Props & unknown> {
   static clearParent(childUrl: string) {
     delete this.ancestorMap[childUrl]
   }
+
+  // Component
+  // =========
 
   get registry() {
     return Content.widgetRegistry
