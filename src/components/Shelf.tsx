@@ -16,16 +16,17 @@ export interface AddToShelf extends Message {
 
 export interface ShelfContentsRequested extends Message {
   type: "ShelfContentsRequested"
+  body: { placementPosition: Point }
 }
 
 export interface SendShelfContents extends Message {
   type: "SendShelfContents"
-  body: { recipientUrl: string }
+  body: { recipientUrl: string; placementPosition: Point }
 }
 
 export interface ShelfContents extends Message {
   type: "ShelfContents"
-  body: { urls: string[]; [k: string]: unknown }
+  body: { urls: string[]; placementPosition: Point }
 }
 
 type InboundMessage = FullyFormedMessage<AddToShelf | SendShelfContents>

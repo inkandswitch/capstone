@@ -11,7 +11,6 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
-import * as Link from "../data/Link"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_WIDTH } from "./Card"
@@ -80,13 +79,10 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         // TODO: x,y coordinates. Can't measure the board from here - leave empty and have the widget
         // handle missing x, y coordinates. If using `emit` to set x,y coordinates, this will mean
         // multiple round trips to set initial coordinates.
-        const { urls, atPosition = { x: 0, y: 0 } } = message.body
+        const { urls, placementPosition } = message.body
         this.change(doc => {
           urls.forEach((url, index) => {
-            const position = radialPosition(index, atPosition as {
-              x: number
-              y: number
-            })
+            const position = radialPosition(index, placementPosition)
             const card = {
               id: UUID.create(),
               x: position.x,
@@ -260,7 +256,7 @@ class Board extends Preact.Component<Props> {
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {
-            atPosition: {
+            placementPosition: {
               x: stroke.center.x - CARD_WIDTH / 2,
               y: stroke.bounds.top,
             },

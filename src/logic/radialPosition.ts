@@ -3,7 +3,7 @@ export const DEFAULT_OFFSET_COORDINATES = { x: 0, y: 0 }
 
 export default function radialPosition(
   index: number,
-  offsetCoordinates: { x: number; y: number } = DEFAULT_OFFSET_COORDINATES,
+  offsetCoordinates: Point = DEFAULT_OFFSET_COORDINATES,
   magnitude: number = DEFAULT_MAGNITUDE,
 ) {
   return {
