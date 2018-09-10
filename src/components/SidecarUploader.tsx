@@ -60,10 +60,14 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
 
   onDrop = (event: DragEvent) => {
     event.preventDefault()
+    event.stopPropagation()
+
     this.setState({ isDropping: false })
+    this.importItems(event.dataTransfer)
+    this.importFiles(event.dataTransfer)
+  }
 
-    const { items } = event.dataTransfer
-
+  importItems({ items }: DataTransfer) {
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
       if (item.kind === "string") {
@@ -73,9 +77,23 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
               this.addText(str)
             })
         }
-      } else {
-        const file = item.getAsFile()
-        if (file) {
+      }
+    }
+  }
+
+  importFiles({ files }: DataTransfer) {
+    const { length } = files
+
+    for (let i = 0; i < length; i++) {
+      const entry = files[i]
+
+      if (entry.type.match("text/")) {
+        const reader = new FileReader()
+        reader.readAsText(entry)
+
+        reader.onload = () => {
+          const { result } = reader
+          if (typeof result === "string") this.addText(result)
         }
       }
     }
@@ -85,9 +103,12 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
     const url = await Content.create("Text")
 
     // HACK these types are wacky, fix after store api changes
+    let done = false
     const replace = Content.open(url, (doc: AnyEditDoc) => {
+      if (done) return
       doc.content = content.split("")
       replace(doc)
+      done = true
     })
 
     this.props.change(doc => {
