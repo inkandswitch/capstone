@@ -113,11 +113,6 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     } else {
       // console.log("Unrecognized stroke", result)
     }
-
-    if (this.canvasElement) {
-      document.body.removeChild(this.canvasElement)
-      this.canvasElement = undefined
-    }
     this.reset()
   }
 
@@ -145,10 +140,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     this.points = []
     this.strokeId = 0
     this.bounds = EMPTY_BOUNDS
-
-    const ctx = this.getDrawingContext()
-    if (!ctx) return
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    this.removeCanvas()
   }
 
   addCanvas() {
@@ -159,7 +151,12 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     document.body.appendChild(this.canvasElement)
   }
 
-  removeCanvas() {}
+  removeCanvas() {
+    if (this.canvasElement) {
+      document.body.removeChild(this.canvasElement)
+      this.canvasElement = undefined
+    }
+  }
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
     return this.canvasElement && this.canvasElement.getContext("2d")
