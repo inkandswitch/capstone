@@ -3,6 +3,7 @@ import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
 import { AnyDoc, AnyEditDoc } from "automerge"
+import Clipboard from "./Clipboard"
 
 interface Model {
   docs: Array<{
@@ -37,6 +38,7 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
         onDragOver={this.onDragOver}
         onDragLeave={this.onDragLeave}
         onDrop={this.onDrop}>
+        <Clipboard onPaste={this.onPaste} />
         <div
           style={{
             ...style.DropStatus,
@@ -62,7 +64,15 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
 
     this.setState({ isDropping: false })
     this.importItems(event.dataTransfer)
-    this.importFiles(event.dataTransfer)
+    this.importFiles(event.dataTransfer) // TODO: this doesn't work yet.
+  }
+
+  onPaste = (event: ClipboardEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    this.importItems(event.clipboardData)
+    this.importFiles(event.clipboardData)
   }
 
   importItems({ items }: DataTransfer) {
