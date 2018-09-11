@@ -25,10 +25,6 @@ export interface Props {
   children: JSX.Element
 }
 
-export interface State {
-  isPenDown: boolean
-}
-
 const EMPTY_BOUNDS: Bounds = {
   top: Infinity,
   right: -Infinity,
@@ -65,8 +61,9 @@ DEFAULT_RECOGNIZER.AddGesture("uparrow", [
   new $P.Point(2, 1, 1),
 ])
 
-export default class StrokeRecognizer extends Preact.Component<Props, State> {
+export default class StrokeRecognizer extends Preact.Component<Props> {
   canvasElement?: HTMLCanvasElement
+  isPenDown: boolean
 
   static defaultProps = {
     delay: 200,
@@ -90,20 +87,20 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
     if (!this.canvasElement) {
       this.addCanvas()
     }
-    if (!this.state.isPenDown) this.setState({ isPenDown: true })
+    if (!this.isPenDown) this.setState({ isPenDown: true })
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
     this.drawStroke()
   }
 
   onPanEnd = (event: PenEvent) => {
-    if (this.state.isPenDown) this.setState({ isPenDown: false })
+    if (this.isPenDown) this.setState({ isPenDown: false })
     this.strokeId += 1
     this.recognize()
   }
 
   _recognize = () => {
-    if (this.state.isPenDown) return
+    if (this.isPenDown) return
     const { maxScore = 0, only } = this.props
     const result = this.recognizer.Recognize(this.points, only)
 
