@@ -88,11 +88,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
     if (!this.canvasElement) {
-      this.canvasElement = document.createElement("canvas")
-      this.canvasElement.width = window.innerWidth
-      this.canvasElement.height = window.innerHeight
-      this.canvasElement.className = "StrokeLayer"
-      document.body.appendChild(this.canvasElement)
+      this.addCanvas()
     }
     if (!this.state.isPenDown) this.setState({ isPenDown: true })
     this.points.push(new $P.Point(x, y, this.strokeId))
@@ -157,6 +153,16 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
     if (!ctx) return
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   }
+
+  addCanvas() {
+    this.canvasElement = document.createElement("canvas")
+    this.canvasElement.width = window.innerWidth
+    this.canvasElement.height = window.innerHeight
+    this.canvasElement.className = "StrokeLayer"
+    document.body.appendChild(this.canvasElement)
+  }
+
+  removeCanvas() {}
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
     return this.canvasElement && this.canvasElement.getContext("2d")
