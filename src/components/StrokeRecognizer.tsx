@@ -3,7 +3,6 @@ import Handler from "./Handler"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
 import { debounce } from "lodash"
-import Portal from "preact-portal"
 
 interface Bounds {
   readonly top: number
@@ -28,7 +27,6 @@ export interface Props {
 
 export interface State {
   isPenDown: boolean
-  isRecordingPoints: boolean
 }
 
 const EMPTY_BOUNDS: Bounds = {
@@ -82,27 +80,20 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
 
   render() {
     return (
-      <div>
-        <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
-          {this.props.children}
-        </Pen>
-        {this.state.isRecordingPoints ? (
-          <Portal into="body">
-            <canvas
-              width={window.innerWidth}
-              height={window.innerHeight}
-              ref={(el: HTMLCanvasElement) => (this.canvasElement = el)}
-              class="StrokeLayer"
-            />
-          </Portal>
-        ) : null}
-      </div>
+      <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
+        {this.props.children}
+      </Pen>
     )
   }
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
-    if (!this.state.isRecordingPoints)
-      this.setState({ isRecordingPoints: true })
+    if (!this.canvasElement) {
+      this.canvasElement = document.createElement("canvas")
+      this.canvasElement.width = window.innerWidth
+      this.canvasElement.height = window.innerHeight
+      this.canvasElement.className = "StrokeLayer"
+      document.body.appendChild(this.canvasElement)
+    }
     if (!this.state.isPenDown) this.setState({ isPenDown: true })
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
@@ -130,7 +121,10 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
       // console.log("Unrecognized stroke", result)
     }
 
-    this.setState({ isRecordingPoints: false })
+    if (this.canvasElement) {
+      document.body.removeChild(this.canvasElement)
+      this.canvasElement = undefined
+    }
     this.reset()
   }
 
