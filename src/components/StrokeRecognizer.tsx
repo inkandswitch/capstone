@@ -1,5 +1,4 @@
 import * as Preact from "preact"
-import Handler from "./Handler"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
 import { debounce } from "lodash"
@@ -85,12 +84,11 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
     if (!this.canvasElement) {
-      this.addCanvas()
+      this.startDrawing()
     }
     if (!this.isPenDown) this.isPenDown = true
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
-    this.drawStroke()
   }
 
   onPanEnd = (event: PenEvent) => {
@@ -140,6 +138,23 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     this.points = []
     this.strokeId = 0
     this.bounds = EMPTY_BOUNDS
+    this.stopDrawing()
+  }
+
+  startDrawing() {
+    if (!this.canvasElement) {
+      this.addCanvas()
+    }
+    requestAnimationFrame(this.draw)
+  }
+
+  draw = () => {
+    if (!this.canvasElement) return
+    this.drawStrokes()
+    requestAnimationFrame(this.draw)
+  }
+
+  stopDrawing() {
     this.removeCanvas()
   }
 
@@ -158,11 +173,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     }
   }
 
-  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
-    return this.canvasElement && this.canvasElement.getContext("2d")
-  }
-
-  drawStroke() {
+  drawStrokes() {
     const ctx = this.getDrawingContext()
     if (!ctx || this.points.length == 0) return
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -180,5 +191,9 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       lastStrokeID = point.ID
     }
     ctx.stroke()
+  }
+
+  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
+    return this.canvasElement && this.canvasElement.getContext("2d")
   }
 }
