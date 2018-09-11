@@ -39,12 +39,15 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
         onDragLeave={this.onDragLeave}
         onDrop={this.onDrop}>
         <Clipboard onPaste={this.onPaste} />
+        <div style={style.Status} />
         <div
           style={{
-            ...style.DropStatus,
-            ...(isDropping ? style.DropStatus_dropping : {}),
-          }}
-        />
+            ...style.DropArea,
+            ...(isDropping ? style.DropArea_dropping : {}),
+          }}>
+          <div style={style.DropTitle}>Drop files here</div>
+          <div style={style.Plus}>+</div>
+        </div>
       </div>
     )
   }
@@ -135,17 +138,35 @@ const style = {
     right: 0,
     bottom: 0,
     left: 0,
+    display: "grid",
+    gridTemplateAreas: `"status" "drop"`,
+    gridTemplateRows: "auto 1fr",
   },
-  DropStatus: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    margin: 5,
-    border: "3px #222 dashed",
+
+  Status: {
+    gridArea: "status",
   },
-  DropStatus_dropping: {
-    borderColor: "skyblue",
+
+  DropArea: {
+    margin: 10,
+    border: "3px #D0D0D0 dashed",
+    gridArea: "drop",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  DropArea_dropping: {
+    borderColor: "#73BE8D",
+  },
+
+  DropTitle: {
+    fontSize: 30,
+    color: "#848484",
+  },
+
+  Plus: {
+    fontSize: 50,
+    color: "#D0D0D0",
   },
 }
