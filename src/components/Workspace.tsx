@@ -47,7 +47,7 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
       case "ShelfContentsRequested": {
         this.emit({
           type: "SendShelfContents",
-          body: { recipientUrl: message.from },
+          body: { recipientUrl: message.from, ...message.body },
           to: this.doc.shelfUrl,
         })
         this.emit({ type: "ClearSelection", to: this.doc.archiveUrl })
@@ -75,12 +75,12 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         onThreeFingerSwipeUp={this.onThreeFingerSwipeUp}
         onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
-          <Content mode="embed" url={this.props.doc.shelfUrl} />
           <Content
             mode={this.props.mode}
             url={currentUrl}
             onNavigate={this.navigateTo}
           />
+          <Content mode="embed" url={this.props.doc.shelfUrl} />
         </div>
       </Touch>
     )

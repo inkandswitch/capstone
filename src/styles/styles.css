@@ -4,8 +4,8 @@
 
 .CodeMirror {
   /* Set height, width, borders, and global font properties here */
-  font-family: Arial, Helvetica, sans-serif;
-  color: gray;
+  font-family: Roboto, Arial, Helvetica, sans-serif;
+  font-size: 14px;
   direction: ltr;
   max-height: 100%;
   height: auto;

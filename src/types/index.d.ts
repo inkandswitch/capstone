@@ -34,4 +34,6 @@ declare global {
 
     from(str: string, type?: string): Buffer
   }
+
+  type Point = { x: number; y: number }
 }

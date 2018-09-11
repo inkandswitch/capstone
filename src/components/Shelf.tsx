@@ -3,6 +3,7 @@ import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge"
 import ShelfCard from "./ShelfCard"
+import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
 
 interface Model {
@@ -16,19 +17,27 @@ export interface AddToShelf extends Message {
 
 export interface ShelfContentsRequested extends Message {
   type: "ShelfContentsRequested"
+  body: { placementPosition: Point }
 }
 
 export interface SendShelfContents extends Message {
   type: "SendShelfContents"
-  body: { recipientUrl: string }
+  body: { recipientUrl: string; placementPosition: Point }
 }
 
 export interface ShelfContents extends Message {
   type: "ShelfContents"
-  body: { urls: string[] }
+  body: { urls: string[]; placementPosition: Point }
 }
 
-type InboundMessage = FullyFormedMessage<AddToShelf | SendShelfContents>
+export interface ClearShelf extends Message {
+  type: "ClearShelf"
+}
+
+type WidgetMessage = ClearShelf
+type InboundMessage = FullyFormedMessage<
+  WidgetMessage | AddToShelf | SendShelfContents
+>
 type OutboundMessage = ShelfContents
 
 class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
@@ -43,11 +52,19 @@ class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
       }
       case "SendShelfContents": {
         const selectedUrls = this.doc.selectedUrls
+        const { recipientUrl, ...rest } = message.body
         this.emit({
-          to: message.body.recipientUrl,
+          to: recipientUrl,
           type: "ShelfContents",
-          body: { urls: selectedUrls },
+          body: { urls: selectedUrls, ...rest },
         })
+        this.change(doc => {
+          doc.selectedUrls = []
+          return doc
+        })
+        break
+      }
+      case "ClearShelf": {
         this.change(doc => {
           doc.selectedUrls = []
           return doc
@@ -60,11 +77,15 @@ class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
   }
 }
 
-class Shelf extends Preact.Component<Widget.Props<Model>> {
+class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
       selectedUrls: Reify.array(doc.selectedUrls),
     }
+  }
+
+  onStroke = (stroke: Stroke) => {
+    this.props.emit({ type: "ClearShelf" })
   }
 
   render() {
@@ -74,12 +95,13 @@ class Shelf extends Preact.Component<Widget.Props<Model>> {
     if (count <= 0) return null
 
     return (
-      <div style={style.Shelf}>
-        {selectedUrls.map((url, idx) => (
-          <ShelfCard key={idx} url={url} index={idx} />
-        ))}
-        <div style={style.Count}>{count}</div>
-      </div>
+      <StrokeRecognizer onStroke={this.onStroke} only={["X"]} maxScore={10}>
+        <div style={style.Shelf}>
+          {selectedUrls.map((url, idx) => (
+            <ShelfCard key={idx} url={url} index={idx} />
+          ))}
+        </div>
+      </StrokeRecognizer>
     )
   }
 }
@@ -87,31 +109,13 @@ class Shelf extends Preact.Component<Widget.Props<Model>> {
 const style = {
   Shelf: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
-    margin: -50,
-    boxSizing: "border-box",
+    bottom: -100,
+    right: -70,
     borderRadius: 9999,
     height: 300,
     width: 300,
-    backgroundColor: "#7B7E8E",
+    backgroundColor: "#474747",
     zIndex: 2,
-  },
-
-  Count: {
-    position: "absolute",
-    top: 175,
-    left: 135,
-    transform: "translate(-50%, -50%)",
-    borderRadius: 99,
-    backgroundColor: "rgba(215, 105, 250, 0.9)",
-    color: "white",
-    fontSize: 20,
-    display: "flex",
-    placeContent: "center",
-    alignItems: "center",
-    minHeight: 40,
-    minWidth: 40,
   },
 }
 
