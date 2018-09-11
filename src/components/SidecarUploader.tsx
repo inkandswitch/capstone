@@ -1,4 +1,5 @@
 import * as Preact from "preact"
+import { once } from "lodash"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
@@ -112,15 +113,12 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
 
   async addText(content: string) {
     const url = await Content.create("Text")
-
-    // HACK these types are wacky, fix after store api changes
-    let done = false
-    const replace = Content.open(url, (doc: AnyEditDoc) => {
-      if (done) return
+    const onOpen = (doc: AnyEditDoc) => {
       doc.content = content.split("")
       replace(doc)
-      done = true
-    })
+    }
+
+    const replace = Content.open(url, once(onOpen))
 
     this.props.change(doc => {
       doc.docs.push({ url })
