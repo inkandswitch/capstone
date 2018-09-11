@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/src/frontend"
+import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/frontend"
 import Content, { WidgetProps, Message, MessageHandler, Mode } from "./Content"
 
 

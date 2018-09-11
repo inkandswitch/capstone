@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Link from "../data/Link"
-import { AnyDoc, Doc, ChangeFn } from "automerge/src/frontend"
+import { AnyDoc, Doc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"

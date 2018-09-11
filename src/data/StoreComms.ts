@@ -1,3 +1,4 @@
+//import Hypermerge from "../hypermerge/bridge"
 import Hypermerge from "../hypermerge"
 let racf = require("random-access-chrome-file")
 
@@ -24,12 +25,12 @@ export default class StoreComms {
     port.onMessage.addListener((changes: any) => {
       handle.applyChanges(changes)
       log("applyChanges",changes);
-      //port.postMessage(patch)
     })
 
     handle.onPatch((patch: any) => {
       log("patch",patch);
-      port.postMessage(patch)
+      const actorId = handle.actorId
+      port.postMessage({ actorId, patch })
     })
   }
 

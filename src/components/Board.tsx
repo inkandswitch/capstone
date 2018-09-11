@@ -12,7 +12,7 @@ import Content, {
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
-import { AnyDoc, Doc } from "automerge/src/frontend"
+import { AnyDoc, Doc } from "automerge/frontend"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
