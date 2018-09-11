@@ -114,9 +114,7 @@ class Board extends Preact.Component<Props> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer
-            onStroke={this.onStroke}
-            only={["box", "downarrow"]}>
+          <StrokeRecognizer onStroke={this.onStroke}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}

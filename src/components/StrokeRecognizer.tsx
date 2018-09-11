@@ -2,7 +2,7 @@ import * as Preact from "preact"
 import Handler from "./Handler"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
-import { debounce } from "lodash"
+import { debounce, delay } from "lodash"
 
 interface Bounds {
   readonly top: number
@@ -43,10 +43,10 @@ DEFAULT_RECOGNIZER.AddGesture("box", [
 ])
 
 DEFAULT_RECOGNIZER.AddGesture("X", [
-  new $P.Point(30, 146, 1),
-  new $P.Point(106, 222, 1),
-  new $P.Point(30, 225, 2),
-  new $P.Point(106, 146, 2),
+  new $P.Point(0, 0, 1),
+  new $P.Point(1, 1, 1),
+  new $P.Point(0, 1, 2),
+  new $P.Point(1, 0, 2),
 ])
 
 DEFAULT_RECOGNIZER.AddGesture("downarrow", [
@@ -66,7 +66,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   isPenDown: boolean
 
   static defaultProps = {
-    delay: 200,
+    delay: 300,
     maxScore: 6,
   }
 
@@ -101,17 +101,23 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   _recognize = () => {
     if (this.isPenDown) return
+    console.log(`recognizing for points`)
+    this.points.forEach(point => {
+      console.log(`   ${point.X} / ${point.Y} /// ${point.ID}`)
+    })
+
     const { maxScore = 0, only } = this.props
     const result = this.recognizer.Recognize(this.points, only)
 
     if (result.Score > 0 && result.Score < maxScore) {
+      this.flashDebugMessage(`I'm a ${result.Name}`)
       this.props.onStroke({
         name: result.Name,
         bounds: this.bounds,
         center: this.center(),
       })
     } else {
-      // console.log("Unrecognized stroke", result)
+      this.flashDebugMessage(`Couldn't recognize anything :(`)
     }
     this.reset()
   }
@@ -156,6 +162,20 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       document.body.removeChild(this.canvasElement)
       this.canvasElement = undefined
     }
+  }
+
+  flashDebugMessage(text: string) {
+    var div = document.createElement("div")
+    div.className = "DebugMessage"
+    var content = document.createTextNode(text)
+    div.appendChild(content)
+    document.body.appendChild(div)
+
+    let removeText = () => {
+      console.log("removing")
+      document.body.removeChild(div)
+    }
+    delay(removeText, 1000)
   }
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
