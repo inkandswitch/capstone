@@ -29,7 +29,7 @@ export default class SidecarApp extends Preact.Component<{}, State> {
     super(props, ctx)
     this.state = { mode: "loading" }
 
-    chrome.storage.local.get(["workspaceUrl"], async ({ workspaceUrl }) => {
+    chrome.storage.local.get(["workspaceUrl"], ({ workspaceUrl }) => {
       if (workspaceUrl == null) {
         this.setState({ mode: "setup" })
       } else {
