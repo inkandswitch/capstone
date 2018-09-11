@@ -1,5 +1,6 @@
 const EventEmitter = require("events")
-const Backend = require("automerge/src/backend")
+const Backend = require("automerge/backend")
+const Frontend = require("automerge/frontend")
 const Multicore = require("./multicore")
 const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
@@ -51,33 +52,89 @@ class DocHandle {
   constructor (hm, docId, doc) {
     this.hm = hm
     this.id = docId
-    this._doc = doc || null
+    this._back = doc || null
+    this._front = null
+    this._isManagingFront = false
     this._ondoc = () => {}
     this._onpatch = () => {}
-  }
-
-  get () {
-    return this._doc;
+    this._pending = []
   }
 
   applyChanges (changes) {
-    console.log("!!!!  Apply Changes 0", changes.length);
-    return this.hm.applyChanges(this.id, changes, true)
-  }
-
-  _uberPatch () {
-    return Backend.applyChanges(this._doc,[],false)[1]
+    this.hm.applyChanges(this.id, changes, true)
   }
 
   onPatch (cb) {
     this._onpatch = cb
-    if (this._doc) { cb(this._uberPatch()) }
+    if (this._back) { cb(this._uberPatch()) }
   }
 
   onChange (cb) {
     this._ondoc = cb
-    if (this._doc) { cb(this.doc) }
+    this._isManagingFront = true
+    this._setupFront()
   }
+
+  change (fn) {
+    this._isManagingFront = true
+    this._setupFront()
+    if (this._front) {
+      this._applyFN(fn)
+    } else {
+      this._pending.push(fn)
+    }
+  }
+
+  release () {
+    this.hm.releaseHandle(this)
+  }
+
+  // internals
+
+  _applyFN(fn) {
+    this._front = Frontend.change(this._front,fn)
+    this.applyChanges(Frontend.getRequests(this._front))
+    return this._front
+  }
+
+  _setupFront () {
+    if (this._back && !this._front && this._isManagingFront) {
+      this._front = Frontend.init()
+      this._applyPatch(this._uberPatch())
+      this._pending.forEach(fn => this._applyFN(fn))
+      this._pending = []
+    }
+  }
+
+  _uberPatch () {
+    // memoize for speed?
+    return Backend.getPatch(this._back)
+  }
+
+
+  _applyPatch (patch) {
+    if (this._front && patch.diffs.length > 0) {
+      this._front = Frontend.applyPatch(this._front,patch)
+      this._ondoc(this._front)
+    }
+  }
+
+  _update (back, patch) {
+    this._back = back
+    this._onpatch(patch)
+    this._applyPatch(patch)
+  }
+
+  _ready (back) {
+    this._back = back;
+    this._front = null
+
+    this._onpatch(this._uberPatch())
+
+    this._setupFront()
+  }
+
+  // message stuff
 
   message (message) {
     if (this.hm.readyIndex[this.id]) {
@@ -90,26 +147,10 @@ class DocHandle {
     return this
   }
 
-  release () {
-    this.hm.releaseHandle(this)
-  }
-
   _message ({ peer, msg }) {
     if (this._messageCb) {
       this._messageCb({ peer, msg })
     }
-  }
-
-  _update (newDoc, patch) {
-    this._doc = newDoc
-    this._ondoc(newDoc)
-    this._onpatch(patch)
-  }
-
-  _ready (doc) {
-    this._doc = doc;
-    this._onpatch(this._uberPatch())
-    this._ondoc(doc)
   }
 }
 
@@ -120,7 +161,7 @@ class DocHandle {
  * @param {object} options.storage - config compatible with Hypercore constructor storage param
  * @param {object} [defaultMetadata={}] - default metadata that should be written for new docs
  */
-export default class Hypermerge extends EventEmitter {
+class Hypermerge extends EventEmitter {
   constructor ({ storage, defaultMetadata = {} }) {
     super()
 
@@ -792,22 +833,18 @@ export default class Hypermerge extends EventEmitter {
   // given `docId`.
   applyChanges(docId, changes, local) {
     log("applyChanges", docId)
-    console.log("Apply Changes 1", changes.length);
 
     if (changes.length === 0) return;
 
     const oldDoc = this.find(docId)
 
     const filteredChanges = this._filterChanges(changes);
-    console.log("Apply Changes 2", filteredChanges.length);
 
     const [newDoc, patches] = Backend.applyChanges(oldDoc, filteredChanges, true)
 
     this._recordChanges(docId, newDoc, filteredChanges, local)
-    
-    this._setAndNotify(docId, newDoc, patches)
 
-    console.log("Apply Changes DONE", newDoc, patches);
+    this._setAndNotify(docId, newDoc, patches)
   }
 
   _recordChanges (docId, newDoc, changes, local) {
@@ -821,8 +858,6 @@ export default class Hypermerge extends EventEmitter {
     if (local) {
       const actorId = newDoc.get('actorId')
       const localChanges = changes.filter(change => change.actor  === actorId)
-
-      console.log("Apply Changes 3", localChanges.length);
 
       this._addToMaxRequested(docId, actorId, localChanges.length)
       this._appendAll(actorId, localChanges)
@@ -1005,4 +1040,4 @@ export default class Hypermerge extends EventEmitter {
   }
 }
 
-//module.exports = Hypermerge
+module.exports = Hypermerge
