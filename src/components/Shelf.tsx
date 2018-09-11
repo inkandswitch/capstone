@@ -3,6 +3,7 @@ import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge"
 import ShelfCard from "./ShelfCard"
+import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
 
 interface Model {
@@ -29,7 +30,14 @@ export interface ShelfContents extends Message {
   body: { urls: string[]; placementPosition: Point }
 }
 
-type InboundMessage = FullyFormedMessage<AddToShelf | SendShelfContents>
+export interface ClearShelf extends Message {
+  type: "ClearShelf"
+}
+
+type WidgetMessage = ClearShelf
+type InboundMessage = FullyFormedMessage<
+  WidgetMessage | AddToShelf | SendShelfContents
+>
 type OutboundMessage = ShelfContents
 
 class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
@@ -56,17 +64,28 @@ class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
         })
         break
       }
+      case "ClearShelf": {
+        this.change(doc => {
+          doc.selectedUrls = []
+          return doc
+        })
+        break
+      }
       default: {
       }
     }
   }
 }
 
-class Shelf extends Preact.Component<Widget.Props<Model>> {
+class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
       selectedUrls: Reify.array(doc.selectedUrls),
     }
+  }
+
+  onStroke = (stroke: Stroke) => {
+    this.props.emit({ type: "ClearShelf" })
   }
 
   render() {
@@ -76,11 +95,13 @@ class Shelf extends Preact.Component<Widget.Props<Model>> {
     if (count <= 0) return null
 
     return (
-      <div style={style.Shelf}>
-        {selectedUrls.map((url, idx) => (
-          <ShelfCard key={idx} url={url} index={idx} />
-        ))}
-      </div>
+      <StrokeRecognizer onStroke={this.onStroke} only={["X"]} maxScore={10}>
+        <div style={style.Shelf}>
+          {selectedUrls.map((url, idx) => (
+            <ShelfCard key={idx} url={url} index={idx} />
+          ))}
+        </div>
+      </StrokeRecognizer>
     )
   }
 }
@@ -90,7 +111,6 @@ const style = {
     position: "absolute",
     bottom: -100,
     right: -70,
-    boxSizing: "border-box",
     borderRadius: 9999,
     height: 300,
     width: 300,
