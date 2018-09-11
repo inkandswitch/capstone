@@ -175,9 +175,15 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
     ctx.beginPath()
     ctx.lineWidth = 4
     const startPoint = this.points[0]
+    let lastStrokeID = 0
     for (let i = 0; i < this.points.length; i++) {
       let point = this.points[i]
-      i == 0 ? ctx.moveTo(point.X, point.Y) : ctx.lineTo(point.X, point.Y)
+      if (i == 0 || point.ID != lastStrokeID) {
+        ctx.moveTo(point.X, point.Y)
+      } else {
+        ctx.lineTo(point.X, point.Y)
+      }
+      lastStrokeID = point.ID
     }
     ctx.stroke()
   }
