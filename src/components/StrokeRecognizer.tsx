@@ -101,6 +101,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
   }
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
+    console.log(`pen move to ${x} / ${y}`)
     this.setState({ isTracking: true })
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
