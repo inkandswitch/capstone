@@ -3,6 +3,8 @@ import Handler from "./Handler"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
 import { debounce } from "lodash"
+import Portal from "preact-portal"
+import "../styles/styles.css"
 
 interface Bounds {
   readonly top: number
@@ -23,6 +25,10 @@ export interface Props {
   maxScore?: number
   only?: string[]
   children: JSX.Element
+}
+
+export interface State {
+  isTracking: boolean
 }
 
 const EMPTY_BOUNDS: Bounds = {
@@ -61,7 +67,9 @@ DEFAULT_RECOGNIZER.AddGesture("uparrow", [
   new $P.Point(2, 1, 0),
 ])
 
-export default class StrokeRecognizer extends Preact.Component<Props> {
+export default class StrokeRecognizer extends Preact.Component<Props, State> {
+  canvasElement?: HTMLCanvasElement
+
   static defaultProps = {
     delay: 200,
     maxScore: 6,
@@ -74,20 +82,35 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   render() {
     return (
-      <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
-        {this.props.children}
-      </Pen>
+      <div>
+        <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
+          {this.props.children}
+        </Pen>
+        {this.state.isTracking ? (
+          <Portal into="body">
+            <canvas
+              width={window.innerWidth}
+              height={window.innerHeight}
+              ref={(el: HTMLCanvasElement) => (this.canvasElement = el)}
+              class="StrokeLayer"
+            />
+          </Portal>
+        ) : null}
+      </div>
     )
   }
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
+    this.setState({ isTracking: true })
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
-    this.recognize()
+    this.drawStroke()
   }
 
   onPanEnd = (event: PenEvent) => {
+    this.setState({ isTracking: false })
     this.strokeId += 1
+    this.recognize()
   }
 
   _recognize = () => {
@@ -131,5 +154,27 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     this.points = []
     this.strokeId = 0
     this.bounds = EMPTY_BOUNDS
+
+    const ctx = this.getDrawingContext()
+    if (!ctx) return
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  }
+
+  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
+    return this.canvasElement && this.canvasElement.getContext("2d")
+  }
+
+  drawStroke() {
+    const ctx = this.getDrawingContext()
+    if (!ctx || this.points.length == 0) return
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.beginPath()
+    ctx.lineWidth = 4
+    const startPoint = this.points[0]
+    for (let i = 0; i < this.points.length; i++) {
+      let point = this.points[i]
+      i == 0 ? ctx.moveTo(point.X, point.Y) : ctx.lineTo(point.X, point.Y)
+    }
+    ctx.stroke()
   }
 }

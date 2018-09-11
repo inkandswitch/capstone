@@ -21,3 +21,9 @@
   touch-action: none;
   max-height: 500px;
 }
+
+.StrokeLayer {
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 100000000;
+}
