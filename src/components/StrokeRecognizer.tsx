@@ -41,11 +41,11 @@ const EMPTY_BOUNDS: Bounds = {
 const DEFAULT_RECOGNIZER = new $P.Recognizer()
 
 DEFAULT_RECOGNIZER.AddGesture("box", [
-  new $P.Point(0, 0, 0),
-  new $P.Point(0, 1, 0),
-  new $P.Point(1, 1, 0),
-  new $P.Point(1, 0, 0),
-  new $P.Point(0, 0, 0),
+  new $P.Point(0, 0, 1),
+  new $P.Point(0, 1, 1),
+  new $P.Point(1, 1, 1),
+  new $P.Point(1, 0, 1),
+  new $P.Point(0, 0, 1),
 ])
 
 DEFAULT_RECOGNIZER.AddGesture("X", [
@@ -56,15 +56,15 @@ DEFAULT_RECOGNIZER.AddGesture("X", [
 ])
 
 DEFAULT_RECOGNIZER.AddGesture("downarrow", [
-  new $P.Point(0, 0, 0),
-  new $P.Point(1, 1, 0),
-  new $P.Point(2, 0, 0),
+  new $P.Point(0, 0, 1),
+  new $P.Point(1, 1, 1),
+  new $P.Point(2, 0, 1),
 ])
 
 DEFAULT_RECOGNIZER.AddGesture("uparrow", [
-  new $P.Point(0, 1, 0),
-  new $P.Point(1, 0, 0),
-  new $P.Point(2, 1, 0),
+  new $P.Point(0, 1, 1),
+  new $P.Point(1, 0, 1),
+  new $P.Point(2, 1, 1),
 ])
 
 export default class StrokeRecognizer extends Preact.Component<Props, State> {
@@ -101,7 +101,6 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
   }
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
-    console.log(`pen move to ${x} / ${y}`)
     this.setState({ isTracking: true })
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
