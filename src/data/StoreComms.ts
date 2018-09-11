@@ -1,4 +1,4 @@
-import Hypermerge from "../hypermerge"
+import Hypermerge from "../modules/hypermerge"
 let racf = require("random-access-chrome-file")
 
 export default class StoreComms {
