@@ -2,6 +2,7 @@ import * as Preact from "preact"
 import { once } from "lodash"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
+import * as DataTransfer from "../logic/DataTransfer"
 import Content from "./Content"
 import { AnyDoc, AnyEditDoc } from "automerge"
 import Clipboard from "./Clipboard"
@@ -67,54 +68,45 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
     event.stopPropagation()
 
     this.setState({ isDropping: false })
-    this.importItems(event.dataTransfer)
-    this.importFiles(event.dataTransfer) // TODO: this doesn't work yet.
+    this.importData(event.dataTransfer)
   }
 
   onPaste = (event: ClipboardEvent) => {
     event.preventDefault()
     event.stopPropagation()
 
-    this.importItems(event.clipboardData)
-    this.importFiles(event.clipboardData)
+    this.importData(event.clipboardData)
   }
 
-  importItems({ items }: DataTransfer) {
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      if (item.kind === "string") {
-        switch (item.type) {
-          case "text/plain":
-            item.getAsString(str => {
-              this.addText(str)
-            })
-        }
+  importData(data: DataTransfer) {
+    DataTransfer.extractEntries(data).forEach(async ({ type, asString }) => {
+      if (type.startsWith("image/")) {
+        this.addImage(await asString())
+      } else if (type.startsWith("text/")) {
+        this.addText(await asString())
       }
-    }
-  }
-
-  importFiles({ files }: DataTransfer) {
-    const { length } = files
-
-    for (let i = 0; i < length; i++) {
-      const entry = files[i]
-
-      if (entry.type.match("text/")) {
-        const reader = new FileReader()
-        reader.readAsText(entry)
-
-        reader.onload = () => {
-          const { result } = reader
-          if (typeof result === "string") this.addText(result)
-        }
-      }
-    }
+    })
   }
 
   async addText(content: string) {
     const url = await Content.create("Text")
     const onOpen = (doc: AnyEditDoc) => {
       doc.content = content.split("")
+      replace(doc)
+    }
+
+    const replace = Content.open(url, once(onOpen))
+
+    this.props.change(doc => {
+      doc.docs.push({ url })
+      return doc
+    })
+  }
+
+  async addImage(src: string) {
+    const url = await Content.create("Image")
+    const onOpen = (doc: AnyEditDoc) => {
+      doc.src = src
       replace(doc)
     }
 
