@@ -4,7 +4,6 @@ import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
 import { debounce } from "lodash"
 import Portal from "preact-portal"
-import "../styles/styles.css"
 
 interface Bounds {
   readonly top: number
@@ -28,7 +27,8 @@ export interface Props {
 }
 
 export interface State {
-  isTracking: boolean
+  isPenDown: boolean
+  isRecordingPoints: boolean
 }
 
 const EMPTY_BOUNDS: Bounds = {
@@ -86,7 +86,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
         <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
           {this.props.children}
         </Pen>
-        {this.state.isTracking ? (
+        {this.state.isRecordingPoints ? (
           <Portal into="body">
             <canvas
               width={window.innerWidth}
@@ -101,19 +101,22 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
   }
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
-    this.setState({ isTracking: true })
+    if (!this.state.isRecordingPoints)
+      this.setState({ isRecordingPoints: true })
+    if (!this.state.isPenDown) this.setState({ isPenDown: true })
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
     this.drawStroke()
   }
 
   onPanEnd = (event: PenEvent) => {
-    this.setState({ isTracking: false })
+    if (this.state.isPenDown) this.setState({ isPenDown: false })
     this.strokeId += 1
     this.recognize()
   }
 
   _recognize = () => {
+    if (this.state.isPenDown) return
     const { maxScore = 0, only } = this.props
     const result = this.recognizer.Recognize(this.points, only)
 
@@ -127,6 +130,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
       // console.log("Unrecognized stroke", result)
     }
 
+    this.setState({ isRecordingPoints: false })
     this.reset()
   }
 
