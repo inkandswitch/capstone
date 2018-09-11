@@ -87,14 +87,14 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     if (!this.canvasElement) {
       this.addCanvas()
     }
-    if (!this.isPenDown) this.setState({ isPenDown: true })
+    if (!this.isPenDown) this.isPenDown = true
     this.points.push(new $P.Point(x, y, this.strokeId))
     this.updateBounds(x, y)
     this.drawStroke()
   }
 
   onPanEnd = (event: PenEvent) => {
-    if (this.isPenDown) this.setState({ isPenDown: false })
+    if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
     this.recognize()
   }
