@@ -47,10 +47,10 @@ function cleanDocId(id) {
  * Experimental second open
  */
 class DocHandle {
-  constructor (hm, docId, actorId, doc) {
+  constructor (hm, docId, doc) {
     this.hm = hm
     this.docId = docId
-    this.actorId = actorId
+    this.actorId = null
     this._back = doc || null
     this._front = null
     this._isManagingFront = false
@@ -134,6 +134,7 @@ class DocHandle {
   _ready (back) {
     this._back = back;
     this._front = null
+    this.actorId = back.get('actorId')
 
     this._onpatch(this._uberPatch())
 
@@ -306,7 +307,7 @@ export default class Hypermerge extends EventEmitter {
 
     const doc = this.docs[docId]
     const readyDoc = this.readyIndex[docId] ? doc : null
-    const handle = new DocHandle(this, docId, this._getActorId(doc), readyDoc)
+    const handle = new DocHandle(this, docId, readyDoc)
 
     this._handles(docId).push(handle)
 
