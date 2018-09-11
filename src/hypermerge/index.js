@@ -50,7 +50,7 @@ class DocHandle {
   constructor (hm, docId, doc) {
     this.hm = hm
     this.docId = docId
-    this.actorId = null
+    this.actorId = doc ? doc.get('actorId') : null
     this._back = doc || null
     this._front = null
     this._isManagingFront = false
@@ -305,9 +305,8 @@ export default class Hypermerge extends EventEmitter {
 
     this._trackedFeed(docId)
 
-    const doc = this.docs[docId]
-    const readyDoc = this.readyIndex[docId] ? doc : null
-    const handle = new DocHandle(this, docId, readyDoc)
+    const doc = this.readyIndex[docId] ? this.docs[docId] : null
+    const handle = new DocHandle(this, docId, doc)
 
     this._handles(docId).push(handle)
 

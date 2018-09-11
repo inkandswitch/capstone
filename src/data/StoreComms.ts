@@ -28,7 +28,7 @@ export default class StoreComms {
     })
 
     handle.onPatch((patch: any) => {
-      log("patch",patch);
+      log("patch",patch)
       const actorId = handle.actorId
       port.postMessage({ actorId, patch })
     })
