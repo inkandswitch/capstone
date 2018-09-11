@@ -226,6 +226,10 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   render() {
+    // HACK: sometimes docs emit before they have all of their values.
+    // This prevents the app from crashing in that case.
+    if (!this.props.url) return null
+
     const type = this.props.type || Link.parse(this.props.url).type
     let Widget
     try {
