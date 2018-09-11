@@ -45,12 +45,14 @@ declare module "automerge" {
   type EditValue = null | string | number | boolean | EditObject | EditValueList
 
   interface EditObject {
+    // // TODO: These values don't exist currently:
     // readonly _objectId: string
     // [key: string]: EditValue
     [key: string]: unknown
   }
 
   interface AnyEditDoc extends EditObject {
+    // // TODO: This value doesn't exist currently:
     // readonly _actorId: string
   }
 
