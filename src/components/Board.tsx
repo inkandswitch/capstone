@@ -176,13 +176,16 @@ class Board extends Preact.Component<Props> {
     }
   }
 
-  onCardStroke = (stroke: Stroke, card: CardModel) => {
+  onCardStroke = (stroke: Stroke, id: string) => {
     switch (stroke.glyph) {
       case Glyph.delete:
-        this.deleteCard(card.id)
+        this.deleteCard(id)
         break
       case Glyph.copy:
-        this.props.emit({ type: "AddToShelf", body: { url: card.url } })
+        const card = this.props.doc.cards[id]
+        if (card) {
+          this.props.emit({ type: "AddToShelf", body: { url: card.url } })
+        }
         break
     }
   }

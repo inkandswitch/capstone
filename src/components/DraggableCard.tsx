@@ -15,7 +15,7 @@ interface CardModel {
 
 export interface Props {
   card: CardModel
-  onStroke: (stroke: Stroke, card: CardModel) => void
+  onStroke: (stroke: Stroke, id: string) => void
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onPinchEnd?: (url: string) => void
@@ -63,7 +63,7 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    this.props.onStroke(stroke, this.props.card)
+    this.props.onStroke(stroke, this.props.card.id)
   }
 
   start = () => {
