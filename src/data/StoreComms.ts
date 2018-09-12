@@ -1,6 +1,4 @@
-import Hypermerge from "../modules/hypermerge"
-
-let racf = require("random-access-chrome-file")
+import { Hypermerge } from "../modules/hypermerge"
 
 const Debug = require("debug")
 const log = Debug("store:coms")
@@ -9,12 +7,10 @@ export default class StoreComms {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any }
 
-  constructor() {
-    this.hypermerge = new Hypermerge({ storage: racf })
-    ;(window as any).hm = this.hypermerge
-    this.hypermerge.ready.then(() => {
+  constructor(hm: Hypermerge) {
+      this.hypermerge = hm
+      ;(window as any).hm = this.hypermerge
       this.hypermerge.joinSwarm({ chrome: true })
-    })
   }
 
   onConnect = (port: chrome.runtime.Port) => {

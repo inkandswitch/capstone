@@ -11,14 +11,6 @@ const log = Debug("hypermerge:index")
 
 function ERR(str) { throw new Error(str) }
 
-// TODO: basic model
-// actorId
-// docId
-// feedId
-// groupId
-// docId == actorId for writable
-// actorId persistent for the same device/user over time, across restarts
-
 // The first block of each Hypercore feed is used for metadata.
 const START_BLOCK = 1
 
@@ -28,24 +20,6 @@ const METADATA = {
   hypermerge: 1,
 }
 
-function cleanDocId(id) {
-  if (id.length == 64) {
-    return Base58.encode(Buffer.from(id, "hex"))
-  }
-  if (id.length >= 32 && id.length <= 44) {
-    return id
-  }
-  throw new Error("Invalid StoreId: " + id)
-}
-
-/**
- * An Automerge document.
- * @typedef {object} Document
- */
-
-/**
- * Experimental second open
- */
 class DocHandle {
   constructor (hm, docId, doc) {
     this.hm = hm
@@ -161,20 +135,18 @@ class DocHandle {
   }
 }
 
-/**
- * Creates a new Hypermerge instance that manages a set of documents.
- * All previously opened documents are automatically re-opened.
- * @param {object} options
- * @param {object} options.storage - config compatible with Hypercore constructor storage param
- * @param {object} [defaultMetadata={}] - default metadata that should be written for new docs
- */
-export default class Hypermerge extends EventEmitter {
+
+function initHypermerge(ops,cb) {
+  let doc = new Hypermerge(ops)
+  doc.ready.then(cb)
+}
+
+class Hypermerge extends EventEmitter {
   constructor ({ storage, defaultMetadata = {} }) {
     super()
 
     this.defaultMetadata = defaultMetadata
 
-    this.isReady = false
     this.feeds = {}
     this.docs = {}
     this.handles = {} // docId -> [DocHandle]
@@ -185,15 +157,17 @@ export default class Hypermerge extends EventEmitter {
     this.requestedBlocks = {} // docId -> actorId -> blockIndex (exclusive)
     this.appliedSeqs = {} // actorId -> seq -> Boolean
 
-    this._onMulticoreReady = this._onMulticoreReady.bind(this)
     this.core = new Multicore(storage)
-    this.core.on("ready", this._onMulticoreReady)
 
     this.ready = new Promise(resolve => {
-      this.on("ready", () => {
-        resolve()
+      this.core.on("ready", () => {
+        this._initFeeds(this._feedKeys(), resolve)
       })
     })
+  }
+
+  _feedKeys() {
+    return this.core.feedKeys().map(Base58.encode)
   }
 
   chromeJoinSwarm () {
@@ -227,57 +201,52 @@ export default class Hypermerge extends EventEmitter {
     })
   }
 
-  /**
-   * Joins the network swarm for all documents managed by this Hypermerge instance.
-   * Must be called after `'ready'` has been emitted. `opts` are passed to discovery-swarm.
-   */
   joinSwarm (opts = {}) {
     if (opts.chrome === true) {
       return this.chromeJoinSwarm()
     }
-    return this.ready.then(() => {
-      log("joinSwarm")
 
-      if (opts.port == null) opts.port = 0
+    log("joinSwarm")
 
-      let mergedOpts = Object.assign(
-        swarmDefaults(),
-        {
-          hash: false,
-          encrypt: true,
-          stream: opts => this.replicate(opts),
-        },
-        opts,
-      )
+    if (opts.port == null) opts.port = 0
 
-      // need a better deeper copy
-      mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
+    let mergedOpts = Object.assign(
+      swarmDefaults(),
+      {
+        hash: false,
+        encrypt: true,
+        stream: opts => this.replicate(opts),
+      },
+      opts,
+    )
 
-      this.swarm = discoverySwarm(mergedOpts)
+    // need a better deeper copy
+    mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
 
-      this.swarm.join(this.core.archiver.changes.discoveryKey)
+    this.swarm = discoverySwarm(mergedOpts)
 
-      Object.values(this.feeds).forEach(feed => {
-        this.swarm.join(feed.discoveryKey)
-      })
+    this.swarm.join(this.core.archiver.changes.discoveryKey)
 
-      this.core.archiver.on("add", feed => {
-        this.swarm.join(feed.discoveryKey)
-      })
-
-      this.core.archiver.on("remove", feed => {
-        this.swarm.leave(feed.discoveryKey)
-      })
-
-      this.swarm.listen(opts.port)
-
-      this.swarm.once("error", err => {
-        log("joinSwarm.error", err)
-        this.swarm.listen(opts.port)
-      })
-
-      return this
+    Object.values(this.feeds).forEach(feed => {
+      this.swarm.join(feed.discoveryKey)
     })
+
+    this.core.archiver.on("add", feed => {
+      this.swarm.join(feed.discoveryKey)
+    })
+
+    this.core.archiver.on("remove", feed => {
+      this.swarm.leave(feed.discoveryKey)
+    })
+
+    this.swarm.listen(opts.port)
+
+    this.swarm.once("error", err => {
+      log("joinSwarm.error", err)
+      this.swarm.listen(opts.port)
+    })
+
+    return this
   }
 
   /**
@@ -297,7 +266,6 @@ export default class Hypermerge extends EventEmitter {
   }
 
   openHandle (docId) {
-    this._ensureReady()
 
     docId = cleanDocId(docId)
 
@@ -338,7 +306,6 @@ export default class Hypermerge extends EventEmitter {
    * @param {object} metadata - metadata to be associated with this document
    */
   create (metadata = {}) {
-    this._ensureReady()
     log("create")
     return this._create(metadata)
   }
@@ -351,7 +318,6 @@ export default class Hypermerge extends EventEmitter {
    */
 
   update (doc) {
-    this._ensureReady()
 
     const actorId = this._getActorId(doc)
     const docId = this._actorToId(actorId)
@@ -488,7 +454,6 @@ export default class Hypermerge extends EventEmitter {
   //   out about it from another user - create the feed with the given actorId.
   // * `actorId` is given and we know of the feed already - return from cache.
   _trackedFeed (actorId = null) {
-    this._ensureReady()
 
     if (actorId && this.feeds[actorId]) {
       return this.feeds[actorId]
@@ -616,8 +581,9 @@ export default class Hypermerge extends EventEmitter {
   // from disk and network.
   //
   // Returns a promise that resolves when all this work is complete.
-  _initFeeds (actorIds) {
+  _initFeeds (actorIds, resolve) {
     log("_initFeeds")
+
     const promises = actorIds.map(actorId => {
       // Don't load metadata if the feed is empty.
       if (this._length(actorId) === 0) {
@@ -631,7 +597,12 @@ export default class Hypermerge extends EventEmitter {
         }
       })
     })
-    return Promise.all(promises)
+
+    return Promise.all(promises).then(() => {
+      actorIds.forEach(actorId => this._trackedFeed(actorId))
+      this.emit("ready")
+      resolve(this)
+    })
   }
 
   // Ensures that metadata for the feed corresponding to `actorId` has been
@@ -852,24 +823,6 @@ export default class Hypermerge extends EventEmitter {
 
   _onMulticoreReady () {
     log("_onMulticoreReady")
-
-    const actorIds = Object.values(this.core.archiver.feeds).map(feed =>
-      Base58.encode(feed.key),
-    )
-
-    this._initFeeds(actorIds).then(() => {
-      this.isReady = true
-      actorIds.forEach(actorId => this._trackedFeed(actorId))
-
-      /**
-       * Emitted when all document metadata has been loaded from storage, and the
-       * Hypermerge instance is ready for use. Documents will continue loading from
-       * storage and the network. Required before `.openHandle()`, etc. can be used.
-       *
-       * @event ready
-       */
-      this.emit("ready")
-    })
   }
 
   _onDownload (docId, actorId) {
@@ -953,17 +906,19 @@ export default class Hypermerge extends EventEmitter {
         })
     }
   }
-
-  // Throws an error if the Hypermerge instance isn't ready yet. Call at the top
-  // of any function in which this invariant should be true.
-  _ensureReady () {
-    if (!this.isReady) {
-      throw new Error(
-        'The Hypermerge instance is not ready yet. Use .on("ready") first.',
-      )
-    }
-  }
 }
 
-//module.exports = Hypermerge
+// just for now - kill this later
+function cleanDocId(id) {
+  if (id.length == 64) {
+    return Base58.encode(Buffer.from(id, "hex"))
+  }
+  if (id.length >= 32 && id.length <= 44) {
+    return id
+  }
+  throw new Error("Invalid StoreId: " + id)
+}
+
+export { initHypermerge, Hypermerge }
+//module.exports = { Hypermerge, initHypermerge }
 
