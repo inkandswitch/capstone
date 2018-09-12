@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Link from "../data/Link"
-import { AnyDoc, Doc, ChangeFn } from "automerge"
+import { AnyDoc, Doc, AnyEditDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"
@@ -57,6 +57,7 @@ export type Mode = "fullscreen" | "embed" | "preview"
 export interface Props {
   url: string
   mode: Mode
+  type?: string
   isFocused?: boolean
   [k: string]: unknown
 }
@@ -128,6 +129,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   static documentCache: { [id: string]: Doc<any> } = {}
 
   static store: Store
+  static workspaceUrl: string
 
   /// Registry:
 
@@ -137,6 +139,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   // Opens an initialized document at the given URL
+
   static open<T>(url: string, callback: Function): (newDoc: any) => void {
     const { type, id } = Link.parse(url)
     const widget = this.find(type) as WidgetClass<T>
@@ -168,27 +171,13 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   static send(message: Message & WithSender) {
-    message.to = message.to || Content.getParent(message.from)
+    message.to = message.to || Content.workspaceUrl
     if (!isFullyFormed(message)) {
       return
     }
     const { type: recipientType } = Link.parse(message.to)
     const recipient = Content.getMessageHandler(recipientType)
     recipient.receive(message)
-  }
-
-  // Component-ordered Document Hierarchy
-  // ====================================
-  static setParent(childUrl: string, parentUrl: string) {
-    Content.ancestorMap[childUrl] = parentUrl
-  }
-
-  static getParent(childUrl: string): string | undefined {
-    return this.ancestorMap[childUrl]
-  }
-
-  static clearParent(childUrl: string) {
-    delete this.ancestorMap[childUrl]
   }
 
   // Component
@@ -198,33 +187,12 @@ export default class Content extends Preact.Component<Props & unknown> {
     return Content.widgetRegistry
   }
 
-  getChildContext() {
-    return { parentUrl: this.props.url }
-  }
-
-  componentDidMount() {
-    if (this.context.parentUrl) {
-      Content.setParent(this.props.url, this.context.parentUrl)
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.url !== this.props.url) {
-      Content.clearParent(this.props.url)
-      if (this.context.parentUrl) {
-        Content.setParent(nextProps.url, this.context.parentUrl)
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.context.parentUrl) {
-      Content.clearParent(this.props.url)
-    }
-  }
-
   render() {
-    const { type } = Link.parse(this.props.url)
+    // HACK: sometimes docs emit before they have all of their values.
+    // This prevents the app from crashing in that case.
+    if (!this.props.url) return null
+
+    const type = this.props.type || Link.parse(this.props.url).type
     let Widget
     try {
       Widget = Content.find(type)

@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "name": "Sidecar",
+  "version": "1.0",
+  "permissions": [
+    "background",
+    "clipboardRead",
+    "clipboardWrite",
+    "webview",
+    "system.network",
+    "storage",
+    "fileSystem",
+    "unlimitedStorage"
+  ],
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+  "sockets": {
+    "tcp": { "connect": ["*"] },
+    "udp": {
+      "send": "*",
+      "bind": ["*"],
+      "multicastMembership": ""
+    },
+    "tcpServer": { "listen": ["*"] },
+    "udpServer": { "listen": ["*"] }
+  }
+}

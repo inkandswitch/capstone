@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { clamp } from "lodash"
+import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -12,11 +12,13 @@ import Content, {
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
-import { AnyDoc, Doc } from "automerge"
+import { AnyDoc, Doc, EditDoc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke, GLYPHS } from "./StrokeRecognizer"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
+
+const boardIcon = require("../assets/board_icon.svg")
 
 const BOARD_PADDING = 15
 
@@ -158,8 +160,13 @@ class Board extends Preact.Component<Props> {
       case "preview":
         return (
           <div style={style.Preview.Board}>
-            <div style={style.Preview.Title}>Untitled Board</div>
-            <div style={style.Preview.SubTitle}>{cards.length} cards</div>
+            <img style={style.Preview.Icon} src={boardIcon} />
+            <div style={style.Preview.TitleContainer}>
+              <div style={style.Preview.Title}>Board</div>
+              <div style={style.Preview.SubTitle}>
+                {isEmpty(cards) ? "No" : size(cards)} items
+              </div>
+            </div>
           </div>
         )
     }
@@ -217,7 +224,7 @@ class Board extends Preact.Component<Props> {
     })
   }
 
-  setCardFocus = (doc: Doc<Model>, cardId: string): Doc<Model> => {
+  setCardFocus = (doc: EditDoc<Model>, cardId: string): EditDoc<Model> => {
     const card = doc.cards[cardId]
     if (!card) return doc
     doc.cards[cardId] = { ...card, isFocused: true }
@@ -225,7 +232,7 @@ class Board extends Preact.Component<Props> {
     return doc
   }
 
-  clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
+  clearCardFocus = (doc: EditDoc<Model>): EditDoc<Model> => {
     if (doc.focusedCardId == null) return doc
     const card = doc.cards[doc.focusedCardId]
     if (card) {
@@ -299,17 +306,30 @@ const style = {
 
   Preview: {
     Board: {
-      padding: 10,
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "center",
+      padding: "50px 25px",
       fontSize: 16,
-      textAlign: "center",
       backgroundColor: "#fff",
     },
+    Icon: {
+      height: 50,
+      width: 50,
+    },
+    TitleContainer: {
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      margin: "0 15px",
+    },
     Title: {
-      fontSize: 20,
-      color: "#333",
+      fontSize: 24,
+      fontWeight: 500,
+      lineHeight: "1.2em",
     },
     SubTitle: {
-      color: "#666",
+      fontSize: "smaller",
     },
   },
 }
