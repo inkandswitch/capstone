@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { clamp } from "lodash"
+import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -166,7 +166,7 @@ class Board extends Preact.Component<Props> {
             <div style={style.Preview.TitleContainer}>
               <div style={style.Preview.Title}>Board</div>
               <div style={style.Preview.SubTitle}>
-                {cards.length ? cards.length : "No"} items
+                {isEmpty(cards) ? "No" : size(cards)} items
               </div>
             </div>
           </div>
