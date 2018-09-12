@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { clamp } from "lodash"
+import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -15,8 +15,10 @@ import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
+
+const boardIcon = require("../assets/board_icon.svg")
 
 const BOARD_PADDING = 15
 
@@ -114,9 +116,7 @@ class Board extends Preact.Component<Props> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer
-            onStroke={this.onStroke}
-            only={["box", "downarrow"]}>
+          <StrokeRecognizer onStroke={this.onStroke}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -160,8 +160,13 @@ class Board extends Preact.Component<Props> {
       case "preview":
         return (
           <div style={style.Preview.Board}>
-            <div style={style.Preview.Title}>Untitled Board</div>
-            <div style={style.Preview.SubTitle}>{cards.length} cards</div>
+            <img style={style.Preview.Icon} src={boardIcon} />
+            <div style={style.Preview.TitleContainer}>
+              <div style={style.Preview.Title}>Board</div>
+              <div style={style.Preview.SubTitle}>
+                {isEmpty(cards) ? "No" : size(cards)} items
+              </div>
+            </div>
           </div>
         )
     }
@@ -245,11 +250,8 @@ class Board extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    switch (stroke.name) {
-      case "box":
-        this.createCard("Text", stroke.center.x, stroke.bounds.top)
-        break
-      case "downarrow":
+    switch (stroke.glyph) {
+      case Glyph.paste:
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {
@@ -304,17 +306,30 @@ const style = {
 
   Preview: {
     Board: {
-      padding: 10,
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "center",
+      padding: "50px 25px",
       fontSize: 16,
-      textAlign: "center",
       backgroundColor: "#fff",
     },
+    Icon: {
+      height: 50,
+      width: 50,
+    },
+    TitleContainer: {
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      margin: "0 15px",
+    },
     Title: {
-      fontSize: 20,
-      color: "#333",
+      fontSize: 24,
+      fontWeight: 500,
+      lineHeight: "1.2em",
     },
     SubTitle: {
-      color: "#666",
+      fontSize: "smaller",
     },
   },
 }

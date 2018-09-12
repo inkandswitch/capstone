@@ -1,9 +1,12 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
+import Content from "./Content"
 import { AnyDoc, Doc } from "automerge"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
+import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
@@ -18,8 +21,17 @@ export interface Model {
   selected: string[]
 }
 
+interface CreateBoard extends Message {
+  type: "CreateBoard"
+}
+
 export interface DocumentSelected extends Message {
   type: "DocumentSelected"
+  body: { url: string }
+}
+
+export interface DocumentDeleted extends Message {
+  type: "DocumentDeleted"
   body: { url: string }
 }
 
@@ -27,9 +39,9 @@ export interface ClearSelection extends Message {
   type: "ClearSelection"
 }
 
-type WidgetMessage = DocumentSelected
+type WidgetMessage = DocumentSelected | CreateBoard | DocumentDeleted
 type InMessage = FullyFormedMessage<
-  DocumentCreated | DocumentSelected | ClearSelection
+  WidgetMessage | DocumentCreated | ClearSelection
 >
 type OutMessage = DocumentSelected
 
@@ -45,6 +57,21 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "DocumentSelected": {
         this.emit({ type: message.type, body: message.body })
+        break
+      }
+      case "CreateBoard": {
+        const url = await Content.create("Board")
+        this.change(doc => {
+          doc.docs.unshift({ url: url })
+          return doc
+        })
+        break
+      }
+      case "DocumentDeleted": {
+        this.change(doc => {
+          remove(doc.docs, val => val.url === message.body.url)
+          return doc
+        })
         break
       }
       case "ClearSelection": {
@@ -73,25 +100,46 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onStrokeItem = (url: string) => {
-    this.props.emit({ type: "DocumentSelected", body: { url } })
+  onStroke = (stroke: Stroke) => {
+    switch (stroke.glyph) {
+      case Glyph.create: {
+        this.props.emit({ type: "CreateBoard" })
+        break
+      }
+    }
+  }
+
+  onStrokeItem = (stroke: Stroke, url: string) => {
+    switch (stroke.glyph) {
+      case Glyph.copy: {
+        this.props.emit({ type: "DocumentSelected", body: { url } })
+        break
+      }
+      case Glyph.delete: {
+        this.props.emit({ type: "DocumentDeleted", body: { url } })
+        break
+      }
+    }
   }
 
   render() {
     const { doc } = this.props
 
     return (
-      <div style={style.Archive}>
-        <div style={style.Items}>
-          {doc.docs.map(({ url }) => (
-            <ArchiveItem
-              url={url}
-              isSelected={doc.selected.includes(url)}
-              onStroke={this.onStrokeItem}
-            />
-          ))}
+      <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
+        <div style={style.Archive}>
+          <div style={style.Items}>
+            {doc.docs.map(({ url }) => (
+              <ArchiveItem
+                key={url}
+                url={url}
+                isSelected={doc.selected.includes(url)}
+                onStroke={this.onStrokeItem}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      </StrokeRecognizer>
     )
   }
 }

@@ -29,6 +29,7 @@ export default class App extends Preact.Component<{}, State> {
     let shelfUrl = Content.create("Shelf")
 
     Content.create("Workspace").then(workspaceUrl => {
+      Content.workspaceUrl = workspaceUrl
       let workspaceUpdateFunction = Content.open<Workspace.Model>(
         workspaceUrl,
         (workspaceDoc: any) => {
@@ -38,11 +39,12 @@ export default class App extends Preact.Component<{}, State> {
               // by jeff's RxJS patch
               // what we want here is sort of a .once('update') style callback,
               // probably from create() itself
-              if (workspaceDoc.archiveUrl) return
-              workspaceDoc.currentUrl = boardUrl
-              workspaceDoc.archiveUrl = archiveUrl
-              workspaceDoc.shelfUrl = shelfUrl
-              workspaceUpdateFunction(workspaceDoc)
+              if (!workspaceDoc.archiveUrl) {
+                workspaceDoc.currentUrl = boardUrl
+                workspaceDoc.archiveUrl = archiveUrl
+                workspaceDoc.shelfUrl = shelfUrl
+                workspaceUpdateFunction(workspaceDoc)
+              }
               this.setState({ url: workspaceUrl })
               chrome.storage.local.set({ workspaceUrl })
             },
@@ -59,6 +61,7 @@ export default class App extends Preact.Component<{}, State> {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {
+        Content.workspaceUrl = val.workspaceUrl
         this.setState({ url: val.workspaceUrl })
       }
     })
