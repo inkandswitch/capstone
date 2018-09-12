@@ -135,7 +135,6 @@ class Board extends Preact.Component<Props> {
                       key={card.id}
                       card={card}
                       onStroke={this.onCardStroke}
-                      onDelete={this.deleteCard}
                       onPinchEnd={this.props.onNavigate}
                       onDragStart={this.onDragStart}
                       onDragStop={this.onDragStop}

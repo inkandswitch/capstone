@@ -20,7 +20,6 @@ export interface Props {
   onDragStop?: (x: number, y: number, id: string) => void
   onPinchEnd?: (url: string) => void
   onTap?: (id: string) => void
-  onDelete: (id: string) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
