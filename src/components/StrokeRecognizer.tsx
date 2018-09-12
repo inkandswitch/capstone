@@ -1,7 +1,7 @@
 import * as Preact from "preact"
-import * as $P from "../modules/$P"
+import * as $1 from "../modules/$1"
 import Pen, { PenEvent } from "./Pen"
-import { debounce } from "lodash"
+import { debounce, delay } from "lodash"
 
 interface Bounds {
   readonly top: number
@@ -11,7 +11,7 @@ interface Bounds {
 }
 
 export interface Stroke {
-  name: string
+  glyph: Glyph
   bounds: Bounds
   center: { x: number; y: number }
 }
@@ -31,46 +31,27 @@ const EMPTY_BOUNDS: Bounds = {
   left: Infinity,
 }
 
-const DEFAULT_RECOGNIZER = new $P.Recognizer()
+export enum Glyph {
+  unknown = 0,
+  copy,
+  paste,
+  delete,
+  create,
+}
 
-DEFAULT_RECOGNIZER.AddGesture("box", [
-  new $P.Point(0, 0, 1),
-  new $P.Point(0, 1, 1),
-  new $P.Point(1, 1, 1),
-  new $P.Point(1, 0, 1),
-  new $P.Point(0, 0, 1),
-])
-
-DEFAULT_RECOGNIZER.AddGesture("X", [
-  new $P.Point(30, 146, 1),
-  new $P.Point(106, 222, 1),
-  new $P.Point(30, 225, 2),
-  new $P.Point(106, 146, 2),
-])
-
-DEFAULT_RECOGNIZER.AddGesture("downarrow", [
-  new $P.Point(0, 0, 1),
-  new $P.Point(1, 1, 1),
-  new $P.Point(2, 0, 1),
-])
-
-DEFAULT_RECOGNIZER.AddGesture("uparrow", [
-  new $P.Point(0, 1, 1),
-  new $P.Point(1, 0, 1),
-  new $P.Point(2, 1, 1),
-])
+const DEFAULT_RECOGNIZER = new $1.DollarRecognizer()
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
   canvasElement?: HTMLCanvasElement
   isPenDown: boolean
 
   static defaultProps = {
-    delay: 200,
+    delay: 300,
     maxScore: 6,
   }
 
-  recognizer: $P.Recognizer = DEFAULT_RECOGNIZER
-  points: $P.Point[] = []
+  recognizer: $1.DollarRecognizer = DEFAULT_RECOGNIZER
+  points: $1.Point[] = []
   strokeId = 0
   bounds: Bounds = EMPTY_BOUNDS
 
@@ -87,7 +68,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       this.startDrawing()
     }
     if (!this.isPenDown) this.isPenDown = true
-    this.points.push(new $P.Point(x, y, this.strokeId))
+    this.points.push(new $1.Point(x, y))
     this.updateBounds(x, y)
   }
 
@@ -99,22 +80,41 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   _recognize = () => {
     if (this.isPenDown) return
+
     const { maxScore = 0, only } = this.props
     const result = this.recognizer.Recognize(this.points, only)
 
     if (result.Score > 0 && result.Score < maxScore) {
+      this.flashDebugMessage(`I'm a ${result.Name}`)
+      const glyph = this.mapResultNameToGlyph(result.Name)
       this.props.onStroke({
-        name: result.Name,
+        glyph: glyph,
         bounds: this.bounds,
         center: this.center(),
       })
     } else {
-      // console.log("Unrecognized stroke", result)
+      this.flashDebugMessage(`Couldn't recognize anything :(`)
     }
     this.reset()
   }
 
-  recognize = debounce(this._recognize, this.props.delay)
+  recognize = this._recognize //debounce(this._recognize, this.props.delay)
+
+  mapResultNameToGlyph(originalName: string): Glyph {
+    switch (originalName) {
+      case "x":
+      case "delete":
+        return Glyph.delete
+      case "caret":
+        return Glyph.copy
+      case "v":
+        return Glyph.paste
+      case "rectangle":
+      case "circle":
+        return Glyph.create
+    }
+    return Glyph.unknown
+  }
 
   center() {
     const b = this.bounds
@@ -180,20 +180,31 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     ctx.beginPath()
     ctx.lineWidth = 4
     const startPoint = this.points[0]
-    let lastStrokeID = 0
     for (let i = 0; i < this.points.length; i++) {
       let point = this.points[i]
-      if (i == 0 || point.ID != lastStrokeID) {
+      if (i === 0) {
         ctx.moveTo(point.X, point.Y)
       } else {
         ctx.lineTo(point.X, point.Y)
       }
-      lastStrokeID = point.ID
     }
     ctx.stroke()
   }
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
     return this.canvasElement && this.canvasElement.getContext("2d")
+  }
+
+  flashDebugMessage(text: string) {
+    const div = document.createElement("div")
+    div.className = "DebugMessage"
+    const content = document.createTextNode(text)
+    div.appendChild(content)
+    document.body.appendChild(div)
+
+    const removeText = () => {
+      document.body.removeChild(div)
+    }
+    delay(removeText, 1000)
   }
 }

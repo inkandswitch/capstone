@@ -15,7 +15,7 @@ import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -116,9 +116,7 @@ class Board extends Preact.Component<Props> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer
-            onStroke={this.onStroke}
-            only={["box", "downarrow"]}>
+          <StrokeRecognizer onStroke={this.onStroke}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -252,11 +250,8 @@ class Board extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    switch (stroke.name) {
-      case "box":
-        this.createCard("Text", stroke.center.x, stroke.bounds.top)
-        break
-      case "downarrow":
+    switch (stroke.glyph) {
+      case Glyph.paste:
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {
