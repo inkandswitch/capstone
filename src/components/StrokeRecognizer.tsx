@@ -1,5 +1,4 @@
 import * as Preact from "preact"
-import Handler from "./Handler"
 import * as $1 from "../modules/$1"
 import Pen, { PenEvent } from "./Pen"
 import { debounce, delay } from "lodash"
@@ -36,6 +35,7 @@ export const GLYPHS = {
   copy: "copy",
   paste: "paste",
   delete: "delete",
+  create: "create",
 }
 
 const DEFAULT_RECOGNIZER = new $1.DollarRecognizer()
@@ -64,12 +64,11 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   onPanMove = ({ center: { x, y } }: PenEvent) => {
     if (!this.canvasElement) {
-      this.addCanvas()
+      this.startDrawing()
     }
     if (!this.isPenDown) this.isPenDown = true
     this.points.push(new $1.Point(x, y))
     this.updateBounds(x, y)
-    this.drawStroke()
   }
 
   onPanEnd = (event: PenEvent) => {
@@ -109,6 +108,9 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
         return GLYPHS.copy
       case "v":
         return GLYPHS.paste
+      case "rectangle":
+      case "circle":
+        return GLYPHS.create
     }
     return originalName
   }
@@ -135,6 +137,23 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     this.points = []
     this.strokeId = 0
     this.bounds = EMPTY_BOUNDS
+    this.stopDrawing()
+  }
+
+  startDrawing() {
+    if (!this.canvasElement) {
+      this.addCanvas()
+    }
+    requestAnimationFrame(this.draw)
+  }
+
+  draw = () => {
+    if (!this.canvasElement) return
+    this.drawStrokes()
+    requestAnimationFrame(this.draw)
+  }
+
+  stopDrawing() {
     this.removeCanvas()
   }
 
@@ -153,25 +172,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     }
   }
 
-  flashDebugMessage(text: string) {
-    var div = document.createElement("div")
-    div.className = "DebugMessage"
-    var content = document.createTextNode(text)
-    div.appendChild(content)
-    document.body.appendChild(div)
-
-    let removeText = () => {
-      console.log("removing")
-      document.body.removeChild(div)
-    }
-    delay(removeText, 1000)
-  }
-
-  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
-    return this.canvasElement && this.canvasElement.getContext("2d")
-  }
-
-  drawStroke() {
+  drawStrokes() {
     const ctx = this.getDrawingContext()
     if (!ctx || this.points.length == 0) return
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -187,5 +188,23 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       }
     }
     ctx.stroke()
+  }
+
+  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
+    return this.canvasElement && this.canvasElement.getContext("2d")
+  }
+
+  flashDebugMessage(text: string) {
+    var div = document.createElement("div")
+    div.className = "DebugMessage"
+    var content = document.createTextNode(text)
+    div.appendChild(content)
+    document.body.appendChild(div)
+
+    let removeText = () => {
+      console.log("removing")
+      document.body.removeChild(div)
+    }
+    delay(removeText, 1000)
   }
 }
