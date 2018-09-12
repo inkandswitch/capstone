@@ -24,13 +24,18 @@ export interface DocumentSelected extends Message {
   body: { url: string }
 }
 
+export interface DocumentDeleted extends Message {
+  type: "DocumentDeleted"
+  body: { url: string }
+}
+
 export interface ClearSelection extends Message {
   type: "ClearSelection"
 }
 
-type WidgetMessage = DocumentSelected
+type WidgetMessage = DocumentSelected | DocumentDeleted
 type InMessage = FullyFormedMessage<
-  DocumentCreated | DocumentSelected | ClearSelection
+  DocumentCreated | DocumentSelected | ClearSelection | DocumentDeleted
 >
 type OutMessage = DocumentSelected
 
@@ -46,6 +51,20 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "DocumentSelected": {
         this.emit({ type: message.type, body: message.body })
+        break
+      }
+      case "DocumentDeleted": {
+        this.change(doc => {
+          // XXX - is this the best way to delete a doc?
+          // probably would be nice to have a helper function for this
+          const idx = doc.docs.findIndex((value: { url: string }) => {
+            return message.body.url == value.url
+          })
+          if (idx > -1) {
+            doc.docs.splice(idx, 1)
+          }
+          return doc
+        })
         break
       }
       case "ClearSelection": {
@@ -78,6 +97,10 @@ class Archive extends Preact.Component<Props> {
     switch (stroke.name) {
       case GLYPHS.copy:
         this.props.emit({ type: "DocumentSelected", body: { url } })
+        break
+      case GLYPHS.delete:
+        this.props.emit({ type: "DocumentDeleted", body: { url } })
+        break
     }
   }
 
