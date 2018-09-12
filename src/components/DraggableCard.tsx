@@ -3,7 +3,7 @@ import Draggable from "../draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../draggable/types"
 import Touch, { TouchEvent } from "./Touch"
-import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke, GLYPHS } from "./StrokeRecognizer"
 
 interface CardModel {
   id: string
@@ -64,7 +64,7 @@ export default class DraggableCard extends Preact.Component<Props> {
 
   onStroke = (stroke: Stroke) => {
     switch (stroke.name) {
-      case "X":
+      case GLYPHS.delete:
         this.props.onDelete(this.props.card.id)
     }
   }

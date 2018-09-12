@@ -15,7 +15,7 @@ import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke, GLYPHS } from "./StrokeRecognizer"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const BOARD_PADDING = 15
@@ -244,10 +244,7 @@ class Board extends Preact.Component<Props> {
 
   onStroke = (stroke: Stroke) => {
     switch (stroke.name) {
-      case "box":
-        this.createCard("Text", stroke.center.x, stroke.bounds.top)
-        break
-      case "downarrow":
+      case GLYPHS.paste:
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {

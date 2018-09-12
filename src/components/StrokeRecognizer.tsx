@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import Handler from "./Handler"
-import * as $P from "../modules/$P"
+import * as $1 from "../modules/$1"
 import Pen, { PenEvent } from "./Pen"
 import { debounce, delay } from "lodash"
 
@@ -32,34 +32,13 @@ const EMPTY_BOUNDS: Bounds = {
   left: Infinity,
 }
 
-const DEFAULT_RECOGNIZER = new $P.Recognizer()
+export const GLYPHS = {
+  copy: "copy",
+  paste: "paste",
+  delete: "delete",
+}
 
-DEFAULT_RECOGNIZER.AddGesture("box", [
-  new $P.Point(0, 0, 1),
-  new $P.Point(0, 1, 1),
-  new $P.Point(1, 1, 1),
-  new $P.Point(1, 0, 1),
-  new $P.Point(0, 0, 1),
-])
-
-DEFAULT_RECOGNIZER.AddGesture("X", [
-  new $P.Point(0, 0, 1),
-  new $P.Point(1, 1, 1),
-  new $P.Point(0, 1, 2),
-  new $P.Point(1, 0, 2),
-])
-
-DEFAULT_RECOGNIZER.AddGesture("downarrow", [
-  new $P.Point(0, 0, 1),
-  new $P.Point(1, 1, 1),
-  new $P.Point(2, 0, 1),
-])
-
-DEFAULT_RECOGNIZER.AddGesture("uparrow", [
-  new $P.Point(0, 1, 1),
-  new $P.Point(1, 0, 1),
-  new $P.Point(2, 1, 1),
-])
+const DEFAULT_RECOGNIZER = new $1.DollarRecognizer()
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
   canvasElement?: HTMLCanvasElement
@@ -70,8 +49,8 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     maxScore: 6,
   }
 
-  recognizer: $P.Recognizer = DEFAULT_RECOGNIZER
-  points: $P.Point[] = []
+  recognizer: $1.DollarRecognizer = DEFAULT_RECOGNIZER
+  points: $1.Point[] = []
   strokeId = 0
   bounds: Bounds = EMPTY_BOUNDS
 
@@ -88,7 +67,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       this.addCanvas()
     }
     if (!this.isPenDown) this.isPenDown = true
-    this.points.push(new $P.Point(x, y, this.strokeId))
+    this.points.push(new $1.Point(x, y))
     this.updateBounds(x, y)
     this.drawStroke()
   }
@@ -101,18 +80,15 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   _recognize = () => {
     if (this.isPenDown) return
-    console.log(`recognizing for points`)
-    this.points.forEach(point => {
-      console.log(`   ${point.X} / ${point.Y} /// ${point.ID}`)
-    })
 
     const { maxScore = 0, only } = this.props
     const result = this.recognizer.Recognize(this.points, only)
 
     if (result.Score > 0 && result.Score < maxScore) {
       this.flashDebugMessage(`I'm a ${result.Name}`)
+      const glyphName = this.mapResultName(result.Name)
       this.props.onStroke({
-        name: result.Name,
+        name: glyphName,
         bounds: this.bounds,
         center: this.center(),
       })
@@ -122,7 +98,20 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     this.reset()
   }
 
-  recognize = debounce(this._recognize, this.props.delay)
+  recognize = this._recognize //debounce(this._recognize, this.props.delay)
+
+  mapResultName(originalName: string): string {
+    switch (originalName) {
+      case "x":
+      case "delete":
+        return GLYPHS.delete
+      case "caret":
+        return GLYPHS.copy
+      case "v":
+        return GLYPHS.paste
+    }
+    return originalName
+  }
 
   center() {
     const b = this.bounds
@@ -189,15 +178,13 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     ctx.beginPath()
     ctx.lineWidth = 4
     const startPoint = this.points[0]
-    let lastStrokeID = 0
     for (let i = 0; i < this.points.length; i++) {
       let point = this.points[i]
-      if (i == 0 || point.ID != lastStrokeID) {
+      if (i == 0) {
         ctx.moveTo(point.X, point.Y)
       } else {
         ctx.lineTo(point.X, point.Y)
       }
-      lastStrokeID = point.ID
     }
     ctx.stroke()
   }

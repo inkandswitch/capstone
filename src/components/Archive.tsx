@@ -4,6 +4,7 @@ import { AnyDoc, Doc } from "automerge"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
+import { Stroke, GLYPHS } from "./StrokeRecognizer"
 import {
   DocumentActor,
   DocumentCreated,
@@ -73,8 +74,11 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onStrokeItem = (url: string) => {
-    this.props.emit({ type: "DocumentSelected", body: { url } })
+  onStrokeItem = (stroke: Stroke, url: string) => {
+    switch (stroke.name) {
+      case GLYPHS.copy:
+        this.props.emit({ type: "DocumentSelected", body: { url } })
+    }
   }
 
   render() {
