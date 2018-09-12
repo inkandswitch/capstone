@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import Content from "./Content"
-import StrokeRecognizer, { Stroke, GLYPHS } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
 
 interface ArchiveItemProps {
   url: string
