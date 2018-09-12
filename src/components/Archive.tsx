@@ -6,6 +6,7 @@ import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
 import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
@@ -29,11 +30,16 @@ export interface DocumentSelected extends Message {
   body: { url: string }
 }
 
+export interface DocumentDeleted extends Message {
+  type: "DocumentDeleted"
+  body: { url: string }
+}
+
 export interface ClearSelection extends Message {
   type: "ClearSelection"
 }
 
-type WidgetMessage = DocumentSelected | CreateBoard
+type WidgetMessage = DocumentSelected | CreateBoard | DocumentDeleted
 type InMessage = FullyFormedMessage<
   WidgetMessage | DocumentCreated | ClearSelection
 >
@@ -57,6 +63,13 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
         const url = await Content.create("Board")
         this.change(doc => {
           doc.docs.unshift({ url: url })
+          return doc
+        })
+        break
+      }
+      case "DocumentDeleted": {
+        this.change(doc => {
+          remove(doc.docs, val => val.url === message.body.url)
           return doc
         })
         break
@@ -102,6 +115,10 @@ class Archive extends Preact.Component<Props> {
         this.props.emit({ type: "DocumentSelected", body: { url } })
         break
       }
+      case Glyph.delete: {
+        this.props.emit({ type: "DocumentDeleted", body: { url } })
+        break
+      }
     }
   }
 
@@ -114,6 +131,7 @@ class Archive extends Preact.Component<Props> {
           <div style={style.Items}>
             {doc.docs.map(({ url }) => (
               <ArchiveItem
+                key={url}
                 url={url}
                 isSelected={doc.selected.includes(url)}
                 onStroke={this.onStrokeItem}
