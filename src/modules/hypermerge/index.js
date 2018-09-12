@@ -166,6 +166,7 @@ export default class Hypermerge extends EventEmitter {
         })
         this.joinSwarm({
           dht: false,
+          utp: false,
           dns: { multicast },
         })
       })
@@ -197,7 +198,8 @@ export default class Hypermerge extends EventEmitter {
       )
 
       // need a better deeper copy
-      mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
+      // disable the DNS-SD swarm discovery stuff
+      //mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
 
       this.swarm = discoverySwarm(mergedOpts)
 
