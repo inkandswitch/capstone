@@ -58,6 +58,7 @@
     "lodash": "^4.17.10",
     "preact": "^8.3.0",
     "random-access-chrome-file": "^1.1.1",
+    "tap-browser-el": "^2.0.0",
     "utp": "github:pvh/utp"
   }
 }

@@ -266,6 +266,14 @@ append-tree@^2.3.5, append-tree@^2.4.1:
     protocol-buffers-encodings "^1.1.0"
     varint "^5.0.0"
 
+apply-selector-and-css@^1.0.3:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/apply-selector-and-css/-/apply-selector-and-css-1.1.1.tgz#b1e5e90840aa1d7bdc49724e4eadde5db69ecd2c"
+  dependencies:
+    cssobject-from-selector "^1.0.2"
+    dom-css "^1.1.1"
+    parse-selector "^1.0.0"
+
 aproba@^1.0.3, aproba@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/aproba/-/aproba-1.2.0.tgz#6802e6264efd18c790a1b0d517f0f2627bf2c94a"
@@ -1041,6 +1049,13 @@ cssesc@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/cssesc/-/cssesc-0.1.0.tgz#c814903e45623371a0477b40109aaafbeeaddbb4"
 
+cssobject-from-selector@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/cssobject-from-selector/-/cssobject-from-selector-1.0.2.tgz#86e7ca5290fe51a076610e1c9e8d8eff1e4b96fc"
+  dependencies:
+    merge "^1.2.0"
+    parse-selector "^1.0.0"
+
 currently-unhandled@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/currently-unhandled/-/currently-unhandled-0.4.1.tgz#988df33feab191ef799a61369dd76c17adf957ea"
@@ -1262,6 +1277,13 @@ dns-socket@^3.0.0:
   resolved "https://registry.yarnpkg.com/dns-socket/-/dns-socket-3.0.0.tgz#3418a3c6309656ebdb3eb0a941811a4fb0b828c5"
   dependencies:
     dns-packet "^4.1.0"
+
+dom-css@^1.1.1:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/dom-css/-/dom-css-1.1.2.tgz#22b8bd77ce709e4c20ba58ee0a2c3df27fe64ba9"
+  dependencies:
+    prefix-style "^1.0.0"
+    to-camel-case "^0.2.1"
 
 domain-browser@^1.1.1:
   version "1.2.0"
@@ -2513,6 +2535,10 @@ meow@3.7.0:
     redent "^1.0.0"
     trim-newlines "^1.0.0"
 
+merge@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/merge/-/merge-1.2.0.tgz#7531e39d4949c281a66b8c5a6e0265e8b05894da"
+
 merkle-tree-stream@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/merkle-tree-stream/-/merkle-tree-stream-3.0.3.tgz#f8a064760d37e7978ad5f9f6d3c119a494f57081"
@@ -3005,6 +3031,10 @@ parse-ms@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/parse-ms/-/parse-ms-1.0.1.tgz#56346d4749d78f23430ca0c713850aef91aa361d"
 
+parse-selector@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/parse-selector/-/parse-selector-1.0.0.tgz#bab48f44d280c22f6228368190481592e6cd12d7"
+
 pascalcase@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/pascalcase/-/pascalcase-0.1.1.tgz#b363e55e8006ca6fe21784d2db22bd15d7917f14"
@@ -3153,6 +3183,10 @@ postcss@^6.0.0, postcss@^6.0.1, postcss@^6.0.23:
 preact@^8.3.0:
   version "8.3.1"
   resolved "https://registry.yarnpkg.com/preact/-/preact-8.3.1.tgz#ed34f79d09edc5efd32a378a3416ef5dc531e3ac"
+
+prefix-style@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/prefix-style/-/prefix-style-1.0.0.tgz#6a50ade50ae4b7288eddf07f71b9802cc7af22e2"
 
 preserve@^0.2.0:
   version "0.2.0"
@@ -3923,6 +3957,12 @@ supports-color@^5.3.0, supports-color@^5.4.0:
   dependencies:
     has-flag "^3.0.0"
 
+tap-browser-el@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/tap-browser-el/-/tap-browser-el-2.0.0.tgz#53656bc77a73de083bde170c161f3528f279cfe1"
+  dependencies:
+    apply-selector-and-css "^1.0.3"
+
 tap-out@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/tap-out/-/tap-out-2.1.0.tgz#c093079a915036de8b835bfa3297f14458b15358"
@@ -4031,6 +4071,16 @@ to-buffer@^1.0.1, to-buffer@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/to-buffer/-/to-buffer-1.1.1.tgz#493bd48f62d7c43fcded313a03dcadb2e1213a80"
 
+to-camel-case@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/to-camel-case/-/to-camel-case-0.2.1.tgz#200799152cfa5e752b7aad0dfe8b7af105cafaa2"
+  dependencies:
+    to-space-case "0.1.2"
+
+to-no-case@0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/to-no-case/-/to-no-case-0.1.1.tgz#cf33c70e0f28168d95e4159abf150e8c542ef9fe"
+
 to-object-path@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/to-object-path/-/to-object-path-0.3.0.tgz#297588b7b0e7e0ac08e04e672f85c1f4999e17af"
@@ -4052,6 +4102,12 @@ to-regex@^3.0.1, to-regex@^3.0.2:
     extend-shallow "^3.0.2"
     regex-not "^1.0.2"
     safe-regex "^1.1.0"
+
+to-space-case@0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/to-space-case/-/to-space-case-0.1.2.tgz#9a66be3ebe53f2779f687f0262effd1fc5b6d15e"
+  dependencies:
+    to-no-case "0.1.1"
 
 transit-immutable-js@^0.7.0:
   version "0.7.0"
