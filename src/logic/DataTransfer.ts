@@ -1,0 +1,42 @@
+import * as File from "./File"
+
+export interface Entry {
+  type: string
+  getAsText: () => Promise<string>
+  getAsDataURL: () => Promise<string>
+}
+
+export const extractEntries = ({ files, items }: DataTransfer): Entry[] => {
+  const kind = files.length > 0 ? "file" : "string"
+
+  // We only want to extract "string" items if there are no "file" items,
+  // so we filter based on `item.kind`.
+  return ([...items] as DataTransferItem[])
+    .filter(item => item.kind === kind)
+    .map(item => ({
+      type: item.type,
+      getAsText: () => extractAsText(item),
+      getAsDataURL: () => extractAsDataURL(item),
+    }))
+}
+
+export const extractAsText = (item: DataTransferItem): Promise<string> => {
+  const file = item.getAsFile()
+
+  if (file) {
+    return File.read("Text", file)
+  } else {
+    return new Promise(resolve => item.getAsString(resolve))
+  }
+}
+
+export const extractAsDataURL = (item: DataTransferItem): Promise<string> => {
+  const file = item.getAsFile()
+
+  if (file) {
+    return File.read("DataURL", file)
+  } else {
+    // TODO: read non-files as data URLs
+    return Promise.reject(new Error("Not a file"))
+  }
+}
