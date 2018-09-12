@@ -16,7 +16,7 @@ import { AnyDoc, Doc, EditDoc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
-import { ShelfContents, ShelfContentsRequested } from "./Shelf"
+import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
 
@@ -53,9 +53,9 @@ interface CreateCard extends Message {
   }
 }
 
-type WidgetMessage = CreateCard | ShelfContentsRequested
+type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
 type InMessage = FullyFormedMessage<WidgetMessage | ShelfContents>
-type OutMessage = DocumentCreated | ShelfContentsRequested
+type OutMessage = DocumentCreated | AddToShelf | ShelfContentsRequested
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -71,6 +71,10 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
           return doc
         })
         this.emit({ type: "DocumentCreated", body: url })
+        break
+      }
+      case "AddToShelf": {
+        this.emit({ type: "AddToShelf", body: message.body })
         break
       }
       case "ShelfContentsRequested": {
@@ -130,6 +134,7 @@ class Board extends Preact.Component<Props> {
                     <DraggableCard
                       key={card.id}
                       card={card}
+                      onStroke={this.onCardStroke}
                       onDelete={this.deleteCard}
                       onPinchEnd={this.props.onNavigate}
                       onDragStart={this.onDragStart}
@@ -169,6 +174,17 @@ class Board extends Preact.Component<Props> {
             </div>
           </div>
         )
+    }
+  }
+
+  onCardStroke = (stroke: Stroke, card: CardModel) => {
+    switch (stroke.glyph) {
+      case Glyph.delete:
+        this.deleteCard(card.id)
+        break
+      case Glyph.copy:
+        this.props.emit({ type: "AddToShelf", body: { url: card.url } })
+        break
     }
   }
 
