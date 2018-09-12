@@ -343,22 +343,6 @@ export default class Hypermerge extends EventEmitter {
     return this._create(metadata)
   }
 
-  createHandle (metadata = {}) {
-    let doc = this.create(metadata)
-  }
-
-  /**
-   * Shorthand for `hm.update(Automerge.change(doc, changeFn))`.
-   */
-
-/*
-  change (doc, message = null, changeFn) {
-    const docId = this.getId(doc)
-    log("change", docId)
-    return this.update(Frontend.change(doc, message, changeFn))
-  }
-*/
-
   /**
    * Finds any new changes for the submitted doc for the actor,
    * and appends the changes to the actor's Hypercore feed.
@@ -377,56 +361,6 @@ export default class Hypermerge extends EventEmitter {
 
     this.applyChanges(docId, changes, true)
   }
-
-  /**
-   * Creates a new actor Hypercore feed and Automerge document, with
-   * an empty change that depends on the document for another actor.
-   * The metadata of the new document will contain a `parentId` property.
-   *
-   * @param {string} parentId - id of document to fork
-   */
-/*
-  fork (parentId) {
-    this._ensureReady()
-
-    log("fork", parentId)
-
-    const parent = this.find(parentId)
-    const doc = this._create({ parentId }, this.metadata(parentId))
-
-    return this.change(
-      Backend.merge(doc, parent),
-      `Forked from ${parentId}`,
-      () => {},
-    )
-  }
-*/
-
-  /**
-   * Takes all the changes from a document (sourceId) and adds them to
-   * another document (destId). Returns the merged document.
-   *
-   * The source and destination docs must have come from the same root document.
-   * e.g. The source doc was a `.fork()` of the destination doc, or visa-versa.
-   *
-   * @param {string} destId - docId to merge changes into
-   * @param {string} sourceId - docId to copy changes from
-   */
-/*
-  merge (destId, sourceId) {
-    this._ensureReady()
-    log("merge", destId, sourceId)
-
-    const dest = this.find(destId)
-    const source = this.find(sourceId)
-
-    return this.change(
-      Backend.merge(dest, source),
-      `Merged with ${sourceId}`,
-      () => {},
-    )
-  }
-*/
 
   /**
    * Removes Hypercore feed for an actor and Automerge doc.

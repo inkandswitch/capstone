@@ -14,9 +14,8 @@ export default class Store {
     let doc : any = null;
 
     var port = chrome.runtime.connect({ name: id })
-    port.onMessage.addListener((tmp) => {
-      console.log("Got patches", tmp)
-      let { actorId, patch } = tmp;
+    port.onMessage.addListener(({ actorId, patch }) => {
+      console.log("Got patch", patch)
       if (doc === null) { doc = init(actorId) }
       if (patch.diffs.length > 0) {
         doc = applyPatch(doc,patch)
