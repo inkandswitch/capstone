@@ -138,6 +138,7 @@ class Archive extends Preact.Component<Props> {
           <div style={style.Items}>
             {doc.docs.map(({ url }) => (
               <ArchiveItem
+                key={url}
                 url={url}
                 isSelected={doc.selected.includes(url)}
                 onStroke={this.onStrokeItem}
