@@ -3,37 +3,42 @@ export interface Entry {
   asString: () => Promise<string>
 }
 
-export const extractEntries = ({ items }: DataTransfer) =>
-  ([...items] as DataTransferItem[]).map(item => ({
-    type: item.type,
-    asString: () => extractAsString(item),
-  }))
+export const extractEntries = ({ files, items }: DataTransfer) => {
+  const kind = files.length > 0 ? "file" : "string"
+
+  return ([...items] as DataTransferItem[])
+    .filter(item => item.kind === kind)
+    .map(item => ({
+      type: item.type,
+      asString: () => extractAsString(item),
+    }))
+}
 
 export const extractAsString = (item: DataTransferItem): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    switch (item.kind) {
-      case "string":
-        return item.getAsString(resolve)
+  if (item.kind === "file") {
+    return extractAsDataURL(item)
+  }
 
-      case "file": {
-        const reader = new FileReader()
-        const file = item.getAsFile()
-        if (!file) return Promise.reject(new Error("Not a file"))
+  return new Promise(resolve => item.getAsString(resolve))
+}
 
-        if (item.type === "text/plain") {
-          reader.readAsText(file)
-        } else {
-          reader.readAsDataURL(file)
-        }
+const extractAsDataURL = (item: DataTransferItem): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    const file = item.getAsFile()
+    if (!file) return Promise.reject(new Error("Not a file"))
 
-        reader.onload = () => {
-          const { result } = reader
-          if (result) resolve()
-        }
-        reader.onerror = () => {
-          reject(reader.error)
-        }
-      }
+    if (item.type === "text/plain") {
+      reader.readAsText(file)
+    } else {
+      reader.readAsDataURL(file)
+    }
+
+    reader.onload = () => {
+      const { result } = reader
+      if (result) resolve()
+    }
+    reader.onerror = () => {
+      reject(reader.error)
     }
   })
-}
