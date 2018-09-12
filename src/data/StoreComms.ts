@@ -1,5 +1,5 @@
-//import Hypermerge from "../hypermerge/bridge"
-import Hypermerge from "../hypermerge"
+import Hypermerge from "../modules/hypermerge"
+
 let racf = require("random-access-chrome-file")
 
 const Debug = require("debug")

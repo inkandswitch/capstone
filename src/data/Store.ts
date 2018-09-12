@@ -1,5 +1,4 @@
-import { change, init, getRequests, applyPatch, Doc, AnyDoc, ChangeFn } from "automerge/frontend"
-///import Frontend from "automerge/frontend"
+import { change, init, getRequests, applyPatch, Doc, AnyDoc, ChangeFn, EditDoc } from "automerge/frontend"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 

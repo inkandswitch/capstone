@@ -763,16 +763,16 @@ chrome-debug@orionz/debug:
   dependencies:
     ms "^2.1.1"
 
-chrome-dgram@^3.0.1:
+chrome-dgram@^3.0.1, "chrome-dgram@github:inkandswitch/chrome-dgram":
   version "3.0.1"
-  resolved "https://registry.yarnpkg.com/chrome-dgram/-/chrome-dgram-3.0.1.tgz#42a388d04da063865a79e3ba2ae5fbf8ab0f1dba"
+  resolved "https://codeload.github.com/inkandswitch/chrome-dgram/tar.gz/f768c662da19ccbb9975c6b0e8c18dbbd793ed58"
   dependencies:
     inherits "^2.0.1"
     run-series "^1.1.2"
 
-chrome-net@^3.3.1:
+"chrome-net@github:inkandswitch/chrome-net":
   version "3.3.1"
-  resolved "https://registry.yarnpkg.com/chrome-net/-/chrome-net-3.3.1.tgz#b4041edb5b264222e7e3c96101344b2332c86782"
+  resolved "https://codeload.github.com/inkandswitch/chrome-net/tar.gz/552e360527d66c35dbc712b615316ded4acb59d9"
   dependencies:
     inherits "^2.0.1"
 

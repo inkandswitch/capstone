@@ -12,7 +12,7 @@ import Content, {
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
-import { AnyDoc, Doc } from "automerge/frontend"
+import { AnyDoc, Doc, EditDoc } from "automerge/frontend"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
@@ -219,7 +219,7 @@ class Board extends Preact.Component<Props> {
     })
   }
 
-  setCardFocus = (doc: Doc<Model>, cardId: string): Doc<Model> => {
+  setCardFocus = (doc: EditDoc<Model>, cardId: string): EditDoc<Model> => {
     const card = doc.cards[cardId]
     if (!card) return doc
     doc.cards[cardId] = { ...card, isFocused: true }
@@ -227,7 +227,7 @@ class Board extends Preact.Component<Props> {
     return doc
   }
 
-  clearCardFocus = (doc: Doc<Model>): Doc<Model> => {
+  clearCardFocus = (doc: EditDoc<Model>): EditDoc<Model> => {
     if (doc.focusedCardId == null) return doc
     const card = doc.cards[doc.focusedCardId]
     if (card) {

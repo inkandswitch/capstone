@@ -3,7 +3,6 @@ import * as Preact from "preact"
 interface Event {}
 
 interface Props {
-  children: JSX.Element
   [name: string]: any
 }
 

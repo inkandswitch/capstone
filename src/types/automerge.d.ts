@@ -47,19 +47,22 @@ declare module "automerge/frontend" {
   type EditValue = null | string | number | boolean | EditObject | EditValueList
 
   interface EditObject {
-    readonly _objectId: string
-    [key: string]: EditValue
+    // // TODO: These values don't exist currently:
+    // readonly _objectId: string
+    // [key: string]: EditValue
+    [key: string]: unknown
   }
 
   interface AnyEditDoc extends EditObject {
-    readonly _actorId: string
+    // // TODO: This value doesn't exist currently:
+    // readonly _actorId: string
   }
 
   // includes _actorId and any properties in T, all other keys are 'unknown'
   type EditDoc<T> = AnyEditDoc & T
 
   interface ChangeFn<T> {
-    (doc: Doc<T>): Doc<T>
+    (doc: EditDoc<T>): EditDoc<T>
   }
 }
 
