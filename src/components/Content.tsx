@@ -129,6 +129,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   static documentCache: { [id: string]: Doc<any> } = {}
 
   static store: Store
+  static workspaceUrl: string
 
   /// Registry:
 
@@ -170,7 +171,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   static send(message: Message & WithSender) {
-    message.to = message.to || Content.getParent(message.from)
+    message.to = message.to || Content.workspaceUrl
     if (!isFullyFormed(message)) {
       return
     }
@@ -179,50 +180,11 @@ export default class Content extends Preact.Component<Props & unknown> {
     recipient.receive(message)
   }
 
-  // Component-ordered Document Hierarchy
-  // ====================================
-  static setParent(childUrl: string, parentUrl: string) {
-    Content.ancestorMap[childUrl] = parentUrl
-  }
-
-  static getParent(childUrl: string): string | undefined {
-    return this.ancestorMap[childUrl]
-  }
-
-  static clearParent(childUrl: string) {
-    delete this.ancestorMap[childUrl]
-  }
-
   // Component
   // =========
 
   get registry() {
     return Content.widgetRegistry
-  }
-
-  getChildContext() {
-    return { parentUrl: this.props.url }
-  }
-
-  componentDidMount() {
-    if (this.context.parentUrl) {
-      Content.setParent(this.props.url, this.context.parentUrl)
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.url !== this.props.url) {
-      Content.clearParent(this.props.url)
-      if (this.context.parentUrl) {
-        Content.setParent(nextProps.url, this.context.parentUrl)
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.context.parentUrl) {
-      Content.clearParent(this.props.url)
-    }
   }
 
   render() {
