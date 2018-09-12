@@ -19,7 +19,7 @@ export interface Model {
 }
 
 type InMessage = FullyFormedMessage<
-  DocumentCreated | DocumentSelected | ShelfContentsRequested
+  DocumentCreated | DocumentSelected | ShelfContentsRequested | AddToShelf
 >
 type OutMessage =
   | DocumentCreated
@@ -36,6 +36,7 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
         }
         break
       }
+      case "AddToShelf":
       case "DocumentSelected": {
         this.emit({
           type: "AddToShelf",

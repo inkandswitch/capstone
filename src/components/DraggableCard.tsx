@@ -15,11 +15,11 @@ interface CardModel {
 
 export interface Props {
   card: CardModel
+  onStroke: (stroke: Stroke, id: string) => void
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onPinchEnd?: (url: string) => void
   onTap?: (id: string) => void
-  onDelete: (id: string) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
@@ -63,10 +63,7 @@ export default class DraggableCard extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    switch (stroke.glyph) {
-      case Glyph.delete:
-        this.props.onDelete(this.props.card.id)
-    }
+    this.props.onStroke(stroke, this.props.card.id)
   }
 
   start = () => {
