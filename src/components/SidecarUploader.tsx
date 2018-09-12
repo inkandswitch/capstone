@@ -4,7 +4,7 @@ import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as DataTransfer from "../logic/DataTransfer"
 import Content from "./Content"
-import { AnyDoc, AnyEditDoc } from "automerge"
+import { AnyDoc, AnyEditDoc, ChangeFn } from "automerge"
 import Clipboard from "./Clipboard"
 
 interface Model {
@@ -79,34 +79,34 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
   }
 
   importData(data: DataTransfer) {
-    DataTransfer.extractEntries(data).forEach(async ({ type, asString }) => {
-      if (type.startsWith("image/")) {
-        this.addImage(await asString())
-      } else if (type.startsWith("text/")) {
-        this.addText(await asString())
+    DataTransfer.extractEntries(data).forEach(async entry => {
+      if (entry.type.startsWith("image/")) {
+        this.addImage(await entry.getAsDataURL())
+      } else if (entry.type.startsWith("text/")) {
+        this.addText(await entry.getAsText())
       }
     })
   }
 
   async addText(content: string) {
-    const url = await Content.create("Text")
-    const onOpen = (doc: AnyEditDoc) => {
+    return this.addDoc("Text", doc => {
       doc.content = content.split("")
-      replace(doc)
-    }
-
-    const replace = Content.open(url, once(onOpen))
-
-    this.props.change(doc => {
-      doc.docs.push({ url })
       return doc
     })
   }
 
   async addImage(src: string) {
-    const url = await Content.create("Image")
-    const onOpen = (doc: AnyEditDoc) => {
+    return this.addDoc("Image", doc => {
       doc.src = src
+      return doc
+    })
+  }
+
+  async addDoc(type: string, changeFn: ChangeFn<unknown>) {
+    const url = await Content.create(type)
+
+    const onOpen = (doc: AnyEditDoc) => {
+      changeFn(doc)
       replace(doc)
     }
 
