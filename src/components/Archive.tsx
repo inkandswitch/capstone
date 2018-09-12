@@ -74,6 +74,7 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
             return message.body.url == value.url
           })
           if (idx > -1) {
+            console.log(`deleting element at index ${idx}`)
             doc.docs.splice(idx, 1)
           }
           return doc
@@ -121,7 +122,7 @@ class Archive extends Preact.Component<Props> {
         this.props.emit({ type: "DocumentSelected", body: { url } })
         break
       }
-      case GLYPHS.delete: {
+      case Glyph.delete: {
         this.props.emit({ type: "DocumentDeleted", body: { url } })
         break
       }
