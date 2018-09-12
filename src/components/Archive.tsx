@@ -74,7 +74,6 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
             return message.body.url == value.url
           })
           if (idx > -1) {
-            console.log(`deleting element at index ${idx}`)
             doc.docs.splice(idx, 1)
           }
           return doc
