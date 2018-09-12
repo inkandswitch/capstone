@@ -13,6 +13,7 @@ import {
   FullyFormedMessage,
   Message,
 } from "./Content"
+import { AddToShelf } from "./Shelf"
 
 export interface Model {
   docs: Array<{
@@ -39,11 +40,15 @@ export interface ClearSelection extends Message {
   type: "ClearSelection"
 }
 
-type WidgetMessage = DocumentSelected | CreateBoard | DocumentDeleted
+type WidgetMessage =
+  | DocumentSelected
+  | AddToShelf
+  | CreateBoard
+  | DocumentDeleted
 type InMessage = FullyFormedMessage<
   WidgetMessage | DocumentCreated | ClearSelection
 >
-type OutMessage = DocumentSelected
+type OutMessage = DocumentSelected | AddToShelf
 
 export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -53,6 +58,10 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
           doc.docs.unshift({ url: message.body })
           return doc
         })
+        break
+      }
+      case "AddToShelf": {
+        this.emit({ type: message.type, body: message.body })
         break
       }
       case "DocumentSelected": {
@@ -112,7 +121,7 @@ class Archive extends Preact.Component<Props> {
   onStrokeItem = (stroke: Stroke, url: string) => {
     switch (stroke.glyph) {
       case Glyph.copy: {
-        this.props.emit({ type: "DocumentSelected", body: { url } })
+        this.props.emit({ type: "AddToShelf", body: { url } })
         break
       }
       case Glyph.delete: {
@@ -122,11 +131,15 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
+  onTapItem = (url: string) => {
+    this.props.emit({ type: "DocumentSelected", body: { url } })
+  }
+
   render() {
     const { doc } = this.props
 
     return (
-      <StrokeRecognizer onStroke={this.onStroke} only={["box"]}>
+      <StrokeRecognizer onStroke={this.onStroke}>
         <div style={style.Archive}>
           <div style={style.Items}>
             {doc.docs.map(({ url }) => (
@@ -134,6 +147,7 @@ class Archive extends Preact.Component<Props> {
                 key={url}
                 url={url}
                 isSelected={doc.selected.includes(url)}
+                onTap={this.onTapItem}
                 onStroke={this.onStrokeItem}
               />
             ))}

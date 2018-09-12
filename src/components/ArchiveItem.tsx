@@ -1,11 +1,13 @@
 import * as Preact from "preact"
 import Content from "./Content"
 import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import Touch from "./Touch"
 
 interface ArchiveItemProps {
   url: string
   isSelected: boolean
   onStroke: (stroke: Stroke, url: string) => void
+  onTap: (url: string) => void
 }
 
 export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
@@ -13,17 +15,23 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
     const { url, isSelected } = this.props
     return (
       <StrokeRecognizer onStroke={this.onStroke}>
-        <div style={style.Item}>
-          <div style={style.ItemContent}>
-            <Content mode="preview" url={url} />
+        <Touch onTap={this.onTap}>
+          <div style={style.Item}>
+            <div style={style.ItemContent}>
+              <Content mode="preview" url={url} />
+            </div>
           </div>
-        </div>
+        </Touch>
       </StrokeRecognizer>
     )
   }
 
   onStroke = (stroke: Stroke) => {
     this.props.onStroke(stroke, this.props.url)
+  }
+
+  onTap = () => {
+    this.props.onTap(this.props.url)
   }
 }
 

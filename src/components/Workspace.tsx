@@ -19,7 +19,7 @@ export interface Model {
 }
 
 type InMessage = FullyFormedMessage<
-  DocumentCreated | DocumentSelected | ShelfContentsRequested
+  DocumentCreated | DocumentSelected | AddToShelf | ShelfContentsRequested
 >
 type OutMessage =
   | DocumentCreated
@@ -29,6 +29,7 @@ type OutMessage =
 
 class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
+    console.log(message)
     switch (message.type) {
       case "DocumentCreated": {
         if (message.from !== this.doc.archiveUrl) {
@@ -37,6 +38,16 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
         break
       }
       case "DocumentSelected": {
+        if (message.body.url !== this.doc.currentUrl) {
+          this.change(doc => {
+            doc.backUrls.push(doc.currentUrl)
+            doc.currentUrl = message.body.url
+            return doc
+          })
+        }
+        break
+      }
+      case "AddToShelf": {
         this.emit({
           type: "AddToShelf",
           body: message.body,
