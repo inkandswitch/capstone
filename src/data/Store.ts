@@ -1,4 +1,4 @@
-import { Doc, AnyDoc, ChangeFn } from "automerge"
+import { Doc, AnyDoc, ChangeFn, EditDoc } from "automerge"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 

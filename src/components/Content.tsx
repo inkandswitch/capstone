@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Link from "../data/Link"
-import { AnyDoc, Doc, ChangeFn } from "automerge"
+import { AnyDoc, Doc, AnyEditDoc, ChangeFn } from "automerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"
@@ -57,6 +57,7 @@ export type Mode = "fullscreen" | "embed" | "preview"
 export interface Props {
   url: string
   mode: Mode
+  type?: string
   isFocused?: boolean
   [k: string]: unknown
 }
@@ -137,6 +138,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   // Opens an initialized document at the given URL
+
   static open<T>(url: string, callback: Function): (newDoc: any) => void {
     const { type, id } = Link.parse(url)
     const widget = this.find(type) as WidgetClass<T>
@@ -224,7 +226,11 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   render() {
-    const { type } = Link.parse(this.props.url)
+    // HACK: sometimes docs emit before they have all of their values.
+    // This prevents the app from crashing in that case.
+    if (!this.props.url) return null
+
+    const type = this.props.type || Link.parse(this.props.url).type
     let Widget
     try {
       Widget = Content.find(type)
