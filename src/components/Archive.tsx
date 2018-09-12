@@ -6,6 +6,7 @@ import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
 import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
@@ -68,14 +69,7 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "DocumentDeleted": {
         this.change(doc => {
-          // XXX - is this the best way to delete a doc?
-          // probably would be nice to have a helper function for this
-          const idx = doc.docs.findIndex((value: { url: string }) => {
-            return message.body.url == value.url
-          })
-          if (idx > -1) {
-            doc.docs.splice(idx, 1)
-          }
+          remove(doc.docs, val => val.url === message.body.url)
           return doc
         })
         break
