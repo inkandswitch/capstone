@@ -15,7 +15,7 @@ import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge"
 import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke, GLYPHS } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -250,8 +250,8 @@ class Board extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    switch (stroke.name) {
-      case GLYPHS.paste:
+    switch (stroke.glyph) {
+      case Glyph.paste:
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {

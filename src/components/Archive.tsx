@@ -5,7 +5,7 @@ import { AnyDoc, Doc } from "automerge"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
-import StrokeRecognizer, { Stroke, GLYPHS } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 import {
   DocumentActor,
   DocumentCreated,
@@ -107,8 +107,8 @@ class Archive extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    switch (stroke.name) {
-      case GLYPHS.create: {
+    switch (stroke.glyph) {
+      case Glyph.create: {
         this.props.emit({ type: "CreateBoard" })
         break
       }
@@ -116,8 +116,8 @@ class Archive extends Preact.Component<Props> {
   }
 
   onStrokeItem = (stroke: Stroke, url: string) => {
-    switch (stroke.name) {
-      case GLYPHS.copy: {
+    switch (stroke.glyph) {
+      case Glyph.copy: {
         this.props.emit({ type: "DocumentSelected", body: { url } })
         break
       }
