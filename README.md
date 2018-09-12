@@ -14,10 +14,13 @@ Otherwise, you can format the code by running `yarn format`.
 
 ## Dev Tools
 
-`yarn test`: Run tests
-`yarn test-watch`: Run tests when src files change
+`yarn start`: Start the build
+`yarn test`: Same as `yarn launch-tests`
 `yarn repl`: Start a TypeScript REPL
 `yarn format`: Format all `src/*` code with prettier
+`yarn launch-capstone`: Open the "capstone" chrome app. Run `yarn start` first
+`yarn launch-sidecar`: Open the "sidecar" chrome app. Run `yarn start` first
+`yarn launch-tests`: Open the "tests" chrome app. Run `yarn start` first
 
 ## Widgets
 
