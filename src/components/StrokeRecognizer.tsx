@@ -11,7 +11,7 @@ interface Bounds {
 }
 
 export interface Stroke {
-  name: string
+  glyph: Glyph
   bounds: Bounds
   center: { x: number; y: number }
 }
@@ -31,11 +31,12 @@ const EMPTY_BOUNDS: Bounds = {
   left: Infinity,
 }
 
-export const GLYPHS = {
-  copy: "copy",
-  paste: "paste",
-  delete: "delete",
-  create: "create",
+export enum Glyph {
+  unknown = 0,
+  copy,
+  paste,
+  delete,
+  create,
 }
 
 const DEFAULT_RECOGNIZER = new $1.DollarRecognizer()
@@ -85,9 +86,9 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
     if (result.Score > 0 && result.Score < maxScore) {
       this.flashDebugMessage(`I'm a ${result.Name}`)
-      const glyphName = this.mapResultName(result.Name)
+      const glyph = this.mapResultNameToGlyph(result.Name)
       this.props.onStroke({
-        name: glyphName,
+        glyph: glyph,
         bounds: this.bounds,
         center: this.center(),
       })
@@ -99,20 +100,20 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   recognize = this._recognize //debounce(this._recognize, this.props.delay)
 
-  mapResultName(originalName: string): string {
+  mapResultNameToGlyph(originalName: string): Glyph {
     switch (originalName) {
       case "x":
       case "delete":
-        return GLYPHS.delete
+        return Glyph.delete
       case "caret":
-        return GLYPHS.copy
+        return Glyph.copy
       case "v":
-        return GLYPHS.paste
+        return Glyph.paste
       case "rectangle":
       case "circle":
-        return GLYPHS.create
+        return Glyph.create
     }
-    return originalName
+    return Glyph.unknown
   }
 
   center() {
@@ -181,7 +182,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     const startPoint = this.points[0]
     for (let i = 0; i < this.points.length; i++) {
       let point = this.points[i]
-      if (i == 0) {
+      if (i === 0) {
         ctx.moveTo(point.X, point.Y)
       } else {
         ctx.lineTo(point.X, point.Y)
@@ -195,14 +196,13 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   }
 
   flashDebugMessage(text: string) {
-    var div = document.createElement("div")
+    const div = document.createElement("div")
     div.className = "DebugMessage"
-    var content = document.createTextNode(text)
+    const content = document.createTextNode(text)
     div.appendChild(content)
     document.body.appendChild(div)
 
-    let removeText = () => {
-      console.log("removing")
+    const removeText = () => {
       document.body.removeChild(div)
     }
     delay(removeText, 1000)
