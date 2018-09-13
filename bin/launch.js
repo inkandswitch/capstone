@@ -8,4 +8,5 @@ const app = process.argv[2]
 const chrome = path.join(__dirname, "chrome.js")
 const appPath = path.join(__dirname, "..", "dist", app)
 
-cp.execFile(chrome, [`--load-and-launch-app=${appPath}`])
+console.log(chrome)
+cp.execFile("node", [chrome, `--load-and-launch-app=${appPath}`])
