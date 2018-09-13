@@ -11,6 +11,7 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
+import * as Link from "../data/Link"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge"
 import { CARD_WIDTH } from "./Card"
@@ -290,29 +291,12 @@ class Board extends Preact.Component<Props> {
   }
 
   cardAtPoint = (x: number, y: number): CardModel | null => {
-    let matchingCards: CardModel[] = []
-    const cards = this.props.doc && this.props.doc.cards
-    for (const cardID in cards) {
-      const card = cards[cardID]
-      const cardElement = card && document.getElementById(card.url)
-      if (
-        cardElement &&
-        card &&
-        x > card.x &&
-        x < card.x + CARD_WIDTH &&
-        y > card.y &&
-        y < card.y + cardElement.clientHeight
-      ) {
-        matchingCards.push(card)
-      }
-    }
-    if (matchingCards.length === 0) return null
-    if (matchingCards.length > 1) {
-      matchingCards.sort(function(a, b) {
-        return b.z - a.z
-      })
-    }
-    return matchingCards[0]
+    const el = document.elementFromPoint(x, y)
+    const cardEl = el.closest(".card")
+    if (!cardEl || !cardEl.hasAttribute("id")) return null
+    const card = this.props.doc.cards[cardEl.id]
+    if (!card) return null
+    return card
   }
 
   async createCard(type: string, x: number, y: number) {

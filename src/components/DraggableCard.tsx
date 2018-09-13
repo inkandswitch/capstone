@@ -42,7 +42,7 @@ export default class DraggableCard extends Preact.Component<Props> {
           onCancel={this.cancel}
           z={z}
           enableUserSelectHack={false}>
-          <Card cardURL={url} {...rest}>
+          <Card id={this.props.card.id} {...rest}>
             {children}
           </Card>
         </Draggable>
