@@ -177,9 +177,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     const ctx = this.getDrawingContext()
     if (!ctx || this.points.length == 0) return
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-    ctx.beginPath()
     ctx.lineWidth = 4
-    const startPoint = this.points[0]
     for (let i = 0; i < this.points.length; i++) {
       let point = this.points[i]
       if (i === 0) {
@@ -189,6 +187,9 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       }
     }
     ctx.stroke()
+    const center = this.center()
+    ctx.fillStyle = "red"
+    ctx.fillRect(center.x - 2, center.y - 2, 5, 5)
   }
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
