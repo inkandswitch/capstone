@@ -11,10 +11,9 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
-import * as Link from "../data/Link"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge"
-import { CARD_WIDTH } from "./Card"
+import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
@@ -280,23 +279,22 @@ class Board extends Preact.Component<Props> {
           },
         })
         break
-      default:
+      default: {
         const centerPoint = stroke.center
         const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
         if (card) {
           this.onCardStroke(stroke, card.id)
         }
         break
+      }
     }
   }
 
-  cardAtPoint = (x: number, y: number): CardModel | null => {
+  cardAtPoint = (x: number, y: number): CardModel | undefined => {
     const el = document.elementFromPoint(x, y)
-    const cardEl = el.closest(".card")
-    if (!cardEl || !cardEl.hasAttribute("id")) return null
-    const card = this.props.doc.cards[cardEl.id]
-    if (!card) return null
-    return card
+    const cardEl = el.closest(`.${CARD_CLASS}`)
+    if (!cardEl || !cardEl.id) return undefined
+    return this.props.doc.cards[cardEl.id]
   }
 
   async createCard(type: string, x: number, y: number) {

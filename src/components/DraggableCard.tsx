@@ -28,7 +28,7 @@ export default class DraggableCard extends Preact.Component<Props> {
 
   render() {
     const {
-      card: { x, y, z, url },
+      card: { x, y, z },
       children,
       ...rest
     } = this.props
@@ -42,7 +42,7 @@ export default class DraggableCard extends Preact.Component<Props> {
           onCancel={this.cancel}
           z={z}
           enableUserSelectHack={false}>
-          <Card id={this.props.card.id} {...rest}>
+          <Card cardId={this.props.card.id} {...rest}>
             {children}
           </Card>
         </Draggable>
