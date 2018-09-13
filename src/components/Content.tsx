@@ -149,6 +149,14 @@ export default class Content extends Preact.Component<Props & unknown> {
     return replaceCallback
   }
 
+  static once<T>(
+    url: string,
+    callback: (doc: Doc<T>, change: (doc: Doc<T>) => void) => void,
+  ): void {
+    const onOpen = (doc: Doc<T>): void => callback(doc, changeFn)
+    const changeFn = Content.open(url, once(onOpen))
+  }
+
   static registerWidget(type: string, component: WidgetClass<any>) {
     this.widgetRegistry[type] = component
   }
