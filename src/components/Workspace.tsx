@@ -141,6 +141,7 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
           <Content
+            key={this.currentUrl}
             mode={this.props.mode}
             url={this.currentUrl}
             onNavigate={this.push}
