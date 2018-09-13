@@ -23,34 +23,29 @@ type State = {
 }
 
 export default class App extends Preact.Component<{}, State> {
-  initWorkspace() {
-    let archiveUrl = Content.create("Archive")
-    let boardUrl = Content.create("Board")
-    let shelfUrl = Content.create("Shelf")
+  async initWorkspace() {
+    const archiveUrlPromise = Content.create("Archive")
+    const boardUrlPromise = Content.create("Board")
+    const shelfUrlPromise = Content.create("Shelf")
 
-    Content.create("Workspace").then(workspaceUrl => {
-      Content.workspaceUrl = workspaceUrl
-      let workspaceUpdateFunction = Content.open<Workspace.Model>(
-        workspaceUrl,
-        (workspaceDoc: any) => {
-          Promise.all([archiveUrl, boardUrl, shelfUrl]).then(
-            ([archiveUrl, boardUrl, shelfUrl]) => {
-              // this is pretty yeeeech, but i'm leaving it since it should be replaced
-              // by jeff's RxJS patch
-              // what we want here is sort of a .once('update') style callback,
-              // probably from create() itself
-              if (!workspaceDoc.archiveUrl) {
-                workspaceDoc.currentUrl = boardUrl
-                workspaceDoc.archiveUrl = archiveUrl
-                workspaceDoc.shelfUrl = shelfUrl
-                workspaceUpdateFunction(workspaceDoc)
-              }
-              this.setState({ url: workspaceUrl })
-              chrome.storage.local.set({ workspaceUrl })
-            },
-          )
-        },
-      )
+    const workspaceUrl = await Content.create("Workspace")
+    Content.workspaceUrl = workspaceUrl
+
+    // Initialize the workspace
+    Content.once<Workspace.Model>(workspaceUrl, async (workspace, change) => {
+      const boardUrl = await boardUrlPromise
+      const shelfUrl = await shelfUrlPromise
+      const archiveUrl = await archiveUrlPromise
+
+      if (!workspace.archiveUrl) {
+        workspace.currentUrl = boardUrl
+        workspace.archiveUrl = archiveUrl
+        workspace.shelfUrl = shelfUrl
+        change(workspace)
+      }
+
+      this.setState({ url: workspaceUrl })
+      chrome.storage.local.set({ workspaceUrl })
     })
   }
 
