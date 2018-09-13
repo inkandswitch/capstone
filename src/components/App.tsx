@@ -25,7 +25,6 @@ type State = {
 export default class App extends Preact.Component<{}, State> {
   initWorkspace() {
     let archiveUrl = Content.create("Archive")
-    let boardUrl = Content.create("Board")
     let shelfUrl = Content.create("Shelf")
 
     Content.create("Workspace").then(workspaceUrl => {
@@ -33,21 +32,19 @@ export default class App extends Preact.Component<{}, State> {
       let workspaceUpdateFunction = Content.open<Workspace.Model>(
         workspaceUrl,
         (workspaceDoc: any) => {
-          Promise.all([archiveUrl, boardUrl, shelfUrl]).then(
-            ([archiveUrl, boardUrl, shelfUrl]) => {
-              // this is pretty yeeeech, but i'm leaving it since it should be replaced
-              // by jeff's RxJS patch
-              // what we want here is sort of a .once('update') style callback,
-              // probably from create() itself
-              if (!workspaceDoc.archiveUrl) {
-                workspaceDoc.archiveUrl = archiveUrl
-                workspaceDoc.shelfUrl = shelfUrl
-                workspaceUpdateFunction(workspaceDoc)
-              }
-              this.setState({ url: workspaceUrl })
-              chrome.storage.local.set({ workspaceUrl })
-            },
-          )
+          Promise.all([archiveUrl, shelfUrl]).then(([archiveUrl, shelfUrl]) => {
+            // this is pretty yeeeech, but i'm leaving it since it should be replaced
+            // by jeff's RxJS patch
+            // what we want here is sort of a .once('update') style callback,
+            // probably from create() itself
+            if (!workspaceDoc.archiveUrl) {
+              workspaceDoc.archiveUrl = archiveUrl
+              workspaceDoc.shelfUrl = shelfUrl
+              workspaceUpdateFunction(workspaceDoc)
+            }
+            this.setState({ url: workspaceUrl })
+            chrome.storage.local.set({ workspaceUrl })
+          })
         },
       )
     })

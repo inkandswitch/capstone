@@ -128,7 +128,8 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
   }
 
   onPinchEnd = (event: TouchEvent) => {
-    if (event.scale > 1) return
+    // Prevent popping the last item off the navStack on pinch end.
+    if (event.scale > 1 || this.props.doc.navStack.length < 2) return
     this.pop()
   }
 
