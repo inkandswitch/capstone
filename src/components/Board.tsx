@@ -293,7 +293,7 @@ class Board extends Preact.Component<Props> {
   cardAtPoint = (x: number, y: number): CardModel | undefined => {
     const el = document.elementFromPoint(x, y)
     const cardEl = el.closest(`.${CARD_CLASS}`)
-    if (!cardEl || !cardEl.id) return undefined
+    if (!cardEl || !cardEl.id) return
     return this.props.doc.cards[cardEl.id]
   }
 
