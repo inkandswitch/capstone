@@ -183,6 +183,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     if (!isFullyFormed(message)) {
       return
     }
+
     const { type: recipientType } = Link.parse(message.to)
     const recipient = Content.getMessageHandler(recipientType)
     recipient.receive(message)

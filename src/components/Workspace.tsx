@@ -12,14 +12,13 @@ import { DocumentSelected, ClearSelection } from "./Archive"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 
 export interface Model {
-  backUrls: string[]
-  currentUrl: string
+  navStack: string[]
   archiveUrl: string
   shelfUrl: string
 }
 
 type InMessage = FullyFormedMessage<
-  DocumentCreated | DocumentSelected | ShelfContentsRequested | AddToShelf
+  DocumentCreated | DocumentSelected | AddToShelf | ShelfContentsRequested
 >
 type OutMessage =
   | DocumentCreated
@@ -36,8 +35,18 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
         }
         break
       }
-      case "AddToShelf":
       case "DocumentSelected": {
+        // Clear the navstack and push selected document url.
+        const { url } = message.body
+        if (url !== this.doc.currentUrl) {
+          this.change(doc => {
+            doc.navStack = [url]
+            return doc
+          })
+        }
+        break
+      }
+      case "AddToShelf": {
         this.emit({
           type: "AddToShelf",
           body: message.body,
@@ -61,15 +70,70 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
 class Workspace extends Preact.Component<Widget.Props<Model>> {
   static reify(doc: AnyDoc): Model {
     return {
-      currentUrl: Reify.link(doc.currentUrl),
-      backUrls: Reify.array(doc.backUrls),
+      navStack: Reify.array(doc.navStack),
       archiveUrl: Reify.link(doc.archiveUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
     }
   }
 
+  get isShowingArchive() {
+    const { archiveUrl } = this.props.doc
+    return this.currentUrl === archiveUrl
+  }
+
+  get currentUrl() {
+    const { archiveUrl } = this.props.doc
+    return this.peek() || archiveUrl
+  }
+
+  showArchive = () => {
+    const { archiveUrl } = this.props.doc
+    if (this.currentUrl === archiveUrl) return
+    this.push(archiveUrl)
+  }
+
+  hideArchive = () => {
+    const { archiveUrl } = this.props.doc
+    if (this.currentUrl !== archiveUrl) return
+    this.pop()
+  }
+
+  push = (url: string) => {
+    if (this.peek() === url) return
+    this.props.change(doc => {
+      doc.navStack.push(url)
+      return doc
+    })
+  }
+
+  pop = () => {
+    if (!this.peek()) return
+    this.props.change(doc => {
+      doc.navStack.pop()
+      return doc
+    })
+  }
+
+  peek = () => {
+    const { navStack } = this.props.doc
+    return navStack.length ? navStack[navStack.length - 1] : null
+  }
+
+  onThreeFingerSwipeDown = (event: TouchEvent) => {
+    this.showArchive()
+  }
+
+  onThreeFingerSwipeUp = (event: TouchEvent) => {
+    this.hideArchive()
+  }
+
+  onPinchEnd = (event: TouchEvent) => {
+    // Prevent popping the last item off the navStack on pinch end.
+    if (event.scale > 1 || this.props.doc.navStack.length < 2) return
+    this.pop()
+  }
+
   render() {
-    const { currentUrl } = this.props.doc
     return (
       <Touch
         onThreeFingerSwipeDown={this.onThreeFingerSwipeDown}
@@ -77,51 +141,15 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
           <Content
+            key={this.currentUrl}
             mode={this.props.mode}
-            url={currentUrl}
-            onNavigate={this.navigateTo}
+            url={this.currentUrl}
+            onNavigate={this.push}
           />
           <Content mode="embed" url={this.props.doc.shelfUrl} />
         </div>
       </Touch>
     )
-  }
-
-  onThreeFingerSwipeDown = (event: TouchEvent) => {
-    if (this.props.doc.currentUrl !== this.props.doc.archiveUrl) {
-      this.navigateTo(this.props.doc.archiveUrl)
-    }
-  }
-
-  onThreeFingerSwipeUp = (event: TouchEvent) => {
-    if (this.props.doc.currentUrl === this.props.doc.archiveUrl) {
-      this.navigateBack()
-    }
-  }
-
-  onPinchEnd = (event: TouchEvent) => {
-    if (event.scale > 1) return
-    this.navigateBack()
-  }
-
-  navigateBack = () => {
-    this.props.change(doc => {
-      const url = doc.backUrls.pop()
-      if (url) {
-        doc.currentUrl = url
-      }
-      return doc
-    })
-  }
-
-  navigateTo = (url: string) => {
-    if (this.props.doc.currentUrl === url) return
-
-    this.props.change(doc => {
-      doc.backUrls.push(doc.currentUrl)
-      doc.currentUrl = url
-      return doc
-    })
   }
 }
 
