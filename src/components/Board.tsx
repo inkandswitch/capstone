@@ -13,7 +13,7 @@ import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge"
-import { CARD_WIDTH } from "./Card"
+import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
@@ -134,7 +134,6 @@ class Board extends Preact.Component<Props> {
                     <DraggableCard
                       key={card.id}
                       card={card}
-                      onStroke={this.onCardStroke}
                       onPinchEnd={this.props.onNavigate}
                       onDragStart={this.onDragStart}
                       onDragStop={this.onDragStop}
@@ -280,7 +279,22 @@ class Board extends Preact.Component<Props> {
           },
         })
         break
+      default: {
+        const centerPoint = stroke.center
+        const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
+        if (card) {
+          this.onCardStroke(stroke, card.id)
+        }
+        break
+      }
     }
+  }
+
+  cardAtPoint = (x: number, y: number): CardModel | undefined => {
+    const el = document.elementFromPoint(x, y)
+    const cardEl = el.closest(`.${CARD_CLASS}`)
+    if (!cardEl || !cardEl.id) return
+    return this.props.doc.cards[cardEl.id]
   }
 
   async createCard(type: string, x: number, y: number) {

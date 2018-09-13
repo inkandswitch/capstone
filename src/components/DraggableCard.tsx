@@ -15,7 +15,6 @@ interface CardModel {
 
 export interface Props {
   card: CardModel
-  onStroke: (stroke: Stroke, id: string) => void
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onPinchEnd?: (url: string) => void
@@ -35,19 +34,19 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <StrokeRecognizer onStroke={this.onStroke}>
-        <Touch onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
-          <Draggable
-            defaultPosition={{ x, y }}
-            onStart={this.start}
-            onStop={this.stop}
-            onCancel={this.cancel}
-            z={z}
-            enableUserSelectHack={false}>
-            <Card {...rest}>{children}</Card>
-          </Draggable>
-        </Touch>
-      </StrokeRecognizer>
+      <Touch onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
+        <Draggable
+          defaultPosition={{ x, y }}
+          onStart={this.start}
+          onStop={this.stop}
+          onCancel={this.cancel}
+          z={z}
+          enableUserSelectHack={false}>
+          <Card cardId={this.props.card.id} {...rest}>
+            {children}
+          </Card>
+        </Draggable>
+      </Touch>
     )
   }
 
@@ -60,10 +59,6 @@ export default class DraggableCard extends Preact.Component<Props> {
     if (event.scale < 1) return // TODO: maybe build this into Touch
     const { onPinchEnd, card } = this.props
     onPinchEnd && onPinchEnd(card.url)
-  }
-
-  onStroke = (stroke: Stroke) => {
-    this.props.onStroke(stroke, this.props.card.id)
   }
 
   start = () => {
