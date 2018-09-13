@@ -12,8 +12,7 @@ import { DocumentSelected, ClearSelection } from "./Archive"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 
 export interface Model {
-  backUrls: string[]
-  currentUrl: string
+  navStack: string[]
   archiveUrl: string
   shelfUrl: string
 }
@@ -29,7 +28,6 @@ type OutMessage =
 
 class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
-    console.log(message)
     switch (message.type) {
       case "DocumentCreated": {
         if (message.from !== this.doc.archiveUrl) {
@@ -38,10 +36,11 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
         break
       }
       case "DocumentSelected": {
-        if (message.body.url !== this.doc.currentUrl) {
+        // Clear the navstack and push selected document url.
+        const { url } = message.body
+        if (url !== this.doc.currentUrl) {
           this.change(doc => {
-            doc.backUrls.push(doc.currentUrl)
-            doc.currentUrl = message.body.url
+            doc.navStack = [url]
             return doc
           })
         }
@@ -71,15 +70,56 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
 class Workspace extends Preact.Component<Widget.Props<Model>> {
   static reify(doc: AnyDoc): Model {
     return {
-      currentUrl: Reify.link(doc.currentUrl),
-      backUrls: Reify.array(doc.backUrls),
+      navStack: Reify.array(doc.navStack),
       archiveUrl: Reify.link(doc.archiveUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
     }
   }
 
+  get isShowingArchive() {
+    const { archiveUrl } = this.props.doc
+    return this.currentUrl === archiveUrl
+  }
+
+  get currentUrl() {
+    const { archiveUrl } = this.props.doc
+    return this.peek() || archiveUrl
+  }
+
+  showArchive = () => {
+    const { archiveUrl } = this.props.doc
+    if (this.currentUrl === archiveUrl) return
+    this.push(archiveUrl)
+  }
+
+  hideArchive = () => {
+    const { archiveUrl } = this.props.doc
+    if (this.currentUrl !== archiveUrl) return
+    this.pop()
+  }
+
+  push = (url: string) => {
+    if (this.peek() === url) return
+    this.props.change(doc => {
+      doc.navStack.push(url)
+      return doc
+    })
+  }
+
+  pop = () => {
+    if (!this.peek()) return
+    this.props.change(doc => {
+      doc.navStack.pop()
+      return doc
+    })
+  }
+
+  peek = () => {
+    const { navStack } = this.props.doc
+    return navStack.length ? navStack[navStack.length - 1] : null
+  }
+
   render() {
-    const { currentUrl } = this.props.doc
     return (
       <Touch
         onThreeFingerSwipeDown={this.onThreeFingerSwipeDown}
@@ -88,8 +128,8 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         <div class="Workspace" style={style.Workspace}>
           <Content
             mode={this.props.mode}
-            url={currentUrl}
-            onNavigate={this.navigateTo}
+            url={this.currentUrl}
+            onNavigate={this.push}
           />
           <Content mode="embed" url={this.props.doc.shelfUrl} />
         </div>
@@ -98,40 +138,16 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
   }
 
   onThreeFingerSwipeDown = (event: TouchEvent) => {
-    if (this.props.doc.currentUrl !== this.props.doc.archiveUrl) {
-      this.navigateTo(this.props.doc.archiveUrl)
-    }
+    this.showArchive()
   }
 
   onThreeFingerSwipeUp = (event: TouchEvent) => {
-    if (this.props.doc.currentUrl === this.props.doc.archiveUrl) {
-      this.navigateBack()
-    }
+    this.hideArchive()
   }
 
   onPinchEnd = (event: TouchEvent) => {
     if (event.scale > 1) return
-    this.navigateBack()
-  }
-
-  navigateBack = () => {
-    this.props.change(doc => {
-      const url = doc.backUrls.pop()
-      if (url) {
-        doc.currentUrl = url
-      }
-      return doc
-    })
-  }
-
-  navigateTo = (url: string) => {
-    if (this.props.doc.currentUrl === url) return
-
-    this.props.change(doc => {
-      doc.backUrls.push(doc.currentUrl)
-      doc.currentUrl = url
-      return doc
-    })
+    this.pop()
   }
 }
 

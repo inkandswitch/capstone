@@ -40,7 +40,6 @@ export default class App extends Preact.Component<{}, State> {
               // what we want here is sort of a .once('update') style callback,
               // probably from create() itself
               if (!workspaceDoc.archiveUrl) {
-                workspaceDoc.currentUrl = boardUrl
                 workspaceDoc.archiveUrl = archiveUrl
                 workspaceDoc.shelfUrl = shelfUrl
                 workspaceUpdateFunction(workspaceDoc)
