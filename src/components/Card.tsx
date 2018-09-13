@@ -2,11 +2,15 @@ import * as Preact from "preact"
 
 export const CARD_WIDTH = 398
 
-export default class Card extends Preact.Component {
+export interface Props {
+  cardURL: string
+}
+
+export default class Card extends Preact.Component<Props> {
   render() {
-    const { children, ...rest } = this.props
+    const { cardURL, children, ...rest } = this.props
     return (
-      <div style={style.Card} {...rest}>
+      <div style={style.Card} id={cardURL} {...rest}>
         {children}
       </div>
     )

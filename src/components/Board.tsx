@@ -134,7 +134,6 @@ class Board extends Preact.Component<Props> {
                     <DraggableCard
                       key={card.id}
                       card={card}
-                      onStroke={this.onCardStroke}
                       onPinchEnd={this.props.onNavigate}
                       onDragStart={this.onDragStart}
                       onDragStop={this.onDragStop}
@@ -280,7 +279,40 @@ class Board extends Preact.Component<Props> {
           },
         })
         break
+      default:
+        const centerPoint = stroke.center
+        const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
+        if (card) {
+          this.onCardStroke(stroke, card.id)
+        }
+        break
     }
+  }
+
+  cardAtPoint = (x: number, y: number): CardModel | null => {
+    let matchingCards: CardModel[] = []
+    const cards = this.props.doc && this.props.doc.cards
+    for (const cardID in cards) {
+      const card = cards[cardID]
+      const cardElement = card && document.getElementById(card.url)
+      if (
+        cardElement &&
+        card &&
+        x > card.x &&
+        x < card.x + CARD_WIDTH &&
+        y > card.y &&
+        y < card.y + cardElement.clientHeight
+      ) {
+        matchingCards.push(card)
+      }
+    }
+    if (matchingCards.length === 0) return null
+    if (matchingCards.length > 1) {
+      matchingCards.sort(function(a, b) {
+        return b.z - a.z
+      })
+    }
+    return matchingCards[0]
   }
 
   async createCard(type: string, x: number, y: number) {
