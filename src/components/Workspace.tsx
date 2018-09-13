@@ -119,6 +119,19 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
     return navStack.length ? navStack[navStack.length - 1] : null
   }
 
+  onThreeFingerSwipeDown = (event: TouchEvent) => {
+    this.showArchive()
+  }
+
+  onThreeFingerSwipeUp = (event: TouchEvent) => {
+    this.hideArchive()
+  }
+
+  onPinchEnd = (event: TouchEvent) => {
+    if (event.scale > 1) return
+    this.pop()
+  }
+
   render() {
     return (
       <Touch
@@ -135,19 +148,6 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         </div>
       </Touch>
     )
-  }
-
-  onThreeFingerSwipeDown = (event: TouchEvent) => {
-    this.showArchive()
-  }
-
-  onThreeFingerSwipeUp = (event: TouchEvent) => {
-    this.hideArchive()
-  }
-
-  onPinchEnd = (event: TouchEvent) => {
-    if (event.scale > 1) return
-    this.pop()
   }
 }
 

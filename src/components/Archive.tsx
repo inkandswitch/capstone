@@ -131,7 +131,7 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onTapItem = (url: string) => {
+  onDoubleTapItem = (url: string) => {
     this.props.emit({ type: "DocumentSelected", body: { url } })
   }
 
@@ -146,8 +146,7 @@ class Archive extends Preact.Component<Props> {
               <ArchiveItem
                 key={url}
                 url={url}
-                isSelected={doc.selected.includes(url)}
-                onTap={this.onTapItem}
+                onDoubleTap={this.onDoubleTapItem}
                 onStroke={this.onStrokeItem}
               />
             ))}
