@@ -18,7 +18,6 @@ export interface Props {
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onPinchEnd?: (url: string) => void
-  onTap?: (id: string) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
@@ -34,7 +33,7 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <Touch onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
+      <Touch onPinchEnd={this.onPinchEnd}>
         <Draggable
           defaultPosition={{ x, y }}
           onStart={this.start}
@@ -48,11 +47,6 @@ export default class DraggableCard extends Preact.Component<Props> {
         </Draggable>
       </Touch>
     )
-  }
-
-  onTap = (event: TouchEvent) => {
-    const { onTap, card } = this.props
-    onTap && onTap(card.id)
   }
 
   onPinchEnd = (event: TouchEvent) => {
