@@ -1,7 +1,8 @@
 import * as Preact from "preact"
-import * as $1 from "../modules/$1"
+import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
-import { debounce, delay } from "lodash"
+import { delay } from "lodash"
+const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {
   readonly top: number
@@ -37,9 +38,20 @@ export enum Glyph {
   paste,
   delete,
   create,
+  edit,
 }
 
-const DEFAULT_RECOGNIZER = new $1.DollarRecognizer()
+const $P_RECOGNIZER = new $P.Recognizer()
+
+// Initializer recognizer with default gestures.
+;(function initializeRecognizer() {
+  for (const name in templates) {
+    const mappedPoints = templates[name].map((point: any) => {
+      return new $P.Point(point.x, point.y, point.id)
+    })
+    $P_RECOGNIZER.AddGesture(name, mappedPoints)
+  }
+})()
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
   canvasElement?: HTMLCanvasElement
@@ -50,8 +62,8 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     maxScore: 6,
   }
 
-  recognizer: $1.DollarRecognizer = DEFAULT_RECOGNIZER
-  points: $1.Point[] = []
+  recognizer: $P.Recognizer = $P_RECOGNIZER
+  points: $P.Point[] = []
   strokeId = 0
   bounds: Bounds = EMPTY_BOUNDS
 
@@ -68,7 +80,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       this.startDrawing()
     }
     if (!this.isPenDown) this.isPenDown = true
-    this.points.push(new $1.Point(x, y))
+    this.points.push(new $P.Point(x, y, 0))
     this.updateBounds(x, y)
   }
 
@@ -102,16 +114,19 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   mapResultNameToGlyph(originalName: string): Glyph {
     switch (originalName) {
-      case "x":
-      case "delete":
+      case "x-left":
+      case "x-right":
+      case "x-top":
+      case "x-bottom":
         return Glyph.delete
       case "caret":
         return Glyph.copy
       case "v":
         return Glyph.paste
       case "rectangle":
-      case "circle":
         return Glyph.create
+      case "circle":
+        return Glyph.edit
     }
     return Glyph.unknown
   }
