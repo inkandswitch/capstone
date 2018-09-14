@@ -38,6 +38,7 @@ export enum Glyph {
   paste,
   delete,
   create,
+  edit,
 }
 
 const $1_RECOGNIZER = new $1.DollarRecognizer()
@@ -135,8 +136,9 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       case "v":
         return Glyph.paste
       case "rectangle":
-      case "circle":
         return Glyph.create
+      case "circle":
+        return Glyph.edit
     }
     return Glyph.unknown
   }
