@@ -40,7 +40,7 @@ export default class TextEditor extends Preact.Component<Props, State> {
 
     this.codeMirror = CodeMirror(this.wrapper, {
       autofocus: this.props.isFocused,
-      readOnly: !this.props.isInteractive ? "nocursor" : false,
+      readOnly: this.props.isInteractive ? false : "nocursor",
       lineNumbers: false,
       lineWrapping: true,
       scrollbarStyle: "null",
