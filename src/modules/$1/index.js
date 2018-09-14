@@ -280,7 +280,7 @@ export function DollarRecognizer() {
     ),
   )
   this.Unistrokes[2] = new Unistroke(
-    "caret",
+    "caret-ltr",
     new Array(
       new Point(79, 245),
       new Point(79, 242),
@@ -339,7 +339,7 @@ export function DollarRecognizer() {
     ),
   )
   this.Unistrokes[3] = new Unistroke(
-    "v",
+    "v-ltr",
     new Array(
       new Point(89, 164),
       new Point(90, 162),

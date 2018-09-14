@@ -55,6 +55,25 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   strokeId = 0
   bounds: Bounds = EMPTY_BOUNDS
 
+  componentDidMount() {
+    const caret = DEFAULT_RECOGNIZER.Unistrokes.find((value: $1.Unistroke) => {
+      return value.Name == "caret-ltr"
+    })
+    if (caret) {
+      for (let point of caret.Points.reverse()) {
+        console.log(`${point.X} / ${point.Y}`)
+      }
+      DEFAULT_RECOGNIZER.AddGesture("caret-rtl", caret.Points.reverse())
+    }
+
+    const v = DEFAULT_RECOGNIZER.Unistrokes.find((value: $1.Unistroke) => {
+      return value.Name == "v-ltr"
+    })
+    if (v) {
+      DEFAULT_RECOGNIZER.AddGesture("v-rtl", v.Points.reverse())
+    }
+  }
+
   render() {
     return (
       <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
@@ -105,9 +124,11 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       case "x":
       case "delete":
         return Glyph.delete
-      case "caret":
+      case "caret-ltr":
+      case "caret-rtl":
         return Glyph.copy
-      case "v":
+      case "v-ltr":
+      case "v-rtl":
         return Glyph.paste
       case "rectangle":
       case "circle":
