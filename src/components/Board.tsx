@@ -244,7 +244,8 @@ class Board extends Preact.Component<Props> {
   setCardFocus = (doc: EditDoc<Model>, cardId: string): EditDoc<Model> => {
     const card = doc.cards[cardId]
     if (!card) return doc
-    doc.cards[cardId] = { ...card, isFocused: true }
+    doc.topZ++
+    doc.cards[cardId] = { ...card, z: doc.topZ, isFocused: true }
     doc.focusedCardId = cardId
     return doc
   }
