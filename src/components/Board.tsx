@@ -136,8 +136,7 @@ class Board extends Preact.Component<Props> {
                       card={card}
                       onPinchEnd={this.props.onNavigate}
                       onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}
-                      onTap={this.onTapCard}>
+                      onDragStop={this.onDragStop}>
                       <Content
                         mode="embed"
                         url={card.url}
@@ -180,12 +179,20 @@ class Board extends Preact.Component<Props> {
       case Glyph.delete:
         this.deleteCard(id)
         break
-      case Glyph.copy:
+      case Glyph.copy: {
         const card = this.props.doc.cards[id]
         if (card) {
           this.props.emit({ type: "AddToShelf", body: { url: card.url } })
         }
         break
+      }
+      case Glyph.edit: {
+        if (this.props.doc.focusedCardId != null) return
+        this.props.change(doc => {
+          return this.setCardFocus(doc, id)
+        })
+        break
+      }
     }
   }
 
@@ -231,13 +238,6 @@ class Board extends Preact.Component<Props> {
     this.props.change(doc => {
       if (doc.focusedCardId == null) return doc
       return this.clearCardFocus(doc)
-    })
-  }
-
-  onTapCard = (id: string) => {
-    if (this.props.doc.focusedCardId != null) return
-    this.props.change(doc => {
-      return this.setCardFocus(doc, id)
     })
   }
 
