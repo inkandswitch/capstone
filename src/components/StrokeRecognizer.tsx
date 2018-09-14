@@ -1,7 +1,5 @@
 import * as Preact from "preact"
-import * as $1 from "../modules/$1"
 import * as $P from "../modules/$P"
-import * as templates from "../modules/$P/glyph-templates.json"
 import Pen, { PenEvent } from "./Pen"
 import { debounce, delay } from "lodash"
 
@@ -43,6 +41,7 @@ export enum Glyph {
 }
 
 const $P_RECOGNIZER = new $P.Recognizer()
+const templates = require("../modules/$P/glyph-templates.json")
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
   canvasElement?: HTMLCanvasElement
