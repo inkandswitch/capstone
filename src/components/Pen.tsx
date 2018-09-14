@@ -66,6 +66,7 @@ export default class Pen extends Handler<Props> {
     if (!this.base) return
     this.base.addEventListener("pointerdown", this.onPointerDown)
     this.base.addEventListener("pointerup", this.onPointerUp)
+    this.base.addEventListener("pointercancel", this.onPointerCancel)
     this.base.addEventListener("touchstart", this.onTouchStart)
   }
 
