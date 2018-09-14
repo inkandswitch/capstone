@@ -1,5 +1,6 @@
 import * as Preact from "preact"
 import * as $1 from "../modules/$1"
+import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
 import { debounce, delay } from "lodash"
 
@@ -39,7 +40,8 @@ export enum Glyph {
   create,
 }
 
-const DEFAULT_RECOGNIZER = new $1.DollarRecognizer()
+const $1_RECOGNIZER = new $1.DollarRecognizer()
+const $P_RECOGNIZER = new $P.Recognizer()
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
   canvasElement?: HTMLCanvasElement
@@ -50,27 +52,29 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     maxScore: 6,
   }
 
-  recognizer: $1.DollarRecognizer = DEFAULT_RECOGNIZER
-  points: $1.Point[] = []
+  recognizer: $P.Recognizer = $P_RECOGNIZER
+  points: $P.Point[] = []
   strokeId = 0
   bounds: Bounds = EMPTY_BOUNDS
 
   componentDidMount() {
-    const caret = DEFAULT_RECOGNIZER.Unistrokes.find((value: $1.Unistroke) => {
-      return value.Name == "caret-ltr"
-    })
-    if (caret) {
-      for (let point of caret.Points.reverse()) {
-        console.log(`${point.X} / ${point.Y}`)
-      }
-      DEFAULT_RECOGNIZER.AddGesture("caret-rtl", caret.Points.reverse())
+    const map$1To$PPoint = (point: $1.Point): $P.Point => {
+      return new $P.Point(point.X, point.Y, 0)
     }
 
-    const v = DEFAULT_RECOGNIZER.Unistrokes.find((value: $1.Unistroke) => {
-      return value.Name == "v-ltr"
+    for (const glyph of $1_RECOGNIZER.Unistrokes) {
+      $P_RECOGNIZER.AddGesture(glyph.Name, glyph.Points.map(map$1To$PPoint))
+    }
+
+    const xes = $1_RECOGNIZER.Unistrokes.filter((value: $1.Unistroke) => {
+      return value.Name == "x" || value.Name == "delete"
     })
-    if (v) {
-      DEFAULT_RECOGNIZER.AddGesture("v-rtl", v.Points.reverse())
+    for (const glyph of xes) {
+      const rotated = $1_RECOGNIZER.RotateBy(glyph.Points, Math.PI)
+      $P_RECOGNIZER.AddGesture(
+        `${glyph.Name}-rotated`,
+        rotated.map(map$1To$PPoint),
+      )
     }
   }
 
@@ -87,7 +91,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       this.startDrawing()
     }
     if (!this.isPenDown) this.isPenDown = true
-    this.points.push(new $1.Point(x, y))
+    this.points.push(new $P.Point(x, y, 0))
     this.updateBounds(x, y)
   }
 
@@ -122,13 +126,13 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   mapResultNameToGlyph(originalName: string): Glyph {
     switch (originalName) {
       case "x":
+      case "x-rotated":
       case "delete":
+      case "delete-rotated":
         return Glyph.delete
-      case "caret-ltr":
-      case "caret-rtl":
+      case "caret":
         return Glyph.copy
-      case "v-ltr":
-      case "v-rtl":
+      case "v":
         return Glyph.paste
       case "rectangle":
       case "circle":
