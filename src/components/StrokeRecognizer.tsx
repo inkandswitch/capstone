@@ -1,7 +1,8 @@
 import * as Preact from "preact"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
-import { debounce, delay } from "lodash"
+import { delay } from "lodash"
+const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {
   readonly top: number
@@ -41,7 +42,16 @@ export enum Glyph {
 }
 
 const $P_RECOGNIZER = new $P.Recognizer()
-const templates = require("../modules/$P/glyph-templates.json")
+
+// Initializer recognizer with default gestures.
+;(function initializeRecognizer() {
+  for (const name in templates) {
+    const mappedPoints = templates[name].map((point: any) => {
+      return new $P.Point(point.x, point.y, point.id)
+    })
+    $P_RECOGNIZER.AddGesture(name, mappedPoints)
+  }
+})()
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
   canvasElement?: HTMLCanvasElement
@@ -56,15 +66,6 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   points: $P.Point[] = []
   strokeId = 0
   bounds: Bounds = EMPTY_BOUNDS
-
-  componentDidMount() {
-    for (const name in templates) {
-      const mappedPoints = templates[name].map((point: any) => {
-        return new $P.Point(point.x, point.y, point.id)
-      })
-      this.recognizer.AddGesture(name, mappedPoints)
-    }
-  }
 
   render() {
     return (
