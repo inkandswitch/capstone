@@ -6,8 +6,8 @@ const env = process.env.NODE_ENV
 module.exports = {
   mode: "development",
   entry: {
-    main: "./src/main.tsx",
-    background: "./src/entry.chrome.ts",
+    "capstone/main": "./src/apps/capstone/main.tsx",
+    "capstone/background": "./src/apps/capstone/background.chrome.ts",
     "sidecar/main": "./src/apps/sidecar/main.tsx",
     "sidecar/background": "./src/apps/sidecar/background.chrome.ts",
     "tests/main": [
@@ -72,8 +72,8 @@ module.exports = {
     new CopyWebpackPlugin([
       {
         from: "{manifest.json,index.html}",
-        context: "./src",
-        to: ".",
+        context: "./src/apps/capstone",
+        to: "capstone",
       },
       {
         from: "{manifest.json,index.html}",

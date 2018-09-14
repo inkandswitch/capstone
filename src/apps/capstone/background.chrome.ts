@@ -1,5 +1,5 @@
 process.hrtime = require("browser-process-hrtime")
-import StoreComms from "./data/StoreComms"
+import StoreComms from "../../data/StoreComms"
 
 let mainWindow: chrome.app.window.AppWindow
 
