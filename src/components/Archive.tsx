@@ -135,30 +135,12 @@ class Archive extends Preact.Component<Props> {
     this.props.emit({ type: "DocumentSelected", body: { url } })
   }
 
-  currentGestureIsPen: boolean = false
-
-  onPointerDown = (event: PointerEvent) => {
-    this.currentGestureIsPen = event.pointerType === "pen"
-  }
-
-  onPointerUp = () => {
-    this.currentGestureIsPen = false
-  }
-
-  onTouchStart = (event: TouchEvent) => {
-    if (this.currentGestureIsPen) event.preventDefault()
-  }
-
   render() {
     const { doc } = this.props
 
     return (
       <StrokeRecognizer onStroke={this.onStroke}>
-        <div
-          style={style.Archive}
-          onPointerDown={this.onPointerDown}
-          onPointerUp={this.onPointerUp}
-          onTouchStart={this.onTouchStart}>
+        <div style={style.Archive}>
           <div style={style.Items}>
             {doc.docs.map(({ url }) => (
               <ArchiveItem
