@@ -1,6 +1,7 @@
 import * as Preact from "preact"
 import * as $1 from "../modules/$1"
 import * as $P from "../modules/$P"
+import * as templates from "../modules/$P/glyph-templates.json"
 import Pen, { PenEvent } from "./Pen"
 import { debounce, delay } from "lodash"
 
@@ -38,9 +39,9 @@ export enum Glyph {
   paste,
   delete,
   create,
+  edit,
 }
 
-const $1_RECOGNIZER = new $1.DollarRecognizer()
 const $P_RECOGNIZER = new $P.Recognizer()
 
 export default class StrokeRecognizer extends Preact.Component<Props> {
@@ -58,23 +59,11 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   bounds: Bounds = EMPTY_BOUNDS
 
   componentDidMount() {
-    const map$1To$PPoint = (point: $1.Point): $P.Point => {
-      return new $P.Point(point.X, point.Y, 0)
-    }
-
-    for (const glyph of $1_RECOGNIZER.Unistrokes) {
-      $P_RECOGNIZER.AddGesture(glyph.Name, glyph.Points.map(map$1To$PPoint))
-    }
-
-    const xes = $1_RECOGNIZER.Unistrokes.filter((value: $1.Unistroke) => {
-      return value.Name == "x" || value.Name == "delete"
-    })
-    for (const glyph of xes) {
-      const rotated = $1_RECOGNIZER.RotateBy(glyph.Points, Math.PI)
-      $P_RECOGNIZER.AddGesture(
-        `${glyph.Name}-rotated`,
-        rotated.map(map$1To$PPoint),
-      )
+    for (const name in templates) {
+      const mappedPoints = templates[name].map((point: any) => {
+        return new $P.Point(point.x, point.y, point.id)
+      })
+      this.recognizer.AddGesture(name, mappedPoints)
     }
   }
 
@@ -125,18 +114,19 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   mapResultNameToGlyph(originalName: string): Glyph {
     switch (originalName) {
-      case "x":
-      case "x-rotated":
-      case "delete":
-      case "delete-rotated":
+      case "x-left":
+      case "x-right":
+      case "x-top":
+      case "x-bottom":
         return Glyph.delete
       case "caret":
         return Glyph.copy
       case "v":
         return Glyph.paste
       case "rectangle":
-      case "circle":
         return Glyph.create
+      case "circle":
+        return Glyph.edit
     }
     return Glyph.unknown
   }
