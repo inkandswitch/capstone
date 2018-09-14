@@ -23,6 +23,7 @@ export type Change = Removal | Insertion
 export interface Props {
   content: string
   isFocused: boolean
+  isInteractive: boolean
   onChange: ((_: Change[]) => void)
 }
 
@@ -39,6 +40,7 @@ export default class TextEditor extends Preact.Component<Props, State> {
 
     this.codeMirror = CodeMirror(this.wrapper, {
       autofocus: this.props.isFocused,
+      readOnly: !this.props.isInteractive ? "nocursor" : false,
       lineNumbers: false,
       lineWrapping: true,
       scrollbarStyle: "null",
@@ -164,6 +166,5 @@ const style = {
     color: "#333",
     lineHeight: 1.5,
     position: "relative",
-    touchAction: "none",
   },
 }

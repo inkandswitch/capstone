@@ -24,6 +24,7 @@ class Text extends Preact.Component<Props> {
     return (
       <TextEditor
         content={content.join("")}
+        isInteractive={this.props.mode !== "preview"}
         isFocused={this.props.mode === "fullscreen" || this.props.isFocused}
         onChange={this.onChange}
       />
