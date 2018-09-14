@@ -34,6 +34,7 @@ export default class Pen extends Handler<Props> {
 
     this.hammer = new Hammer.Manager(this.base, {
       recognizers,
+      touchAction: "auto",
     })
     this.hammer.on("doubletap", this.handle("onDoubleTap"))
     this.hammer.on("panmove", this.handle("onPanMove"))
