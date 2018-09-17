@@ -1,5 +1,6 @@
 const path = require("path")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
+const glob = require("glob")
 const env = process.env.NODE_ENV
 
 module.exports = {
@@ -9,6 +10,11 @@ module.exports = {
     background: "./src/entry.chrome.ts",
     "sidecar/main": "./src/apps/sidecar/main.tsx",
     "sidecar/background": "./src/apps/sidecar/background.chrome.ts",
+    "tests/main": [
+      "./src/apps/tests/main.js",
+      ...glob.sync("./src/**/__tests__/**/*.ts"),
+    ],
+    "tests/background": "./src/apps/tests/background.chrome.ts",
   },
   devtool: "inline-source-map",
   output: {
@@ -26,6 +32,9 @@ module.exports = {
       "random-access-file": path.resolve("./stubs/blank.js"),
     },
     extensions: [".tsx", ".ts", ".js"],
+  },
+  node: {
+    fs: "empty",
   },
   module: {
     rules: [
@@ -70,6 +79,11 @@ module.exports = {
         from: "{manifest.json,index.html}",
         context: "./src/apps/sidecar",
         to: "sidecar",
+      },
+      {
+        from: "{manifest.json,index.html}",
+        context: "./src/apps/tests",
+        to: "tests",
       },
     ]),
   ],

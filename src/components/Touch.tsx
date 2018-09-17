@@ -9,6 +9,7 @@ export type TouchEvent = HammerInput
 interface Props {
   onPinchEnd?: (event: TouchEvent) => void
   onTap?: (event: TouchEvent) => void
+  onDoubleTap?: (event: TouchEvent) => void
   onThreeFingerSwipeDown?: (event: TouchEvent) => void
   onThreeFingerSwipeUp?: (event: TouchEvent) => void
   // TODO: add other gesture recognizers
@@ -23,6 +24,7 @@ export default class Touch extends Handler<Props> {
     const {
       onPinchEnd,
       onTap,
+      onDoubleTap,
       onThreeFingerSwipeDown,
       onThreeFingerSwipeUp,
     } = this.props
@@ -31,6 +33,11 @@ export default class Touch extends Handler<Props> {
 
     if (onPinchEnd) recognizers.push([Hammer.Pinch, { threshold: 0.5 }])
     if (onTap) recognizers.push([Hammer.Tap])
+    if (onDoubleTap)
+      recognizers.push([
+        Hammer.Tap,
+        { event: "doubletap", taps: 2, posThreshold: 40 },
+      ])
     if (onThreeFingerSwipeDown) {
       recognizers.push([
         Hammer.Swipe,
@@ -57,6 +64,7 @@ export default class Touch extends Handler<Props> {
     })
     this.hammer.on("pinchend", this.handle("onPinchEnd"))
     this.hammer.on("tap", this.handle("onTap"))
+    this.hammer.on("doubletap", this.handle("onDoubleTap"))
     this.hammer.on(
       "threeFingerSwipeDown",
       this.handle("onThreeFingerSwipeDown"),
@@ -76,6 +84,7 @@ export default class Touch extends Handler<Props> {
     const {
       onPinchEnd,
       onTap,
+      onDoubleTap,
       onThreeFingerSwipeDown,
       onThreeFingerSwipeUp,
       ...rest

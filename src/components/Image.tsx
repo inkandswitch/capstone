@@ -1,4 +1,3 @@
-import { random } from "lodash/fp"
 import * as Preact from "preact"
 import { AnyDoc } from "automerge/frontend"
 import * as Widget from "./Widget"
@@ -15,7 +14,7 @@ export interface Props extends Widget.Props<Model> {
 class Image extends Preact.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
-      src: Reify.string(doc.src, sample),
+      src: Reify.string(doc.src),
     }
   }
 
@@ -36,13 +35,5 @@ const style = {
     maxHeight: "100%",
   },
 }
-
-const sample = (): string => samples[random(1, samples.length) - 1]
-
-const samples = [
-  require("../assets/leonardo_polyhedra.png"),
-  require("../assets/leonardo_anatomy.jpg"),
-  require("../assets/leonardo_hoist.jpg"),
-]
 
 export default Widget.create("Image", Image, Image.reify)

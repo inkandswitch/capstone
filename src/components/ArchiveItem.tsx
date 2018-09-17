@@ -1,29 +1,36 @@
 import * as Preact from "preact"
 import Content from "./Content"
-import StrokeRecognizer from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import Touch from "./Touch"
 
 interface ArchiveItemProps {
   url: string
-  isSelected: boolean
-  onStroke: (url: string) => void
+  onStroke: (stroke: Stroke, url: string) => void
+  onDoubleTap: (url: string) => void
 }
 
 export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
   render() {
-    const { url, isSelected } = this.props
+    const { url } = this.props
     return (
-      <StrokeRecognizer onStroke={this.onStroke} only={["uparrow"]}>
-        <div style={style.Item}>
-          <div style={style.ItemContent}>
-            <Content mode="preview" url={url} />
+      <StrokeRecognizer onStroke={this.onStroke}>
+        <Touch onDoubleTap={this.onDoubleTap}>
+          <div style={style.Item}>
+            <div style={style.ItemContent}>
+              <Content mode="preview" url={url} />
+            </div>
           </div>
-        </div>
+        </Touch>
       </StrokeRecognizer>
     )
   }
 
-  onStroke = () => {
-    this.props.onStroke(this.props.url)
+  onStroke = (stroke: Stroke) => {
+    this.props.onStroke(stroke, this.props.url)
+  }
+
+  onDoubleTap = () => {
+    this.props.onDoubleTap(this.props.url)
   }
 }
 

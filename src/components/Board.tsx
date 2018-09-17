@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { clamp } from "lodash"
+import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -13,10 +13,12 @@ import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc, Doc, EditDoc } from "automerge/frontend"
-import { CARD_WIDTH } from "./Card"
+import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
-import { ShelfContents, ShelfContentsRequested } from "./Shelf"
+import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
+
+const boardIcon = require("../assets/board_icon.svg")
 
 const BOARD_PADDING = 15
 
@@ -51,9 +53,9 @@ interface CreateCard extends Message {
   }
 }
 
-type WidgetMessage = CreateCard | ShelfContentsRequested
+type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
 type InMessage = FullyFormedMessage<WidgetMessage | ShelfContents>
-type OutMessage = DocumentCreated | ShelfContentsRequested
+type OutMessage = DocumentCreated | AddToShelf | ShelfContentsRequested
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -69,6 +71,10 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
           return doc
         })
         this.emit({ type: "DocumentCreated", body: url })
+        break
+      }
+      case "AddToShelf": {
+        this.emit({ type: "AddToShelf", body: message.body })
         break
       }
       case "ShelfContentsRequested": {
@@ -114,9 +120,7 @@ class Board extends Preact.Component<Props> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer
-            onStroke={this.onStroke}
-            only={["box", "downarrow"]}>
+          <StrokeRecognizer onStroke={this.onStroke}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -130,11 +134,9 @@ class Board extends Preact.Component<Props> {
                     <DraggableCard
                       key={card.id}
                       card={card}
-                      onDelete={this.deleteCard}
                       onPinchEnd={this.props.onNavigate}
                       onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}
-                      onTap={this.onTapCard}>
+                      onDragStop={this.onDragStop}>
                       <Content
                         mode="embed"
                         url={card.url}
@@ -160,10 +162,37 @@ class Board extends Preact.Component<Props> {
       case "preview":
         return (
           <div style={style.Preview.Board}>
-            <div style={style.Preview.Title}>Untitled Board</div>
-            <div style={style.Preview.SubTitle}>{cards.length} cards</div>
+            <img style={style.Preview.Icon} src={boardIcon} />
+            <div style={style.Preview.TitleContainer}>
+              <div style={style.Preview.Title}>Board</div>
+              <div style={style.Preview.SubTitle}>
+                {isEmpty(cards) ? "No" : size(cards)} items
+              </div>
+            </div>
           </div>
         )
+    }
+  }
+
+  onCardStroke = (stroke: Stroke, id: string) => {
+    switch (stroke.glyph) {
+      case Glyph.delete:
+        this.deleteCard(id)
+        break
+      case Glyph.copy: {
+        const card = this.props.doc.cards[id]
+        if (card) {
+          this.props.emit({ type: "AddToShelf", body: { url: card.url } })
+        }
+        break
+      }
+      case Glyph.edit: {
+        if (this.props.doc.focusedCardId != null) return
+        this.props.change(doc => {
+          return this.setCardFocus(doc, id)
+        })
+        break
+      }
     }
   }
 
@@ -212,17 +241,11 @@ class Board extends Preact.Component<Props> {
     })
   }
 
-  onTapCard = (id: string) => {
-    if (this.props.doc.focusedCardId != null) return
-    this.props.change(doc => {
-      return this.setCardFocus(doc, id)
-    })
-  }
-
   setCardFocus = (doc: EditDoc<Model>, cardId: string): EditDoc<Model> => {
     const card = doc.cards[cardId]
     if (!card) return doc
-    doc.cards[cardId] = { ...card, isFocused: true }
+    doc.topZ++
+    doc.cards[cardId] = { ...card, z: doc.topZ, isFocused: true }
     doc.focusedCardId = cardId
     return doc
   }
@@ -245,11 +268,8 @@ class Board extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    switch (stroke.name) {
-      case "box":
-        this.createCard("Text", stroke.center.x, stroke.bounds.top)
-        break
-      case "downarrow":
+    switch (stroke.glyph) {
+      case Glyph.paste:
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {
@@ -260,7 +280,22 @@ class Board extends Preact.Component<Props> {
           },
         })
         break
+      default: {
+        const centerPoint = stroke.center
+        const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
+        if (card) {
+          this.onCardStroke(stroke, card.id)
+        }
+        break
+      }
     }
+  }
+
+  cardAtPoint = (x: number, y: number): CardModel | undefined => {
+    const el = document.elementFromPoint(x, y)
+    const cardEl = el.closest(`.${CARD_CLASS}`)
+    if (!cardEl || !cardEl.id) return
+    return this.props.doc.cards[cardEl.id]
   }
 
   async createCard(type: string, x: number, y: number) {
@@ -304,17 +339,30 @@ const style = {
 
   Preview: {
     Board: {
-      padding: 10,
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "center",
+      padding: "50px 25px",
       fontSize: 16,
-      textAlign: "center",
       backgroundColor: "#fff",
     },
+    Icon: {
+      height: 50,
+      width: 50,
+    },
+    TitleContainer: {
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      margin: "0 15px",
+    },
     Title: {
-      fontSize: 20,
-      color: "#333",
+      fontSize: 24,
+      fontWeight: 500,
+      lineHeight: "1.2em",
     },
     SubTitle: {
-      color: "#666",
+      fontSize: "smaller",
     },
   },
 }

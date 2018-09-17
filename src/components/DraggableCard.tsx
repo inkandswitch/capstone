@@ -3,7 +3,7 @@ import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import Touch, { TouchEvent } from "./Touch"
-import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 
 interface CardModel {
   id: string
@@ -18,8 +18,6 @@ export interface Props {
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onPinchEnd?: (url: string) => void
-  onTap?: (id: string) => void
-  onDelete: (id: string) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
@@ -35,38 +33,26 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <StrokeRecognizer only={["X"]} onStroke={this.onStroke} maxScore={10}>
-        <Touch onPinchEnd={this.onPinchEnd} onTap={this.onTap}>
-          <Draggable
-            defaultPosition={{ x, y }}
-            onStart={this.start}
-            onStop={this.stop}
-            onCancel={this.cancel}
-            z={z}
-            enableUserSelectHack={false}>
-            <Card {...rest}>{children}</Card>
-          </Draggable>
-        </Touch>
-      </StrokeRecognizer>
+      <Touch onPinchEnd={this.onPinchEnd}>
+        <Draggable
+          defaultPosition={{ x, y }}
+          onStart={this.start}
+          onStop={this.stop}
+          onCancel={this.cancel}
+          z={z}
+          enableUserSelectHack={false}>
+          <Card cardId={this.props.card.id} {...rest}>
+            {children}
+          </Card>
+        </Draggable>
+      </Touch>
     )
-  }
-
-  onTap = (event: TouchEvent) => {
-    const { onTap, card } = this.props
-    onTap && onTap(card.id)
   }
 
   onPinchEnd = (event: TouchEvent) => {
     if (event.scale < 1) return // TODO: maybe build this into Touch
     const { onPinchEnd, card } = this.props
     onPinchEnd && onPinchEnd(card.url)
-  }
-
-  onStroke = (stroke: Stroke) => {
-    switch (stroke.name) {
-      case "X":
-        this.props.onDelete(this.props.card.id)
-    }
   }
 
   start = () => {

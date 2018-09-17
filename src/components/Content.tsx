@@ -129,6 +129,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   static documentCache: { [id: string]: Doc<any> } = {}
 
   static store: Store
+  static workspaceUrl: string
 
   /// Registry:
 
@@ -146,6 +147,14 @@ export default class Content extends Preact.Component<Props & unknown> {
       callback(Reify.reify(doc, widget.reify)),
     )
     return replaceCallback
+  }
+
+  static once<T>(
+    url: string,
+    callback: (doc: Doc<T>, change: (doc: Doc<T>) => void) => void,
+  ): void {
+    const onOpen = (doc: Doc<T>): void => callback(doc, changeFn)
+    const changeFn = Content.open(url, once(onOpen))
   }
 
   static registerWidget(type: string, component: WidgetClass<any>) {
@@ -170,27 +179,14 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   static send(message: Message & WithSender) {
-    message.to = message.to || Content.getParent(message.from)
+    message.to = message.to || Content.workspaceUrl
     if (!isFullyFormed(message)) {
       return
     }
+
     const { type: recipientType } = Link.parse(message.to)
     const recipient = Content.getMessageHandler(recipientType)
     recipient.receive(message)
-  }
-
-  // Component-ordered Document Hierarchy
-  // ====================================
-  static setParent(childUrl: string, parentUrl: string) {
-    Content.ancestorMap[childUrl] = parentUrl
-  }
-
-  static getParent(childUrl: string): string | undefined {
-    return this.ancestorMap[childUrl]
-  }
-
-  static clearParent(childUrl: string) {
-    delete this.ancestorMap[childUrl]
   }
 
   // Component
@@ -198,31 +194,6 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   get registry() {
     return Content.widgetRegistry
-  }
-
-  getChildContext() {
-    return { parentUrl: this.props.url }
-  }
-
-  componentDidMount() {
-    if (this.context.parentUrl) {
-      Content.setParent(this.props.url, this.context.parentUrl)
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.url !== this.props.url) {
-      Content.clearParent(this.props.url)
-      if (this.context.parentUrl) {
-        Content.setParent(nextProps.url, this.context.parentUrl)
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.context.parentUrl) {
-      Content.clearParent(this.props.url)
-    }
   }
 
   render() {

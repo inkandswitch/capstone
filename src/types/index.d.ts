@@ -36,4 +36,9 @@ declare global {
   }
 
   type Point = { x: number; y: number }
+
+  interface DataTransferItemList extends DataTransferItemList {
+    // Fix for incorrect TS built-in type
+    [Symbol.iterator](): IterableIterator<DataTransferItem>
+  }
 }
