@@ -137,17 +137,31 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   onCopy = (e: ClipboardEvent) => {
-    // TODO: only activate this on the board?
-    // TODO: this will prevent copying and pasting to text cards
+    // If an element other than body has focus (e.g. a text card input),
+    // don't interfere with normal behavior.
+    if (document.activeElement !== document.body) {
+      return
+    }
+
+    // Otherwise, prevent default behavior and copy the currently active/fullscreen
+    // document url to the clipboard. The archive cannot be shared, so do nothing
+    // if the archive is currently fullscreen.
     e.preventDefault()
     const currentUrl = this.peek()
-    // Prevent the archive from being shared.
     if (currentUrl === null || currentUrl === this.props.doc.archiveUrl) return
     e.clipboardData.setData("text/plain", currentUrl)
     console.log(`Copied current url to the clipboard: ${currentUrl}`)
   }
 
   onPaste = (e: ClipboardEvent) => {
+    // If an element other than body has focus (e.g. a text card input),
+    // don't interfere with normal behavior.
+    if (document.activeElement !== document.body) {
+      return
+    }
+
+    // Otherwise, prevent default behavior, validate the contents of the clipboard
+    // against the Link scheme, and (if a valid url) add to the archive.
     e.preventDefault()
     const pastedUrl = e.clipboardData.getData("text/plain")
     try {
@@ -156,6 +170,7 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
       console.log("Invalid document url")
       return
     }
+    console.log("Adding document", pastedUrl)
     this.props.emit({ type: "DocumentCreated", body: pastedUrl })
   }
 
