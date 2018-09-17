@@ -1,12 +1,14 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import { AnyDoc } from "automerge"
 import Content, {
   DocumentActor,
   FullyFormedMessage,
   DocumentCreated,
 } from "./Content"
+import Clipboard from "./Clipboard"
 import Touch, { TouchEvent } from "./Touch"
 import { DocumentSelected, ClearSelection } from "./Archive"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
@@ -17,6 +19,7 @@ export interface Model {
   shelfUrl: string
 }
 
+type WidgetMessage = DocumentCreated
 type InMessage = FullyFormedMessage<
   DocumentCreated | DocumentSelected | AddToShelf | ShelfContentsRequested
 >
@@ -67,7 +70,7 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
-class Workspace extends Preact.Component<Widget.Props<Model>> {
+class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
       navStack: Reify.array(doc.navStack),
@@ -133,6 +136,29 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
     this.pop()
   }
 
+  onCopy = (e: ClipboardEvent) => {
+    // TODO: only activate this on the board?
+    // TODO: this will prevent copying and pasting to text cards
+    e.preventDefault()
+    const currentUrl = this.peek()
+    // Prevent the archive from being shared.
+    if (currentUrl === null || currentUrl === this.props.doc.archiveUrl) return
+    e.clipboardData.setData("text/plain", currentUrl)
+    console.log(`Copied current url to the clipboard: ${currentUrl}`)
+  }
+
+  onPaste = (e: ClipboardEvent) => {
+    e.preventDefault()
+    const pastedUrl = e.clipboardData.getData("text/plain")
+    try {
+      Link.parse(pastedUrl)
+    } catch {
+      console.log("Invalid document url")
+      return
+    }
+    this.props.emit({ type: "DocumentCreated", body: pastedUrl })
+  }
+
   render() {
     return (
       <Touch
@@ -140,6 +166,7 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
         onThreeFingerSwipeUp={this.onThreeFingerSwipeUp}
         onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
+          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
             key={this.currentUrl}
             mode={this.props.mode}
