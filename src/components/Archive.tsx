@@ -138,6 +138,7 @@ class Archive extends Preact.Component<Props> {
   render() {
     const { doc } = this.props
 
+    console.log("ARCHIVE", this.props)
     return (
       <StrokeRecognizer onStroke={this.onStroke}>
         <div style={style.Archive}>

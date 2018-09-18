@@ -36,11 +36,13 @@ export function create<T, M extends Message = never>(
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
       this.requestChanges = Content.open<T>(props.url, (doc: any) => {
+/*
         if (getRequests(doc).length == 0) {
           console.log("AUTHORITIVE STATE", doc)
         } else {
           console.log("OPTIMISTIC STATE", doc)
         }
+*/
         this.setState({ doc })
       })
     }

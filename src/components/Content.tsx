@@ -134,27 +134,39 @@ export default class Content extends Preact.Component<Props & unknown> {
   /// Registry:
 
   // Creates an initialized document of the given type and returns its URL
-  static create(type: string): Promise<string> {
-    return this.store.create().then(id => Link.format({ type, id }))
+  static create<T>(type: string): Promise<string> {
+    const widget = this.find(type) as WidgetClass<T>
+    const setup : any = (doc: any) => { Reify.reify(doc, widget.reify) }
+    return this.store.create(setup).then(id => {
+      return Link.format({ type, id })
+    })
   }
 
   // Opens an initialized document at the given URL
 
-  static open<T>(url: string, callback: Function): (newDoc: any) => void {
+  static open<T>(url: string, callback: (doc: Doc<T>) => void): (cfn: ChangeFn<T>) => void {
     const { type, id } = Link.parse(url)
-    const widget = this.find(type) as WidgetClass<T>
-    const replaceCallback = this.store.open(id, doc =>
-      callback(Reify.reify(doc, widget.reify)),
-    )
-    return replaceCallback
+    const sendChangeFn = this.store.open(id, doc => callback(doc))
+//      } else {
+/*
+        sendChangeFn((doc) => {
+          Reify.reify(doc, widget.reify)
+          doc.version = 1
+          console.log("After Reify", doc)
+        })
+*/
+//      }
+      //callback(Reify.reify(doc, widget.reify)),
+//      callback(doc)
+    return sendChangeFn
   }
 
   static once<T>(
     url: string,
-    callback: (doc: Doc<T>, change: (doc: Doc<T>) => void) => void,
+    cfn: Function
   ): void {
-    const onOpen = (doc: Doc<T>): void => callback(doc, changeFn)
-    const changeFn = Content.open(url, once(onOpen))
+    const update = Content.open(url, (doc) => {})
+    cfn(update)
   }
 
   static registerWidget(type: string, component: WidgetClass<any>) {

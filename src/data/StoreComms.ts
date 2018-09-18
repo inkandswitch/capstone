@@ -15,6 +15,7 @@ export default class StoreComms {
 
   onConnect = (port: chrome.runtime.Port) => {
     const docId = port.name
+    console.log("PORT",port.name,port);
     log("connect",docId);
     let handle = this.hypermerge.openHandle(docId)
 
@@ -41,11 +42,12 @@ export default class StoreComms {
 
     switch (command) {
       case "Create":
-        this.hypermerge.ready.then(() => {
-          let doc = this.hypermerge.create()
-          let docId = this.hypermerge.getId(doc)
-          sendResponse(docId)
-        })
+        console.log("store:coms CREATE 1")
+        let doc = this.hypermerge.create()
+        console.log("store:coms CREATE 2",doc)
+        let docId = this.hypermerge.getId(doc)
+        console.log("store:coms CREATE 3",docId)
+        sendResponse(docId)
         break
       default:
         console.warn("Received an unusual message: ", request)

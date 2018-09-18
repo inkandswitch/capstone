@@ -96,7 +96,8 @@ export default class Pen extends Handler<Props> {
   }
 
   filter(event: PenEvent) {
-    return event.pointerType === "pen"
+//    return event.pointerType === "pen"
+    return true
   }
 
   render() {
