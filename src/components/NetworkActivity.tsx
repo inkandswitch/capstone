@@ -36,16 +36,23 @@ export default class NetworkActivity extends Preact.Component<Props> {
   onActivity = (act: Activity) => {
     switch (act.type) {
       case "Download":
-        this.download && this.download.classList.add(css.blink)
-        requestAnimationFrame(() => {
-          this.download && this.download.classList.remove(css.blink)
-        })
+        this.download && this.blink(this.download, css.blink)
+        break
       case "Upload":
-        this.upload && this.upload.classList.add(css.blink)
-        requestAnimationFrame(() => {
-          this.upload && this.upload.classList.remove(css.blink)
-        })
+        this.upload && this.blink(this.upload, css.blink)
+        break
     }
+  }
+
+  blink(el: HTMLElement, className: string) {
+    requestAnimationFrame(() => {
+      el.classList.add(className)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          el.classList.remove(className)
+        })
+      })
+    })
   }
 }
 
