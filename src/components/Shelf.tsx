@@ -17,17 +17,17 @@ export interface AddToShelf extends Message {
 
 export interface ShelfContentsRequested extends Message {
   type: "ShelfContentsRequested"
-  body: { placementPosition: Point }
+  body?: { placementPosition: Point }
 }
 
 export interface SendShelfContents extends Message {
   type: "SendShelfContents"
-  body: { recipientUrl: string; placementPosition: Point }
+  body: { recipientUrl: string; placementPosition?: Point }
 }
 
 export interface ShelfContents extends Message {
   type: "ShelfContents"
-  body: { urls: string[]; placementPosition: Point }
+  body: { urls: string[]; placementPosition?: Point }
 }
 
 export interface ClearShelf extends Message {

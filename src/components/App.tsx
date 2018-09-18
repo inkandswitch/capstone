@@ -11,6 +11,7 @@ import "./Image"
 import "./Text"
 import "./Workspace"
 import "./Shelf"
+import "./Identity"
 import * as Workspace from "./Workspace"
 
 // Used for debugging from the console:

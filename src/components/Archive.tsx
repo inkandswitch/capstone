@@ -26,6 +26,10 @@ interface CreateBoard extends Message {
   type: "CreateBoard"
 }
 
+interface CreateIdentity extends Message {
+  type: "CreateIdentity"
+}
+
 export interface DocumentSelected extends Message {
   type: "DocumentSelected"
   body: { url: string }
@@ -44,6 +48,7 @@ type WidgetMessage =
   | DocumentSelected
   | AddToShelf
   | CreateBoard
+  | CreateIdentity
   | DocumentDeleted
 type InMessage = FullyFormedMessage<
   WidgetMessage | DocumentCreated | ClearSelection
@@ -72,6 +77,14 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
         const url = await Content.create("Board")
         this.change(doc => {
           doc.docs.unshift({ url: url })
+          return doc
+        })
+        break
+      }
+      case "CreateIdentity": {
+        const url = await Content.create("Identity")
+        this.change(doc => {
+          doc.docs.unshift({ url })
           return doc
         })
         break
@@ -113,6 +126,10 @@ class Archive extends Preact.Component<Props> {
     switch (stroke.glyph) {
       case Glyph.create: {
         this.props.emit({ type: "CreateBoard" })
+        break
+      }
+      case Glyph.edit: {
+        this.props.emit({ type: "CreateIdentity" })
         break
       }
     }
