@@ -33,6 +33,7 @@ interface CardModel {
 
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
+  strokes: Stroke[]
   topZ: number
   focusedCardId: string | null
 }
@@ -106,10 +107,12 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 
 class Board extends Preact.Component<Props> {
   boardEl?: HTMLElement
+  strokesCanvasEl?: HTMLCanvasElement
 
   static reify(doc: AnyDoc): Model {
     return {
       cards: Reify.map(doc.cards),
+      strokes: Reify.array(doc.strokes),
       topZ: Reify.number(doc.topZ),
       focusedCardId: null,
     }
@@ -145,6 +148,13 @@ class Board extends Preact.Component<Props> {
                     </DraggableCard>
                   )
                 })}
+                <canvas
+                  style="InkLayer"
+                  ref={(el: HTMLCanvasElement) => {
+                    this.strokesCanvasEl = el
+                  }}
+                />
+                {this.drawStrokes()}
                 {focusedCardId != null ? (
                   <div
                     style={{
@@ -172,6 +182,34 @@ class Board extends Preact.Component<Props> {
           </div>
         )
     }
+  }
+
+  drawStrokes() {
+    this.strokesCanvasEl && (this.strokesCanvasEl.width = window.innerWidth)
+    this.strokesCanvasEl && (this.strokesCanvasEl.height = window.innerHeight)
+
+    const { strokes } = this.props.doc
+    strokes.forEach(stroke => this.drawStroke(stroke))
+  }
+
+  drawStroke(stroke: Stroke) {
+    const ctx = this.getDrawingContext()
+    if (!ctx || stroke.points.length == 0) return
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.lineWidth = 4
+    for (let i = 0; i < stroke.points.length; i++) {
+      let point = stroke.points[i]
+      if (i === 0) {
+        ctx.moveTo(point.X, point.Y)
+      } else {
+        ctx.lineTo(point.X, point.Y)
+      }
+    }
+    ctx.stroke()
+  }
+
+  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
+    return this.strokesCanvasEl && this.strokesCanvasEl.getContext("2d")
   }
 
   onCardStroke = (stroke: Stroke, id: string) => {
@@ -284,8 +322,9 @@ class Board extends Preact.Component<Props> {
         const centerPoint = stroke.center
         const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
         if (card) {
-          this.onCardStroke(stroke, card.id)
+          return this.onCardStroke(stroke, card.id)
         }
+        this.onInkStroke(stroke)
         break
       }
     }
@@ -296,6 +335,16 @@ class Board extends Preact.Component<Props> {
     const cardEl = el.closest(`.${CARD_CLASS}`)
     if (!cardEl || !cardEl.id) return
     return this.props.doc.cards[cardEl.id]
+  }
+
+  onInkStroke = (stroke: Stroke) => {
+    this.props.change(doc => {
+      if (!doc.strokes) {
+        doc.strokes = []
+      }
+      doc.strokes.push(stroke)
+      return doc
+    })
   }
 
   async createCard(type: string, x: number, y: number) {

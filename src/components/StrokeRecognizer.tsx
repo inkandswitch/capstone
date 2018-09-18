@@ -15,6 +15,7 @@ export interface Stroke {
   glyph: Glyph
   bounds: Bounds
   center: { x: number; y: number }
+  points: $P.Point[]
 }
 
 export interface Props {
@@ -103,9 +104,16 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
         glyph: glyph,
         bounds: this.bounds,
         center: this.center(),
+        points: this.points,
       })
     } else {
       this.flashDebugMessage(`Couldn't recognize anything :(`)
+      this.props.onStroke({
+        glyph: Glyph.unknown,
+        bounds: this.bounds,
+        center: this.center(),
+        points: this.points,
+      })
     }
     this.reset()
   }
