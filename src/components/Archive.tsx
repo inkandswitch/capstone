@@ -54,9 +54,8 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
       case "DocumentCreated": {
-        this.change((doc : EditDoc<Model>) => {
+        this.change(doc => {
           doc.docs.unshift({ url: message.body })
-//          return doc
         })
         break
       }
@@ -70,22 +69,22 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "CreateBoard": {
         const url = await Content.create("Board")
-        this.change((doc : Doc<Model>) => {
-          console.log("CREATE BOARD",doc)
+        this.change((doc: Doc<Model>) => {
+          console.log("CREATE BOARD", doc)
           doc.docs.unshift({ url: url })
           return doc
         })
         break
       }
       case "DocumentDeleted": {
-        this.change((doc : Doc<Model>) => {
+        this.change((doc: Doc<Model>) => {
           remove(doc.docs, val => val.url === message.body.url)
           return doc
         })
         break
       }
       case "ClearSelection": {
-        this.change((doc : Doc<Model>) => {
+        this.change((doc: Doc<Model>) => {
           doc.selected = []
           return doc
         })

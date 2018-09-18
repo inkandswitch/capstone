@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Link from "../data/Link"
-import { AnyDoc, Doc, AnyEditDoc, ChangeFn } from "automerge/frontend"
+import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"
@@ -46,8 +46,8 @@ export interface DocumentCreated extends Message {
   body: string
 }
 
-export type MessageHandler = {
-  receive(message: FullyFormedMessage<any>): void
+export type MessageHandlerClass = {
+  new (...k: any[]): DocumentActor<any, any>
 }
 
 export type DocumentUpdateListener<T> = (doc: Doc<T>) => void
@@ -72,26 +72,22 @@ export class DocumentActor<
   url: string
   docId: string
   doc: Doc<T>
-  change: ((doc: EditDoc<T>) => void) => void //(Doc<T>) => void
+  change: (cfn: ChangeFn<T>) => void //(Doc<T>) => void
 
-  static receive(message: FullyFormedMessage<any>) {
-    const onDocumentReady = (doc: Doc<any>) => {
+  receive(message: I) {
+    const onDocumentReady = (doc: Doc<T>) => {
       const { id } = Link.parse(message.to)
-      const actor = new this(message.to, id, doc, changeFn)
-      actor.onMessage(message)
+      this.url = message.to
+      this.docId = id
+      this.doc = doc
+      // Recreate previous change interface.
+      //    this.change = (cb: (doc: Doc<T>) => Doc<T>) => changeFn(cb(this.doc))
+      this.change = changeFn
+      this.onMessage(message)
     }
     // TODO: this will leave a noop receiveChangeCallback attached
     // to the port.
-    const changeFn = Content.open<any>(message.to, once(onDocumentReady))
-  }
-
-  constructor(url: string, docId: string, doc: Doc<T>, changeFn: ChangeFn<T>) {
-    this.url = url
-    this.docId = docId
-    this.doc = doc
-    // Recreate previous change interface.
-//    this.change = (cb: (doc: Doc<T>) => Doc<T>) => changeFn(cb(this.doc))
-    this.change = changeFn
+    const changeFn = Content.open<T>(message.to, once(onDocumentReady))
   }
 
   create(type: string) {
@@ -122,7 +118,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 
   static widgetRegistry: { [type: string]: WidgetClass<any> } = {}
-  static messageHandlerRegistry: { [type: string]: MessageHandler } = {}
+  static messageHandlerRegistry: { [type: string]: MessageHandlerClass } = {}
   static ancestorMap: { [child: string]: string } = {}
   static documentUpdateListeners: {
     [url: string]: DocumentUpdateListener<any>
@@ -137,7 +133,9 @@ export default class Content extends Preact.Component<Props & unknown> {
   // Creates an initialized document of the given type and returns its URL
   static create<T>(type: string): Promise<string> {
     const widget = this.find(type) as WidgetClass<T>
-    const setup : any = (doc: any) => { Reify.reify(doc, widget.reify) }
+    const setup: any = (doc: any) => {
+      Reify.reify(doc, widget.reify)
+    }
     return this.store.create(setup).then(id => {
       return Link.format({ type, id })
     })
@@ -145,28 +143,28 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   // Opens an initialized document at the given URL
 
-  static open<T>(url: string, callback: (doc: Doc<T>) => void): (cfn: ChangeFn<T>) => void {
+  static open<T>(
+    url: string,
+    callback: (doc: Doc<T>) => void,
+  ): (cfn: ChangeFn<T>) => void {
     const { type, id } = Link.parse(url)
     const sendChangeFn = this.store.open(id, doc => callback(doc))
-//      } else {
-/*
+    //      } else {
+    /*
         sendChangeFn((doc) => {
           Reify.reify(doc, widget.reify)
           doc.version = 1
           console.log("After Reify", doc)
         })
 */
-//      }
-      //callback(Reify.reify(doc, widget.reify)),
-//      callback(doc)
+    //      }
+    //callback(Reify.reify(doc, widget.reify)),
+    //      callback(doc)
     return sendChangeFn
   }
 
-  static once<T>(
-    url: string,
-    cfn: Function
-  ): void {
-    const update = Content.open(url, (doc) => {})
+  static once<T>(url: string, cfn: Function): void {
+    const update = Content.open(url, doc => {})
     cfn(update)
   }
 
@@ -198,7 +196,8 @@ export default class Content extends Preact.Component<Props & unknown> {
     }
 
     const { type: recipientType } = Link.parse(message.to)
-    const recipient = Content.getMessageHandler(recipientType)
+    const Recipient = Content.getMessageHandler(recipientType)
+    const recipient = new Recipient()
     recipient.receive(message)
   }
 

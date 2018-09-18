@@ -1,7 +1,11 @@
 import * as Preact from "preact"
 import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/frontend"
-import Content, { WidgetProps, Message, MessageHandler, Mode } from "./Content"
-
+import Content, {
+  WidgetProps,
+  Message,
+  Mode,
+  MessageHandlerClass,
+} from "./Content"
 
 export interface Props<T, M = never> {
   doc: Doc<T>
@@ -26,7 +30,7 @@ export function create<T, M extends Message = never>(
   type: string,
   WrappedComponent: WrappedComponentClass<T, M>,
   reify: (doc: AnyDoc) => T,
-  messageHandler?: MessageHandler,
+  messageHandler?: MessageHandlerClass,
 ) {
   const WidgetClass = class extends Preact.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.

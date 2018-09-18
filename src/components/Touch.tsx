@@ -43,7 +43,7 @@ export default class Touch extends Handler<Props> {
         Hammer.Swipe,
         {
           event: "threeFingerSwipeDown",
-          pointers: 3,
+          pointers: 1,
           direction: Hammer.DIRECTION_DOWN,
         },
       ])

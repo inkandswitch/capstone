@@ -106,11 +106,10 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
     const url = await Content.create(type)
 
     const onOpen = (doc: AnyEditDoc) => {
-      changeFn(doc)
-      replace(doc)
+      change(changeFn)
     }
 
-    const replace = Content.open(url, once(onOpen))
+    const change = Content.open(url, once(onOpen))
 
     this.props.change(doc => {
       doc.docs.push({ url })
