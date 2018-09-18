@@ -30,6 +30,7 @@ export default class StoreComms {
         handle.onChange((doc: any) => {
           port.postMessage(doc)
         })
+        break
       }
 
       case "activity": {
@@ -57,6 +58,7 @@ export default class StoreComms {
             })
           })
         })
+        break
       }
     }
   }
