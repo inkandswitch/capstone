@@ -46,6 +46,11 @@ export interface DocumentCreated extends Message {
   body: string
 }
 
+export interface DocumentOpened extends Message {
+  type: "DocumentOpened"
+  body: { url: string }
+}
+
 export type MessageHandler = {
   receive(message: FullyFormedMessage<any>): void
 }
@@ -130,6 +135,7 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static store: Store
   static workspaceUrl: string
+  static archiveUrl: string
 
   /// Registry:
 
@@ -146,6 +152,18 @@ export default class Content extends Preact.Component<Props & unknown> {
     const replaceCallback = this.store.open(id, doc =>
       callback(Reify.reify(doc, widget.reify)),
     )
+    // Proof of concept - add all documents to archive
+    if (type !== "Shelf" && type !== "Archive" && type !== "Workspace") {
+      window.requestIdleCallback(() => {
+        console.log("send message", url)
+        Content.send({
+          to: Content.archiveUrl,
+          from: Content.workspaceUrl,
+          type: "DocumentOpened",
+          body: { url },
+        })
+      })
+    }
     return replaceCallback
   }
 
@@ -178,7 +196,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     return handler
   }
 
-  static send(message: Message & WithSender) {
+  static send(message: Message) {
     message.to = message.to || Content.workspaceUrl
     if (!isFullyFormed(message)) {
       return

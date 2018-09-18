@@ -10,6 +10,7 @@ import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
+  DocumentOpened,
   FullyFormedMessage,
   Message,
 } from "./Content"
@@ -51,13 +52,26 @@ type WidgetMessage =
   | CreateIdentity
   | DocumentDeleted
 type InMessage = FullyFormedMessage<
-  WidgetMessage | DocumentCreated | ClearSelection
+  WidgetMessage | DocumentOpened | DocumentCreated | ClearSelection
 >
 type OutMessage = DocumentSelected | AddToShelf
 
 export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
+      case "DocumentOpened": {
+        // Rough
+        console.log("DOCUMENT OPENED")
+        const { url } = message.body
+        const doc = this.doc.docs.find(doc => doc.url === url)
+        if (!doc) {
+          this.change(doc => {
+            doc.docs.unshift({ url })
+            return doc
+          })
+        }
+        break
+      }
       case "DocumentCreated": {
         this.change(doc => {
           doc.docs.unshift({ url: message.body })

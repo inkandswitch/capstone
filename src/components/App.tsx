@@ -29,14 +29,14 @@ export default class App extends Preact.Component<{}, State> {
     const archiveUrlPromise = Content.create("Archive")
     const shelfUrlPromise = Content.create("Shelf")
 
+    const shelfUrl = await shelfUrlPromise
+    const archiveUrl = await archiveUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
+    Content.archiveUrl = archiveUrl
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (workspace, change) => {
-      const shelfUrl = await shelfUrlPromise
-      const archiveUrl = await archiveUrlPromise
-
       if (!workspace.archiveUrl) {
         workspace.archiveUrl = archiveUrl
         workspace.shelfUrl = shelfUrl
@@ -44,18 +44,19 @@ export default class App extends Preact.Component<{}, State> {
       }
 
       this.setState({ url: workspaceUrl })
-      chrome.storage.local.set({ workspaceUrl })
+      chrome.storage.local.set({ workspaceUrl, archiveUrl })
     })
   }
 
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl"], val => {
+    chrome.storage.local.get(["workspaceUrl", "archiveUrl"], val => {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {
         Content.workspaceUrl = val.workspaceUrl
+        Content.archiveUrl = val.archiveUrl
         this.setState({ url: val.workspaceUrl })
       }
     })
