@@ -15,7 +15,7 @@ interface DownloadActivity {
   seq: number
 }
 
-type Activity = UploadActivity | DownloadActivity
+export type Activity = UploadActivity | DownloadActivity
 
 export default class Store {
   open(

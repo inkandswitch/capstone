@@ -18,6 +18,7 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
           <div style={style.Item}>
             <div style={style.ItemContent}>
               <Content mode="preview" url={url} />
+              <Content mode="preview" type="NetworkActivity" url={url} />
             </div>
           </div>
         </Touch>
