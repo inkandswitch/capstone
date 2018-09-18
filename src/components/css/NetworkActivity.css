@@ -13,8 +13,7 @@
   opacity: 0.1;
 }
 
-:local(.Upload.blink),
-:local(.Download.blink) {
+:local(.blink) {
   opacity: 1;
 }
 
