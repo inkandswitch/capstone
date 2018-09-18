@@ -49,9 +49,9 @@ module.exports = {
           "style-loader",
           {
             loader: "css-loader",
-            // options: {
-            //   importLoaders: 1,
-            // },
+            options: {
+              localIdentName: "[local]-[hash:base64:5]",
+            },
           },
         ],
       },
