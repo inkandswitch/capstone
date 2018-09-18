@@ -9,6 +9,20 @@ let CHANGE : {[k: string]: ((cfn: ChangeFn<any>) => void) } = {}
 
 export default class Store {
 
+  once(
+    id: string,
+    cb: (doc: Doc<any>, cfn: ChangeFn<any>) => void,
+  ): void {
+    if (DOCS[id]) {
+      cb(DOCS[id], CHANGE[id])
+    } else {
+      // YUK!
+      let change = this.open(id, (doc) => {
+        cb(doc,change)
+      })
+    }
+  }
+
   open(
     id: string,
     receiveChangeCallback: (doc: Doc<any>) => void,
