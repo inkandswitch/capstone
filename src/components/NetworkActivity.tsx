@@ -36,10 +36,10 @@ export default class NetworkActivity extends Preact.Component<Props> {
   onActivity = (act: Activity) => {
     switch (act.type) {
       case "Download":
-        this.download && this.blink(this.download, css.blink)
+        this.download && this.blink(this.download, css.lit)
         break
       case "Upload":
-        this.upload && this.blink(this.upload, css.blink)
+        this.upload && this.blink(this.upload, css.lit)
         break
     }
   }
@@ -48,6 +48,7 @@ export default class NetworkActivity extends Preact.Component<Props> {
     requestAnimationFrame(() => {
       el.classList.add(className)
       requestAnimationFrame(() => {
+        // A single frame is not enough apparently
         requestAnimationFrame(() => {
           el.classList.remove(className)
         })

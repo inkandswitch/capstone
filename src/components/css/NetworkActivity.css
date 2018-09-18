@@ -13,7 +13,7 @@
   opacity: 0.1;
 }
 
-:local(.blink) {
+:local(.lit) {
   opacity: 1;
 }
 
