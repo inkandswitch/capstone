@@ -28,7 +28,6 @@ interface CardModel {
   y: number
   z: number
   url: string
-  isFocused?: boolean
 }
 
 export interface Model {
