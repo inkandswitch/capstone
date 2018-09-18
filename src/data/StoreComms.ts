@@ -14,20 +14,51 @@ export default class StoreComms {
   }
 
   onConnect = (port: chrome.runtime.Port) => {
-    const docId = port.name
-    let handle = this.hypermerge.openHandle(docId)
+    const [docId, mode = "changes"] = port.name.split("/", 2)
 
-    port.onMessage.addListener((newDoc: any) => {
-      handle.change((oldDoc: any) => {
-        for (let key in newDoc) {
-          oldDoc[key] = newDoc[key] as any
-        }
-      })
-    })
+    switch (mode) {
+      case "changes": {
+        const handle = this.hypermerge.openHandle(docId)
+        port.onMessage.addListener((newDoc: any) => {
+          handle.change((oldDoc: any) => {
+            for (let key in newDoc) {
+              oldDoc[key] = newDoc[key] as any
+            }
+          })
+        })
 
-    handle.onChange((doc: any) => {
-      port.postMessage(doc)
-    })
+        handle.onChange((doc: any) => {
+          port.postMessage(doc)
+        })
+      }
+
+      case "activity": {
+        const hm = this.hypermerge
+        hm.ready.then(() => {
+          const actorIds: string[] = hm.docIndex[docId] || []
+
+          actorIds.forEach(actorId => {
+            const feed = hm._feed(actorId)
+
+            feed.on("download", (seq: number) => {
+              port.postMessage({
+                type: "Download",
+                actorId,
+                seq,
+              })
+            })
+
+            feed.on("upload", (seq: number) => {
+              port.postMessage({
+                type: "Upload",
+                actorId,
+                seq,
+              })
+            })
+          })
+        })
+      }
+    }
   }
 
   onMessage = (
