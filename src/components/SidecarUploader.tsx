@@ -41,7 +41,6 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
         onDragLeave={this.onDragLeave}
         onDrop={this.onDrop}>
         <Clipboard onPaste={this.onPaste} />
-        <Content mode="fullscreen" url={this.props.url} />
         <div style={style.Status} />
         <div
           style={{
