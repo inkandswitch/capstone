@@ -12,7 +12,7 @@ import Content, {
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
-import { AnyDoc, Doc, EditDoc } from "automerge"
+import { AnyDoc } from "automerge"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
@@ -28,17 +28,19 @@ interface CardModel {
   y: number
   z: number
   url: string
-  isFocused?: boolean
 }
 
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
   topZ: number
-  focusedCardId: string | null
 }
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string) => void
+}
+
+interface State {
+  focusedCardId: string | null
 }
 
 interface CreateCard extends Message {
@@ -66,8 +68,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const url = await this.create(type)
         this.change(doc => {
           const z = ++doc.topZ
-          doc.cards[card.id] = { ...card, z, isFocused: true, url }
-          doc.focusedCardId = card.id
+          doc.cards[card.id] = { ...card, z, url }
           return doc
         })
         this.emit({ type: "DocumentCreated", body: url })
@@ -91,7 +92,6 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
               x: position.x,
               y: position.y,
               z: ++doc.topZ,
-              isFocused: false,
               url,
             }
             doc.cards[card.id] = card
@@ -104,19 +104,20 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
-class Board extends Preact.Component<Props> {
+class Board extends Preact.Component<Props, State> {
   boardEl?: HTMLElement
+  state = { focusedCardId: null }
 
   static reify(doc: AnyDoc): Model {
     return {
       cards: Reify.map(doc.cards),
       topZ: Reify.number(doc.topZ),
-      focusedCardId: null,
     }
   }
 
   render() {
-    const { cards, topZ, focusedCardId } = this.props.doc
+    const { cards, topZ } = this.props.doc
+    const { focusedCardId } = this.state
     switch (this.props.mode) {
       case "fullscreen":
         return (
@@ -140,7 +141,7 @@ class Board extends Preact.Component<Props> {
                       <Content
                         mode="embed"
                         url={card.url}
-                        isFocused={card.isFocused}
+                        isFocused={focusedCardId === card.id}
                       />
                     </DraggableCard>
                   )
@@ -187,21 +188,25 @@ class Board extends Preact.Component<Props> {
         break
       }
       case Glyph.edit: {
-        if (this.props.doc.focusedCardId != null) return
+        if (this.state.focusedCardId != null) return
+        if (!this.props.doc.cards[id]) return
+
+        // move card to top of stack
         this.props.change(doc => {
-          return this.setCardFocus(doc, id)
+          const card = doc.cards[id]
+          if (!card) return doc
+          doc.topZ++
+          doc.cards[id] = { ...card, z: doc.topZ }
+          return doc
         })
+        this.setCardFocus(id)
         break
       }
     }
   }
 
   onVirtualKeyboardClose = () => {
-    if (this.props.doc.focusedCardId == null) return
-
-    this.props.change(doc => {
-      return this.clearCardFocus(doc)
-    })
+    this.clearCardFocus()
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
@@ -235,36 +240,23 @@ class Board extends Preact.Component<Props> {
   onPointerDown = (e: PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    this.props.change(doc => {
-      if (doc.focusedCardId == null) return doc
-      return this.clearCardFocus(doc)
-    })
+    this.clearCardFocus()
   }
 
-  setCardFocus = (doc: EditDoc<Model>, cardId: string): EditDoc<Model> => {
-    const card = doc.cards[cardId]
-    if (!card) return doc
-    doc.topZ++
-    doc.cards[cardId] = { ...card, z: doc.topZ, isFocused: true }
-    doc.focusedCardId = cardId
-    return doc
+  setCardFocus = (cardId: string) => {
+    this.setState({ focusedCardId: cardId })
   }
 
-  clearCardFocus = (doc: EditDoc<Model>): EditDoc<Model> => {
-    if (doc.focusedCardId == null) return doc
-    const card = doc.cards[doc.focusedCardId]
-    if (card) {
-      doc.cards[doc.focusedCardId] = { ...card, isFocused: false }
-    }
-    doc.focusedCardId = null
-    return doc
+  clearCardFocus = () => {
+    this.setState({ focusedCardId: null })
   }
 
   deleteCard = (id: string) => {
     this.props.change(doc => {
       delete doc.cards[id]
-      return this.clearCardFocus(doc)
+      return doc
     })
+    this.clearCardFocus()
   }
 
   onStroke = (stroke: Stroke) => {
@@ -302,6 +294,7 @@ class Board extends Preact.Component<Props> {
     if (this.props.doc.focusedCardId != null) return
     if (!this.boardEl) return
 
+    const id = UUID.create()
     const maxX = this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING
     const maxY = this.boardEl.clientHeight - 2 * BOARD_PADDING
     const cardX = clamp(x - CARD_WIDTH / 2, 0, maxX)
@@ -311,9 +304,10 @@ class Board extends Preact.Component<Props> {
       type: "CreateCard",
       body: {
         type: type,
-        card: { id: UUID.create(), x: cardX, y: cardY },
+        card: { id, x: cardX, y: cardY },
       },
     })
+    this.setCardFocus(id)
   }
 }
 
