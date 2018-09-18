@@ -17,31 +17,26 @@ export default class Store {
     console.log("Open", id)
     RECEIVE[id] = (RECEIVE[id] || []).concat([receiveChangeCallback])
 
+    if (DOCS[id]) setTimeout( () => receiveChangeCallback(DOCS[id]),50) /// UGHHHH!! :'(
+
     if (CHANGE[id]) return CHANGE[id]
 
     var port = chrome.runtime.connect({ name: id })
     port.onMessage.addListener(({ actorId, patch }) => {
-      //console.log("Got patch", patch)
-      //console.log("Before", DOCS[id])
       if (DOCS[id] === undefined) { DOCS[id] = init(actorId) }
       if (patch.diffs.length > 0) {
         DOCS[id] = applyPatch(DOCS[id],patch)
       }
 
-      //console.log("After", DOCS[id])
       RECEIVE[id].map(fn => fn(DOCS[id]))
-//      receiveChangeCallback(DOCS[id])
     })
     const sendChangeFn = (cfn: ChangeFn<any>) => {
-    //  console.log("CHANGE DOC",cfn)
-    //  console.log("About to change", DOCS[id])
       DOCS[id] = change(DOCS[id],cfn)
       console.log("All ready", DOCS[id])
       let requests = getRequests(DOCS[id])
       console.log("Sending Requests", requests, DOCS[id]);
       port.postMessage(requests)
       RECEIVE[id].map(fn => fn(DOCS[id]))
-      //receiveChangeCallback(DOCS[id])
     }
 
     CHANGE[id] = sendChangeFn;
@@ -52,17 +47,7 @@ export default class Store {
   create(setup: ChangeFn<any>): Promise<string> {
     const command = "Create"
     const args = {}
-    console.log("WTF", this)
-    
 
-/*
-    const setupFn = once(() => {
-      console.log("About to setup", DOCS[id])
-      DOCS[id] = change(DOCS[id],setup)
-    })
-*/
-
-    console.log("Lets try and create a doc");
     return new Promise((resolve, reject) => {
       ready.then(() => {
         chrome.runtime.sendMessage({ command, args }, (docId) => {
@@ -70,7 +55,6 @@ export default class Store {
           DOCS[docId] = init(docId)
           resolve(docId)
           const changeFn = this.open(docId, (doc) => {} )
-          console.log("CHANGE FN", self, changeFn);
           changeFn(setup)
         })
       })

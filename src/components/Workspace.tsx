@@ -82,7 +82,6 @@ class Workspace extends Preact.Component<Widget.Props<Model>> {
   }
 
   get currentUrl() {
-    console.log("DOC",this.props.doc)
     const { archiveUrl } = this.props.doc
     return this.peek() || archiveUrl
   }

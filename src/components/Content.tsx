@@ -72,7 +72,7 @@ export class DocumentActor<
   url: string
   docId: string
   doc: Doc<T>
-  change: (cb: (doc: Doc<T>) => Doc<T>) => void
+  change: ((doc: EditDoc<T>) => void) => void //(Doc<T>) => void
 
   static receive(message: FullyFormedMessage<any>) {
     const onDocumentReady = (doc: Doc<any>) => {
@@ -82,15 +82,16 @@ export class DocumentActor<
     }
     // TODO: this will leave a noop receiveChangeCallback attached
     // to the port.
-    const changeFn = Content.open(message.to, once(onDocumentReady))
+    const changeFn = Content.open<any>(message.to, once(onDocumentReady))
   }
 
-  constructor(url: string, docId: string, doc: Doc<T>, changeFn: Function) {
+  constructor(url: string, docId: string, doc: Doc<T>, changeFn: ChangeFn<T>) {
     this.url = url
     this.docId = docId
     this.doc = doc
     // Recreate previous change interface.
-    this.change = (cb: (doc: Doc<T>) => Doc<T>) => changeFn(cb(this.doc))
+//    this.change = (cb: (doc: Doc<T>) => Doc<T>) => changeFn(cb(this.doc))
+    this.change = changeFn
   }
 
   create(type: string) {

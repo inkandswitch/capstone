@@ -1,7 +1,7 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
 import Content from "./Content"
-import { AnyDoc, Doc } from "automerge/frontend"
+import { EditDoc, AnyDoc, Doc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
@@ -54,9 +54,9 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
       case "DocumentCreated": {
-        this.change(doc => {
+        this.change((doc : EditDoc<Model>) => {
           doc.docs.unshift({ url: message.body })
-          return doc
+//          return doc
         })
         break
       }
@@ -70,21 +70,22 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "CreateBoard": {
         const url = await Content.create("Board")
-        this.change(doc => {
+        this.change((doc : Doc<Model>) => {
+          console.log("CREATE BOARD",doc)
           doc.docs.unshift({ url: url })
           return doc
         })
         break
       }
       case "DocumentDeleted": {
-        this.change(doc => {
+        this.change((doc : Doc<Model>) => {
           remove(doc.docs, val => val.url === message.body.url)
           return doc
         })
         break
       }
       case "ClearSelection": {
-        this.change(doc => {
+        this.change((doc : Doc<Model>) => {
           doc.selected = []
           return doc
         })
