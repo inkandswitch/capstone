@@ -45,5 +45,6 @@ const style = {
     background: "#fff",
     overflow: "hidden",
     maxHeight: "100%'",
+    pointerEvents: "none",
   },
 }
