@@ -10,7 +10,7 @@
     "format": "prettier --write 'src/**/*.{js,ts,txx}'",
     "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache ts-node",
     "clean": "rm -r dist",
-    "launch-capstone": "node ./bin/launch.js .",
+    "launch-capstone": "node ./bin/launch.js capstone",
     "launch-sidecar": "node ./bin/launch.js sidecar",
     "launch-tests": "node ./bin/launch.js tests"
   },
