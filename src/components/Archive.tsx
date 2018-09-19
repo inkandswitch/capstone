@@ -27,10 +27,6 @@ interface CreateBoard extends Message {
   type: "CreateBoard"
 }
 
-interface CreateIdentity extends Message {
-  type: "CreateIdentity"
-}
-
 export interface DocumentSelected extends Message {
   type: "DocumentSelected"
   body: { url: string }
