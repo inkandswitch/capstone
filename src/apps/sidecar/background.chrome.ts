@@ -25,9 +25,10 @@ let pComms = new Promise((resolve) => {
   })
 })
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   pComms.then((comms: StoreComms) => comms.onMessage(request, sendResponse))
-)
+  return true // this allows sendReponse to respond async - DO NOT REMOVE
+})
 
 chrome.runtime.onConnect.addListener(port => {
   pComms.then((comms: StoreComms) => comms.onConnect(port))
