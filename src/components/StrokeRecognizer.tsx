@@ -89,6 +89,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   onPanEnd = (event: PenEvent) => {
     if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
+    this.lastDrawnPoint = 1
     this.recognize()
   }
 
@@ -116,6 +117,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
         points: this.points,
       })
     }
+
     this.reset()
   }
 
