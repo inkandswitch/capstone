@@ -18,6 +18,7 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
           <div style={style.Item}>
             <div style={style.ItemContent}>
               <Content mode="preview" url={url} />
+              <Content mode="embed" type="NetworkActivity" url={url} />
             </div>
           </div>
         </Touch>
@@ -44,5 +45,6 @@ const style = {
     background: "#fff",
     overflow: "hidden",
     maxHeight: "100%'",
+    pointerEvents: "none",
   },
 }

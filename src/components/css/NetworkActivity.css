@@ -1,0 +1,26 @@
+:local(.NetworkActivity) {
+  display: flex;
+}
+
+:local(.Status::before) {
+  height: 10px;
+  width: 10px;
+  border-radius: 99px;
+}
+
+:local(.Upload),
+:local(.Download) {
+  opacity: 0.1;
+}
+
+:local(.lit) {
+  opacity: 1;
+}
+
+:local(.Upload::before) {
+  content: "▲";
+}
+
+:local(.Download::after) {
+  content: "▼";
+}

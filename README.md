@@ -15,6 +15,7 @@ Otherwise, you can format the code by running `yarn format`.
 ## Dev Tools
 
 `yarn start`: Start the build
+`yarn clean`: Delete `dist/*` for a clean build
 `yarn test`: Same as `yarn launch-tests`
 `yarn repl`: Start a TypeScript REPL
 `yarn format`: Format all `src/*` code with prettier
