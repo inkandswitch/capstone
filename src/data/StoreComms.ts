@@ -15,7 +15,6 @@ export default class StoreComms {
 
   onConnect = (port: chrome.runtime.Port) => {
     const docId = port.name
-    console.log("PORT",port.name,port);
     log("connect",docId);
     let handle = this.hypermerge.openHandle(docId)
 
@@ -33,20 +32,14 @@ export default class StoreComms {
 
   onMessage = (
     request: any, // the message can, indeed, be anything
-//    sender: chrome.runtime.MessageSender,
     sendResponse: Function,
   ) => {
-    // XXX: we should probably check the sender, but it
-    //      isn't clear to me how to do so reasonably & robustly
     let { command } = request
 
     switch (command) {
       case "Create":
-        console.log("store:coms CREATE 1")
         let doc = this.hypermerge.create()
-        console.log("store:coms CREATE 2",doc)
         let docId = this.hypermerge.getId(doc)
-        console.log("store:coms CREATE 3",docId)
         sendResponse(docId)
         break
       default:

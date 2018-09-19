@@ -63,8 +63,7 @@ export default class Store {
     const args = {}
 
     return new Promise((resolve, reject) => {
-      POST_MESSAGE_TO_BUS({ command, args }, (docId) => {
-//      chrome.runtime.sendMessage({ command, args }, (docId) => {
+      POST_MESSAGE_TO_BUS({ command, args }, (docId: any) => {
         console.log("Created:",docId);
         DOCS[docId] = init(docId)
         resolve(docId)
@@ -78,7 +77,6 @@ export default class Store {
 function POST_MESSAGE_TO_BUS(request : any, cb: Function) {
   const id = Math.floor(Math.random() * 2000000000)
   BUS_CALLBACKS[id] = cb
-  console.log("posting message to bus",id,request);
   BUS.postMessage({id, request})
 }
 var BUS_CALLBACKS : {[k: number]: Function}  = {}

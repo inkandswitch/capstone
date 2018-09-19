@@ -35,27 +35,17 @@ chrome.app.runtime.onLaunched.addListener(() => {
   )
 })
 
-let comms : any = null
 let pComm = new Promise(resolve => {
   initHypermerge({ storage: racf }, (hm: Hypermerge) => {
-    comms = new StoreComms(hm)
+    const comms = new StoreComms(hm)
     resolve(comms)
-    chrome.runtime.sendMessage({ hypercore: "ready"})
   })
 })
-
-/*
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("on message")
-  comms.onMessage(request, sender, sendResponse)
-  // this message must be responded to syncronously :/
-})
-*/
 
 chrome.runtime.onConnect.addListener(port => {
   if (port.name == "bus") {
     port.onMessage.addListener(({id, request}) => {
-      pComm.then(comm => {
+      pComm.then((comms : StoreComms) => {
         comms.onMessage(request, (response : any) => {
           port.postMessage({ id, response })
         })
