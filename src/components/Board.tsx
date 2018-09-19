@@ -33,7 +33,7 @@ interface CardModel {
 
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
-  strokes: Stroke[]
+  strokes: string[]
   topZ: number
   focusedCardId: string | null
 }
@@ -154,7 +154,6 @@ class Board extends Preact.Component<Props> {
                     this.strokesCanvasEl = el
                   }}
                 />
-                {this.drawStrokes()}
                 {focusedCardId != null ? (
                   <div
                     style={{
@@ -184,28 +183,31 @@ class Board extends Preact.Component<Props> {
     }
   }
 
+  componentDidUpdate() {
+    this.drawStrokes()
+  }
+
   drawStrokes() {
+    const { strokes } = this.props.doc
+
     this.strokesCanvasEl && (this.strokesCanvasEl.width = window.innerWidth)
     this.strokesCanvasEl && (this.strokesCanvasEl.height = window.innerHeight)
 
-    const { strokes } = this.props.doc
+    const ctx = this.getDrawingContext()
+
+    if (!ctx || strokes.length == 0) return
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
     strokes.forEach(stroke => this.drawStroke(stroke))
   }
 
-  drawStroke(stroke: Stroke) {
+  drawStroke(stroke: string) {
     const ctx = this.getDrawingContext()
-    if (!ctx || stroke.points.length == 0) return
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
+    const path = new Path2D(stroke)
+    if (!ctx || stroke.length == 0) return
     ctx.lineWidth = 4
-    for (let i = 0; i < stroke.points.length; i++) {
-      let point = stroke.points[i]
-      if (i === 0) {
-        ctx.moveTo(point.X, point.Y)
-      } else {
-        ctx.lineTo(point.X, point.Y)
-      }
-    }
-    ctx.stroke()
+    ctx.stroke(path)
   }
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
@@ -331,6 +333,9 @@ class Board extends Preact.Component<Props> {
   }
 
   cardAtPoint = (x: number, y: number): CardModel | undefined => {
+    if (isNaN(x) || isNaN(y)) {
+      return undefined
+    }
     const el = document.elementFromPoint(x, y)
     const cardEl = el.closest(`.${CARD_CLASS}`)
     if (!cardEl || !cardEl.id) return
@@ -342,7 +347,9 @@ class Board extends Preact.Component<Props> {
       if (!doc.strokes) {
         doc.strokes = []
       }
-      doc.strokes.push(stroke)
+      doc.strokes.push(
+        "M " + stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
+      )
       return doc
     })
   }
