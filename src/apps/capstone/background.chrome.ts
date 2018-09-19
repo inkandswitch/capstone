@@ -1,7 +1,7 @@
 process.hrtime = require("browser-process-hrtime")
-import StoreComms from "./data/StoreComms"
+import StoreComms from "../../data/StoreComms"
 
-import { Hypermerge, initHypermerge } from "./modules/hypermerge"
+import { Hypermerge, initHypermerge } from "../../modules/hypermerge"
 let racf = require("random-access-chrome-file")
 
 let mainWindow: chrome.app.window.AppWindow
@@ -50,5 +50,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 })
 
 chrome.runtime.onConnect.addListener(port => {
-  pComm.then((comms : StoreComms) => comms.onConnect(port))
+  pComm.then((comms: StoreComms) => comms.onConnect(port))
 })

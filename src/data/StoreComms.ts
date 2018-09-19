@@ -8,26 +8,58 @@ export default class StoreComms {
   docHandles: { [docId: string]: any }
 
   constructor(hm: Hypermerge) {
-      this.hypermerge = hm
-      ;(window as any).hm = this.hypermerge
-      this.hypermerge.joinSwarm({ chrome: true })
+    this.hypermerge = hm
+    ;(window as any).hm = this.hypermerge
+    this.hypermerge.joinSwarm({ chrome: true })
   }
 
   onConnect = (port: chrome.runtime.Port) => {
-    const docId = port.name
-    log("connect",docId);
-    let handle = this.hypermerge.openHandle(docId)
+    const [docId, mode = "changes"] = port.name.split("/", 2)
+    log("connect", docId)
 
-    port.onMessage.addListener((changes: any) => {
-      handle.applyChanges(changes)
-      log("applyChanges",changes);
-    })
+    switch (mode) {
+      case "changes": {
+        let handle = this.hypermerge.openHandle(docId)
 
-    handle.onPatch((patch: any) => {
-      log("patch",patch)
-      const actorId = handle.actorId
-      port.postMessage({ actorId, patch })
-    })
+        port.onMessage.addListener((changes: any) => {
+          handle.applyChanges(changes)
+          log("applyChanges", changes)
+        })
+
+        handle.onPatch((patch: any) => {
+          log("patch", patch)
+          const actorId = handle.actorId
+          port.postMessage({ actorId, patch })
+        })
+        break
+      }
+
+      case "activity": {
+        const hm = this.hypermerge
+        const actorIds: string[] = hm.docIndex[docId] || []
+
+        actorIds.forEach(actorId => {
+          const feed = hm._feed(actorId)
+
+          feed.on("download", (seq: number) => {
+            port.postMessage({
+              type: "Download",
+              actorId,
+              seq,
+            })
+          })
+
+          feed.on("upload", (seq: number) => {
+            port.postMessage({
+              type: "Upload",
+              actorId,
+              seq,
+            })
+          })
+        })
+        break
+      }
+    }
   }
 
   onMessage = (

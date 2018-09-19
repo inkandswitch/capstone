@@ -9,7 +9,8 @@
     "test": "yarn launch-tests",
     "format": "prettier --write 'src/**/*.{js,ts,txx}'",
     "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache ts-node",
-    "launch-capstone": "node ./bin/launch.js .",
+    "clean": "rm -r dist",
+    "launch-capstone": "node ./bin/launch.js capstone",
     "launch-sidecar": "node ./bin/launch.js sidecar",
     "launch-tests": "node ./bin/launch.js tests"
   },
@@ -61,6 +62,7 @@
     "preact": "^8.3.0",
     "random-access-chrome-file": "^1.1.1",
     "random-access-memory": "^3.0.0",
+    "rxjs": "^6.3.2",
     "tap-browser-el": "^2.0.0",
     "utp": "github:pvh/utp"
   }
