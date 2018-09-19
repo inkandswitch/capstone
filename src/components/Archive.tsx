@@ -49,7 +49,6 @@ type WidgetMessage =
   | DocumentSelected
   | AddToShelf
   | CreateBoard
-  | CreateIdentity
   | DocumentDeleted
 type InMessage = FullyFormedMessage<
   WidgetMessage | DocumentOpened | DocumentCreated | ClearSelection
@@ -95,14 +94,6 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
         })
         break
       }
-      case "CreateIdentity": {
-        const url = await Content.create("Identity")
-        this.change(doc => {
-          doc.docs.unshift({ url })
-          return doc
-        })
-        break
-      }
       case "DocumentDeleted": {
         this.change(doc => {
           remove(doc.docs, val => val.url === message.body.url)
@@ -140,10 +131,6 @@ class Archive extends Preact.Component<Props> {
     switch (stroke.glyph) {
       case Glyph.create: {
         this.props.emit({ type: "CreateBoard" })
-        break
-      }
-      case Glyph.edit: {
-        this.props.emit({ type: "CreateIdentity" })
         break
       }
     }

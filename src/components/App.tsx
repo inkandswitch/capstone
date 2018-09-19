@@ -14,6 +14,7 @@ import "./Workspace"
 import "./Shelf"
 import "./Identity"
 import * as Workspace from "./Workspace"
+import * as Archive from "./Archive"
 
 // Used for debugging from the console:
 window.Content = Content
@@ -28,9 +29,11 @@ export default class App extends Preact.Component<{}, State> {
   async initWorkspace() {
     const archiveUrlPromise = Content.create("Archive")
     const shelfUrlPromise = Content.create("Shelf")
+    const identityUrlPromise = Content.create("Identity")
 
     const shelfUrl = await shelfUrlPromise
     const archiveUrl = await archiveUrlPromise
+    const identityUrl = await identityUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
     Content.archiveUrl = archiveUrl
@@ -45,6 +48,11 @@ export default class App extends Preact.Component<{}, State> {
 
       this.setState({ url: workspaceUrl })
       chrome.storage.local.set({ workspaceUrl, archiveUrl })
+    })
+
+    Content.once<Archive.Model>(archiveUrl, async (archive, change) => {
+      archive.docs.unshift({ url: identityUrl })
+      change(archive)
     })
   }
 
