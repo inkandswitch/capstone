@@ -212,7 +212,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     ctx.stroke()
     const center = this.center()
     ctx.fillStyle = "red"
-    ctx.fillRect(center.x - 2, center.y - 2, 5, 5)
+    ctx.fillRect(center.x - 2, center.y - 2, 4, 4)
   }
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
