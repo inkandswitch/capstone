@@ -150,7 +150,7 @@ class Board extends Preact.Component<Props, State> {
                   )
                 })}
                 <canvas
-                  style="InkLayer"
+                  className="InkLayer"
                   ref={(el: HTMLCanvasElement) => {
                     this.strokesCanvasEl = el
                   }}
