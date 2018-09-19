@@ -57,7 +57,7 @@ interface CreateCard extends Message {
 
 type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
 type InMessage = FullyFormedMessage<WidgetMessage | ShelfContents>
-type OutMessage = DocumentCreated | AddToShelf | ShelfContentsRequested
+type OutMessage = AddToShelf | ShelfContentsRequested
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -71,7 +71,6 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
           doc.cards[card.id] = { ...card, z, url }
           return doc
         })
-        this.emit({ type: "DocumentCreated", body: url })
         break
       }
       case "AddToShelf": {
