@@ -1,8 +1,10 @@
-declare module "automerge" {
+declare module "automerge/frontend" {
   function init(actorId?: string): Doc<{}>
 
   function change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>): Doc<T>
   function change<T>(doc: Doc<T>, cb: ChangeFn<T>): Doc<T>
+  function applyPatch(doc: Doc<T>, patch)
+  function getRequests(doc: Doc<T>): any
 
   function emptyChange<T>(doc: Doc<T>, msg: string): Doc<T>
   const Text: TextConstructor
@@ -60,6 +62,6 @@ declare module "automerge" {
   type EditDoc<T> = AnyEditDoc & T
 
   interface ChangeFn<T> {
-    (doc: EditDoc<T>): EditDoc<T>
+    (doc: EditDoc<T>): void
   }
 }

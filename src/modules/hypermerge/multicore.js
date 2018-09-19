@@ -27,6 +27,14 @@ class Multicore extends EventEmitter {
     })
   }
 
+  feeds() {
+    return Object.values(this.archiver.feeds)
+  }
+
+  feedKeys() {
+    return this.feeds().map(f => f.key)
+  }
+
   ready(cb) {
     if (this.isReady) {
       cb()

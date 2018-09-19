@@ -2,7 +2,7 @@ import * as Preact from "preact"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
-import { AnyDoc } from "automerge"
+import { AnyDoc } from "automerge/frontend"
 import Content, {
   DocumentActor,
   FullyFormedMessage,

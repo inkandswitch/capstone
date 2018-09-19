@@ -4,7 +4,7 @@ import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as DataTransfer from "../logic/DataTransfer"
 import Content from "./Content"
-import { AnyDoc, AnyEditDoc, ChangeFn } from "automerge"
+import { AnyDoc, AnyEditDoc, ChangeFn } from "automerge/frontend"
 import Clipboard from "./Clipboard"
 
 interface Model {
@@ -106,11 +106,10 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
     const url = await Content.create(type)
 
     const onOpen = (doc: AnyEditDoc) => {
-      changeFn(doc)
-      replace(doc)
+      change(changeFn)
     }
 
-    const replace = Content.open(url, once(onOpen))
+    const change = Content.open(url, once(onOpen))
 
     this.props.change(doc => {
       doc.docs.push({ url })

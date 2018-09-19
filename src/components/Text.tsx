@@ -1,6 +1,6 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
-import { AnyDoc } from "automerge"
+import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import TextEditor, { Change } from "./TextEditor"
 

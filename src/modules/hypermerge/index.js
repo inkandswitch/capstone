@@ -1,5 +1,6 @@
 const EventEmitter = require("events")
-const Automerge = require("automerge")
+const Backend = require("automerge/backend")
+const Frontend = require("automerge/frontend")
 const Multicore = require("./multicore")
 const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
@@ -8,13 +9,7 @@ const Base58 = require("bs58")
 
 const log = Debug("hypermerge:index")
 
-// TODO: basic model
-// actorId
-// docId
-// feedId
-// groupId
-// docId == actorId for writable
-// actorId persistent for the same device/user over time, across restarts
+function ERR(str) { throw new Error(str) }
 
 // The first block of each Hypercore feed is used for metadata.
 const START_BLOCK = 1
@@ -25,102 +20,141 @@ const METADATA = {
   hypermerge: 1,
 }
 
-function cleanDocId(id) {
-  if (id.length == 64) {
-    return Base58.encode(Buffer.from(id, "hex"))
-  }
-  if (id.length >= 32 && id.length <= 44) {
-    return id
-  }
-  throw new Error("Invalid StoreId: " + id)
-}
-
-/**
- * An Automerge document.
- * @typedef {object} Document
- */
-
-/**
- * Experimental second open
- */
 class DocHandle {
-  constructor(hm, docId) {
+  constructor (hm, docId, doc) {
     this.hm = hm
-    this.id = docId
-    this._cb = () => {}
+    this.docId = docId
+    this.actorId = doc ? doc.get('actorId') : null
+    this._back = doc || null
+    this._front = null
+    this._isManagingFront = false
+    this._ondoc = () => {}
+    this._onpatch = () => {}
+    this._pending_front = []
+    this._pending_back = []
   }
 
-  get() {
-    if (this.hm.readyIndex[this.id]) {
-      return this.hm.find(this.id)
-    }
-    return null
-  }
-
-  /* make a change to a document through the handle */
-  change(cb) {
-    const doc = this.hm.find(this.id)
-    this.hm.change(doc, cb)
-    return this.hm.find(this.id)
-  }
-
-  /* register the function you'd like called when the document is updated */
-  onChange(cb) {
-    this._cb = cb
-    if (this.hm.readyIndex[this.id]) {
-      const doc = this.hm.find(this.id)
-      cb(doc)
-    }
-    return this
-  }
-
-  message(message) {
-    if (this.hm.readyIndex[this.id]) {
-      this.hm.message(this.id, message)
+  applyChanges (changes) {
+    if (this._back) {
+      this.hm.applyChanges(this.docId, changes, true)
+    } else {
+      this._pending_back.push(changes)
     }
   }
 
-  /* register the function you'd like called when you receive a message from a peer */
-  onMessage(cb) {
+  onPatch (cb) {
+    this._onpatch = cb
+    if (this._back) { cb(this._uberPatch()) }
+  }
+
+  onChange (cb) {
+    this._ondoc = cb
+    this._isManagingFront = true
+    this._setupFront()
+  }
+
+  change (fn) {
+    this._isManagingFront = true
+    this._setupFront()
+    if (this._front) {
+      this._applyFN(fn)
+    } else {
+      this._pending_front.push(fn)
+    }
+  }
+
+  release () {
+    this.hm.releaseHandle(this)
+  }
+
+  // internals
+
+  _applyFN(fn) {
+    this._front = Frontend.change(this._front,fn)
+    this.applyChanges(Frontend.getRequests(this._front))
+    return this._front
+  }
+
+  _setupFront () {
+    if (this._back && !this._front && this._isManagingFront) {
+      this._front = Frontend.init(this.actorId)
+      this._applyPatch(this._uberPatch())
+      this._pending_front.forEach(fn => this._applyFN(fn))
+      this._pending_front = []
+    }
+  }
+
+  _uberPatch () {
+    // memoize for speed?
+    return Backend.getPatch(this._back)
+  }
+
+
+  _applyPatch (patch) {
+    if (this._front && patch.diffs.length > 0) {
+      this._front = Frontend.applyPatch(this._front,patch)
+      this._ondoc(this._front)
+    }
+  }
+
+  _update (back, patch) {
+    this._back = back
+    this._onpatch(patch)
+    this._applyPatch(patch)
+  }
+
+  _update_back_only (back) {
+    let oldBack = this._back
+    this._back = back
+    this._onpatch(patch)
+    this._applyPatch(patch)
+  }
+
+  _ready (back) {
+    this._back = back;
+    this._front = null
+    this.actorId = back.get('actorId')
+
+    this._onpatch(this._uberPatch())
+
+    this._setupFront()
+
+    this._pending_back.map(changes => this.applyChanges(changes))
+    this._pending_back = []
+  }
+
+  // message stuff
+
+  message (message) {
+    if (this.hm.readyIndex[this.docId]) {
+      this.hm.message(this.docId, message)
+    }
+  }
+
+  onMessage (cb) {
     this._messageCb = cb
     return this
   }
 
-  release() {
-    this.hm.releaseHandle(this)
-  }
-
-  _message({ peer, msg }) {
+  _message ({ peer, msg }) {
     if (this._messageCb) {
       this._messageCb({ peer, msg })
     }
   }
-
-  _update(doc) {
-    this._cb(doc)
-  }
-
-  _ready(doc) {
-    this._cb(doc)
-  }
 }
 
-/**
- * Creates a new Hypermerge instance that manages a set of documents.
- * All previously opened documents are automatically re-opened.
- * @param {object} options
- * @param {object} options.storage - config compatible with Hypercore constructor storage param
- * @param {boolean} [options.immutableApi=false] - whether to use Immutable.js Automerge API
- * @param {object} [defaultMetadata={}] - default metadata that should be written for new docs
- */
-export default class Hypermerge extends EventEmitter {
-  constructor({ storage, immutableApi = false, defaultMetadata = {} }) {
+
+function initHypermerge(ops,cb) {
+  let doc = new Hypermerge(ops)
+  doc.ready.then(cb)
+}
+
+class Hypermerge extends EventEmitter {
+  constructor ({ storage, defaultMetadata = {} }) {
     super()
 
-    this.immutableApi = immutableApi
     this.defaultMetadata = defaultMetadata
 
-    this.isReady = false
     this.feeds = {}
     this.docs = {}
     this.handles = {} // docId -> [DocHandle]
@@ -131,18 +165,20 @@ export default class Hypermerge extends EventEmitter {
     this.requestedBlocks = {} // docId -> actorId -> blockIndex (exclusive)
     this.appliedSeqs = {} // actorId -> seq -> Boolean
 
-    this._onMulticoreReady = this._onMulticoreReady.bind(this)
     this.core = new Multicore(storage)
-    this.core.on("ready", this._onMulticoreReady)
 
     this.ready = new Promise(resolve => {
-      this.on("ready", () => {
-        resolve()
+      this.core.on("ready", () => {
+        this._initFeeds(this._feedKeys(), resolve)
       })
     })
   }
 
-  chromeJoinSwarm() {
+  _feedKeys() {
+    return this.core.feedKeys().map(Base58.encode)
+  }
+
+  chromeJoinSwarm () {
     const MDNS_PORT = 5307
     const dgram = require("chrome-dgram")
     const socket = dgram.createSocket("udp4")
@@ -173,98 +209,79 @@ export default class Hypermerge extends EventEmitter {
     })
   }
 
-  /**
-   * Joins the network swarm for all documents managed by this Hypermerge instance.
-   * Must be called after `'ready'` has been emitted. `opts` are passed to discovery-swarm.
-   */
-  joinSwarm(opts = {}) {
+  joinSwarm (opts = {}) {
     if (opts.chrome === true) {
       return this.chromeJoinSwarm()
     }
-    return this.ready.then(() => {
-      log("joinSwarm")
 
-      if (opts.port == null) opts.port = 0
+    log("joinSwarm")
 
-      let mergedOpts = Object.assign(
-        swarmDefaults(),
-        {
-          hash: false,
-          encrypt: true,
-          stream: opts => this.replicate(opts),
-        },
-        opts,
-      )
+    if (opts.port == null) opts.port = 0
 
-      // need a better deeper copy
-      mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
+    let mergedOpts = Object.assign(
+      swarmDefaults(),
+      {
+        hash: false,
+        encrypt: true,
+        stream: opts => this.replicate(opts),
+      },
+      opts,
+    )
 
-      this.swarm = discoverySwarm(mergedOpts)
+    // need a better deeper copy
+    mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
 
-      this.swarm.join(this.core.archiver.changes.discoveryKey)
+    this.swarm = discoverySwarm(mergedOpts)
 
-      Object.values(this.feeds).forEach(feed => {
-        this.swarm.join(feed.discoveryKey)
-      })
+    this.swarm.join(this.core.archiver.changes.discoveryKey)
 
-      this.core.archiver.on("add", feed => {
-        this.swarm.join(feed.discoveryKey)
-      })
-
-      this.core.archiver.on("remove", feed => {
-        this.swarm.leave(feed.discoveryKey)
-      })
-
-      this.swarm.listen(opts.port)
-
-      this.swarm.once("error", err => {
-        log("joinSwarm.error", err)
-        this.swarm.listen(opts.port)
-      })
-
-      return this
+    Object.values(this.feeds).forEach(feed => {
+      this.swarm.join(feed.discoveryKey)
     })
+
+    this.core.archiver.on("add", feed => {
+      this.swarm.join(feed.discoveryKey)
+    })
+
+    this.core.archiver.on("remove", feed => {
+      this.swarm.leave(feed.discoveryKey)
+    })
+
+    this.swarm.listen(opts.port)
+
+    this.swarm.once("error", err => {
+      log("joinSwarm.error", err)
+      this.swarm.listen(opts.port)
+    })
+
+    return this
   }
 
   /**
    * Returns the document for the given docId.
    * Throws if the document has not been opened yet.
    */
-  find(docId) {
-    if (this.readyIndex[docId]) {
-      return this.docs[docId]
-    }
-
-    const doc = this.docs[docId]
-
-    if (!doc) {
-      throw new Error(
-        `Cannot find document. open(docId) first. docId: ${docId}`,
-      )
-    }
-
-    return doc
+  find (docId) {
+    return this.docs[docId] || ERR(`Cannot find document. open(docId) first. docId: ${docId}`)
   }
 
   /**
    * Returns the `docId` for the given `doc`. Note that this is id of the logical
    * doc managed by Hypermerge, and not neccisarily the Automerge doc id.
    */
-  getId(doc) {
+  getId (doc) {
     return this._actorToId(this._getActorId(doc))
   }
 
-  openHandle(_docId) {
-    this._ensureReady()
+  openHandle (docId) {
 
-    const docId = cleanDocId(_docId)
+    docId = cleanDocId(docId)
 
     log("openHandle", docId)
 
     this._trackedFeed(docId)
 
     const doc = this.readyIndex[docId] ? this.docs[docId] : null
-
     const handle = new DocHandle(this, docId, doc)
 
     this._handles(docId).push(handle)
@@ -272,7 +289,7 @@ export default class Hypermerge extends EventEmitter {
     return handle
   }
 
-  releaseHandle(handle) {
+  releaseHandle (handle) {
     log("releaseHandle", handle)
 
     const handles = this.handles[handle.id]
@@ -296,19 +313,9 @@ export default class Hypermerge extends EventEmitter {
    *
    * @param {object} metadata - metadata to be associated with this document
    */
-  create(metadata = {}) {
-    this._ensureReady()
+  create (metadata = {}) {
     log("create")
     return this._create(metadata)
-  }
-
-  /**
-   * Shorthand for `hm.update(Automerge.change(doc, changeFn))`.
-   */
-  change(doc, message = null, changeFn) {
-    const docId = this.getId(doc)
-    log("change", docId)
-    return this.update(Automerge.change(doc, message, changeFn))
   }
 
   /**
@@ -317,72 +324,16 @@ export default class Hypermerge extends EventEmitter {
    *
    * @param {Object} doc - document to find changes for
    */
-  update(doc) {
-    this._ensureReady()
+
+  update (doc) {
 
     const actorId = this._getActorId(doc)
     const docId = this._actorToId(actorId)
     const pDoc = this.find(docId)
-    log("update", docId, actorId)
 
-    const changes = Automerge.getChanges(pDoc, doc).filter(
-      ({ actor }) => actor === actorId,
-    )
+    const changes = Backend.getChanges(pDoc, doc)
 
-    this._addToMaxRequested(docId, actorId, changes.length)
-    this._appendAll(actorId, changes)
-    this._set(docId, doc)
-    this.emit("document:updated", docId, doc)
-    this._handles(docId).forEach(handle => {
-      handle._update(doc)
-    })
-
-    return doc
-  }
-
-  /**
-   * Creates a new actor Hypercore feed and Automerge document, with
-   * an empty change that depends on the document for another actor.
-   * The metadata of the new document will contain a `parentId` property.
-   *
-   * @param {string} parentId - id of document to fork
-   */
-  fork(parentId) {
-    this._ensureReady()
-    log("fork", parentId)
-
-    const parent = this.find(parentId)
-    const doc = this._create({ parentId }, this.metadata(parentId))
-
-    return this.change(
-      Automerge.merge(doc, parent),
-      `Forked from ${parentId}`,
-      () => {},
-    )
-  }
-
-  /**
-   * Takes all the changes from a document (sourceId) and adds them to
-   * another document (destId). Returns the merged document.
-   *
-   * The source and destination docs must have come from the same root document.
-   * e.g. The source doc was a `.fork()` of the destination doc, or visa-versa.
-   *
-   * @param {string} destId - docId to merge changes into
-   * @param {string} sourceId - docId to copy changes from
-   */
-  merge(destId, sourceId) {
-    this._ensureReady()
-    log("merge", destId, sourceId)
-
-    const dest = this.find(destId)
-    const source = this.find(sourceId)
-
-    return this.change(
-      Automerge.merge(dest, source),
-      `Merged with ${sourceId}`,
-      () => {},
-    )
+    this.applyChanges(docId, changes, true)
   }
 
   /**
@@ -391,7 +342,7 @@ export default class Hypermerge extends EventEmitter {
    * Leaves the network swarm. Doesn't remove files from disk.
    * @param {string} docId
    */
-  delete(docId) {
+  delete (docId) {
     log("delete", docId)
     const doc = this.find(docId)
     this.core.archiver.remove(Base58.decode(docId))
@@ -404,7 +355,7 @@ export default class Hypermerge extends EventEmitter {
    * Returns the list of metadata objects corresponding to the list of actors
    * that have edited this document.
    */
-  metadatas(docId) {
+  metadatas (docId) {
     const actorIds = this.docIndex[docId] || []
     return actorIds.map(actorId => this.metadata(actorId))
   }
@@ -412,11 +363,11 @@ export default class Hypermerge extends EventEmitter {
   /**
    * Returns the metadata object for the given `actorId`.
    */
-  metadata(actorId) {
+  metadata (actorId) {
     return this.metaIndex[actorId]
   }
 
-  replicate(opts) {
+  replicate (opts) {
     return this.core.replicate(opts)
   }
 
@@ -424,20 +375,20 @@ export default class Hypermerge extends EventEmitter {
    * Send the given `msg`, which can be any JSON.stringify-able data, to all
    * peers currently listening on the feed for `actorId`.
    */
-  message(actorId, msg) {
+  message (actorId, msg) {
     this._trackedFeed(actorId).peers.forEach(peer => {
       this._messagePeer(peer, msg)
     })
   }
 
-  _handles(docId) {
+  _handles (docId) {
     if (!this.handles[docId]) {
       this.handles[docId] = []
     }
     return this.handles[docId]
   }
 
-  _create(metadata, parentMetadata = {}) {
+  _create (metadata, parentMetadata = {}) {
     const feed = this._trackedFeed()
     const actorId = Base58.encode(feed.key)
 
@@ -466,38 +417,36 @@ export default class Hypermerge extends EventEmitter {
 
   // Returns the number of blocks available for the feed corresponding to the
   // given `actorId`.
-  _length(actorId) {
+  _length (actorId) {
     return this._feed(actorId).length
   }
 
   // Returns an empty Automerge document with the given `actorId`. Used as the
   // starting point for building up an in-memory doc for this process.
-  _empty(actorId) {
-    return this.immutableApi
-      ? Automerge.initImmutable(actorId)
-      : Automerge.init(actorId)
+  _empty (actorId) {
+    return Backend.init(actorId)
   }
 
   // Returns true if the given `actorId` corresponds to a doc with a matching id.
   // This occurs when we this actor originally created the doc.
-  _isDocId(actorId) {
+  _isDocId (actorId) {
     return this._actorToId(actorId) === actorId
   }
 
   // Returns the logical doc id corresponding to the given `actorId`.
-  _actorToId(actorId) {
+  _actorToId (actorId) {
     const { docId } = this.metadata(actorId)
     return docId
   }
 
   // Returns our own actorId for the given `doc`.
-  _getActorId(doc) {
-    return doc._actorId
+  _getActorId (doc) {
+    return doc.get('actorId')
   }
 
   // Finds or creates, and returns, a feed that is not yet tracked. See `feed`
   // for cases for `actorId`.
-  _feed(actorId = null) {
+  _feed (actorId = null) {
     const key = actorId ? Base58.decode(actorId) : null
 
     log("_feed", actorId)
@@ -512,8 +461,7 @@ export default class Hypermerge extends EventEmitter {
   // * `actorId` is given but we don't have a feed yet because we just found
   //   out about it from another user - create the feed with the given actorId.
   // * `actorId` is given and we know of the feed already - return from cache.
-  _trackedFeed(actorId = null) {
-    this._ensureReady()
+  _trackedFeed (actorId = null) {
 
     if (actorId && this.feeds[actorId]) {
       return this.feeds[actorId]
@@ -525,7 +473,7 @@ export default class Hypermerge extends EventEmitter {
 
   // Append the given `metadata` for the given `actorId` to the corresponding
   // feed, and also set that metadata in memory.
-  _appendMetadata(actorId, metadata) {
+  _appendMetadata (actorId, metadata) {
     if (this._length(actorId) > 0) {
       throw new Error("Metadata can only be set if feed is empty.")
     }
@@ -536,14 +484,14 @@ export default class Hypermerge extends EventEmitter {
 
   // App the given `change` to feed for `actorId`. Returns a promise that
   // resolves with no value on completion, or rejects with an error if one occurs.
-  _append(actorId, change) {
+  _append (actorId, change) {
     log("_append", actorId)
     return this._appendAll(actorId, [change])
   }
 
   // Append all given `changes` to feed for `actorId`. Returns a promise that
   // resolves with no value on completion, or rejects with an error if one occurs.
-  _appendAll(actorId, changes) {
+  _appendAll (actorId, changes) {
     log("_appendAll", actorId)
     const blocks = changes.map(change => JSON.stringify(change))
     return new Promise((resolve, reject) => {
@@ -560,7 +508,7 @@ export default class Hypermerge extends EventEmitter {
   // Track the given `feed`, which must correspond to the given `actorId`,
   // setting up listeners for when peers are added/removed, data is
   // downloaded, etc.
-  _trackFeed(feed) {
+  _trackFeed (feed) {
     const actorId = Base58.encode(feed.key)
 
     log("_trackFeed", actorId)
@@ -581,26 +529,21 @@ export default class Hypermerge extends EventEmitter {
   // up download callback, and load & apply all existing blocks in the feed
   // plus their dependencies. Finally, it will notify corresponding open
   // handles that the doc is ready.
-  _onFeedReady(actorId, feed) {
+  _onFeedReady (actorId, feed) {
     return () => {
       log("_onFeedReady", actorId)
-      this._loadMetadata(actorId).then(() => {
+      this._loadMetadata(actorId).then((metadata) => {
         const docId = this._actorToId(actorId)
 
         this._createDocIfMissing(docId, actorId)
 
         feed.on("download", this._onDownload(docId, actorId))
 
-        const ourActorId = this.docs[docId]._actorId
+        const ourActorId = this.docs[docId].get('actorId');
 
-        return this._loadBlocksWithDependencies(
-          docId,
-          actorId,
-          this._length(actorId),
+        return this._loadBlocksWithDependencies( docId, actorId, this._length(actorId),
         ).then(() => {
-          if (actorId !== ourActorId) {
-            return
-          }
+          if (actorId !== ourActorId) { return }
 
           this.readyIndex[docId] = true
           const doc = this.find(docId)
@@ -616,7 +559,7 @@ export default class Hypermerge extends EventEmitter {
   // Returns true if the Hypercore corresponding to the given actorId is
   // writable. For each doc managed by hypermerge we should have one Hypercore
   // that we created and that's writable by us. The others will not be.
-  _isWritable(actorId) {
+  _isWritable (actorId) {
     return this._feed(actorId).writable
   }
 
@@ -625,7 +568,7 @@ export default class Hypermerge extends EventEmitter {
   // so we only create it when it's missing and this condition is true. We will
   // need to create the on-disk feed for `docId` when we have a doc shared with
   // us from another user.
-  _createDocIfMissing(docId, actorId) {
+  _createDocIfMissing (docId, actorId) {
     if (this.docs[docId]) {
       return
     }
@@ -646,8 +589,9 @@ export default class Hypermerge extends EventEmitter {
   // from disk and network.
   //
   // Returns a promise that resolves when all this work is complete.
-  _initFeeds(actorIds) {
+  _initFeeds (actorIds, resolve) {
     log("_initFeeds")
+
     const promises = actorIds.map(actorId => {
       // Don't load metadata if the feed is empty.
       if (this._length(actorId) === 0) {
@@ -661,7 +605,12 @@ export default class Hypermerge extends EventEmitter {
         }
       })
     })
-    return Promise.all(promises)
+
+    return Promise.all(promises).then(() => {
+      actorIds.forEach(actorId => this._trackedFeed(actorId))
+      this.emit("ready")
+      resolve(this)
+    })
   }
 
   // Ensures that metadata for the feed corresponding to `actorId` has been
@@ -669,7 +618,7 @@ export default class Hypermerge extends EventEmitter {
   // metadata is immutable.
   //
   // Returns a promise resolving to the metadata.
-  _loadMetadata(actorId) {
+  _loadMetadata (actorId) {
     if (this.metaIndex[actorId]) {
       return Promise.resolve(this.metaIndex[actorId])
     }
@@ -687,7 +636,7 @@ export default class Hypermerge extends EventEmitter {
 
   // Sets the given `metadata` in memory for the given `actorId`.
   // Does not write to disk: see `_appendMetadata`.
-  _setMetadata(actorId, metadata) {
+  _setMetadata (actorId, metadata) {
     if (this.metaIndex[actorId]) {
       return this.metaIndex[actorId]
     }
@@ -715,7 +664,7 @@ export default class Hypermerge extends EventEmitter {
   // Returns a promise that resolves when this completes.
   //
   // NOTE: RACE!!
-  _loadBlocksWithDependencies(docId, actorId, last) {
+  _loadBlocksWithDependencies (docId, actorId, last) {
     const first = this._maxRequested(docId, actorId, last)
     log("_loadBlocksWithDependencies", docId, actorId, first, last)
 
@@ -735,11 +684,11 @@ export default class Hypermerge extends EventEmitter {
   // Returns a promise that resolves when this completes.
   //
   // NOTE: RACE!!
-  _loadMissingDependencyBlocks(docId) {
+  _loadMissingDependencyBlocks (docId) {
     log("_loadMissingDependencyBlocks", docId)
 
     const doc = this.find(docId)
-    const deps = Automerge.getMissingDeps(doc)
+    const deps = Backend.getMissingDeps(doc)
     return Promise.all(
       Object.keys(deps).map(actorId => {
         const last = deps[actorId] + 1 // last is exclusive
@@ -750,7 +699,7 @@ export default class Hypermerge extends EventEmitter {
 
   // Returns a promise that resolves to an array of blocks corresponding to the
   // arguments, once all of those fetches are complete.
-  _getBlockRange(actorId, first, last) {
+  _getBlockRange (actorId, first, last) {
     log("_getBlockRange.start", actorId, first, last)
 
     if (last < first) {
@@ -770,44 +719,59 @@ export default class Hypermerge extends EventEmitter {
 
   // Applies the given `blocks` to the in-memory doc corresponding to the
   // given `docId`.
-  _applyBlock(docId, block) {
+  _applyBlock (docId, block) {
     log("_applyBlock", docId)
     this._applyBlocks(docId, [block])
   }
 
   // Applies the given `blocks` to the in-memory doc corresponding to the
   // given `docId`.
-  _applyBlocks(docId, blocks) {
+  _applyBlocks (docId, blocks) {
     log("_applyBlocks", docId)
-    this._applyChanges(docId, blocks.map(block => JSON.parse(block)))
+    this.applyChanges(docId, blocks.map(block => JSON.parse(block)), false)
   }
+
+  _filterChanges (changes) {
+    return changes.filter(change => !(this.appliedSeqs[change.actor] && this.appliedSeqs[change.actor][change.seq]))
+  }
+
 
   // Applies the given `changes` to the in-memory doc corresponding to the
   // given `docId`.
-  _applyChanges(docId, changes) {
-    log("_applyChanges", docId)
-    if (changes.length > 0) {
-      const oldDoc = this.find(docId)
-      const filteredChanges = []
-      changes.forEach(change => {
-        if (!this.appliedSeqs[change.actor]) {
-          this.appliedSeqs[change.actor] = {}
-        }
-        if (this.appliedSeqs[change.actor][change.seq]) {
-          log("_applyChanges.skipDuplicate", change.actor, change.seq)
-        } else {
-          filteredChanges.push(change)
-          this.appliedSeqs[change.actor][change.seq] = true
-        }
-      })
-      const newDoc = Automerge.applyChanges(oldDoc, filteredChanges)
-      this._setRemote(docId, newDoc)
+  applyChanges (docId, changes, local) {
+    log("applyChanges", docId)
+
+    if (changes.length === 0) return;
+
+    const oldDoc = this.find(docId)
+
+    const filteredChanges = this._filterChanges(changes);
+
+    const [newDoc, patches] = Backend.applyChanges(oldDoc, filteredChanges, true)
+
+    this._recordChanges(docId, newDoc, filteredChanges, local)
+
+    this._setAndNotify(docId, newDoc, patches)
+  }
+
+  _recordChanges (docId, newDoc, changes, local) {
+
+    for (let change of changes) {
+      this.appliedSeqs[change.actor] = Object.assign(this.appliedSeqs[change.actor] || {}, {[change.seq]:true})
+    }
+
+    if (local) {
+      const actorId = newDoc.get('actorId')
+      const localChanges = changes.filter(change => change.actor  === actorId)
+
+      this._addToMaxRequested(docId, actorId, localChanges.length)
+      this._appendAll(actorId, localChanges)
     }
   }
 
   // Tracks which blocks have been requested for a given doc,
   // so we know not to request them again.
-  _maxRequested(docId, actorId, max) {
+  _maxRequested (docId, actorId, max) {
     if (!this.requestedBlocks[docId]) {
       this.requestedBlocks[docId] = {}
     }
@@ -817,7 +781,7 @@ export default class Hypermerge extends EventEmitter {
     return current
   }
 
-  _addToMaxRequested(docId, actorId, x) {
+  _addToMaxRequested (docId, actorId, x) {
     if (!this.requestedBlocks[docId]) {
       this.requestedBlocks[docId] = {}
     }
@@ -829,7 +793,7 @@ export default class Hypermerge extends EventEmitter {
   // given `doc`. Will not emit `document:updated`, so should only be used
   // when registering our own updates or by a caller that will themself emit
   // the event.
-  _set(docId, doc) {
+  _set (docId, doc) {
     log("set", docId)
     this.docs[docId] = doc
   }
@@ -837,66 +801,39 @@ export default class Hypermerge extends EventEmitter {
   // Updates our register of Automerge docs, setting `docId` to point to the
   // given `doc`. Will emit `document:updated` (if the doc is ready), so
   // appropriate for updates to the doc due to remote sources.
-  _setRemote(docId, doc) {
-    log("_setRemote", docId)
+  _setAndNotify (docId, doc, patches) {
+    log("_setAndNotify", docId)
 
     this._set(docId, doc)
     if (this.readyIndex[docId]) {
-      /**
-       * Emitted when an updated document has been downloaded. Not emitted
-       * after local calls to `.update()` or `.change()`.
-       *
-       * @event document:updated
-       *
-       * @param {string} docId - the base58 id representing this document
-       * @param {Document} doc - Automerge document
-       */
       this.emit("document:updated", docId, doc)
       this._handles(docId).forEach(handle => {
-        handle._update(doc)
+        handle._update(doc, patches)
       })
     }
   }
 
-  _shareDoc(doc) {
+  _shareDoc (doc) {
     const { groupId } = this.metadata(this._getActorId(doc))
     const keys = this.groupIndex[groupId]
     this.message(groupId, { type: "FEEDS_SHARED", keys })
   }
 
-  _relatedKeys(actorId) {
+  _relatedKeys (actorId) {
     const { groupId } = this.metadata(actorId)
     return this.groupIndex[groupId]
   }
 
-  _messagePeer(peer, msg) {
+  _messagePeer (peer, msg) {
     const data = Buffer.from(JSON.stringify(msg))
     peer.stream.extension("hypermerge", data)
   }
 
-  _onMulticoreReady() {
+  _onMulticoreReady () {
     log("_onMulticoreReady")
-
-    const actorIds = Object.values(this.core.archiver.feeds).map(feed =>
-      Base58.encode(feed.key),
-    )
-
-    this._initFeeds(actorIds).then(() => {
-      this.isReady = true
-      actorIds.forEach(actorId => this._trackedFeed(actorId))
-
-      /**
-       * Emitted when all document metadata has been loaded from storage, and the
-       * Hypermerge instance is ready for use. Documents will continue loading from
-       * storage and the network. Required before `.openHandle()`, etc. can be used.
-       *
-       * @event ready
-       */
-      this.emit("ready")
-    })
   }
 
-  _onDownload(docId, actorId) {
+  _onDownload (docId, actorId) {
     return (index, data) => {
       log("_onDownload", docId, actorId, index)
       this._applyBlock(docId, data)
@@ -904,7 +841,7 @@ export default class Hypermerge extends EventEmitter {
     }
   }
 
-  _onPeerAdded(actorId) {
+  _onPeerAdded (actorId) {
     return peer => {
       peer.stream.on("extension", this._onExtension(actorId, peer))
 
@@ -929,7 +866,7 @@ export default class Hypermerge extends EventEmitter {
     }
   }
 
-  _onPeerRemoved(actorId) {
+  _onPeerRemoved (actorId) {
     return peer => {
       this._loadMetadata(actorId).then(() => {
         if (!this._isDocId(actorId)) {
@@ -949,7 +886,7 @@ export default class Hypermerge extends EventEmitter {
     }
   }
 
-  _onExtension(actorId, peer) {
+  _onExtension (actorId, peer) {
     return (name, data) => {
       switch (name) {
         case "hypermerge":
@@ -961,7 +898,7 @@ export default class Hypermerge extends EventEmitter {
     }
   }
 
-  _onMessage(actorId, peer, data) {
+  _onMessage (actorId, peer, data) {
     const msg = JSON.parse(data)
 
     switch (msg.type) {
@@ -977,16 +914,19 @@ export default class Hypermerge extends EventEmitter {
         })
     }
   }
-
-  // Throws an error if the Hypermerge instance isn't ready yet. Call at the top
-  // of any function in which this invariant should be true.
-  _ensureReady() {
-    if (!this.isReady) {
-      throw new Error(
-        'The Hypermerge instance is not ready yet. Use .on("ready") first.',
-      )
-    }
-  }
 }
 
-//module.exports = Hypermerge
+// just for now - kill this later
+function cleanDocId(id) {
+  if (id.length == 64) {
+    return Base58.encode(Buffer.from(id, "hex"))
+  }
+  if (id.length >= 32 && id.length <= 44) {
+    return id
+  }
+  throw new Error("Invalid StoreId: " + id)
+}
+
+export { initHypermerge, Hypermerge }
+//module.exports = { Hypermerge, initHypermerge }
+

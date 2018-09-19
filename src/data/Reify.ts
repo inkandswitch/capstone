@@ -1,5 +1,5 @@
 import { Url } from "./Link"
-import { AnyDoc, Doc, Text } from "automerge"
+import { AnyDoc, Doc, Text } from "automerge/frontend"
 import { defaults } from "lodash"
 
 export function reify<T>(doc: AnyDoc, reifyFn: (doc: AnyDoc) => T): Doc<T> {
