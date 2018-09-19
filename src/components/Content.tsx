@@ -155,7 +155,6 @@ export default class Content extends Preact.Component<Props & unknown> {
     // Proof of concept - add all documents to archive
     if (type !== "Shelf" && type !== "Archive" && type !== "Workspace") {
       window.requestIdleCallback(() => {
-        console.log("send message", url)
         Content.send({
           to: Content.archiveUrl,
           from: Content.workspaceUrl,

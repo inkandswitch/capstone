@@ -60,7 +60,6 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
     switch (message.type) {
       case "DocumentOpened": {
         // Rough
-        console.log("DOCUMENT OPENED")
         const { url } = message.body
         const doc = this.doc.docs.find(doc => doc.url === url)
         if (!doc) {
