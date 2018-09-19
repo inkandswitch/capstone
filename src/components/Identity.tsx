@@ -48,11 +48,17 @@ export class Identity extends Preact.Component<Props> {
   }
 
   onStroke = (stroke: Stroke) => {
-    console.log(stroke)
     switch (stroke.glyph) {
       case Glyph.paste:
         this.props.emit({ type: "ShelfContentsRequested" })
     }
+  }
+
+  onChange = (event: any) => {
+    this.props.change(doc => {
+      doc.name = event.target.value
+      return doc
+    })
   }
 
   render() {
@@ -72,7 +78,12 @@ export class Identity extends Preact.Component<Props> {
       <StrokeRecognizer onStroke={this.onStroke}>
         <div style={style.Identity}>
           <div style={style.Profile}>
-            <h2>{name || "My Name"}</h2>
+            <input
+              style={style.NameInput}
+              onChange={this.onChange}
+              value={name}
+              placeholder={"Anonymous"}
+            />
           </div>
           <div style={style.Documents}>
             {documents.map(docUrl => (
@@ -91,14 +102,19 @@ export class Identity extends Preact.Component<Props> {
   renderPreview() {
     const { name } = this.props.doc
     return (
-      <div style={style.Identity}>
-        <h2>{name || "My Name"}</h2>
+      <div style={style.preview.Identity}>
+        <h2>{name || "Anonymous"}</h2>
       </div>
     )
   }
 }
 
 const style = {
+  preview: {
+    Identity: {
+      padding: 20,
+    },
+  },
   Identity: {
     display: "flex",
     flexDirection: "column",
@@ -108,6 +124,14 @@ const style = {
   Profile: {
     borderBottom: "1px solid #aaa",
     padding: 20,
+  },
+  NameInput: {
+    fontWeight: 700,
+    fontSize: "larger",
+    border: 0,
+    margin: 0,
+    padding: 0,
+    outline: 0,
   },
   Documents: {
     flexGrow: 1,
