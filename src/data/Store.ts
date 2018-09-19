@@ -38,9 +38,8 @@ export default class Store {
     var port = chrome.runtime.connect({ name: id })
     port.onMessage.addListener(({ actorId, patch }) => {
       if (DOCS[id] === undefined) { DOCS[id] = init(actorId) }
-      if (patch.diffs.length > 0) {
-        DOCS[id] = applyPatch(DOCS[id],patch)
-      }
+
+      DOCS[id] = applyPatch(DOCS[id],patch)
 
       RECEIVE[id].map(fn => fn(DOCS[id]))
     })
@@ -63,8 +62,7 @@ export default class Store {
     const args = {}
 
     return new Promise((resolve, reject) => {
-      POST_MESSAGE_TO_BUS({ command, args }, (docId: any) => {
-        console.log("Created:",docId);
+      chrome.runtime.sendMessage({ command, args }, (docId) => {
         DOCS[docId] = init(docId)
         resolve(docId)
         const changeFn = this.open(docId, (doc) => {} )
@@ -73,16 +71,3 @@ export default class Store {
     })
   }
 }
-
-function POST_MESSAGE_TO_BUS(request : any, cb: Function) {
-  const id = Math.floor(Math.random() * 2000000000)
-  BUS_CALLBACKS[id] = cb
-  BUS.postMessage({id, request})
-}
-var BUS_CALLBACKS : {[k: number]: Function}  = {}
-var BUS = chrome.runtime.connect({ name: "bus" })
-BUS.onMessage.addListener((message : any) => {
-  const { id, response } = message
-  BUS_CALLBACKS[id](response)
-  delete BUS_CALLBACKS[id]
-})

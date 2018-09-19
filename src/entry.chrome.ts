@@ -42,16 +42,13 @@ let pComm = new Promise(resolve => {
   })
 })
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  pComm.then((comms: StoreComms) => {
+    comms.onMessage(request, sendResponse)
+  })
+  return true // this allows sendReponse to respond async - DO NOT REMOVE
+})
+
 chrome.runtime.onConnect.addListener(port => {
-  if (port.name == "bus") {
-    port.onMessage.addListener(({id, request}) => {
-      pComm.then((comms : StoreComms) => {
-        comms.onMessage(request, (response : any) => {
-          port.postMessage({ id, response })
-        })
-      })
-    })
-  } else {
-    pComm.then((comms : StoreComms) => comms.onConnect(port))
-  }
+  pComm.then((comms : StoreComms) => comms.onConnect(port))
 })
