@@ -66,6 +66,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   recognizer: $P.Recognizer = $P_RECOGNIZER
   points: $P.Point[] = []
   strokeId = 0
+  lastDrawnPoint = 1 // the boundary case is to move to the 0th point and draw to the 1st
   bounds: Bounds = EMPTY_BOUNDS
 
   render() {
@@ -198,18 +199,28 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   drawStrokes() {
     const ctx = this.getDrawingContext()
-    if (!ctx || this.points.length == 0) return
+    if (!ctx || this.points.length < 2) return
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     ctx.lineWidth = 4
-    for (let i = 0; i < this.points.length; i++) {
-      let point = this.points[i]
-      if (i === 0) {
-        ctx.moveTo(point.X, point.Y)
-      } else {
-        ctx.lineTo(point.X, point.Y)
-      }
+
+    let point = this.points[this.lastDrawnPoint - 1]
+    ctx.moveTo(point.X, point.Y)
+
+    for (
+      this.lastDrawnPoint;
+      this.lastDrawnPoint < this.points.length;
+      this.lastDrawnPoint++
+    ) {
+      let point = this.points[this.lastDrawnPoint]
+      ctx.lineTo(point.X, point.Y)
     }
     ctx.stroke()
+  }
+
+  drawCenter() {
+    const ctx = this.getDrawingContext()
+    if (!ctx || this.points.length == 0) return
+
     const center = this.center()
     ctx.fillStyle = "red"
     ctx.fillRect(center.x - 2, center.y - 2, 4, 4)
