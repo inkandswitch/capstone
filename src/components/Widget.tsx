@@ -40,7 +40,6 @@ export function create<T, M extends Message = never>(
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
       this.requestChanges = Content.open<T>(props.url, (doc: any) => {
-        console.log("WIDGET STATE", doc)
         this.setState({ doc })
       })
     }

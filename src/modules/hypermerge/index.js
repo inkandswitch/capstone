@@ -30,11 +30,16 @@ class DocHandle {
     this._isManagingFront = false
     this._ondoc = () => {}
     this._onpatch = () => {}
-    this._pending = []
+    this._pending_front = []
+    this._pending_back = []
   }
 
   applyChanges (changes) {
-    this.hm.applyChanges(this.docId, changes, true)
+    if (this._back) {
+      this.hm.applyChanges(this.docId, changes, true)
+    } else {
+      this._pending_back.push(changes)
+    }
   }
 
   onPatch (cb) {
@@ -54,7 +59,7 @@ class DocHandle {
     if (this._front) {
       this._applyFN(fn)
     } else {
-      this._pending.push(fn)
+      this._pending_front.push(fn)
     }
   }
 
@@ -74,8 +79,8 @@ class DocHandle {
     if (this._back && !this._front && this._isManagingFront) {
       this._front = Frontend.init(this.actorId)
       this._applyPatch(this._uberPatch())
-      this._pending.forEach(fn => this._applyFN(fn))
-      this._pending = []
+      this._pending_front.forEach(fn => this._applyFN(fn))
+      this._pending_front = []
     }
   }
 
@@ -113,6 +118,9 @@ class DocHandle {
     this._onpatch(this._uberPatch())
 
     this._setupFront()
+
+    this._pending_back.map(changes => this.applyChanges(changes))
+    this._pending_back = []
   }
 
   // message stuff
@@ -524,7 +532,7 @@ class Hypermerge extends EventEmitter {
   _onFeedReady (actorId, feed) {
     return () => {
       log("_onFeedReady", actorId)
-      this._loadMetadata(actorId).then(() => {
+      this._loadMetadata(actorId).then((metadata) => {
         const docId = this._actorToId(actorId)
 
         this._createDocIfMissing(docId, actorId)

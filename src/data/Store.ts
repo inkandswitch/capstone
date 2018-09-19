@@ -29,22 +29,11 @@ interface DownloadActivity {
 export type Activity = UploadActivity | DownloadActivity
 
 export default class Store {
-  once(id: string, cb: (doc: Doc<any>, cfn: ChangeFn<any>) => void): void {
-    if (DOCS[id]) {
-      cb(DOCS[id], CHANGE[id])
-    } else {
-      // YUK!
-      let change = this.open(id, doc => {
-        cb(doc, change)
-      })
-    }
-  }
 
   open(
     id: string,
     receiveChangeCallback: (doc: Doc<any>) => void,
   ): (cfn: ChangeFn<any>) => void {
-    console.log("Open", id)
     RECEIVE[id] = (RECEIVE[id] || []).concat([receiveChangeCallback])
 
     if (DOCS[id]) setTimeout(() => receiveChangeCallback(DOCS[id]), 50) /// UGHHHH!! :'(
@@ -63,9 +52,7 @@ export default class Store {
     })
     const sendChangeFn = (cfn: ChangeFn<any>) => {
       DOCS[id] = change(DOCS[id], cfn)
-      console.log("All ready", DOCS[id])
       let requests = getRequests(DOCS[id])
-      console.log("Sending Requests", requests, DOCS[id])
       port.postMessage(requests)
       RECEIVE[id].map(fn => fn(DOCS[id]))
     }
