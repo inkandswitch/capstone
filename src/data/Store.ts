@@ -63,23 +63,28 @@ export default class Store {
     const args = {}
 
     return new Promise((resolve, reject) => {
-      ready.then(() => {
-        chrome.runtime.sendMessage({ command, args }, (docId) => {
-          console.log("Created:",docId);
-          DOCS[docId] = init(docId)
-          resolve(docId)
-          const changeFn = this.open(docId, (doc) => {} )
-          changeFn(setup)
-        })
+      POST_MESSAGE_TO_BUS({ command, args }, (docId) => {
+//      chrome.runtime.sendMessage({ command, args }, (docId) => {
+        console.log("Created:",docId);
+        DOCS[docId] = init(docId)
+        resolve(docId)
+        const changeFn = this.open(docId, (doc) => {} )
+        changeFn(setup)
       })
     })
   }
 }
 
-console.log("ok lets wait for a message")
-let ready = new Promise(resolve => {
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("ready message", message)
-    resolve(message)
-  })
+function POST_MESSAGE_TO_BUS(request : any, cb: Function) {
+  const id = Math.floor(Math.random() * 2000000000)
+  BUS_CALLBACKS[id] = cb
+  console.log("posting message to bus",id,request);
+  BUS.postMessage({id, request})
+}
+var BUS_CALLBACKS : {[k: number]: Function}  = {}
+var BUS = chrome.runtime.connect({ name: "bus" })
+BUS.onMessage.addListener((message : any) => {
+  const { id, response } = message
+  BUS_CALLBACKS[id](response)
+  delete BUS_CALLBACKS[id]
 })

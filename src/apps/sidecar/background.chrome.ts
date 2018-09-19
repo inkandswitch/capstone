@@ -26,7 +26,7 @@ let pComms = new Promise((resolve) => {
 })
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) =>
-  pComms.then((comms: StoreComms) => comms.onMessage(request, sender, sendResponse))
+  pComms.then((comms: StoreComms) => comms.onMessage(request, sendResponse))
 )
 
 chrome.runtime.onConnect.addListener(port => {

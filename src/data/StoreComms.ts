@@ -33,7 +33,7 @@ export default class StoreComms {
 
   onMessage = (
     request: any, // the message can, indeed, be anything
-    sender: chrome.runtime.MessageSender,
+//    sender: chrome.runtime.MessageSender,
     sendResponse: Function,
   ) => {
     // XXX: we should probably check the sender, but it

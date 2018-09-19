@@ -79,7 +79,7 @@ export function create<T, M extends Message = never>(
     }
 
     loading(): Preact.ComponentChild {
-      return "(widget)Loading..."
+      return "Loading..."
     }
   }
 
