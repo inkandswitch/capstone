@@ -3,8 +3,8 @@ declare module "automerge/frontend" {
 
   function change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>): Doc<T>
   function change<T>(doc: Doc<T>, cb: ChangeFn<T>): Doc<T>
-  function applyPatch(doc: Doc<T>, patch)
-  function getRequests(doc: Doc<T>): any
+  function applyPatch<T>(doc: Doc<T>, patch: any): Doc<T>
+  function getRequests<T>(doc: Doc<T>): any
 
   function emptyChange<T>(doc: Doc<T>, msg: string): Doc<T>
   const Text: TextConstructor

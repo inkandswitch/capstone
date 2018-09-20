@@ -74,7 +74,7 @@ export default class Store {
     // be the constructor.
     const port = chrome.runtime.connect({ name: `${id}/changes` })
 
-    const change = (cfn: ChangeFn<any>) => {
+    const change = (cfn: ChangeFn<unknown>) => {
       if (!entry.doc)
         throw new Error("Cannot call change before doc has loaded.")
 
