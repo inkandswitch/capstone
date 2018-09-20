@@ -1,7 +1,7 @@
 import * as Preact from "preact"
 import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
-import { AnyDoc } from "automerge"
+import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
 import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"

@@ -32,15 +32,17 @@ export default class App extends Preact.Component<{}, State> {
     Content.workspaceUrl = workspaceUrl
 
     // Initialize the workspace
-    Content.once<Workspace.Model>(workspaceUrl, async (workspace, change) => {
+    Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
       const shelfUrl = await shelfUrlPromise
       const archiveUrl = await archiveUrlPromise
 
-      if (!workspace.archiveUrl) {
-        workspace.archiveUrl = archiveUrl
-        workspace.shelfUrl = shelfUrl
-        change(workspace)
-      }
+      change((workspace : any) => {
+        if (!workspace.archiveUrl) {
+          workspace.archiveUrl = archiveUrl
+          workspace.shelfUrl = shelfUrl
+          workspace.navStack = []
+        }
+      })
 
       this.setState({ url: workspaceUrl })
       chrome.storage.local.set({ workspaceUrl })
@@ -61,6 +63,7 @@ export default class App extends Preact.Component<{}, State> {
   }
   render() {
     const { url } = this.state
+    console.log("APP RENDER",url)
     if (!url) {
       return null
     }
