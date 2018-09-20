@@ -1,12 +1,12 @@
-const { EventEmitter } = require('events')
-const HypercoreProtocol = require('hypercore-protocol')
-const HypercoreArchiver = require('hypercore-archiver')
-const Hypercore = require('hypercore')
-const crypto = require('hypercore/lib/crypto')
-const toBuffer = require('to-buffer')
-const Debug = require('debug')
+const { EventEmitter } = require("events")
+const HypercoreProtocol = require("hypercore-protocol")
+const HypercoreArchiver = require("hypercore-archiver")
+const Hypercore = require("hypercore")
+const crypto = require("hypercore/lib/crypto")
+const toBuffer = require("to-buffer")
+const Debug = require("debug")
 
-const log = Debug('hypermerge:multicore')
+const log = Debug("hypermerge:multicore")
 
 // Notes:
 // * discovery keys := digest('hypercore', publicKey)
@@ -16,14 +16,14 @@ const log = Debug('hypermerge:multicore')
 class Multicore extends EventEmitter {
   constructor(storage) {
     super()
-    log('constructor', storage)
+    log("constructor", storage)
 
     this.archiver = new HypercoreArchiver(storage)
     this.isReady = false
     const self = this
-    this.archiver.on('ready', () => {
+    this.archiver.on("ready", () => {
       self.isReady = true
-      self.emit('ready')
+      self.emit("ready")
     })
   }
 
@@ -39,13 +39,13 @@ class Multicore extends EventEmitter {
     if (this.isReady) {
       cb()
     } else {
-      this.on('ready', cb)
+      this.on("ready", cb)
     }
   }
 
   createFeed(key, opts = {}) {
     this._ensureReady()
-    log('createFeed', key && key.toString('hex'))
+    log("createFeed", key && key.toString("hex"))
 
     // Create a key pair if we're making a feed from scratch.
     if (!key) {
@@ -54,7 +54,7 @@ class Multicore extends EventEmitter {
       opts.secretKey = keyPair.secretKey
     }
 
-    const dk = Hypercore.discoveryKey(toBuffer(key, 'hex')).toString('hex')
+    const dk = Hypercore.discoveryKey(toBuffer(key, "hex")).toString("hex")
 
     if (this.archiver.feeds[dk]) {
       return this.archiver.feeds[dk]
@@ -64,8 +64,8 @@ class Multicore extends EventEmitter {
     const feed = Hypercore(this._feedStorage(key), key, opts)
     this.archiver.feeds[dk] = feed
 
-    this.archiver.changes.append({ type: 'add', key: key.toString('hex') })
-    this.archiver.emit('add', feed)
+    this.archiver.changes.append({ type: "add", key: key.toString("hex") })
+    this.archiver.emit("add", feed)
 
     return feed
   }
@@ -74,25 +74,25 @@ class Multicore extends EventEmitter {
   // Uses git-style ab/cd/* namespacing and passes that to the underlying
   // storage function given in the constructor.
   _feedStorage(key) {
-    const dk = Hypercore.discoveryKey(key).toString('hex')
+    const dk = Hypercore.discoveryKey(key).toString("hex")
     const prefix = `${dk.slice(0, 2)}/${dk.slice(2, 4)}/${dk.slice(4)}/`
-    return (name) => this.archiver.storage.feeds(prefix + name)
+    return name => this.archiver.storage.feeds(prefix + name)
   }
 
   replicate(opts) {
     this._ensureReady()
-    log('replicate')
+    log("replicate")
 
     if (!opts) {
       opts = {}
     }
 
     if (opts.discoveryKey) {
-      opts.discoveryKey = toBuffer(opts.discoveryKey, 'hex')
+      opts.discoveryKey = toBuffer(opts.discoveryKey, "hex")
     }
 
     if (opts.key) {
-      opts.discoveryKey = Hypercore.discoveryKey(toBuffer(opts.key, 'hex'))
+      opts.discoveryKey = Hypercore.discoveryKey(toBuffer(opts.key, "hex"))
     }
 
     const { archiver } = this
@@ -101,23 +101,23 @@ class Multicore extends EventEmitter {
       live: true,
       id: archiver.changes.id,
       encrypt: opts.encrypt,
-      extensions: ['hypermerge']
+      extensions: ["hypermerge"],
     })
 
-    stream.on('feed', add)
+    stream.on("feed", add)
     if (opts.channel || opts.discoveryKey) {
       add(opts.channel || opts.discoveryKey)
     }
 
     function add(dk) {
-      const hex = dk.toString('hex')
-      log('replicate.add', hex)
+      const hex = dk.toString("hex")
+      log("replicate.add", hex)
 
       if (stream.destroyed) {
         return
       }
 
-      const changesHex = archiver.changes.discoveryKey.toString('hex')
+      const changesHex = archiver.changes.discoveryKey.toString("hex")
 
       const archive = archiver.archives[hex]
       if (archive) {
@@ -131,41 +131,41 @@ class Multicore extends EventEmitter {
       }
 
       function onarchive() {
-        log('replicate.onarchive')
+        log("replicate.onarchive")
 
         archive.metadata.replicate({
           stream,
-          live: true
+          live: true,
         })
         archive.content.replicate({
           stream,
-          live: true
+          live: true,
         })
       }
 
       function onfeed() {
-        log('replicate.onfeed')
+        log("replicate.onfeed")
 
         if (stream.destroyed) {
           return
         }
 
-        stream.on('close', onclose)
-        stream.on('end', onclose)
+        stream.on("close", onclose)
+        stream.on("end", onclose)
 
-        feed.on('_archive', onarchive)
+        feed.on("_archive", onarchive)
         feed.replicate({
           stream,
-          live: true
+          live: true,
         })
 
         function onclose() {
-          log('replicate.onclose')
-          feed.removeListener('_archive', onarchive)
+          log("replicate.onclose")
+          feed.removeListener("_archive", onarchive)
         }
 
         function onarchive() {
-          log('replicate.onarchive')
+          log("replicate.onarchive")
           if (stream.destroyed) {
             return
           }
@@ -173,7 +173,7 @@ class Multicore extends EventEmitter {
           const { content } = archiver.archives[hex]
           content.replicate({
             stream,
-            live: true
+            live: true,
           })
         }
       }
@@ -184,7 +184,9 @@ class Multicore extends EventEmitter {
 
   _ensureReady() {
     if (!this.isReady) {
-      throw new Error('The HypercoreArchiver instance is not ready yet. Use .on("ready") first.')
+      throw new Error(
+        'The HypercoreArchiver instance is not ready yet. Use .on("ready") first.',
+      )
     }
   }
 }

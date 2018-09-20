@@ -18,7 +18,7 @@ chrome.app.runtime.onLaunched.addListener(() => {
   )
 })
 
-let pComms = new Promise((resolve) => {
+let pComms = new Promise(resolve => {
   initHypermerge({ storage: racf }, (hm: Hypermerge) => {
     let comms = new StoreComms(hm)
     resolve(comms)
