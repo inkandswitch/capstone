@@ -10,10 +10,6 @@ import * as Rx from "rxjs"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 
-let DOCS: { [k: string]: Doc<any> } = {}
-let RECEIVE: { [k: string]: ((doc: Doc<any>) => void)[] } = {}
-let CHANGE: { [k: string]: ((cfn: ChangeFn<any>) => void) } = {}
-
 interface UploadActivity {
   type: "Upload"
   actorId: string
@@ -29,35 +25,39 @@ interface DownloadActivity {
 export type Activity = UploadActivity | DownloadActivity
 
 export default class Store {
+  docs: { [id: string]: Doc<any> } = {}
+  listeners: { [id: string]: ((doc: Doc<any>) => void)[] } = {}
+  changeFns: { [id: string]: (changeFn: ChangeFn<any>) => void } = {}
 
   open(
     id: string,
-    receiveChangeCallback: (doc: Doc<any>) => void,
+    changeListener: (doc: Doc<any>) => void,
   ): (cfn: ChangeFn<any>) => void {
-    RECEIVE[id] = (RECEIVE[id] || []).concat([receiveChangeCallback])
+    this.listeners[id] = (this.listeners[id] || []).concat([changeListener])
 
-    if (DOCS[id]) setTimeout(() => receiveChangeCallback(DOCS[id]), 50) /// UGHHHH!! :'(
+    if (this.docs[id]) setTimeout(() => changeListener(this.docs[id]), 50) /// UGHHHH!! :'(
 
-    if (CHANGE[id]) return CHANGE[id]
+    if (this.changeFns[id]) return this.changeFns[id]
 
-    var port = chrome.runtime.connect({ name: `${id}/changes` })
+    const port = chrome.runtime.connect({ name: `${id}/changes` })
     port.onMessage.addListener(({ actorId, patch }) => {
-      if (DOCS[id] === undefined) {
-        DOCS[id] = init(actorId)
+      if (!this.docs[id]) {
+        this.docs[id] = init(actorId)
       }
 
-      DOCS[id] = applyPatch(DOCS[id], patch)
+      this.docs[id] = applyPatch(this.docs[id], patch)
 
-      RECEIVE[id].map(fn => fn(DOCS[id]))
+      this.listeners[id].forEach(fn => fn(this.docs[id]))
     })
+
     const sendChangeFn = (cfn: ChangeFn<any>) => {
-      DOCS[id] = change(DOCS[id], cfn)
-      let requests = getRequests(DOCS[id])
+      this.docs[id] = change(this.docs[id], cfn)
+      const requests = getRequests(this.docs[id])
       port.postMessage(requests)
-      RECEIVE[id].map(fn => fn(DOCS[id]))
+      this.listeners[id].map(fn => fn(this.docs[id]))
     }
 
-    CHANGE[id] = sendChangeFn
+    this.changeFns[id] = sendChangeFn
 
     return sendChangeFn
   }
@@ -68,7 +68,7 @@ export default class Store {
 
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ command, args }, docId => {
-        DOCS[docId] = init(docId)
+        this.docs[docId] = init(docId)
         resolve(docId)
         const changeFn = this.open(docId, doc => {})
         changeFn(setup)
