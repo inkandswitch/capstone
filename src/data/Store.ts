@@ -1,11 +1,5 @@
-import {
-  change,
-  init,
-  getRequests,
-  applyPatch,
-  Doc,
-  ChangeFn,
-} from "automerge/frontend"
+import { Doc, ChangeFn } from "automerge/frontend"
+import * as Automerge from "automerge/frontend"
 import * as Rx from "rxjs"
 
 type CommandMessage = "Create" | "Open" | "Replace"
@@ -24,42 +18,41 @@ interface DownloadActivity {
 
 export type Activity = UploadActivity | DownloadActivity
 
+export interface Entry {
+  doc: Doc<unknown> | null
+  listeners: Array<(doc: Doc<any>) => void>
+  change: (changeFn: ChangeFn<any>) => void
+  port: chrome.runtime.Port
+}
+
 export default class Store {
-  docs: { [id: string]: Doc<any> } = {}
-  listeners: { [id: string]: ((doc: Doc<any>) => void)[] } = {}
-  changeFns: { [id: string]: (changeFn: ChangeFn<any>) => void } = {}
+  index: { [id: string]: Entry | undefined } = {}
 
   open(
     id: string,
-    changeListener: (doc: Doc<any>) => void,
+    changeListener?: (doc: Doc<unknown>) => void,
   ): (cfn: ChangeFn<any>) => void {
-    this.listeners[id] = (this.listeners[id] || []).concat([changeListener])
+    const existing = this.index[id]
 
-    if (this.docs[id]) setTimeout(() => changeListener(this.docs[id]), 50) /// UGHHHH!! :'(
+    if (existing) {
+      if (changeListener) {
+        existing.listeners.push(changeListener)
 
-    if (this.changeFns[id]) return this.changeFns[id]
-
-    const port = chrome.runtime.connect({ name: `${id}/changes` })
-    port.onMessage.addListener(({ actorId, patch }) => {
-      if (!this.docs[id]) {
-        this.docs[id] = init(actorId)
+        setImmediate(() => {
+          // The caller may want to change on the first emit, so this must
+          // be called async.
+          if (existing.doc) changeListener(existing.doc)
+        })
       }
 
-      this.docs[id] = applyPatch(this.docs[id], patch)
-
-      this.listeners[id].forEach(fn => fn(this.docs[id]))
-    })
-
-    const sendChangeFn = (cfn: ChangeFn<any>) => {
-      this.docs[id] = change(this.docs[id], cfn)
-      const requests = getRequests(this.docs[id])
-      port.postMessage(requests)
-      this.listeners[id].map(fn => fn(this.docs[id]))
+      return existing.change
     }
 
-    this.changeFns[id] = sendChangeFn
+    const entry = this.createEntry(id)
 
-    return sendChangeFn
+    if (changeListener) entry.listeners.push(changeListener)
+
+    return entry.change
   }
 
   create(setup: ChangeFn<any>): Promise<string> {
@@ -68,12 +61,48 @@ export default class Store {
 
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ command, args }, docId => {
-        this.docs[docId] = init(docId)
+        const entry = this.createEntry(docId)
+        entry.doc = Automerge.init(docId)
+        entry.change(setup)
         resolve(docId)
-        const changeFn = this.open(docId, doc => {})
-        changeFn(setup)
       })
     })
+  }
+
+  createEntry(id: string): Entry {
+    // TODO: Entry should probably be it's own class and this would essentially
+    // be the constructor.
+    const port = chrome.runtime.connect({ name: `${id}/changes` })
+
+    const change = (cfn: ChangeFn<any>) => {
+      if (!entry.doc)
+        throw new Error("Cannot call change before doc has loaded.")
+
+      entry.doc = Automerge.change(entry.doc, cfn)
+
+      const requests = Automerge.getRequests(entry.doc)
+      port.postMessage(requests)
+      entry.listeners.forEach(fn => fn(entry.doc))
+    }
+
+    const entry: Entry = (this.index[id] = {
+      doc: null,
+      listeners: [],
+      change,
+      port,
+    })
+
+    port.onMessage.addListener(({ actorId, patch }) => {
+      if (!entry.doc) {
+        entry.doc = Automerge.init(actorId)
+      }
+
+      entry.doc = Automerge.applyPatch(entry.doc, patch)
+
+      entry.listeners.forEach(fn => fn(entry.doc))
+    })
+
+    return entry
   }
 
   activity(id: string): Rx.Observable<Activity> {

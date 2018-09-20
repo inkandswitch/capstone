@@ -39,7 +39,10 @@ export function create<T, M extends Message = never>(
 
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
-      this.requestChanges = Content.open<T>(props.url, (doc: any) => {
+    }
+
+    componentDidMount() {
+      this.requestChanges = Content.open<T>(this.props.url, (doc: any) => {
         this.setState({ doc })
       })
     }

@@ -80,14 +80,11 @@ export class DocumentActor<
       this.url = message.to
       this.docId = id
       this.doc = doc
-      // Recreate previous change interface.
-      //    this.change = (cb: (doc: Doc<T>) => Doc<T>) => changeFn(cb(this.doc))
-      this.change = changeFn
       this.onMessage(message)
     }
     // TODO: this will leave a noop receiveChangeCallback attached
     // to the port.
-    const changeFn = Content.open<T>(message.to, once(onDocumentReady))
+    this.change = Content.open<T>(message.to, once(onDocumentReady))
   }
 
   create(type: string) {
@@ -148,7 +145,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     callback: (doc: Doc<T>) => void,
   ): (cfn: ChangeFn<T>) => void {
     const { type, id } = Link.parse(url)
-    const sendChangeFn = this.store.open(id, doc => callback(doc))
+    const sendChangeFn = this.store.open(id, callback)
     //      } else {
     /*
         sendChangeFn((doc) => {
