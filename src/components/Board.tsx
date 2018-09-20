@@ -320,9 +320,10 @@ class Board extends Preact.Component<Props, State> {
         const centerPoint = stroke.center
         const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
         if (card) {
-          return this.onCardStroke(stroke, card.id)
+          this.onCardStroke(stroke, card.id)
+        } else {
+          this.onInkStroke(stroke)
         }
-        this.onInkStroke(stroke)
         break
       }
     }
