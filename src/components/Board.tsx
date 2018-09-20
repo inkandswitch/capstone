@@ -184,6 +184,10 @@ class Board extends Preact.Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    this.drawStrokes()
+  }
+
   componentDidUpdate() {
     this.drawStrokes()
   }
