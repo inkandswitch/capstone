@@ -1,6 +1,7 @@
 import { Doc, ChangeFn } from "automerge/frontend"
 import * as Automerge from "automerge/frontend"
 import * as Rx from "rxjs"
+import Entry from "./StoreEntry"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 
@@ -17,13 +18,6 @@ interface DownloadActivity {
 }
 
 export type Activity = UploadActivity | DownloadActivity
-
-export interface Entry {
-  doc: Doc<unknown> | null
-  listeners: Array<(doc: Doc<any>) => void>
-  change: (changeFn: ChangeFn<any>) => void
-  port: chrome.runtime.Port
-}
 
 export default class Store {
   index: { [id: string]: Entry | undefined } = {}
@@ -48,7 +42,7 @@ export default class Store {
       return existing.change
     }
 
-    const entry = this.createEntry(id)
+    const entry = this.makeEntry(id)
 
     if (changeListener) entry.listeners.push(changeListener)
 
@@ -61,7 +55,7 @@ export default class Store {
 
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ command, args }, docId => {
-        const entry = this.createEntry(docId)
+        const entry = this.makeEntry(docId)
         entry.doc = Automerge.init(docId)
         entry.change(setup)
         resolve(docId)
@@ -69,39 +63,9 @@ export default class Store {
     })
   }
 
-  createEntry(id: string): Entry {
-    // TODO: Entry should probably be it's own class and this would essentially
-    // be the constructor.
-    const port = chrome.runtime.connect({ name: `${id}/changes` })
-
-    const change = (cfn: ChangeFn<unknown>) => {
-      if (!entry.doc)
-        throw new Error("Cannot call change before doc has loaded.")
-
-      entry.doc = Automerge.change(entry.doc, cfn)
-
-      const requests = Automerge.getRequests(entry.doc)
-      port.postMessage(requests)
-      entry.listeners.forEach(fn => fn(entry.doc))
-    }
-
-    const entry: Entry = (this.index[id] = {
-      doc: null,
-      listeners: [],
-      change,
-      port,
-    })
-
-    port.onMessage.addListener(({ actorId, patch }) => {
-      if (!entry.doc) {
-        entry.doc = Automerge.init(actorId)
-      }
-
-      entry.doc = Automerge.applyPatch(entry.doc, patch)
-
-      entry.listeners.forEach(fn => fn(entry.doc))
-    })
-
+  makeEntry(id: string): Entry {
+    const entry = new Entry(id)
+    this.index[id] = entry
     return entry
   }
 
