@@ -340,9 +340,6 @@ class Board extends Preact.Component<Props, State> {
 
   onInkStroke = (stroke: Stroke) => {
     this.props.change(doc => {
-      if (!doc.strokes) {
-        doc.strokes = []
-      }
       doc.strokes.push(
         "M " + stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
       )
