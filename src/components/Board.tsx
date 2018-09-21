@@ -15,7 +15,11 @@ import VirtualKeyboard from "./VirtualKeyboard"
 import { AnyDoc } from "automerge/frontend"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, {
+  InkStrokeEvent,
+  GlyphEvent,
+  Glyph,
+} from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -30,9 +34,14 @@ interface CardModel {
   url: string
 }
 
+export interface CanvasStroke {
+  erase: boolean
+  path: string
+}
+
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
-  strokes: string[]
+  strokes: CanvasStroke[]
   topZ: number
 }
 
@@ -124,7 +133,9 @@ class Board extends Preact.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer onStroke={this.onStroke}>
+          <StrokeRecognizer
+            onGlyph={this.onGlyph}
+            onInkStroke={this.onInkStroke}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -206,12 +217,20 @@ class Board extends Preact.Component<Props, State> {
     strokes.forEach(stroke => this.drawStroke(stroke))
   }
 
-  drawStroke(stroke: string) {
+  drawStroke(stroke: CanvasStroke) {
     const ctx = this.getDrawingContext()
+    if (!ctx || stroke.path.length == 0) return
 
-    const path = new Path2D(stroke)
-    if (!ctx || stroke.length == 0) return
-    ctx.lineWidth = 4
+    const path = new Path2D(stroke.path)
+    if (stroke.erase == false) {
+      ctx.globalCompositeOperation = "source-over"
+      ctx.strokeStyle = "black"
+      ctx.lineWidth = 4
+    } else {
+      ctx.globalCompositeOperation = "destination-out"
+      ctx.strokeStyle = "black"
+      ctx.lineWidth = 4
+    }
     ctx.stroke(path)
   }
 
@@ -219,7 +238,7 @@ class Board extends Preact.Component<Props, State> {
     return this.strokesCanvasEl && this.strokesCanvasEl.getContext("2d")
   }
 
-  onCardStroke = (stroke: Stroke, id: string) => {
+  onCardStroke = (stroke: GlyphEvent, id: string) => {
     switch (stroke.glyph) {
       case Glyph.delete:
         this.deleteCard(id)
@@ -303,7 +322,7 @@ class Board extends Preact.Component<Props, State> {
     this.clearCardFocus()
   }
 
-  onStroke = (stroke: Stroke) => {
+  onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
         this.props.emit({
@@ -321,8 +340,6 @@ class Board extends Preact.Component<Props, State> {
         const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
         if (card) {
           this.onCardStroke(stroke, card.id)
-        } else {
-          this.onInkStroke(stroke)
         }
         break
       }
@@ -339,11 +356,14 @@ class Board extends Preact.Component<Props, State> {
     return this.props.doc.cards[cardEl.id]
   }
 
-  onInkStroke = (stroke: Stroke) => {
+  onInkStroke = (stroke: InkStrokeEvent) => {
     this.props.change(doc => {
-      doc.strokes.push(
-        "M " + stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
-      )
+      doc.strokes.push({
+        erase: stroke.erase,
+        path:
+          "M " +
+          stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
+      })
       return doc
     })
   }
