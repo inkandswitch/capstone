@@ -122,15 +122,13 @@ export class Identity extends Preact.Component<Props, State> {
     return (
       <div style={style.Identity} onPointerDown={this.onPointerDown}>
         <StrokeRecognizer onGlyph={this.onBadgeGlyph}>
-          <div style={style.Profile}>
-            <div onPointerDown={this.onBadgePointerDown}>
-              <IdentityBadge
-                name={name}
-                avatarUrl={avatarUrl}
-                isEditing={isEditing}
-                onChange={this.onChange}
-              />
-            </div>
+          <div style={style.Profile} onPointerDown={this.onBadgePointerDown}>
+            <IdentityBadge
+              name={name}
+              avatarUrl={avatarUrl}
+              isEditing={isEditing}
+              onChange={this.onChange}
+            />
           </div>
         </StrokeRecognizer>
         <StrokeRecognizer onGlyph={this.onCubbyGlyph}>
@@ -211,6 +209,18 @@ const style = {
   preview: {
     Identity: {},
   },
+  Identity: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    width: "100%",
+    padding: 50,
+    alignItems: "center",
+  },
+  Profile: {
+    border: "1px solid #aaa",
+    marginBottom: 25,
+  },
   IdentityBadge: {
     padding: 10,
     display: "inline-flex",
@@ -227,15 +237,6 @@ const style = {
   IdentityBadgeName: {
     marginLeft: 10,
   },
-  Identity: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
-    width: "100%",
-  },
-  Profile: {
-    borderBottom: "1px solid #aaa",
-  },
   NameInput: {
     fontWeight: 700,
     fontSize: "larger",
@@ -250,9 +251,10 @@ const style = {
     gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
     gridAutoRows: "1fr",
     gridGap: "10px",
-    width: "100%",
+    width: "75vw",
     padding: 30,
-    backgroundColor: "#aaa",
+    backgroundColor: "#e5e5e5",
+    border: "1px solid #aaa",
   },
   Item: {
     position: "relative",
