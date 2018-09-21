@@ -352,6 +352,9 @@ class Board extends Preact.Component<Props, State> {
           },
         })
         break
+      case Glyph.pigtail:
+        this.createCard("WebClipping", stroke.center.x, stroke.center.y)
+        break
       default: {
         const centerPoint = stroke.center
         const card = this.cardAtPoint(centerPoint.x, centerPoint.y)

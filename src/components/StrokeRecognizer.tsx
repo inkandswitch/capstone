@@ -46,6 +46,7 @@ export enum Glyph {
   delete,
   create,
   edit,
+  pigtail,
 }
 
 enum StrokeType {
@@ -207,6 +208,8 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
         return Glyph.create
       case "circle":
         return Glyph.edit
+      case "pigtail":
+        return Glyph.pigtail
     }
     return Glyph.unknown
   }
