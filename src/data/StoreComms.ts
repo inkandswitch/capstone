@@ -1,6 +1,7 @@
 import { Hypermerge } from "../modules/hypermerge"
-import * as Iterate from "../logic/Iterate"
+import * as Iterate from "../logic/Traverse"
 import * as Link from "../data/Link"
+import * as Prefetch from "../data/Prefetch"
 
 const Debug = require("debug")
 const log = Debug("store:coms")
@@ -14,38 +15,8 @@ export default class StoreComms {
     ;(window as any).hm = this.hypermerge
     this.hypermerge.joinSwarm({ chrome: true })
 
-    this.hypermerge.addListener("document:updated", (docId, doc) => {
-      console.log(doc)
-      // Need a front object :/
-      const openIfLink = (val: any) => {
-        console.log(val)
-        if (Iterate.isString(val)) {
-          let id
-          try {
-            id = Link.parse(val).id
-          } catch {
-            return
-          }
-          const handles = this.hypermerge.handles[id]
-          if (!handles || !handles.length) {
-            console.log("OPENING ID", id)
-            this.hypermerge.openHandle(id)
-          } else {
-            console.log("ALREADY OPEN", id)
-          }
-        }
-      }
-
-      if (!this.docHandles[docId]) {
-        // Hack to set up front
-        const handle = this.hypermerge.openHandle(docId)
-        handle._isManagingFront = true
-        handle._setupFront()
-        this.docHandles[docId] = handle
-      }
-      const handle = this.docHandles[docId]
-      Iterate.recursive(handle._front, openIfLink)
-    })
+    const prefetcher = new Prefetch.Prefetcher(this.hypermerge, this.docHandles)
+    this.hypermerge.addListener("document:updated", prefetcher.onDocumentUpdate)
   }
 
   onConnect = (port: chrome.runtime.Port) => {

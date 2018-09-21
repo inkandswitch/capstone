@@ -11,7 +11,7 @@ export function isIterable(obj: any) {
 }
 
 // TODO: Does not check for loops - so just blow up at a max depth for now.
-export function recursive(
+export function recursiveDFS(
   obj: any,
   cb: (val: any) => void,
   depth: number = 0,
@@ -25,14 +25,14 @@ export function recursive(
     while (!next.done) {
       // Hack to handle Map iteration, which returns an array of [key, value]
       const val = Array.isArray(next.value) ? next.value[1] : next.value
-      recursive(val, cb, depth + 1, maxDepth)
+      recursiveDFS(val, cb, depth + 1, maxDepth)
       next = iterator.next()
     }
   } else if (isPlainObject(obj)) {
     // Note, does not iterate over Symbols.
     for (let prop in obj) {
       if (obj.hasOwnProperty(prop)) {
-        recursive(obj[prop], cb, depth + 1, maxDepth)
+        recursiveDFS(obj[prop], cb, depth + 1, maxDepth)
       }
     }
   } else {
