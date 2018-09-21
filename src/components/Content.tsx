@@ -127,7 +127,6 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static store: Store
   static workspaceUrl: string
-  static archiveUrl: string
 
   /// Registry:
 
@@ -190,7 +189,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     return handler
   }
 
-  static send(message: Message) {
+  static send(message: Message & WithSender) {
     message.to = message.to || Content.workspaceUrl
     if (!isFullyFormed(message)) {
       return

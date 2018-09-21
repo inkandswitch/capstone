@@ -17,15 +17,12 @@ type OutMessage = ShelfContentsRequested
 
 export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
-    console.log("on message", message)
     switch (message.type) {
       case "ShelfContentsRequested": {
-        console.log("shelf contents requested")
         this.emit({ type: "ShelfContentsRequested" })
         break
       }
       case "ShelfContents": {
-        console.log("shelf contents")
         const { urls } = message.body
         this.change(doc => {
           doc.documents = doc.documents.concat(urls)

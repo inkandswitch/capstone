@@ -36,7 +36,6 @@ export default class App extends Preact.Component<{}, State> {
     const identityUrl = await identityUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
-    Content.archiveUrl = archiveUrl
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
@@ -52,7 +51,7 @@ export default class App extends Preact.Component<{}, State> {
       })
 
       this.setState({ url: workspaceUrl })
-      chrome.storage.local.set({ workspaceUrl, archiveUrl })
+      chrome.storage.local.set({ workspaceUrl })
     })
 
     Content.once<Archive.Model>(archiveUrl, async (change: Function) => {
@@ -65,12 +64,11 @@ export default class App extends Preact.Component<{}, State> {
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl", "archiveUrl"], val => {
+    chrome.storage.local.get(["workspaceUrl"], val => {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {
         Content.workspaceUrl = val.workspaceUrl
-        Content.archiveUrl = val.archiveUrl
         this.setState({ url: val.workspaceUrl })
       }
     })
