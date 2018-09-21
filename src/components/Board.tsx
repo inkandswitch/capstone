@@ -16,6 +16,7 @@ import { AnyDoc } from "automerge/frontend"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, {
+  StrokeSettings,
   InkStrokeEvent,
   GlyphEvent,
   Glyph,
@@ -35,7 +36,7 @@ interface CardModel {
 }
 
 export interface CanvasStroke {
-  erase: boolean
+  settings: StrokeSettings
   path: string
 }
 
@@ -222,15 +223,11 @@ class Board extends Preact.Component<Props, State> {
     if (!ctx || stroke.path.length == 0) return
 
     const path = new Path2D(stroke.path)
-    if (stroke.erase == false) {
-      ctx.globalCompositeOperation = "source-over"
-      ctx.strokeStyle = "black"
-      ctx.lineWidth = 4
-    } else {
-      ctx.globalCompositeOperation = "destination-out"
-      ctx.strokeStyle = "black"
-      ctx.lineWidth = 4
-    }
+
+    ctx.globalCompositeOperation = stroke.settings.globalCompositeOperation
+    ctx.strokeStyle = stroke.settings.strokeStyle
+    ctx.lineWidth = stroke.settings.lineWidth
+
     ctx.stroke(path)
   }
 
@@ -359,7 +356,7 @@ class Board extends Preact.Component<Props, State> {
   onInkStroke = (stroke: InkStrokeEvent) => {
     this.props.change(doc => {
       doc.strokes.push({
-        erase: stroke.erase,
+        settings: stroke.settings,
         path:
           "M " +
           stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),

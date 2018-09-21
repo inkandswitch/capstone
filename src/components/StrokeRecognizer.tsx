@@ -19,7 +19,7 @@ export interface GlyphEvent {
 
 export interface InkStrokeEvent {
   points: $P.Point[]
-  erase: boolean
+  settings: StrokeSettings
 }
 
 export interface Props {
@@ -47,6 +47,37 @@ export enum Glyph {
   edit,
 }
 
+enum StrokeType {
+  unknown = 0,
+  ink,
+  erase,
+  glyph,
+}
+
+export interface StrokeSettings {
+  readonly globalCompositeOperation: string
+  readonly strokeStyle: string
+  readonly lineWidth: number
+}
+
+const StrokeSettings: { [st: number]: StrokeSettings } = {
+  [StrokeType.ink]: {
+    globalCompositeOperation: "source-over",
+    strokeStyle: "black",
+    lineWidth: 4,
+  },
+  [StrokeType.erase]: {
+    globalCompositeOperation: "destination-out",
+    strokeStyle: "LightCoral",
+    lineWidth: 12,
+  },
+  [StrokeType.glyph]: {
+    globalCompositeOperation: "source-over",
+    strokeStyle: "SkyBlue",
+    lineWidth: 4,
+  },
+}
+
 const $P_RECOGNIZER = new $P.Recognizer()
 
 // Initializer recognizer with default gestures.
@@ -70,16 +101,30 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   recognizer: $P.Recognizer = $P_RECOGNIZER
   points: $P.Point[] = []
+  strokeType: StrokeType = StrokeType.unknown
   strokeId = 0
   lastDrawnPoint = 1 // the boundary case is to move to the 0th point and draw to the 1st
   bounds: Bounds = EMPTY_BOUNDS
 
   render() {
     return (
-      <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
+      <Pen
+        onPanStart={this.onPanStart}
+        onPanMove={this.onPanMove}
+        onPanEnd={this.onPanEnd}>
         {this.props.children}
       </Pen>
     )
+  }
+
+  onPanStart = (event: PenEvent) => {
+    if (event.srcEvent.ctrlKey == true) {
+      this.strokeType = StrokeType.glyph
+    } else if (event.srcEvent.altKey == true) {
+      this.strokeType = StrokeType.erase
+    } else {
+      this.strokeType = StrokeType.ink
+    }
   }
 
   onPanMove = (event: PenEvent) => {
@@ -96,12 +141,16 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 1
-    if (event.srcEvent.ctrlKey == true) {
-      this.recognize()
-    } else if (event.srcEvent.altKey == true) {
-      this.erase()
-    } else {
-      this.ink()
+    switch (this.strokeType) {
+      case StrokeType.glyph:
+        this.recognize()
+        break
+      case StrokeType.ink:
+        this.ink()
+        break
+      case StrokeType.erase:
+        this.erase()
+        break
     }
     this.reset()
   }
@@ -115,7 +164,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     }
     this.props.onInkStroke({
       points: this.points,
-      erase: isErase,
+      settings: StrokeSettings[this.strokeType],
     })
   }
 
@@ -180,6 +229,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   reset() {
     this.points = []
+    this.strokeType = StrokeType.unknown
     this.strokeId = 0
     this.bounds = EMPTY_BOUNDS
     this.stopDrawing()
@@ -220,8 +270,9 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   drawStrokes() {
     const ctx = this.getDrawingContext()
     if (!ctx || this.points.length < 2) return
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-    ctx.lineWidth = 4
+
+    ctx.lineWidth = StrokeSettings[this.strokeType].lineWidth
+    ctx.strokeStyle = StrokeSettings[this.strokeType].strokeStyle
 
     let point = this.points[this.lastDrawnPoint - 1]
     ctx.moveTo(point.X, point.Y)
