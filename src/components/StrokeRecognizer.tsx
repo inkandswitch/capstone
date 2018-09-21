@@ -1,7 +1,6 @@
 import * as Preact from "preact"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
-import { delay } from "lodash"
 import * as Feedback from "./CommandFeedback"
 const templates = require("../modules/$P/glyph-templates.json")
 
