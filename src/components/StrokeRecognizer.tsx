@@ -13,6 +13,7 @@ interface Bounds {
 
 export interface GlyphEvent {
   glyph: Glyph
+  name: string
   bounds: Bounds
   center: { x: number; y: number }
 }
@@ -176,15 +177,16 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     const result = this.recognizer.Recognize(this.points, only)
 
     if (result.Score > 0 && result.Score < maxScore) {
-      this.flashDebugMessage(`I'm a ${result.Name}`)
+      //this.flashDebugMessage(`I'm a ${result.Name}`)
       const glyph = this.mapResultNameToGlyph(result.Name)
       this.props.onGlyph({
         glyph: glyph,
+        name: result.Name,
         bounds: this.bounds,
         center: this.center(),
       })
     } else {
-      this.flashDebugMessage(`Couldn't recognize anything :(`)
+      this.flashDebugMessage(`Unrecognized glyph...`)
     }
   }
 

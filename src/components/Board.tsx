@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { clamp, isEmpty, size } from "lodash"
+import { delay, clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -239,12 +239,14 @@ class Board extends Preact.Component<Props, State> {
     switch (stroke.glyph) {
       case Glyph.delete:
         this.deleteCard(id)
+        this.flashFeedbackMessage("Delete card...")
         break
       case Glyph.copy: {
         const card = this.props.doc.cards[id]
         if (card) {
           this.props.emit({ type: "AddToShelf", body: { url: card.url } })
         }
+        this.flashFeedbackMessage("Adding card to shelf...")
         break
       }
       case Glyph.edit: {
@@ -260,9 +262,27 @@ class Board extends Preact.Component<Props, State> {
           return doc
         })
         this.setCardFocus(id)
+        this.flashFeedbackMessage("Editing card...")
+        break
+      }
+      default: {
+        this.flashFeedbackMessage("No command for glyph: ${stroke.name}...")
         break
       }
     }
+  }
+
+  flashFeedbackMessage(text: string) {
+    const div = document.createElement("div")
+    div.className = "DebugMessage"
+    const content = document.createTextNode(text)
+    div.appendChild(content)
+    document.body.appendChild(div)
+
+    const removeText = () => {
+      document.body.removeChild(div)
+    }
+    delay(removeText, 1000)
   }
 
   onVirtualKeyboardClose = () => {
