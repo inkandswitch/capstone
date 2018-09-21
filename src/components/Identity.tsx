@@ -6,6 +6,7 @@ import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
+const anonymousIcon = require("../assets/anonymous.svg")
 
 interface Model {
   name: string
@@ -188,7 +189,11 @@ class IdentityBadge extends Preact.Component<IdentityBadgeProps> {
     return (
       <div style={style.IdentityBadge}>
         <div style={style.IdentityBadgeAvatar}>
-          <Content mode="embed" url={avatarUrl} />
+          {avatarUrl ? (
+            <Content mode="embed" url={avatarUrl} />
+          ) : (
+            <img src={anonymousIcon} style={style.AnonymousImage} />
+          )}
         </div>
         <div style={style.IdentityBadgeName}>
           <input
@@ -220,6 +225,7 @@ const style = {
   Profile: {
     border: "1px solid #aaa",
     marginBottom: 25,
+    height: 100,
   },
   IdentityBadge: {
     padding: 10,
@@ -228,11 +234,10 @@ const style = {
     alignItems: "center",
   },
   IdentityBadgeAvatar: {
-    height: 75,
-    width: 75,
     border: "3px solid #333",
     borderRadius: 999,
     overflow: "hidden",
+    height: "100%",
   },
   IdentityBadgeName: {
     marginLeft: 10,
@@ -265,6 +270,15 @@ const style = {
     background: "#fff",
     overflow: "hidden",
     maxHeight: "100%'",
+  },
+  // Match `Image.tsx` style
+  AnonymousImage: {
+    objectFit: "cover",
+    pointerEvents: "none",
+    display: "block",
+    maxWidth: "100%",
+    maxHeight: "100%",
+    height: "100%",
   },
 }
 
