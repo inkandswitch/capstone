@@ -11,15 +11,20 @@ interface Bounds {
   readonly left: number
 }
 
-export interface Stroke {
+export interface GlyphEvent {
   glyph: Glyph
   bounds: Bounds
   center: { x: number; y: number }
+}
+
+export interface InkStrokeEvent {
   points: $P.Point[]
+  erase: boolean
 }
 
 export interface Props {
-  onStroke: (stroke: Stroke) => void
+  onGlyph?: (stroke: GlyphEvent) => void
+  onInkStroke?: (stroke: InkStrokeEvent) => void
   delay?: number
   maxScore?: number
   only?: string[]
@@ -77,7 +82,8 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     )
   }
 
-  onPanMove = ({ center: { x, y } }: PenEvent) => {
+  onPanMove = (event: PenEvent) => {
+    const { x, y } = event.center
     if (!this.canvasElement) {
       this.startDrawing()
     }
@@ -90,11 +96,32 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 1
-    this.recognize()
+    if (event.srcEvent.ctrlKey == true) {
+      this.recognize()
+    } else if (event.srcEvent.altKey == true) {
+      this.erase()
+    } else {
+      this.ink()
+    }
+    this.reset()
+  }
+
+  erase = () => this.inkStroke(true)
+  ink = () => this.inkStroke(false)
+
+  inkStroke = (isErase: boolean) => {
+    if (!this.props.onInkStroke) {
+      return
+    }
+    this.props.onInkStroke({
+      points: this.points,
+      erase: isErase,
+    })
   }
 
   _recognize = () => {
     if (this.isPenDown) return
+    if (!this.props.onGlyph) return
 
     const { maxScore = 0, only } = this.props
     const result = this.recognizer.Recognize(this.points, only)
@@ -102,23 +129,14 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     if (result.Score > 0 && result.Score < maxScore) {
       this.flashDebugMessage(`I'm a ${result.Name}`)
       const glyph = this.mapResultNameToGlyph(result.Name)
-      this.props.onStroke({
+      this.props.onGlyph({
         glyph: glyph,
         bounds: this.bounds,
         center: this.center(),
-        points: this.points,
       })
     } else {
       this.flashDebugMessage(`Couldn't recognize anything :(`)
-      this.props.onStroke({
-        glyph: Glyph.unknown,
-        bounds: this.bounds,
-        center: this.center(),
-        points: this.points,
-      })
     }
-
-    this.reset()
   }
 
   recognize = this._recognize //debounce(this._recognize, this.props.delay)
@@ -217,15 +235,6 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       ctx.lineTo(point.X, point.Y)
     }
     ctx.stroke()
-  }
-
-  drawCenter() {
-    const ctx = this.getDrawingContext()
-    if (!ctx || this.points.length == 0) return
-
-    const center = this.center()
-    ctx.fillStyle = "red"
-    ctx.fillRect(center.x - 2, center.y - 2, 4, 4)
   }
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
