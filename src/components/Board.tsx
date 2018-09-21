@@ -12,6 +12,7 @@ import Content, {
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
+import Ink from "./Ink"
 import { AnyDoc } from "automerge/frontend"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
@@ -117,7 +118,6 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 
 class Board extends Preact.Component<Props, State> {
   boardEl?: HTMLElement
-  strokesCanvasEl?: HTMLCanvasElement
   state = { focusedCardId: null }
 
   static reify(doc: AnyDoc): Model {
@@ -129,7 +129,7 @@ class Board extends Preact.Component<Props, State> {
   }
 
   render() {
-    const { cards, topZ } = this.props.doc
+    const { cards, topZ, strokes } = this.props.doc
     const { focusedCardId } = this.state
     switch (this.props.mode) {
       case "fullscreen":
@@ -161,12 +161,7 @@ class Board extends Preact.Component<Props, State> {
                     </DraggableCard>
                   )
                 })}
-                <canvas
-                  className="InkLayer"
-                  ref={(el: HTMLCanvasElement) => {
-                    this.strokesCanvasEl = el
-                  }}
-                />
+                <Ink strokes={strokes} />
                 {focusedCardId != null ? (
                   <div
                     style={{
@@ -194,45 +189,6 @@ class Board extends Preact.Component<Props, State> {
           </div>
         )
     }
-  }
-
-  componentDidMount() {
-    this.drawStrokes()
-  }
-
-  componentDidUpdate() {
-    this.drawStrokes()
-  }
-
-  drawStrokes() {
-    const { strokes } = this.props.doc
-
-    this.strokesCanvasEl && (this.strokesCanvasEl.width = window.innerWidth)
-    this.strokesCanvasEl && (this.strokesCanvasEl.height = window.innerHeight)
-
-    const ctx = this.getDrawingContext()
-
-    if (!ctx || strokes.length == 0) return
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
-    strokes.forEach(stroke => this.drawStroke(stroke))
-  }
-
-  drawStroke(stroke: CanvasStroke) {
-    const ctx = this.getDrawingContext()
-    if (!ctx || stroke.path.length == 0) return
-
-    const path = new Path2D(stroke.path)
-
-    ctx.globalCompositeOperation = stroke.settings.globalCompositeOperation
-    ctx.strokeStyle = stroke.settings.strokeStyle
-    ctx.lineWidth = stroke.settings.lineWidth
-
-    ctx.stroke(path)
-  }
-
-  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
-    return this.strokesCanvasEl && this.strokesCanvasEl.getContext("2d")
   }
 
   onCardStroke = (stroke: GlyphEvent, id: string) => {
