@@ -18,6 +18,7 @@ import StrokeRecognizer, {
   GlyphEvent,
   Glyph,
 } from "./StrokeRecognizer"
+import Clipboard from "./Clipboard"
 
 const WebClippingIcon = require("../assets/WebClipping_icon.svg")
 
@@ -32,7 +33,11 @@ interface Props extends Widget.Props<Model> {
   onNavigate?: (url: string) => void
 }
 
-class WebClipping extends Preact.Component<Props> {
+interface State {
+  urlInput: string
+}
+
+class WebClipping extends Preact.Component<Props, State> {
   webClippingEl?: HTMLElement
   strokesCanvasEl?: HTMLCanvasElement
 
@@ -44,26 +49,60 @@ class WebClipping extends Preact.Component<Props> {
   }
 
   render() {
-    const { title, htmlContent } = this.props.doc
+    const { url, title, htmlContent } = this.props.doc
+
+    if (!url) {
+      // xx -- think about fullscreen / preview differently
+      return this.renderUrlInput()
+    }
+
     switch (this.props.mode) {
       case "fullscreen":
-        return (
-          <div
-            style={style.WebClipping}
-            ref={(el: HTMLElement) => (this.webClippingEl = el)}
-          />
-        )
+        return this.renderFullscreen()
       case "embed":
       case "preview":
-        return (
-          <div style={style.Preview.WebClipping}>
-            <img style={style.Preview.Icon} src={WebClippingIcon} />
-            <div style={style.Preview.TitleContainer}>
-              <div style={style.Preview.Title}>doc.title</div>
-            </div>
-          </div>
-        )
+        return this.renderEmbed()
     }
+  }
+
+  renderUrlInput = () => {
+    return (
+      <div style={style.UrlCard}>
+        <div style={style.inputGroup}>
+          <i style={style.inputGroupIcon} className="fa fa-link" />
+          <input
+            autofocus
+            type="text"
+            style={style.urlInput}
+            value={this.state.urlInput}
+            onChange={this.onInputChange}
+            onKeyDown={this.onKeyDown}
+            onPaste={this.onPaste}
+            placeholder="Enter a URL..."
+          />
+        </div>
+      </div>
+    )
+  }
+
+  renderFullscreen = () => {
+    return (
+      <div
+        style={style.WebClipping}
+        ref={(el: HTMLElement) => (this.webClippingEl = el)}
+      />
+    )
+  }
+
+  renderEmbed = () => {
+    return (
+      <div style={style.Preview.WebClipping}>
+        <img style={style.Preview.Icon} src={WebClippingIcon} />
+        <div style={style.Preview.TitleContainer}>
+          <div style={style.Preview.Title}>doc.title</div>
+        </div>
+      </div>
+    )
   }
 
   componentDidMount() {
@@ -79,9 +118,63 @@ class WebClipping extends Preact.Component<Props> {
 
     this.webClippingEl && (this.webClippingEl.innerHTML = htmlContent)
   }
+
+  onInputChange = (e: any) => {
+    this.setState({
+      urlInput: e.target.value,
+    })
+  }
+
+  onKeyDown = (e: KeyboardEvent) => {
+    e.stopPropagation()
+
+    if (e.key === "Enter") {
+      e.preventDefault()
+      this.props.change(doc => {
+        const input = this.state.urlInput
+        const url = input.indexOf("://") === -1 ? `http://${input}` : input
+        doc.url = url
+      })
+    }
+  }
+
+  onPaste = (e: ClipboardEvent) => {
+    e.stopPropagation()
+  }
 }
 
 const style = {
+  // XXX: names
+  UrlCard: {
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: "white",
+    boxSizing: "border-box",
+    overflow: "auto",
+    position: "relative",
+    padding: 12,
+    flex: "1 1 auto",
+    border: "1px solid var(--colorPaleGrey)",
+  },
+
+  urlInput: {
+    backgroundColor: "white",
+    padding: "4px",
+    height: 20,
+    flex: 1,
+    width: "calc(100% -32px)",
+  },
+  inputGroup: {
+    display: "flex",
+    flex: "1 0 auto",
+    alignItems: "center",
+  },
+  inputGroupIcon: {
+    fontSize: 24,
+    flex: "none",
+    color: "#637389",
+  },
+
   WebClipping: {
     width: "100%",
     height: "100%",
