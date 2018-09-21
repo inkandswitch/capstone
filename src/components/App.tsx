@@ -10,6 +10,7 @@ import "./Board"
 import "./Image"
 import "./NetworkActivity"
 import "./Text"
+import "./WebClipping"
 import "./Workspace"
 import "./Shelf"
 import * as Workspace from "./Workspace"
@@ -36,7 +37,7 @@ export default class App extends Preact.Component<{}, State> {
       const shelfUrl = await shelfUrlPromise
       const archiveUrl = await archiveUrlPromise
 
-      change((workspace : any) => {
+      change((workspace: any) => {
         if (!workspace.archiveUrl) {
           workspace.archiveUrl = archiveUrl
           workspace.shelfUrl = shelfUrl
@@ -63,7 +64,7 @@ export default class App extends Preact.Component<{}, State> {
   }
   render() {
     const { url } = this.state
-    console.log("APP RENDER",url)
+    console.log("APP RENDER", url)
     if (!url) {
       return null
     }

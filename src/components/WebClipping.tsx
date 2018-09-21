@@ -1,7 +1,5 @@
 import * as Preact from "preact"
-import { delay, clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
-import Pen, { PenEvent } from "./Pen"
 import Content, {
   DocumentActor,
   Message,
@@ -9,22 +7,14 @@ import Content, {
   DocumentCreated,
 } from "./Content"
 import * as Reify from "../data/Reify"
-import * as UUID from "../data/UUID"
 import { AnyDoc } from "automerge/frontend"
-import * as Position from "../logic/Position"
-import StrokeRecognizer, {
-  StrokeSettings,
-  InkStrokeEvent,
-  GlyphEvent,
-  Glyph,
-} from "./StrokeRecognizer"
-import Clipboard from "./Clipboard"
 
-const WebClippingIcon = require("../assets/WebClipping_icon.svg")
+const WebClippingIcon = require("../assets/board_icon.svg")
 
 const WEBCLIPPING_PADDING = 15
 
 export interface Model {
+  url: string
   title: string
   htmlContent: string
 }
@@ -43,6 +33,7 @@ class WebClipping extends Preact.Component<Props, State> {
 
   static reify(doc: AnyDoc): Model {
     return {
+      url: Reify.string(doc.url),
       title: Reify.string(doc.title),
       htmlContent: Reify.string(doc.htmlContent),
     }
@@ -75,7 +66,8 @@ class WebClipping extends Preact.Component<Props, State> {
             type="text"
             style={style.urlInput}
             value={this.state.urlInput}
-            onChange={this.onInputChange}
+            // xxx: this differs from react, where it's onChange. look more closely
+            onInput={this.onInputChange}
             onKeyDown={this.onKeyDown}
             onPaste={this.onPaste}
             placeholder="Enter a URL..."
