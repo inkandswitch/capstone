@@ -1,10 +1,10 @@
 import * as Preact from "preact"
 import Content, { DocumentActor } from "./Content"
 import { ShelfContents, ShelfContentsRequested } from "./Shelf"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
-import { AnyDoc } from "automerge"
+import { AnyDoc } from "automerge/frontend"
 
 interface Model {
   name: string
@@ -47,7 +47,7 @@ export class Identity extends Preact.Component<Props> {
     }
   }
 
-  onStroke = (stroke: Stroke) => {
+  onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
         this.props.emit({ type: "ShelfContentsRequested" })
@@ -75,7 +75,7 @@ export class Identity extends Preact.Component<Props> {
   renderFullscreen() {
     const { name, documents } = this.props.doc
     return (
-      <StrokeRecognizer onStroke={this.onStroke}>
+      <StrokeRecognizer onGlyph={this.onGlyph}>
         <div style={style.Identity}>
           <div style={style.Profile}>
             <input

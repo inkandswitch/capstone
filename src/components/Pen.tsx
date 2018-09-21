@@ -7,6 +7,7 @@ export type PenEvent = HammerInput
 
 interface Props {
   onDoubleTap?: (event: PenEvent) => void
+  onPanStart?: (event: PenEvent) => void
   onPanMove?: (event: PenEvent) => void
   onPanEnd?: (event: PenEvent) => void
 }
@@ -45,6 +46,7 @@ export default class Pen extends Handler<Props> {
       touchAction,
     })
     this.hammer.on("doubletap", this.handle("onDoubleTap"))
+    this.hammer.on("panstart", this.handle("onPanStart"))
     this.hammer.on("panmove", this.handle("onPanMove"))
     this.hammer.on("panend", this.handle("onPanEnd"))
   }

@@ -1,6 +1,11 @@
 import * as Preact from "preact"
-import { Doc, AnyDoc, ChangeFn } from "automerge"
-import Content, { WidgetProps, Message, MessageHandler, Mode } from "./Content"
+import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/frontend"
+import Content, {
+  WidgetProps,
+  Message,
+  Mode,
+  MessageHandlerClass,
+} from "./Content"
 
 export interface Props<T, M = never> {
   doc: Doc<T>
@@ -25,16 +30,16 @@ export function create<T, M extends Message = never>(
   type: string,
   WrappedComponent: WrappedComponentClass<T, M>,
   reify: (doc: AnyDoc) => T,
-  messageHandler?: MessageHandler,
+  messageHandler?: MessageHandlerClass,
 ) {
   const WidgetClass = class extends Preact.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
-    replaceDoc: (newDoc: any) => void
+    requestChanges: (ChangeFn: any) => void
 
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
-      this.replaceDoc = Content.open<T>(props.url, (doc: any) => {
+      this.requestChanges = Content.open<T>(props.url, (doc: any) => {
         this.setState({ doc })
       })
     }
@@ -54,7 +59,7 @@ export function create<T, M extends Message = never>(
         throw new Error("Cannot call change before the document has loaded.")
       }
 
-      this.replaceDoc(cb(this.state.doc))
+      this.requestChanges(cb)
     }
 
     render() {

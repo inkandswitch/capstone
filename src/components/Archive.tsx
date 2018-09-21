@@ -1,16 +1,15 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
 import Content from "./Content"
-import { AnyDoc, Doc } from "automerge"
+import { EditDoc, AnyDoc, Doc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
 import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
-  DocumentOpened,
   FullyFormedMessage,
   Message,
 } from "./Content"
@@ -47,29 +46,16 @@ type WidgetMessage =
   | CreateBoard
   | DocumentDeleted
 type InMessage = FullyFormedMessage<
-  WidgetMessage | DocumentOpened | DocumentCreated | ClearSelection
+  WidgetMessage | DocumentCreated | ClearSelection
 >
 type OutMessage = DocumentSelected | AddToShelf
 
 export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
-      case "DocumentOpened": {
-        // Rough
-        const { url } = message.body
-        const doc = this.doc.docs.find(doc => doc.url === url)
-        if (!doc) {
-          this.change(doc => {
-            doc.docs.unshift({ url })
-            return doc
-          })
-        }
-        break
-      }
       case "DocumentCreated": {
         this.change(doc => {
           doc.docs.unshift({ url: message.body })
-          return doc
         })
         break
       }
@@ -83,21 +69,22 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "CreateBoard": {
         const url = await Content.create("Board")
-        this.change(doc => {
+        this.change((doc: Doc<Model>) => {
+          console.log("CREATE BOARD", doc)
           doc.docs.unshift({ url: url })
           return doc
         })
         break
       }
       case "DocumentDeleted": {
-        this.change(doc => {
+        this.change((doc: Doc<Model>) => {
           remove(doc.docs, val => val.url === message.body.url)
           return doc
         })
         break
       }
       case "ClearSelection": {
-        this.change(doc => {
+        this.change((doc: Doc<Model>) => {
           doc.selected = []
           return doc
         })
@@ -122,7 +109,8 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onStroke = (stroke: Stroke) => {
+  onGlyph = (stroke: GlyphEvent) => {
+    console.log("create?", stroke)
     switch (stroke.glyph) {
       case Glyph.create: {
         this.props.emit({ type: "CreateBoard" })
@@ -131,7 +119,7 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onStrokeItem = (stroke: Stroke, url: string) => {
+  onGlyphItem = (stroke: GlyphEvent, url: string) => {
     switch (stroke.glyph) {
       case Glyph.copy: {
         this.props.emit({ type: "AddToShelf", body: { url } })
@@ -151,8 +139,9 @@ class Archive extends Preact.Component<Props> {
   render() {
     const { doc } = this.props
 
+    console.log("ARCHIVE", this.props)
     return (
-      <StrokeRecognizer onStroke={this.onStroke}>
+      <StrokeRecognizer onGlyph={this.onGlyph}>
         <div style={style.Archive}>
           <div style={style.Items}>
             {doc.docs.map(({ url }) => (
@@ -160,7 +149,7 @@ class Archive extends Preact.Component<Props> {
                 key={url}
                 url={url}
                 onDoubleTap={this.onDoubleTapItem}
-                onStroke={this.onStrokeItem}
+                onGlyph={this.onGlyphItem}
               />
             ))}
           </div>

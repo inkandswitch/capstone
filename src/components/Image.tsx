@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { AnyDoc } from "automerge"
+import { AnyDoc } from "automerge/frontend"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 

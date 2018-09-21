@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { clamp, isEmpty, size } from "lodash"
+import { delay, clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -12,10 +12,15 @@ import Content, {
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
-import { AnyDoc } from "automerge"
+import { AnyDoc } from "automerge/frontend"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, {
+  StrokeSettings,
+  InkStrokeEvent,
+  GlyphEvent,
+  Glyph,
+} from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -30,8 +35,14 @@ interface CardModel {
   url: string
 }
 
+export interface CanvasStroke {
+  settings: StrokeSettings
+  path: string
+}
+
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
+  strokes: CanvasStroke[]
   topZ: number
 }
 
@@ -105,11 +116,13 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 
 class Board extends Preact.Component<Props, State> {
   boardEl?: HTMLElement
+  strokesCanvasEl?: HTMLCanvasElement
   state = { focusedCardId: null }
 
   static reify(doc: AnyDoc): Model {
     return {
       cards: Reify.map(doc.cards),
+      strokes: Reify.array(doc.strokes),
       topZ: Reify.number(doc.topZ),
     }
   }
@@ -120,7 +133,9 @@ class Board extends Preact.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer onStroke={this.onStroke}>
+          <StrokeRecognizer
+            onGlyph={this.onGlyph}
+            onInkStroke={this.onInkStroke}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -145,6 +160,12 @@ class Board extends Preact.Component<Props, State> {
                     </DraggableCard>
                   )
                 })}
+                <canvas
+                  className="InkLayer"
+                  ref={(el: HTMLCanvasElement) => {
+                    this.strokesCanvasEl = el
+                  }}
+                />
                 {focusedCardId != null ? (
                   <div
                     style={{
@@ -174,16 +195,57 @@ class Board extends Preact.Component<Props, State> {
     }
   }
 
-  onCardStroke = (stroke: Stroke, id: string) => {
+  componentDidMount() {
+    this.drawStrokes()
+  }
+
+  componentDidUpdate() {
+    this.drawStrokes()
+  }
+
+  drawStrokes() {
+    const { strokes } = this.props.doc
+
+    this.strokesCanvasEl && (this.strokesCanvasEl.width = window.innerWidth)
+    this.strokesCanvasEl && (this.strokesCanvasEl.height = window.innerHeight)
+
+    const ctx = this.getDrawingContext()
+
+    if (!ctx || strokes.length == 0) return
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
+    strokes.forEach(stroke => this.drawStroke(stroke))
+  }
+
+  drawStroke(stroke: CanvasStroke) {
+    const ctx = this.getDrawingContext()
+    if (!ctx || stroke.path.length == 0) return
+
+    const path = new Path2D(stroke.path)
+
+    ctx.globalCompositeOperation = stroke.settings.globalCompositeOperation
+    ctx.strokeStyle = stroke.settings.strokeStyle
+    ctx.lineWidth = stroke.settings.lineWidth
+
+    ctx.stroke(path)
+  }
+
+  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
+    return this.strokesCanvasEl && this.strokesCanvasEl.getContext("2d")
+  }
+
+  onCardStroke = (stroke: GlyphEvent, id: string) => {
     switch (stroke.glyph) {
       case Glyph.delete:
         this.deleteCard(id)
+        this.flashFeedbackMessage("Delete card...")
         break
       case Glyph.copy: {
         const card = this.props.doc.cards[id]
         if (card) {
           this.props.emit({ type: "AddToShelf", body: { url: card.url } })
         }
+        this.flashFeedbackMessage("Adding card to shelf...")
         break
       }
       case Glyph.edit: {
@@ -199,9 +261,27 @@ class Board extends Preact.Component<Props, State> {
           return doc
         })
         this.setCardFocus(id)
+        this.flashFeedbackMessage("Editing card...")
+        break
+      }
+      default: {
+        this.flashFeedbackMessage("No command for glyph: ${stroke.name}...")
         break
       }
     }
+  }
+
+  flashFeedbackMessage(text: string) {
+    const div = document.createElement("div")
+    div.className = "DebugMessage"
+    const content = document.createTextNode(text)
+    div.appendChild(content)
+    document.body.appendChild(div)
+
+    const removeText = () => {
+      document.body.removeChild(div)
+    }
+    delay(removeText, 1000)
   }
 
   onVirtualKeyboardClose = () => {
@@ -258,7 +338,7 @@ class Board extends Preact.Component<Props, State> {
     this.clearCardFocus()
   }
 
-  onStroke = (stroke: Stroke) => {
+  onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
         this.props.emit({
@@ -283,10 +363,25 @@ class Board extends Preact.Component<Props, State> {
   }
 
   cardAtPoint = (x: number, y: number): CardModel | undefined => {
+    if (isNaN(x) || isNaN(y)) {
+      return undefined
+    }
     const el = document.elementFromPoint(x, y)
     const cardEl = el.closest(`.${CARD_CLASS}`)
     if (!cardEl || !cardEl.id) return
     return this.props.doc.cards[cardEl.id]
+  }
+
+  onInkStroke = (stroke: InkStrokeEvent) => {
+    this.props.change(doc => {
+      doc.strokes.push({
+        settings: stroke.settings,
+        path:
+          "M " +
+          stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
+      })
+      return doc
+    })
   }
 
   async createCard(type: string, x: number, y: number) {

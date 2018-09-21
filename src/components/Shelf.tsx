@@ -1,9 +1,9 @@
 import * as Preact from "preact"
 import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
-import { AnyDoc } from "automerge"
+import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
 
 interface Model {
@@ -84,7 +84,7 @@ class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     }
   }
 
-  onStroke = (stroke: Stroke) => {
+  onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.delete:
         this.props.emit({ type: "ClearShelf" })
@@ -98,7 +98,7 @@ class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     if (count <= 0) return null
 
     return (
-      <StrokeRecognizer onStroke={this.onStroke}>
+      <StrokeRecognizer onGlyph={this.onGlyph}>
         <div style={style.Shelf}>
           {selectedUrls.map((url, idx) => (
             <ShelfCard key={idx} url={url} index={idx} />
