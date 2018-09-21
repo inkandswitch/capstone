@@ -1,41 +1,37 @@
-export const RECURSIVE_MAX_DEPTH = 1000 // arbitrary
-
+// TODO: does these belong here?
 export function isString(obj: any) {
   return Object.prototype.toString.call(obj) === "[object String]"
 }
 export function isPlainObject(obj: any) {
   return Object.prototype.toString.call(obj) === "[object Object]"
 }
-export function isIterable(obj: any) {
-  return !!obj[Symbol.iterator]
-}
 
-// TODO: Does not check for loops - so just blow up at a max depth for now.
-export function recursiveDFS(
-  obj: any,
-  cb: (val: any) => void,
-  depth: number = 0,
-  maxDepth: number = RECURSIVE_MAX_DEPTH,
-) {
-  if (depth >= maxDepth) throw new Error(`Max depth exceeded: ${maxDepth}`)
+export const WARNING_STACK_SIZE = 1
+export type selectFn = (obj: any) => boolean
 
-  if (isIterable(obj) && !isString(obj)) {
-    const iterator = obj[Symbol.iterator]()
-    let next = iterator.next()
-    while (!next.done) {
-      // Hack to handle Map iteration, which returns an array of [key, value]
-      const val = Array.isArray(next.value) ? next.value[1] : next.value
-      recursiveDFS(val, cb, depth + 1, maxDepth)
-      next = iterator.next()
+// TODO: no cycle detection. Not a huge deal atm because this is currently
+// used for finding document links within a single document. Cycles within
+// a document are unlikely, even though cycles across/between documents is common.
+export function iterativeDFS(root: any, select: selectFn): any[] {
+  const stack = [root]
+  const results: any[] = []
+  while (stack.length) {
+    // No cycle detection, so at least leave a trace if something might be going wrong.
+    if (stack.length > WARNING_STACK_SIZE) {
+      console.log(
+        "Traverse.iterativeDFS large stack size warning.",
+        `Stack size: ${stack.length}`,
+        root,
+      )
     }
-  } else if (isPlainObject(obj)) {
-    // Note, does not iterate over Symbols.
-    for (let prop in obj) {
-      if (obj.hasOwnProperty(prop)) {
-        recursiveDFS(obj[prop], cb, depth + 1, maxDepth)
-      }
+    const obj = stack.pop()
+    if (isPlainObject(obj)) {
+      Object.keys(obj).forEach((key: any) => stack.push(obj[key]))
+    } else if (obj.forEach) {
+      obj.forEach((val: any) => stack.push(val))
+    } else if (select(obj)) {
+      results.push(obj)
     }
-  } else {
-    cb(obj)
   }
+  return results
 }

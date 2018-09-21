@@ -1,48 +1,37 @@
 import * as Link from "./Link"
 import * as Traverse from "../logic/Traverse"
 
+type handlesCache = { [docId: string]: any }
+
 export class Prefetcher {
   hypermerge: any
-  handles: { [docId: string]: any }
+  handles: handlesCache
 
-  constructor(hypermerge: any, handlesCache: { [docId: string]: any }) {
+  constructor(hypermerge: any, handles: handlesCache) {
     this.hypermerge = hypermerge
-    this.handles = handlesCache
+    this.handles = handles
   }
 
-  onDocumentUpdate = (docId: string) => {
-    console.log("Document updated", docId)
-    const front = this.getDocFront(docId)
-    Traverse.recursiveDFS(front, this.ensureLinkedDocumentsAreOpen)
-  }
-
-  getDocFront(id: string) {
-    const handle = this.getHandle(id)
-    return handle._front
-  }
-
-  ensureLinkedDocumentsAreOpen = (val: any) => {
-    if (!this.isDocumentLink(val)) return
-
-    const { id } = Link.parse(val)
-    this.ensureOpen(id)
+  onDocumentUpdate = (doc: any) => {
+    // TODO: we parse links twice - once in `isDocumentLink` and once in `ensureDocumentIsOpen`
+    // TODO: Use plugin-specific prefetch functions, using iterativeDFS only as a fallback.
+    const documentLinks = Traverse.iterativeDFS(doc, this.isDocumentLink)
+    documentLinks.forEach(this.ensureDocumentIsOpen)
   }
 
   isDocumentLink(val: any) {
     return Traverse.isString(val) && Link.isValidLink(val)
   }
 
-  ensureOpen(id: string) {
-    console.log("Ensuring document is open", id)
+  ensureDocumentIsOpen = (val: any) => {
+    const { id } = Link.parse(val)
     this.getHandle(id)
   }
 
   getHandle(id: string) {
     if (!this.handles[id]) {
-      // Hack to set up front
       const handle = this.hypermerge.openHandle(id)
-      handle._isManagingFront = true
-      handle._setupFront()
+      handle.onChange(this.onDocumentUpdate)
       this.handles[id] = handle
     }
     return this.handles[id]

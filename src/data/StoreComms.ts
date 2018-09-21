@@ -1,6 +1,4 @@
 import { Hypermerge } from "../modules/hypermerge"
-import * as Iterate from "../logic/Traverse"
-import * as Link from "../data/Link"
 import * as Prefetch from "../data/Prefetch"
 
 const Debug = require("debug")
@@ -9,14 +7,13 @@ const log = Debug("store:coms")
 export default class StoreComms {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
+  prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge) {
     this.hypermerge = hm
     ;(window as any).hm = this.hypermerge
     this.hypermerge.joinSwarm({ chrome: true })
-
-    const prefetcher = new Prefetch.Prefetcher(this.hypermerge, this.docHandles)
-    this.hypermerge.addListener("document:updated", prefetcher.onDocumentUpdate)
+    this.prefetcher = new Prefetch.Prefetcher(this.hypermerge, this.docHandles)
   }
 
   onConnect = (port: chrome.runtime.Port) => {
@@ -25,7 +22,12 @@ export default class StoreComms {
 
     switch (mode) {
       case "changes": {
-        let handle = this.hypermerge.openHandle(docId)
+        if (!this.docHandles[docId]) {
+          const handle = this.hypermerge.openHandle(docId)
+          handle.onChange(this.prefetcher.onDocumentUpdate)
+          this.docHandles[docId] = handle
+        }
+        const handle = this.docHandles[docId]
 
         port.onMessage.addListener((changes: any) => {
           handle.applyChanges(changes)
