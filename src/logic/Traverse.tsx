@@ -6,7 +6,7 @@ export function isPlainObject(obj: any) {
   return Object.prototype.toString.call(obj) === "[object Object]"
 }
 
-export const WARNING_STACK_SIZE = 1
+export const WARNING_STACK_SIZE = 1000
 export type selectFn = (obj: any) => boolean
 
 // TODO: no cycle detection. Not a huge deal atm because this is currently
