@@ -212,7 +212,9 @@ class IdentityBadge extends Preact.Component<IdentityBadgeProps> {
 
 const style = {
   preview: {
-    Identity: {},
+    Identity: {
+      height: 100,
+    },
   },
   Identity: {
     display: "flex",
@@ -225,7 +227,7 @@ const style = {
   Profile: {
     border: "1px solid #aaa",
     marginBottom: 25,
-    height: 100,
+    height: 125,
   },
   IdentityBadge: {
     padding: 10,
@@ -276,9 +278,7 @@ const style = {
     objectFit: "cover",
     pointerEvents: "none",
     display: "block",
-    maxWidth: "100%",
     maxHeight: "100%",
-    height: "100%",
   },
 }
 

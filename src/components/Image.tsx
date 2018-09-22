@@ -29,12 +29,7 @@ const style = {
     objectFit: "cover",
     pointerEvents: "none",
     display: "block",
-    // width: "auto",
-    // height: "auto",
-    maxWidth: "100%",
     maxHeight: "100%",
-    height: "100%",
-    width: "100%",
   },
 }
 
