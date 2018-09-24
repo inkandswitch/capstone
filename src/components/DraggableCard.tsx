@@ -3,7 +3,7 @@ import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import Touch, { TouchEvent } from "./Touch"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 
 interface CardModel {
   id: string
