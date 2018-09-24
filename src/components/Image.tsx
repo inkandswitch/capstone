@@ -30,6 +30,7 @@ const style = {
     pointerEvents: "none",
     display: "block",
     maxHeight: "100%",
+    maxWidth: "100%",
   },
 }
 

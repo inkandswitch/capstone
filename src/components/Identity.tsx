@@ -6,7 +6,7 @@ import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
-const anonymousIcon = require("../assets/anonymous.svg")
+import IdentityBadge from "./IdentityBadge"
 
 interface Model {
   name: string
@@ -157,59 +157,6 @@ export class Identity extends Preact.Component<Props, State> {
   }
 }
 
-interface IdentityBadgeProps {
-  avatarUrl: string
-  name: string
-  isEditing?: boolean
-  onChange?: (e: Event) => void
-}
-
-class IdentityBadge extends Preact.Component<IdentityBadgeProps> {
-  inputEl?: HTMLElement
-
-  componentDidMount() {
-    if (this.inputEl && this.props.isEditing) {
-      this.inputEl.focus()
-    }
-  }
-
-  componentDidUpdate(prevProps: IdentityBadgeProps) {
-    if (this.inputEl && this.props.isEditing && !prevProps.isEditing) {
-      this.inputEl.focus()
-    }
-  }
-
-  render() {
-    const {
-      avatarUrl,
-      name,
-      isEditing = false,
-      onChange = () => {},
-    } = this.props
-    return (
-      <div style={style.IdentityBadge}>
-        <div style={style.IdentityBadgeAvatar}>
-          {avatarUrl ? (
-            <Content mode="embed" url={avatarUrl} />
-          ) : (
-            <img src={anonymousIcon} style={style.AnonymousImage} />
-          )}
-        </div>
-        <div style={style.IdentityBadgeName}>
-          <input
-            ref={el => (this.inputEl = el)}
-            readOnly={!isEditing}
-            style={style.NameInput}
-            onInput={onChange}
-            value={name}
-            placeholder={"Anonymous"}
-          />
-        </div>
-      </div>
-    )
-  }
-}
-
 const style = {
   preview: {
     Identity: {
@@ -228,29 +175,6 @@ const style = {
     border: "1px solid #aaa",
     marginBottom: 25,
     height: 125,
-  },
-  IdentityBadge: {
-    padding: 10,
-    display: "inline-flex",
-    height: "100%",
-    alignItems: "center",
-  },
-  IdentityBadgeAvatar: {
-    border: "3px solid #333",
-    borderRadius: 999,
-    overflow: "hidden",
-    height: "100%",
-  },
-  IdentityBadgeName: {
-    marginLeft: 10,
-  },
-  NameInput: {
-    fontWeight: 700,
-    fontSize: "larger",
-    border: 0,
-    margin: 0,
-    padding: 0,
-    outline: 0,
   },
   Documents: {
     flexGrow: 1,
@@ -272,13 +196,6 @@ const style = {
     background: "#fff",
     overflow: "hidden",
     maxHeight: "100%'",
-  },
-  // Match `Image.tsx` style
-  AnonymousImage: {
-    objectFit: "cover",
-    pointerEvents: "none",
-    display: "block",
-    maxHeight: "100%",
   },
 }
 
