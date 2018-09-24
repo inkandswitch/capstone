@@ -1,5 +1,6 @@
 import * as Link from "./Link"
 import * as Traverse from "../logic/Traverse"
+import { isString } from "lodash"
 
 type handlesCache = { [docId: string]: any }
 
@@ -20,7 +21,7 @@ export class Prefetcher {
   }
 
   isDocumentLink(val: any) {
-    return Traverse.isString(val) && Link.isValidLink(val)
+    return isString(val) && Link.isValidLink(val)
   }
 
   ensureDocumentIsOpen = (val: any) => {

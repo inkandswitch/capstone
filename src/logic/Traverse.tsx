@@ -1,10 +1,4 @@
-// TODO: does these belong here?
-export function isString(obj: any) {
-  return Object.prototype.toString.call(obj) === "[object String]"
-}
-export function isPlainObject(obj: any) {
-  return Object.prototype.toString.call(obj) === "[object Object]"
-}
+import { isPlainObject } from "lodash"
 
 export const WARNING_STACK_SIZE = 1000
 export type selectFn = (obj: any) => boolean
@@ -26,7 +20,7 @@ export function iterativeDFS(root: any, select: selectFn): any[] {
     }
     const obj = stack.pop()
     if (isPlainObject(obj)) {
-      Object.keys(obj).forEach((key: any) => stack.push(obj[key]))
+      Object.values(obj).forEach((val: any) => stack.push(val))
     } else if (obj.forEach) {
       obj.forEach((val: any) => stack.push(val))
     } else if (select(obj)) {
