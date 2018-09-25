@@ -70,8 +70,8 @@ export default class App extends Preact.Component<{}, State> {
     return (
       <Root store={Content.store}>
         <div style={style.App}>
-          <Feedback.Renderer />
           <Content mode="fullscreen" url={url} />
+          <Feedback.Renderer />
         </div>
       </Root>
     )

@@ -23,6 +23,7 @@ import StrokeRecognizer, {
   Glyph,
 } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
+import * as Feedback from "./CommandFeedback"
 
 const boardIcon = require("../assets/board_icon.svg")
 
@@ -195,17 +196,18 @@ class Board extends Preact.Component<Props, State> {
     switch (stroke.glyph) {
       case Glyph.delete:
         this.deleteCard(id)
-        this.flashFeedbackMessage("Delete card...")
+        Feedback.Provider.add("Delete card...")
         break
       case Glyph.copy: {
         const card = this.props.doc.cards[id]
         if (card) {
           this.props.emit({ type: "AddToShelf", body: { url: card.url } })
         }
-        this.flashFeedbackMessage("Adding card to shelf...")
+        Feedback.Provider.add("Adding card to shelf...")
         break
       }
       case Glyph.edit: {
+        Feedback.Provider.add("Editing card...")
         if (this.state.focusedCardId != null) return
         if (!this.props.doc.cards[id]) return
 
@@ -218,27 +220,14 @@ class Board extends Preact.Component<Props, State> {
           return doc
         })
         this.setCardFocus(id)
-        this.flashFeedbackMessage("Editing card...")
+        Feedback.Provider.add("Editing card...")
         break
       }
       default: {
-        this.flashFeedbackMessage("No command for glyph: ${stroke.name}...")
+        Feedback.Provider.add("No command for glyph: ${stroke.name}...")
         break
       }
     }
-  }
-
-  flashFeedbackMessage(text: string) {
-    const div = document.createElement("div")
-    div.className = "DebugMessage"
-    const content = document.createTextNode(text)
-    div.appendChild(content)
-    document.body.appendChild(div)
-
-    const removeText = () => {
-      document.body.removeChild(div)
-    }
-    delay(removeText, 1000)
   }
 
   onVirtualKeyboardClose = () => {
@@ -298,6 +287,7 @@ class Board extends Preact.Component<Props, State> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
+        Feedback.Provider.add(`Paste from shelf...`)
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {

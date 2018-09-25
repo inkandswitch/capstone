@@ -1,9 +1,8 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
 import Content from "./Content"
-import { EditDoc, AnyDoc, Doc } from "automerge/frontend"
+import { AnyDoc, Doc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
 import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
 import { remove } from "lodash"
@@ -14,6 +13,7 @@ import {
   Message,
 } from "./Content"
 import { AddToShelf } from "./Shelf"
+import * as Feedback from "./CommandFeedback"
 
 export interface Model {
   docs: Array<{
@@ -110,9 +110,9 @@ class Archive extends Preact.Component<Props> {
   }
 
   onGlyph = (stroke: GlyphEvent) => {
-    console.log("create?", stroke)
     switch (stroke.glyph) {
       case Glyph.create: {
+        Feedback.Provider.add(`Create board...`)
         this.props.emit({ type: "CreateBoard" })
         break
       }
@@ -122,10 +122,12 @@ class Archive extends Preact.Component<Props> {
   onGlyphItem = (stroke: GlyphEvent, url: string) => {
     switch (stroke.glyph) {
       case Glyph.copy: {
+        Feedback.Provider.add(`Add to shelf...`)
         this.props.emit({ type: "AddToShelf", body: { url } })
         break
       }
       case Glyph.delete: {
+        Feedback.Provider.add(`Delete document...`)
         this.props.emit({ type: "DocumentDeleted", body: { url } })
         break
       }
@@ -139,7 +141,6 @@ class Archive extends Preact.Component<Props> {
   render() {
     const { doc } = this.props
 
-    console.log("ARCHIVE", this.props)
     return (
       <StrokeRecognizer onGlyph={this.onGlyph}>
         <div style={style.Archive}>
