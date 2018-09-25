@@ -44,6 +44,14 @@ class DocHandle {
     }
   }
 
+  toString(cb, spaces = null) {
+    if (this._back) {
+      return JSON.stringify(this._front ||  Frontend.applyPatch(Frontend.init("_"), Backend.getPatch(this._back)), undefined, spaces)
+    } else {
+      return 'null'
+    }
+  }
+
   onPatch(cb) {
     this._onpatch = cb
     if (this._back) {
