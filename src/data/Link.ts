@@ -52,7 +52,7 @@ export const isValidCrc = ({
   return crcOf(nonCrc) === crc
 }
 
-export const isValidLink = (val: string) => {
+export const isValidLink = (val: string): boolean => {
   try {
     parse(val)
   } catch {

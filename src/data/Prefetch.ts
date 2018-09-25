@@ -17,15 +17,18 @@ export class Prefetcher {
   onDocumentUpdate = (doc: any) => {
     // TODO: we parse links twice - once in `isDocumentLink` and once in `ensureDocumentIsOpen`
     // TODO: Use plugin-specific prefetch functions, using iterativeDFS only as a fallback.
-    const documentLinks = Traverse.iterativeDFS(doc, this.isDocumentLink)
+    const documentLinks = Traverse.iterativeDFS<string>(
+      doc,
+      this.isDocumentLink,
+    )
     documentLinks.forEach(this.ensureDocumentIsOpen)
   }
 
-  isDocumentLink(val: any) {
+  isDocumentLink(val: unknown): boolean {
     return isString(val) && Link.isValidLink(val)
   }
 
-  ensureDocumentIsOpen = (val: any) => {
+  ensureDocumentIsOpen = (val: string) => {
     const { id, type } = Link.parse(val)
     this.getHandle(id)
   }
