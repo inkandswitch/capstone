@@ -28,7 +28,7 @@ export default class StoreComms {
           // IMPORTANT: the handle must be cached in `this.docHandles` before setting the onChange
           // callback. The `onChange` callback is invoked as soon as it is set, in the same tick.
           // This can cause infinite loops if the handlesCache isn't set.
-          handle.onChange(this.prefetcher.onDocumentUpdate)
+          setImmediate(() => handle.onChange(this.prefetcher.onDocumentUpdate))
         }
         const handle = this.docHandles[docId]
 
