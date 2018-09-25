@@ -163,8 +163,8 @@ class DocHandle {
 }
 
 function initHypermerge(ops, cb) {
-  chrome.storage.local.get("userAgent", (user) => { // thos os capstone specific - we have many app entries
-    ops.user = user
+  chrome.storage.local.get("userAgent", (result) => { // thos os capstone specific - we have many app entries
+    ops.user = result.userAgent
     let doc = new Hypermerge(ops)
     doc.ready.then(cb)
   })
