@@ -12,8 +12,12 @@ global.docs = (id : any, flags = "") => {
       if (docId.startsWith(id)) {
           // copy to clipboard
           let handle = global.sm.docHandles[docId]
+          let _peers = handle.__actorIds().reduce((acc : any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
+
+          let peers = _peers.filter((p: any) => !!p.user)
 
           if (flags.includes("c")) {
+            console.log(`%c begin copy...`, "color: green");
             const el = document.createElement('textarea');
             el.value = JSON.stringify(global.sm.debugLogs[docId])
             const len = el.value.length
@@ -27,16 +31,31 @@ global.docs = (id : any, flags = "") => {
             console.log(`%c ${len} characters copied to clipboard`, "color: green");
           }
 
+          if (flags.includes("p")) {
+            peers.forEach((p : any) => {
+              let age = Date.now() - p.synTime
+              let stats = age < 10000 ? "connected" : "disconnected"
+              let red = "color: red"
+              let green = "color: green"
+              let black = "color: black"
+              let statusColor = age < 10000 ? green : red;
+              console.log(`${_peers.length} total connections`)
+              console.log(`user=%c"${p.user}"%c doc=%c"${p.docId.slice(0,5)}"%c status=%c'${stats}'%c" lastSyn=%c"${age}"`, red, black, red, black, statusColor, black, red, black, red)
+            })
+          }
+
           if (flags.includes("j")) {
             console.log(handle.toString(4))
           }
 
-          // doc detail
-          console.log("DocId: - %c " + docId, "color: blue")
-          //console.log(JSON.parse(handle.toString(4)))
-          console.log("ActorIds:", handle.__actorIds())
-          let peers = handle.__actorIds().reduce((acc : any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
-          console.log("Peers:", peers)
+          if (flags == "") {
+            // doc detail
+            console.log("DocId: - %c " + docId, "color: blue")
+            console.log("Document: ", handle)
+            //console.log(JSON.parse(handle.toString(4)))
+            console.log("ActorIds:", handle.__actorIds())
+            console.log("Peers:", _peers)
+          }
       }
     }
   } else {
@@ -45,12 +64,13 @@ global.docs = (id : any, flags = "") => {
       let body = handle.toString()
       let peers = handle.__actorIds().reduce((acc: any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
       if (body.length > 40) body = body.slice(0,37) + "..."
-      console.log(docId.slice(0,5) + " : " + peers.length + " peers, '" + body + "'")
-      console.log("USAGE:")
-      console.log(" docs(docid) - get detailed info on a doc")
-      console.log(" docs(docid, 'j') - also include a json dump of the document")
-      console.log(" docs(docid, 'c') - also copy automerge history to clipboard")
-      console.log(" docs(docid, 'jc') - do both")
+      console.log("%c " + docId.slice(0,5), "color: blue", " : " + peers.length + " peers, '" + body + "'",)
+      console.log("%c USAGE:", "color: green")
+      console.log("%c  docs(docid) - get detailed summary", "color: green")
+      console.log("%c  docs(docid, 'j') - show a json dump of the document", "color: green")
+      console.log("%c  docs(docid, 'c') - copy automerge history to clipboard", "color: green")
+      console.log("%c  docs(docid, 'p') - show peer and connectivity info", "color: green")
+      console.log("%c  docs(docid, 'jcp') - do all there", "color: green")
     }
   }
 }
