@@ -187,6 +187,8 @@ class Hypermerge extends EventEmitter {
     this.requestedBlocks = {} // docId -> actorId -> blockIndex (exclusive)
     this.appliedSeqs = {} // actorId -> seq -> Boolean
 
+    this._swarmStats = { }
+
     this.core = new Multicore(storage)
 
     this.ready = new Promise(resolve => {
@@ -273,8 +275,18 @@ class Hypermerge extends EventEmitter {
 
     this.swarm.once("error", err => {
       log("joinSwarm.error", err)
+      this._swarmStats["error"] = err
       this.swarm.listen(opts.port)
     })
+
+    const signals = ["handshaking", "handshake-timeout", "listening", "connecting", "connect-failed", "connection", "close", "redundant-connection", "peer", "peer-rejected", "drop", "peer-banned", "connection-closed","connect-failed"]
+    signals.forEach(signal => {
+      this._swarmStats[signal] = 0
+      this.swarm.on(signal, (arg1, arg2) => {
+        this._swarmStats[signal] += 1
+      })
+    })
+
 
     return this
   }
