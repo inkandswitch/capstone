@@ -1,7 +1,6 @@
 import * as Preact from "preact"
 
 import Store from "../data/Store"
-import * as Link from "../data/Link"
 import Root from "./Root"
 import Content from "./Content"
 
@@ -12,6 +11,7 @@ import "./NetworkActivity"
 import "./Text"
 import "./Workspace"
 import "./Shelf"
+import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 
 // Used for debugging from the console:
@@ -36,7 +36,7 @@ export default class App extends Preact.Component<{}, State> {
       const shelfUrl = await shelfUrlPromise
       const archiveUrl = await archiveUrlPromise
 
-      change((workspace : any) => {
+      change((workspace: any) => {
         if (!workspace.archiveUrl) {
           workspace.archiveUrl = archiveUrl
           workspace.shelfUrl = shelfUrl
@@ -63,13 +63,14 @@ export default class App extends Preact.Component<{}, State> {
   }
   render() {
     const { url } = this.state
-    console.log("APP RENDER",url)
+    console.log("APP RENDER", url)
     if (!url) {
       return null
     }
     return (
       <Root store={Content.store}>
         <div style={style.App}>
+          <Feedback.Renderer />
           <Content mode="fullscreen" url={url} />
         </div>
       </Root>
