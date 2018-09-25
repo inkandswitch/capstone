@@ -3,9 +3,9 @@ import * as Widget from "./Widget"
 import Content from "./Content"
 import { EditDoc, AnyDoc, Doc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
+import { Glyph } from "../data/Glyph"
 import ArchiveItem from "./ArchiveItem"
-import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import { remove } from "lodash"
 import {
   DocumentActor,

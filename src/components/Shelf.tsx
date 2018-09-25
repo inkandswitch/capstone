@@ -1,9 +1,10 @@
 import * as Preact from "preact"
 import * as Reify from "../data/Reify"
+import { Glyph } from "../data/Glyph"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
-import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
 
 interface Model {

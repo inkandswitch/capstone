@@ -2,8 +2,9 @@ import * as Preact from "preact"
 import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
+import { Glyph } from "../data/Glyph"
 import Touch, { TouchEvent } from "./Touch"
-import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 
 interface CardModel {
   id: string

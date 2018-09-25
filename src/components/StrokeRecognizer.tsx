@@ -1,5 +1,6 @@
 import * as Preact from "preact"
 import * as $P from "../modules/$P"
+import * as Glyph from "../data/Glyph"
 import Pen, { PenEvent } from "./Pen"
 import { delay } from "lodash"
 const templates = require("../modules/$P/glyph-templates.json")
@@ -12,7 +13,7 @@ interface Bounds {
 }
 
 export interface GlyphEvent {
-  glyph: Glyph
+  glyph: Glyph.Glyph
   name: string
   bounds: Bounds
   center: { x: number; y: number }
@@ -39,17 +40,7 @@ const EMPTY_BOUNDS: Bounds = {
   left: Infinity,
 }
 
-export enum Glyph {
-  unknown = 0,
-  copy,
-  paste,
-  delete,
-  create,
-  edit,
-}
-
 enum StrokeType {
-  unknown = 0,
   ink,
   erase,
   glyph,
@@ -59,22 +50,30 @@ export interface StrokeSettings {
   readonly globalCompositeOperation: string
   readonly strokeStyle: string
   readonly lineWidth: number
+  readonly lineCap: string
+  readonly lineJoin: string
 }
 
 const StrokeSettings: { [st: number]: StrokeSettings } = {
   [StrokeType.ink]: {
     globalCompositeOperation: "source-over",
     strokeStyle: "black",
+    lineCap: "round",
+    lineJoin: "round",
     lineWidth: 4,
   },
   [StrokeType.erase]: {
     globalCompositeOperation: "destination-out",
     strokeStyle: "LightCoral",
+    lineCap: "round",
+    lineJoin: "round",
     lineWidth: 12,
   },
   [StrokeType.glyph]: {
     globalCompositeOperation: "source-over",
     strokeStyle: "SkyBlue",
+    lineCap: "round",
+    lineJoin: "round",
     lineWidth: 4,
   },
 }
@@ -91,7 +90,11 @@ const $P_RECOGNIZER = new $P.Recognizer()
   }
 })()
 
-export default class StrokeRecognizer extends Preact.Component<Props> {
+interface State {
+  strokeType: StrokeType
+}
+
+export default class StrokeRecognizer extends Preact.Component<Props, State> {
   canvasElement?: HTMLCanvasElement
   isPenDown: boolean
 
@@ -102,30 +105,42 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   recognizer: $P.Recognizer = $P_RECOGNIZER
   points: $P.Point[] = []
-  strokeType: StrokeType = StrokeType.unknown
   strokeId = 0
   lastDrawnPoint = 1 // the boundary case is to move to the 0th point and draw to the 1st
   bounds: Bounds = EMPTY_BOUNDS
 
-  render() {
-    return (
-      <Pen
-        onPanStart={this.onPanStart}
-        onPanMove={this.onPanMove}
-        onPanEnd={this.onPanEnd}>
-        {this.props.children}
-      </Pen>
-    )
-  }
+  state = { strokeType: StrokeType.glyph }
 
-  onPanStart = (event: PenEvent) => {
-    if (event.srcEvent.ctrlKey == true) {
-      this.strokeType = StrokeType.glyph
-    } else if (event.srcEvent.altKey == true) {
-      this.strokeType = StrokeType.erase
-    } else {
-      this.strokeType = StrokeType.ink
-    }
+  render() {
+    const { strokeType } = this.state
+
+    return (
+      <div style={{ display: "contents" }}>
+        <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
+          {this.props.children}
+        </Pen>
+        <div style={{ position: "fixed", bottom: 0, left: 0 }}>
+          <Option
+            label="Glyphs"
+            value={StrokeType.glyph}
+            selected={strokeType === StrokeType.glyph}
+            onChange={this.onStrokeTypeChange}
+          />
+          <Option
+            label="Ink"
+            value={StrokeType.ink}
+            selected={strokeType === StrokeType.ink}
+            onChange={this.onStrokeTypeChange}
+          />
+          <Option
+            label="Erase"
+            value={StrokeType.erase}
+            selected={strokeType === StrokeType.erase}
+            onChange={this.onStrokeTypeChange}
+          />
+        </div>
+      </div>
+    )
   }
 
   onPanMove = (event: PenEvent) => {
@@ -142,31 +157,32 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 1
-    switch (this.strokeType) {
+    switch (this.state.strokeType) {
       case StrokeType.glyph:
         this.recognize()
         break
       case StrokeType.ink:
-        this.ink()
+        this.inkStroke()
         break
       case StrokeType.erase:
-        this.erase()
+        this.inkStroke()
         break
     }
     this.reset()
   }
 
-  erase = () => this.inkStroke(true)
-  ink = () => this.inkStroke(false)
-
-  inkStroke = (isErase: boolean) => {
+  inkStroke = () => {
     if (!this.props.onInkStroke) {
       return
     }
     this.props.onInkStroke({
       points: this.points,
-      settings: StrokeSettings[this.strokeType],
+      settings: StrokeSettings[this.state.strokeType],
     })
+  }
+
+  onStrokeTypeChange = (strokeType: StrokeType = StrokeType.glyph) => {
+    this.setState({ strokeType })
   }
 
   _recognize = () => {
@@ -178,7 +194,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
     if (result.Score > 0 && result.Score < maxScore) {
       //this.flashDebugMessage(`I'm a ${result.Name}`)
-      const glyph = this.mapResultNameToGlyph(result.Name)
+      const glyph = Glyph.fromTemplateName(result.Name)
       this.props.onGlyph({
         glyph: glyph,
         name: result.Name,
@@ -191,25 +207,6 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
   }
 
   recognize = this._recognize //debounce(this._recognize, this.props.delay)
-
-  mapResultNameToGlyph(originalName: string): Glyph {
-    switch (originalName) {
-      case "x-left":
-      case "x-right":
-      case "x-top":
-      case "x-bottom":
-        return Glyph.delete
-      case "caret":
-        return Glyph.copy
-      case "v":
-        return Glyph.paste
-      case "rectangle":
-        return Glyph.create
-      case "circle":
-        return Glyph.edit
-    }
-    return Glyph.unknown
-  }
 
   center() {
     const b = this.bounds
@@ -231,7 +228,6 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   reset() {
     this.points = []
-    this.strokeType = StrokeType.unknown
     this.strokeId = 0
     this.bounds = EMPTY_BOUNDS
     this.stopDrawing()
@@ -273,11 +269,10 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     const ctx = this.getDrawingContext()
     if (!ctx || this.points.length < 2) return
 
-    ctx.lineWidth = StrokeSettings[this.strokeType].lineWidth
-    ctx.strokeStyle = StrokeSettings[this.strokeType].strokeStyle
+    Object.assign(ctx, StrokeSettings[this.state.strokeType])
 
     let point = this.points[this.lastDrawnPoint - 1]
-    ctx.moveTo(point.X, point.Y)
+    if (this.lastDrawnPoint === 0) ctx.moveTo(point.X, point.Y)
 
     for (
       this.lastDrawnPoint;
@@ -305,5 +300,37 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
       document.body.removeChild(div)
     }
     delay(removeText, 1000)
+  }
+}
+
+interface OptionProps<T> {
+  label: Preact.ComponentChildren
+  value: T
+  selected: boolean
+  onChange: (value?: T) => void
+}
+
+class Option<T> extends Preact.Component<OptionProps<T>> {
+  render() {
+    const { label, value, selected, onChange } = this.props
+
+    return (
+      <label
+        style={{ display: "flex", alignItems: "center" }}
+        onContextMenu={this.onContextMenu}>
+        <input
+          type="radio"
+          checked={selected}
+          onPointerDown={() => onChange(value)}
+          onPointerUp={() => onChange()}
+          style={{ height: 60, width: 60, color: "pink" }}
+        />
+        {label}
+      </label>
+    )
+  }
+
+  onContextMenu = (event: Event) => {
+    event.preventDefault()
   }
 }

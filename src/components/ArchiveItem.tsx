@@ -1,6 +1,7 @@
 import * as Preact from "preact"
 import Content from "./Content"
-import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
+import { Glyph } from "../data/Glyph"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import Touch from "./Touch"
 
 interface ArchiveItemProps {
