@@ -33,6 +33,7 @@ global.docs = (id : any, flags = "") => {
 
           if (flags.includes("p")) {
             console.log(`${_peers.length} total connections`)
+            console.log(global.hm._swarmStats)
             peers.forEach((p : any) => {
               let age = Date.now() - p.synTime
               let stats = age < 10000 ? "connected" : "disconnected"
