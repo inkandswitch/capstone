@@ -44,7 +44,11 @@ class DocHandle {
     }
   }
 
-  toString(cb, spaces = null) {
+  __actorIds() {
+    return this.hm.docIndex[this.docId] || []
+  }
+
+  toString(spaces = null) {
     if (this._back) {
       return JSON.stringify(this._front ||  Frontend.applyPatch(Frontend.init("_"), Backend.getPatch(this._back)), undefined, spaces)
     } else {
