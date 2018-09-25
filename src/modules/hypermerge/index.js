@@ -888,7 +888,9 @@ class Hypermerge extends EventEmitter {
         const keys = this._relatedKeys(actorId)
         this._messagePeer(peer, { type: "FEEDS_SHARED", keys })
 
+        peer.synTime = Date.now()
         peer.interval = setInterval(() => {
+          console.log("Sending SYN");
           this._messagePeer(peer, { type: "SYN", user: this.user })
         }, SYN_TIME)
     
@@ -908,7 +910,7 @@ class Hypermerge extends EventEmitter {
 
   _onPeerRemoved(actorId) {
     return peer => {
-      console.log("SYN clear interval",peer,interval)
+      console.log("SYN clear interval",peer,peer.interval)
       clearInterval(peer.interval)
       this._loadMetadata(actorId).then(() => {
         if (!this._isDocId(actorId)) {
