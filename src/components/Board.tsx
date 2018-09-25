@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { clamp, isEmpty, size } from "lodash"
+import { delay, clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
@@ -12,10 +12,16 @@ import Content, {
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
+import Ink from "./Ink"
 import { AnyDoc } from "automerge/frontend"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, {
+  StrokeSettings,
+  InkStrokeEvent,
+  GlyphEvent,
+  Glyph,
+} from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -30,8 +36,14 @@ interface CardModel {
   url: string
 }
 
+export interface CanvasStroke {
+  settings: StrokeSettings
+  path: string
+}
+
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
+  strokes: CanvasStroke[]
   topZ: number
 }
 
@@ -111,17 +123,20 @@ class Board extends Preact.Component<Props, State> {
   static reify(doc: AnyDoc): Model {
     return {
       cards: Reify.map(doc.cards),
+      strokes: Reify.array(doc.strokes),
       topZ: Reify.number(doc.topZ),
     }
   }
 
   render() {
-    const { cards, topZ } = this.props.doc
+    const { cards, topZ, strokes } = this.props.doc
     const { focusedCardId } = this.state
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer onStroke={this.onStroke}>
+          <StrokeRecognizer
+            onGlyph={this.onGlyph}
+            onInkStroke={this.onInkStroke}>
             <Pen onDoubleTap={this.onPenDoubleTapBoard}>
               <div
                 style={style.Board}
@@ -146,6 +161,7 @@ class Board extends Preact.Component<Props, State> {
                     </DraggableCard>
                   )
                 })}
+                <Ink strokes={strokes} />
                 {focusedCardId != null ? (
                   <div
                     style={{
@@ -175,16 +191,18 @@ class Board extends Preact.Component<Props, State> {
     }
   }
 
-  onCardStroke = (stroke: Stroke, id: string) => {
+  onCardStroke = (stroke: GlyphEvent, id: string) => {
     switch (stroke.glyph) {
       case Glyph.delete:
         this.deleteCard(id)
+        this.flashFeedbackMessage("Delete card...")
         break
       case Glyph.copy: {
         const card = this.props.doc.cards[id]
         if (card) {
           this.props.emit({ type: "AddToShelf", body: { url: card.url } })
         }
+        this.flashFeedbackMessage("Adding card to shelf...")
         break
       }
       case Glyph.edit: {
@@ -200,9 +218,27 @@ class Board extends Preact.Component<Props, State> {
           return doc
         })
         this.setCardFocus(id)
+        this.flashFeedbackMessage("Editing card...")
+        break
+      }
+      default: {
+        this.flashFeedbackMessage("No command for glyph: ${stroke.name}...")
         break
       }
     }
+  }
+
+  flashFeedbackMessage(text: string) {
+    const div = document.createElement("div")
+    div.className = "DebugMessage"
+    const content = document.createTextNode(text)
+    div.appendChild(content)
+    document.body.appendChild(div)
+
+    const removeText = () => {
+      document.body.removeChild(div)
+    }
+    delay(removeText, 1000)
   }
 
   onVirtualKeyboardClose = () => {
@@ -259,7 +295,7 @@ class Board extends Preact.Component<Props, State> {
     this.clearCardFocus()
   }
 
-  onStroke = (stroke: Stroke) => {
+  onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
         this.props.emit({
@@ -284,10 +320,25 @@ class Board extends Preact.Component<Props, State> {
   }
 
   cardAtPoint = (x: number, y: number): CardModel | undefined => {
+    if (isNaN(x) || isNaN(y)) {
+      return undefined
+    }
     const el = document.elementFromPoint(x, y)
     const cardEl = el.closest(`.${CARD_CLASS}`)
     if (!cardEl || !cardEl.id) return
     return this.props.doc.cards[cardEl.id]
+  }
+
+  onInkStroke = (stroke: InkStrokeEvent) => {
+    this.props.change(doc => {
+      doc.strokes.push({
+        settings: stroke.settings,
+        path:
+          "M " +
+          stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
+      })
+      return doc
+    })
   }
 
   async createCard(type: string, x: number, y: number) {

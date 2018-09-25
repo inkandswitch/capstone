@@ -5,7 +5,7 @@ import { EditDoc, AnyDoc, Doc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import ArchiveItem from "./ArchiveItem"
-import StrokeRecognizer, { Stroke, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
 import { remove } from "lodash"
 import {
   DocumentActor,
@@ -109,7 +109,8 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onStroke = (stroke: Stroke) => {
+  onGlyph = (stroke: GlyphEvent) => {
+    console.log("create?", stroke)
     switch (stroke.glyph) {
       case Glyph.create: {
         this.props.emit({ type: "CreateBoard" })
@@ -118,7 +119,7 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onStrokeItem = (stroke: Stroke, url: string) => {
+  onGlyphItem = (stroke: GlyphEvent, url: string) => {
     switch (stroke.glyph) {
       case Glyph.copy: {
         this.props.emit({ type: "AddToShelf", body: { url } })
@@ -140,7 +141,7 @@ class Archive extends Preact.Component<Props> {
 
     console.log("ARCHIVE", this.props)
     return (
-      <StrokeRecognizer onStroke={this.onStroke}>
+      <StrokeRecognizer onGlyph={this.onGlyph}>
         <div style={style.Archive}>
           <div style={style.Items}>
             {doc.docs.map(({ url }) => (
@@ -148,7 +149,7 @@ class Archive extends Preact.Component<Props> {
                 key={url}
                 url={url}
                 onDoubleTap={this.onDoubleTapItem}
-                onStroke={this.onStrokeItem}
+                onGlyph={this.onGlyphItem}
               />
             ))}
           </div>

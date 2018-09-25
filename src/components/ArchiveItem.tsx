@@ -1,11 +1,11 @@
 import * as Preact from "preact"
 import Content from "./Content"
-import StrokeRecognizer, { Stroke } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 import Touch from "./Touch"
 
 interface ArchiveItemProps {
   url: string
-  onStroke: (stroke: Stroke, url: string) => void
+  onGlyph: (stroke: GlyphEvent, url: string) => void
   onDoubleTap: (url: string) => void
 }
 
@@ -13,7 +13,7 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
   render() {
     const { url } = this.props
     return (
-      <StrokeRecognizer onStroke={this.onStroke}>
+      <StrokeRecognizer onGlyph={this.onGlyph}>
         <Touch onDoubleTap={this.onDoubleTap}>
           <div style={style.Item}>
             <div style={style.ItemContent}>
@@ -26,8 +26,8 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
     )
   }
 
-  onStroke = (stroke: Stroke) => {
-    this.props.onStroke(stroke, this.props.url)
+  onGlyph = (stroke: GlyphEvent) => {
+    this.props.onGlyph(stroke, this.props.url)
   }
 
   onDoubleTap = () => {
