@@ -1,14 +1,15 @@
 import * as Link from "./Link"
 import * as Traverse from "../logic/Traverse"
 import { isString } from "lodash"
+import { Hypermerge } from "../modules/hypermerge"
 
 type handlesCache = { [docId: string]: any }
 
 export class Prefetcher {
-  hypermerge: any
+  hypermerge: Hypermerge
   handles: handlesCache
 
-  constructor(hypermerge: any, handles: handlesCache) {
+  constructor(hypermerge: Hypermerge, handles: handlesCache) {
     this.hypermerge = hypermerge
     this.handles = handles
   }
@@ -25,15 +26,18 @@ export class Prefetcher {
   }
 
   ensureDocumentIsOpen = (val: any) => {
-    const { id } = Link.parse(val)
+    const { id, type } = Link.parse(val)
     this.getHandle(id)
   }
 
   getHandle(id: string) {
     if (!this.handles[id]) {
       const handle = this.hypermerge.openHandle(id)
-      handle.onChange(this.onDocumentUpdate)
       this.handles[id] = handle
+      // IMPORTANT: the handle must be cached in `this.handles` before setting the onChange
+      // callback. The `onChange` callback is invoked as soon as it is set, in the same tick.
+      // This can cause infinite loops if the handlesCache isn't set.
+      handle.onChange(this.onDocumentUpdate)
     }
     return this.handles[id]
   }
