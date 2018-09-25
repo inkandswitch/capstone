@@ -17,6 +17,8 @@ interface DownloadActivity {
   seq: number
 }
 
+(window as any).docs = () =>  { console.log("please use docs() on the backend console") }
+
 export type Activity = UploadActivity | DownloadActivity
 
 export default class Store {
