@@ -32,6 +32,7 @@ global.docs = (id : any, flags = "") => {
           }
 
           if (flags.includes("p")) {
+            console.log(`${_peers.length} total connections`)
             peers.forEach((p : any) => {
               let age = Date.now() - p.synTime
               let stats = age < 10000 ? "connected" : "disconnected"
@@ -39,8 +40,9 @@ global.docs = (id : any, flags = "") => {
               let green = "color: green"
               let black = "color: black"
               let statusColor = age < 10000 ? green : red;
-              console.log(`${_peers.length} total connections`)
-              console.log(`user=%c"${p.user}"%c doc=%c"${p.docId.slice(0,5)}"%c status=%c'${stats}'%c" lastSyn=%c"${age}"`, red, black, red, black, statusColor, black, red, black, red)
+              console.log(
+                `user=%c"${p.user}"%c doc=%c"${p.docId.slice(0,5)}"%c status=%c'${stats}'%c" lastSyn=%c"${age}"`,
+                red, black, red, black, statusColor, black, red, black)
             })
           }
 
