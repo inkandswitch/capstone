@@ -4,8 +4,8 @@ import * as Prefetch from "../data/Prefetch"
 const Debug = require("debug")
 const log = Debug("store:coms")
 
-var DebugDocs : any = {}
-var global : any = window;
+let DebugDocs : any = {}
+let global : any = window;
 global.docs = (id : any) => {
   if (id) {
     for (let docId in global.sm.docHandles) {
@@ -23,19 +23,21 @@ global.docs = (id : any) => {
           document.body.removeChild(el);
 
           // doc detail
-          var handle = global.sm.docHandles[docId]
+          let handle = global.sm.docHandles[docId]
           console.log("DocId: - %c " + docId, "color: blue")
           //console.log(JSON.parse(handle.toString(4)))
           console.log(handle.toString(4))
-          console.log("Peers:", global.hm._trackedFeed(docId).peers)
+          console.log("ActorIds:", handle.__actorIds())
+          let peers = handle.__actorIds().reduce((acc,id) => acc.concat(global.hm._trackedFeed(id).peers),[])
+          console.log("Peers:", peers)
           console.log(`%c ${len} characters copied to clipboard`, "color: green");
       }
     }
   } else {
     for (let docId in global.sm.docHandles) {
-      var handle = global.sm.docHandles[docId]
-      var body = handle.toString()
-      var peers = global.hm._trackedFeed(docId).peers
+      let handle = global.sm.docHandles[docId]
+      let body = handle.toString()
+      let peers = handle.__actorIds().reduce((acc,id) => acc.concat(global.hm._trackedFeed(id).peers),[])
       if (body.length > 40) body = body.slice(0,37) + "..."
       console.log(docId.slice(0,5) + " : " + peers.length + " peers, '" + body + "'")
     }
