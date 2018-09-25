@@ -28,6 +28,8 @@ export default class Entry {
 
     this.doc = Automerge.applyPatch(this.doc, patch)
 
-    this.listeners.forEach(fn => fn(this.doc))
+    if (Object.keys(this.doc).length > 0) {  // hack - sending the empty docs blows up the app
+      this.listeners.forEach(fn => fn(this.doc))
+    }
   }
 }
