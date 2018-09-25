@@ -1,16 +1,19 @@
 import { Hypermerge } from "../modules/hypermerge"
+import * as Prefetch from "../data/Prefetch"
 
 const Debug = require("debug")
 const log = Debug("store:coms")
 
 export default class StoreComms {
   hypermerge: Hypermerge
-  docHandles: { [docId: string]: any }
+  docHandles: { [docId: string]: any } = {}
+  prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge) {
     this.hypermerge = hm
     ;(window as any).hm = this.hypermerge
     this.hypermerge.joinSwarm({ chrome: true })
+    this.prefetcher = new Prefetch.Prefetcher(this.hypermerge, this.docHandles)
   }
 
   onConnect = (port: chrome.runtime.Port) => {
@@ -19,7 +22,15 @@ export default class StoreComms {
 
     switch (mode) {
       case "changes": {
-        let handle = this.hypermerge.openHandle(docId)
+        if (!this.docHandles[docId]) {
+          const handle = this.hypermerge.openHandle(docId)
+          this.docHandles[docId] = handle
+          // IMPORTANT: the handle must be cached in `this.docHandles` before setting the onChange
+          // callback. The `onChange` callback is invoked as soon as it is set, in the same tick.
+          // This can cause infinite loops if the handlesCache isn't set.
+          setImmediate(() => handle.onChange(this.prefetcher.onDocumentUpdate))
+        }
+        const handle = this.docHandles[docId]
 
         port.onMessage.addListener((changes: any) => {
           handle.applyChanges(changes)

@@ -52,6 +52,15 @@ export const isValidCrc = ({
   return crcOf(nonCrc) === crc
 }
 
+export const isValidLink = (val: string): boolean => {
+  try {
+    parse(val)
+  } catch {
+    return false
+  }
+  return true
+}
+
 export const crcOf = (str: string): string => hexTo58(crc16(str))
 
 export const hexTo58 = (str: string): string =>
