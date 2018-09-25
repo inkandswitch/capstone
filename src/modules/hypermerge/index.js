@@ -6,6 +6,9 @@ const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
 const Debug = require("debug")
 const Base58 = require("bs58")
+const Haikunator = require('haikunator')
+const haiku = new Haikunator()
+
 
 const log = Debug("hypermerge:index")
 
@@ -15,6 +18,7 @@ function ERR(str) {
 
 // The first block of each Hypercore feed is used for metadata.
 const START_BLOCK = 1
+const SYN_TIME = 5000
 
 // One piece of metadata every feed will have indicates that the feed is
 // managed by Hypermerge.
@@ -164,11 +168,12 @@ function initHypermerge(ops, cb) {
 }
 
 class Hypermerge extends EventEmitter {
-  constructor({ storage, defaultMetadata = {} }) {
+  constructor({ user, storage, defaultMetadata = {} }) {
     super()
 
     this.defaultMetadata = defaultMetadata
 
+    this.user = user || haiku.haikunate()
     this.feeds = {}
     this.docs = {}
     this.handles = {} // docId -> [DocHandle]
@@ -883,6 +888,11 @@ class Hypermerge extends EventEmitter {
         const keys = this._relatedKeys(actorId)
         this._messagePeer(peer, { type: "FEEDS_SHARED", keys })
 
+        peer.interval = setInterval(() => {
+          this._messagePeer(peer, { type: "SYN", user: this.user })
+        }, SYN_TIME)
+    
+
         /**
          * Emitted when a network peer has connected.
          *
@@ -898,6 +908,8 @@ class Hypermerge extends EventEmitter {
 
   _onPeerRemoved(actorId) {
     return peer => {
+      console.log("SYN clear interval",peer,interval)
+      clearInterval(peer.interval)
       this._loadMetadata(actorId).then(() => {
         if (!this._isDocId(actorId)) {
           return
@@ -936,6 +948,10 @@ class Hypermerge extends EventEmitter {
         msg.keys.forEach(actorId => {
           this._trackedFeed(actorId)
         })
+        break
+      case "SYN":
+        console.log("SYN",msg.user, actorId)
+        peer.synTime = Date.now()
         break
       default:
         this.emit("peer:message", actorId, peer, msg)

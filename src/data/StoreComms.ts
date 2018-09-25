@@ -6,40 +6,51 @@ const log = Debug("store:coms")
 
 let DebugDocs : any = {}
 let global : any = window;
-global.docs = (id : any) => {
+global.docs = (id : any, flags = "") => {
   if (id) {
     for (let docId in global.sm.docHandles) {
       if (docId.startsWith(id)) {
           // copy to clipboard
-          const el = document.createElement('textarea');
-          el.value = JSON.stringify(global.sm.debugLogs[docId])
-          const len = el.value.length
-          el.setAttribute('readonly', '');
-          el.style.position = 'absolute';
-          el.style.left = '-9999px';
-          document.body.appendChild(el);
-          el.select();
-          document.execCommand('copy');
-          document.body.removeChild(el);
+          let handle = global.sm.docHandles[docId]
+
+          if (flags.includes("c")) {
+            const el = document.createElement('textarea');
+            el.value = JSON.stringify(global.sm.debugLogs[docId])
+            const len = el.value.length
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            console.log(`%c ${len} characters copied to clipboard`, "color: green");
+          }
+
+          if (flags.includes("j")) {
+            console.log(handle.toString(4))
+          }
 
           // doc detail
-          let handle = global.sm.docHandles[docId]
           console.log("DocId: - %c " + docId, "color: blue")
           //console.log(JSON.parse(handle.toString(4)))
-          console.log(handle.toString(4))
           console.log("ActorIds:", handle.__actorIds())
-          let peers = handle.__actorIds().reduce((acc,id) => acc.concat(global.hm._trackedFeed(id).peers),[])
+          let peers = handle.__actorIds().reduce((acc : any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
           console.log("Peers:", peers)
-          console.log(`%c ${len} characters copied to clipboard`, "color: green");
       }
     }
   } else {
     for (let docId in global.sm.docHandles) {
       let handle = global.sm.docHandles[docId]
       let body = handle.toString()
-      let peers = handle.__actorIds().reduce((acc,id) => acc.concat(global.hm._trackedFeed(id).peers),[])
+      let peers = handle.__actorIds().reduce((acc: any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
       if (body.length > 40) body = body.slice(0,37) + "..."
       console.log(docId.slice(0,5) + " : " + peers.length + " peers, '" + body + "'")
+      console.log("USAGE:")
+      console.log(" docs(docid) - get detailed info on a doc")
+      console.log(" docs(docid, 'j') - also include a json dump of the document")
+      console.log(" docs(docid, 'c') - also copy automerge history to clipboard")
+      console.log(" docs(docid, 'jc') - do both")
     }
   }
 }
