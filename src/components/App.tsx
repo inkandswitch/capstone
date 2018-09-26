@@ -15,8 +15,7 @@ import "./Shelf"
 import "./Identity"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
-import * as Archive from "./Archive"
-import * as Board from "./Board"
+import * as Identity from "./Identity"
 
 // Used for debugging from the console:
 window.Content = Content
@@ -65,6 +64,12 @@ export default class App extends Preact.Component<{}, State> {
       to: archiveUrl,
       type: "ReceiveDocuments",
       body: { urls: [rootBoardUrl, identityUrl] },
+    })
+
+    Content.once<Identity.Model>(identityUrl, async (change: Function) => {
+      change((identity: any) => {
+        identity.mailboxUrl = shelfUrl
+      })
     })
   }
 
