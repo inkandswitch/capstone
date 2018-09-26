@@ -1,0 +1,17 @@
+:local(.Option) {
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+
+:local(.OptionButton) {
+  height: 60px;
+  width: 60px;
+  background-color: magenta;
+  border-radius: 99px;
+  margin-right: 10px;
+}
+
+:local(.current) {
+  background-color: pink;
+}

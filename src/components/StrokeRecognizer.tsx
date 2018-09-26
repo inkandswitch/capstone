@@ -3,6 +3,8 @@ import * as $P from "../modules/$P"
 import * as Glyph from "../data/Glyph"
 import Pen, { PenEvent } from "./Pen"
 import { delay } from "lodash"
+import classnames from "classnames"
+import * as css from "./css/StrokeRecognizer.css"
 const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {
@@ -120,12 +122,6 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
           {this.props.children}
         </Pen>
         <div style={{ position: "fixed", bottom: 0, left: 0 }}>
-          <Option
-            label="Glyphs"
-            value={StrokeType.glyph}
-            selected={strokeType === StrokeType.glyph}
-            onChange={this.onStrokeTypeChange}
-          />
           <Option
             label="Ink"
             value={StrokeType.ink}
@@ -315,18 +311,16 @@ class Option<T> extends Preact.Component<OptionProps<T>> {
     const { label, value, selected, onChange } = this.props
 
     return (
-      <label
-        style={{ display: "flex", alignItems: "center" }}
+      <div
+        className={css.Option}
+        onPointerDown={() => onChange(value)}
+        onPointerUp={() => onChange()}
         onContextMenu={this.onContextMenu}>
-        <input
-          type="radio"
-          checked={selected}
-          onPointerDown={() => onChange(value)}
-          onPointerUp={() => onChange()}
-          style={{ height: 60, width: 60, color: "pink" }}
+        <div
+          className={classnames(css.OptionButton, { [css.current]: selected })}
         />
         {label}
-      </label>
+      </div>
     )
   }
 
