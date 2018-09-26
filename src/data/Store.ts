@@ -65,6 +65,12 @@ export default class Store {
     })
   }
 
+  setIdentity(identityUrl: string) {
+    const command = "SetIdentity"
+    const args = { identityUrl }
+    chrome.runtime.sendMessage({ command, args })
+  }
+
   makeEntry(id: string): Entry {
     const entry = new Entry(id)
     this.index[id] = entry
