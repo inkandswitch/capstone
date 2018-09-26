@@ -49,9 +49,8 @@
 
 .CommandFeedback {
   background: rgba(0, 0, 0, 0.75);
-  height: 60px;
+  height: 30px;
   position: fixed;
-  top: 4px;
   border-radius: 12px;
   padding: 4px 8px;
   left: 50%;
@@ -64,5 +63,5 @@
   display: inline-block;
   vertical-align: middle;
   color: white;
-  font-size: 26pt;
+  font-size: 14pt;
 }
