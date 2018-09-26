@@ -222,7 +222,7 @@ export default class Content extends Preact.Component<Props & unknown> {
       return <Missing type={type} />
     }
 
-    return <Widget {...this.props} store={Content.store} />
+    return <Widget key={this.props.url} {...this.props} store={Content.store} />
   }
 }
 
