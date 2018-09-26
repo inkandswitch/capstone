@@ -22,14 +22,16 @@ export default function installRenderErrorHandler() {
       Component.prototype.render &&
       !Component.__safe
     ) {
+      const displayName = getDisplayName(Component)
       Component.__safe = true // only wrap components once
       const originalRender = Component.prototype.render
       Component.prototype.render = function render(...args: unknown[]) {
         try {
           return originalRender.apply(this, args)
         } catch (e) {
-          console.log(`error rendering component ${this.constructor.name}`)
-          return null
+          const errorMessage = `Error rendering component ${displayName}`
+          console.error(errorMessage, e)
+          return errorMessage
         }
       }
     }
@@ -38,15 +40,18 @@ export default function installRenderErrorHandler() {
   function wrapFunctionalComponent(FnComponent: any) {
     // only generate safe wrapper once
     if (FnComponent.__safe) return FnComponent.__safe
+    const displayName = getDisplayName(FnComponent)
 
     function Wrapper(props: {}, context: {}) {
       try {
         return FnComponent.call(this, props, context)
-      } catch (err) {
-        console.error(err)
+      } catch (e) {
+        const errorMessage = `Error rendering component ${displayName}`
+        console.error(errorMessage, e)
+        return errorMessage
       }
     }
-    ;(Wrapper as any).displayName = getDisplayName(FnComponent)
+    ;(Wrapper as any).displayName = displayName
     FnComponent.__safe = Wrapper
     return FnComponent.__safe
   }
