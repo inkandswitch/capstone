@@ -187,7 +187,7 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static getMessageHandler(type: string) {
     const handler = this.messageHandlerRegistry[type]
-    if (!handler) throw new Error(`Handler not found in registry: ${type}`)
+    if (!handler) console.log(`Message handler not found in registry: ${type}`)
     return handler
   }
 
@@ -195,6 +195,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     message.to = message.to || Content.workspaceUrl
     const { type: recipientType } = Link.parse(message.to)
     const Recipient = Content.getMessageHandler(recipientType)
+    if (!Recipient) return
     const recipient = new Recipient()
     recipient.receive(message)
   }

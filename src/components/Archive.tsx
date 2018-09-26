@@ -8,13 +8,8 @@ import { ReceiveDocuments } from "./Content"
 import DocumentGrid from "./DocumentGrid"
 import DocumentGridCell from "./DocumentGridCell"
 import { Glyph, GlyphEvent } from "./StrokeRecognizer"
-import {
-  DocumentActor,
-  DocumentCreated,
-  FullyFormedMessage,
-  Message,
-} from "./Content"
-import { AddToShelf } from "./Shelf"
+import { DocumentActor, DocumentCreated, Message } from "./Content"
+import { AddToShelf, ShelfContentsRequested } from "./Shelf"
 import * as Feedback from "./CommandFeedback"
 
 export interface Model {
@@ -36,11 +31,9 @@ export interface ClearSelection extends Message {
   type: "ClearSelection"
 }
 
-type WidgetMessage = AddToShelf | DocumentDeleted
-type InMessage = FullyFormedMessage<
-  WidgetMessage | DocumentCreated | ReceiveDocuments
->
-type OutMessage = AddToShelf
+type WidgetMessage = AddToShelf | DocumentDeleted | ShelfContentsRequested
+type InMessage = WidgetMessage | DocumentCreated | ReceiveDocuments
+type OutMessage = AddToShelf | ShelfContentsRequested
 
 export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -56,6 +49,10 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
         this.change(doc => {
           doc.docs.unshift({ url: message.body })
         })
+        break
+      }
+      case "ShelfContentsRequested": {
+        this.emit({ type: message.type, body: message.body })
         break
       }
       case "AddToShelf": {
@@ -98,6 +95,12 @@ class Archive extends Preact.Component<Props> {
         Feedback.Provider.add("Delete document...", stroke.center)
         this.props.emit({ type: "DocumentDeleted", body: { url } })
         break
+      }
+      case Glyph.paste: {
+        this.props.emit({
+          type: "ShelfContentsRequested",
+          body: { recipientUrl: url },
+        })
       }
     }
   }
