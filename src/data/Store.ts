@@ -17,7 +17,7 @@ interface DownloadActivity {
   seq: number
 }
 
-(window as any).docs = () =>  { console.log("please use docs() on the backend console") }
+(window as any).peek = () =>  { console.log("please use peek() on the backend console") }
 
 export type Activity = UploadActivity | DownloadActivity
 
