@@ -1,12 +1,13 @@
 import * as Preact from "preact"
 import Content, { DocumentActor } from "./Content"
-import { ShelfContents, ShelfContentsRequested } from "./Shelf"
+import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import IdentityBadge from "./IdentityBadge"
+import Touch from "./Touch"
 
 interface Model {
   name: string
@@ -14,13 +15,17 @@ interface Model {
   documents: string[]
 }
 
-type WidgetMessage = ShelfContentsRequested
+type WidgetMessage = ShelfContentsRequested | AddToShelf
 type InMessage = WidgetMessage | ShelfContents
-type OutMessage = ShelfContentsRequested
+type OutMessage = ShelfContentsRequested | AddToShelf
 
 export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
+      case "AddToShelf": {
+        this.emit({ type: "AddToShelf", body: message.body })
+        break
+      }
       case "ShelfContentsRequested": {
         this.emit({ type: "ShelfContentsRequested", body: message.body })
         break
@@ -49,7 +54,10 @@ export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
-interface Props extends Widget.Props<Model, WidgetMessage> {}
+interface Props extends Widget.Props<Model, WidgetMessage> {
+  onNavigate?: (url: string) => void
+}
+
 interface State {
   isEditing: boolean
 }
@@ -98,6 +106,21 @@ export class Identity extends Preact.Component<Props, State> {
     }
   }
 
+  onCubbyItemGlyph = (stroke: GlyphEvent, url: string) => {
+    switch (stroke.glyph) {
+      case Glyph.copy:
+        this.props.emit({
+          type: "AddToShelf",
+          body: { url },
+        })
+        break
+    }
+  }
+
+  onDoubleTapItem = (url: string) => {
+    this.props.onNavigate && this.props.onNavigate(url)
+  }
+
   onChange = (event: any) => {
     console.log("CHANGE")
     this.props.change(doc => {
@@ -135,11 +158,18 @@ export class Identity extends Preact.Component<Props, State> {
         <StrokeRecognizer onGlyph={this.onCubbyGlyph}>
           <div style={style.Documents}>
             {documents.map(docUrl => (
-              <div style={style.Item}>
-                <div style={style.ItemContent}>
-                  <Content mode="embed" url={docUrl} />
-                </div>
-              </div>
+              <StrokeRecognizer
+                onGlyph={(stroke: GlyphEvent) =>
+                  this.onCubbyItemGlyph(stroke, docUrl)
+                }>
+                <Touch onDoubleTap={() => this.onDoubleTapItem(docUrl)}>
+                  <div style={style.Item}>
+                    <div style={style.ItemContent}>
+                      <Content mode="embed" url={docUrl} />
+                    </div>
+                  </div>
+                </Touch>
+              </StrokeRecognizer>
             ))}
           </div>
         </StrokeRecognizer>
