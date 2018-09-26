@@ -37,6 +37,9 @@ export default class App extends Preact.Component<{}, State> {
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
 
+    Content.store.setIdentity(identityUrl)
+    chrome.storage.local.set({ identityUrl })
+
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
       const shelfUrl = await shelfUrlPromise
@@ -64,11 +67,12 @@ export default class App extends Preact.Component<{}, State> {
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl"], val => {
+    chrome.storage.local.get(["workspaceUrl", "identityUrl"], val => {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {
         Content.workspaceUrl = val.workspaceUrl
+        Content.store.setIdentity(val.identityUrl)
         this.setState({ url: val.workspaceUrl })
       }
     })
