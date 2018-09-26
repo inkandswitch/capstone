@@ -186,7 +186,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
         center: this.center(),
       })
     } else {
-      Feedback.Provider.add(`Unrecognized glyph...`)
+      Feedback.Provider.add("Unrecognized glyph...")
     }
   }
 

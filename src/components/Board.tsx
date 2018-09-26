@@ -287,7 +287,7 @@ class Board extends Preact.Component<Props, State> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
-        Feedback.Provider.add(`Paste from shelf...`)
+        Feedback.Provider.add("Paste from shelf...")
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {
