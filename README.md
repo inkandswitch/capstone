@@ -9,6 +9,16 @@ $ yarn install
 $ yarn start
 ```
 
+Again on each device, open Chrome and go to `chrome://extensions`. Select "Load
+unpacked". For the tablet, select `capstone/dist/capstone`, for the desktop,
+`capstone/dist/sidecar`.
+
+You should then be able to open Sidecar on your desktop and Capstone on your
+tablet as you would other apps on those platforms.
+
+When the data format changes, you may need to "Remove" the apps from
+`chrome://extensions` and re-install them, clearing your data in the process.
+
 To pair your desktop sidecar with your tablet app, get a console in your tablet
 app (long-press, "Inspect"), and then type:
 
