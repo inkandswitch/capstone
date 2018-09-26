@@ -12,7 +12,7 @@ It should be recommended in the extensions tab of VSCode, and there is
 support for [other editors](https://prettier.io/docs/en/editors.html) as well.
 Otherwise, you can format the code by running `yarn format`.
 
-## Dev Tools
+## Dev tools
 
 `yarn start`: Start the build
 `yarn clean`: Delete `dist/*` for a clean build
