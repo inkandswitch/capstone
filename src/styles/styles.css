@@ -47,9 +47,9 @@
   z-index: 0;
 }
 
-.DebugMessage {
-  background: slategray;
-  color: white;
+.CommandFeedback {
+  background: rgba(0, 0, 0, 0.75);
+  height: 60px;
   position: fixed;
   top: 4px;
   border-radius: 12px;
@@ -58,4 +58,11 @@
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 3;
+}
+
+.CommandFeedback__Text {
+  display: inline-block;
+  vertical-align: middle;
+  color: white;
+  font-size: 26pt;
 }

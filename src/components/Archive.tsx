@@ -112,7 +112,7 @@ class Archive extends Preact.Component<Props> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.create: {
-        Feedback.Provider.add("Create board...")
+        Feedback.Provider.add("Create board...", stroke.center)
         this.props.emit({ type: "CreateBoard" })
         break
       }
@@ -122,12 +122,12 @@ class Archive extends Preact.Component<Props> {
   onGlyphItem = (stroke: GlyphEvent, url: string) => {
     switch (stroke.glyph) {
       case Glyph.copy: {
-        Feedback.Provider.add("Add to shelf...")
+        Feedback.Provider.add("Add to shelf...", stroke.center)
         this.props.emit({ type: "AddToShelf", body: { url } })
         break
       }
       case Glyph.delete: {
-        Feedback.Provider.add("Delete document...")
+        Feedback.Provider.add("Delete document...", stroke.center)
         this.props.emit({ type: "DocumentDeleted", body: { url } })
         break
       }
