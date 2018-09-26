@@ -85,13 +85,18 @@ export default class StoreComms {
     request: any, // the message can, indeed, be anything
     sendResponse: Function,
   ) => {
-    let { command } = request
+    let { command, args } = request
 
     switch (command) {
       case "Create":
         let doc = this.hypermerge.create()
         let docId = this.hypermerge.getId(doc)
         sendResponse(docId)
+        break
+      case "SetIdentity":
+        const { identityUrl } = args
+        console.log("Identity", identityUrl)
+        // TODO
         break
       default:
         console.warn("Received an unusual message: ", request)
