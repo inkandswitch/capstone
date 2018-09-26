@@ -192,22 +192,22 @@ class Board extends Preact.Component<Props, State> {
     }
   }
 
-  onCardStroke = (stroke: GlyphEvent, id: string) => {
-    switch (stroke.glyph) {
+  onCardGlyph = (event: GlyphEvent, id: string) => {
+    switch (event.glyph) {
       case Glyph.delete:
         this.deleteCard(id)
-        Feedback.Provider.add("Delete card...")
+        Feedback.Provider.add("Delete...", event.center)
         break
       case Glyph.copy: {
         const card = this.props.doc.cards[id]
         if (card) {
           this.props.emit({ type: "AddToShelf", body: { url: card.url } })
         }
-        Feedback.Provider.add("Adding card to shelf...")
+        Feedback.Provider.add("Add to shelf...", event.center)
         break
       }
       case Glyph.edit: {
-        Feedback.Provider.add("Editing card...")
+        Feedback.Provider.add("Edit...", event.center)
         if (this.state.focusedCardId != null) return
         if (!this.props.doc.cards[id]) return
 
@@ -220,11 +220,14 @@ class Board extends Preact.Component<Props, State> {
           return doc
         })
         this.setCardFocus(id)
-        Feedback.Provider.add("Editing card...")
+        Feedback.Provider.add("Edit...", event.center)
         break
       }
       default: {
-        Feedback.Provider.add("No command for glyph: ${stroke.name}...")
+        Feedback.Provider.add(
+          `No command for glyph: ${event.name}...`,
+          event.center,
+        )
         break
       }
     }
@@ -287,7 +290,7 @@ class Board extends Preact.Component<Props, State> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
-        Feedback.Provider.add("Paste from shelf...")
+        Feedback.Provider.add("Place contents of shelf...", stroke.center)
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {
@@ -302,7 +305,7 @@ class Board extends Preact.Component<Props, State> {
         const centerPoint = stroke.center
         const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
         if (card) {
-          this.onCardStroke(stroke, card.id)
+          this.onCardGlyph(stroke, card.id)
         }
         break
       }
