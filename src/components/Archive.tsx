@@ -1,10 +1,10 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
-import Content from "./Content"
+import { ReceiveDocuments } from "./Content"
 import { AnyDoc, Doc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import ArchiveItem from "./ArchiveItem"
-import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
+import { Glyph, GlyphEvent } from "./StrokeRecognizer"
 import { remove } from "lodash"
 import {
   DocumentActor,
@@ -19,16 +19,10 @@ export interface Model {
   docs: Array<{
     url: string
   }>
-  selected: string[]
 }
 
 interface CreateBoard extends Message {
   type: "CreateBoard"
-}
-
-export interface DocumentSelected extends Message {
-  type: "DocumentSelected"
-  body: { url: string }
 }
 
 export interface DocumentDeleted extends Message {
@@ -40,19 +34,22 @@ export interface ClearSelection extends Message {
   type: "ClearSelection"
 }
 
-type WidgetMessage =
-  | DocumentSelected
-  | AddToShelf
-  | CreateBoard
-  | DocumentDeleted
+type WidgetMessage = AddToShelf | DocumentDeleted
 type InMessage = FullyFormedMessage<
-  WidgetMessage | DocumentCreated | ClearSelection
+  WidgetMessage | DocumentCreated | ReceiveDocuments
 >
-type OutMessage = DocumentSelected | AddToShelf
+type OutMessage = AddToShelf
 
 export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
+      case "ReceiveDocuments": {
+        const { urls } = message.body
+        this.change(archive => {
+          archive.docs = urls.map(url => ({ url })).concat(archive.docs)
+        })
+        break
+      }
       case "DocumentCreated": {
         this.change(doc => {
           doc.docs.unshift({ url: message.body })
@@ -63,29 +60,9 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
         this.emit({ type: message.type, body: message.body })
         break
       }
-      case "DocumentSelected": {
-        this.emit({ type: message.type, body: message.body })
-        break
-      }
-      case "CreateBoard": {
-        const url = await Content.create("Board")
-        this.change((doc: Doc<Model>) => {
-          console.log("CREATE BOARD", doc)
-          doc.docs.unshift({ url: url })
-          return doc
-        })
-        break
-      }
       case "DocumentDeleted": {
         this.change((doc: Doc<Model>) => {
           remove(doc.docs, val => val.url === message.body.url)
-          return doc
-        })
-        break
-      }
-      case "ClearSelection": {
-        this.change((doc: Doc<Model>) => {
-          doc.selected = []
           return doc
         })
         break
@@ -105,17 +82,6 @@ class Archive extends Preact.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       docs: Reify.array(doc.docs),
-      selected: Reify.array(doc.selected),
-    }
-  }
-
-  onGlyph = (stroke: GlyphEvent) => {
-    switch (stroke.glyph) {
-      case Glyph.create: {
-        Feedback.Provider.add("Create board...", stroke.center)
-        this.props.emit({ type: "CreateBoard" })
-        break
-      }
     }
   }
 
@@ -134,28 +100,17 @@ class Archive extends Preact.Component<Props> {
     }
   }
 
-  onDoubleTapItem = (url: string) => {
-    this.props.emit({ type: "DocumentSelected", body: { url } })
-  }
-
   render() {
     const { doc } = this.props
 
     return (
-      <StrokeRecognizer onGlyph={this.onGlyph}>
-        <div style={style.Archive}>
-          <div style={style.Items}>
-            {doc.docs.map(({ url }) => (
-              <ArchiveItem
-                key={url}
-                url={url}
-                onDoubleTap={this.onDoubleTapItem}
-                onGlyph={this.onGlyphItem}
-              />
-            ))}
-          </div>
+      <div style={style.Archive}>
+        <div style={style.Items}>
+          {doc.docs.map(({ url }) => (
+            <ArchiveItem key={url} url={url} onGlyph={this.onGlyphItem} />
+          ))}
         </div>
-      </StrokeRecognizer>
+      </div>
     )
   }
 }

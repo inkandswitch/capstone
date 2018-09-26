@@ -1,4 +1,5 @@
 import * as Preact from "preact"
+import { EditDoc } from "automerge/frontend"
 
 import Store from "../data/Store"
 import Root from "./Root"
@@ -15,6 +16,7 @@ import "./Identity"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import * as Archive from "./Archive"
+import * as Board from "./Board"
 
 // Used for debugging from the console:
 window.Content = Content
@@ -30,23 +32,23 @@ export default class App extends Preact.Component<{}, State> {
     const archiveUrlPromise = Content.create("Archive")
     const shelfUrlPromise = Content.create("Shelf")
     const identityUrlPromise = Content.create("Identity")
+    const rootBoardUrlPromise = Content.create("Board")
 
     const shelfUrl = await shelfUrlPromise
     const archiveUrl = await archiveUrlPromise
     const identityUrl = await identityUrlPromise
+    const rootBoardUrl = await rootBoardUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
-      const shelfUrl = await shelfUrlPromise
-      const archiveUrl = await archiveUrlPromise
-
-      change((workspace: any) => {
+      change((workspace: EditDoc<Workspace.Model>) => {
         if (!workspace.archiveUrl) {
           workspace.archiveUrl = archiveUrl
           workspace.shelfUrl = shelfUrl
-          workspace.navStack = []
+          workspace.rootUrl = rootBoardUrl
+          workspace.navStack = [rootBoardUrl]
         }
       })
 
@@ -54,10 +56,15 @@ export default class App extends Preact.Component<{}, State> {
       chrome.storage.local.set({ workspaceUrl })
     })
 
-    Content.once<Archive.Model>(archiveUrl, async (change: Function) => {
-      change((archive: any) => {
-        archive.docs.unshift({ url: identityUrl })
-      })
+    Content.send({
+      to: rootBoardUrl,
+      type: "ReceiveDocuments",
+      body: { urls: [identityUrl] },
+    })
+    Content.send({
+      to: archiveUrl,
+      type: "ReceiveDocuments",
+      body: { urls: [rootBoardUrl, identityUrl] },
     })
   }
 

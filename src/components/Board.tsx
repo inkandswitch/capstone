@@ -1,19 +1,19 @@
 import * as Preact from "preact"
-import { delay, clamp, isEmpty, size } from "lodash"
+import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content, {
   DocumentActor,
   Message,
-  FullyFormedMessage,
+  ReceiveDocuments,
   DocumentCreated,
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import VirtualKeyboard from "./VirtualKeyboard"
 import Ink from "./Ink"
-import { AnyDoc } from "automerge/frontend"
+import { EditDoc, AnyDoc } from "automerge/frontend"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, {
@@ -56,7 +56,7 @@ interface State {
   focusedCardId: string | null
 }
 
-interface CreateCard extends Message {
+export interface CreateCard extends Message {
   type: "CreateCard"
   body: {
     type: string
@@ -69,12 +69,20 @@ interface CreateCard extends Message {
 }
 
 type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
-type InMessage = FullyFormedMessage<WidgetMessage | ShelfContents>
+type InMessage = WidgetMessage | ShelfContents | ReceiveDocuments
 type OutMessage = DocumentCreated | AddToShelf | ShelfContentsRequested
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
+      case "ReceiveDocuments": {
+        debugger
+        const { urls } = message.body
+        this.change(doc => {
+          urls.forEach((url: string) => addCard(doc, url))
+        })
+        break
+      }
       case "CreateCard": {
         const { type, card } = message.body
         // TODO: async creation - should we split this across multiple messages?
@@ -98,23 +106,32 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       case "ShelfContents": {
         const { urls, placementPosition } = message.body
         this.change(doc => {
-          urls.forEach((url, index) => {
-            const position = Position.radial(index, placementPosition)
-            const card = {
-              id: UUID.create(),
-              x: position.x,
-              y: position.y,
-              z: ++doc.topZ,
-              url,
-            }
-            doc.cards[card.id] = card
-          })
+          urls.forEach((url, index) =>
+            addCard(doc, url, Position.radial(index, placementPosition)),
+          )
           return doc
         })
         break
       }
     }
   }
+}
+
+function addCard(
+  board: EditDoc<Model>,
+  url: string,
+  position?: { x: number; y: number },
+) {
+  position = position || { x: 0, y: 0 }
+  const card = {
+    id: UUID.create(),
+    z: board.topZ++,
+    x: position.x,
+    y: position.y,
+    url,
+  }
+  board.cards[card.id] = card
+  return board
 }
 
 class Board extends Preact.Component<Props, State> {
@@ -300,6 +317,10 @@ class Board extends Preact.Component<Props, State> {
             },
           },
         })
+        break
+      case Glyph.create:
+        Feedback.Provider.add("Create board...", stroke.center)
+        this.createCard("Board", stroke.center.x, stroke.center.y)
         break
       default: {
         const centerPoint = stroke.center

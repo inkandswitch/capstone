@@ -46,6 +46,11 @@ export interface DocumentCreated extends Message {
   body: string
 }
 
+export interface ReceiveDocuments extends Message {
+  type: "ReceiveDocuments"
+  body: { urls: string[] }
+}
+
 export type MessageHandlerClass = {
   new (...k: any[]): DocumentActor<any, any>
 }
@@ -186,12 +191,8 @@ export default class Content extends Preact.Component<Props & unknown> {
     return handler
   }
 
-  static send(message: Message & WithSender) {
+  static send(message: Message) {
     message.to = message.to || Content.workspaceUrl
-    if (!isFullyFormed(message)) {
-      return
-    }
-
     const { type: recipientType } = Link.parse(message.to)
     const Recipient = Content.getMessageHandler(recipientType)
     const recipient = new Recipient()
