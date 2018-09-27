@@ -126,6 +126,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     } else {
       this.strokeType = StrokeType.ink
     }
+    this.onPanMove(event)
   }
 
   onPanMove = (event: PenEvent) => {
