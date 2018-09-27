@@ -1,5 +1,6 @@
 import { Hypermerge } from "../modules/hypermerge"
 import * as Prefetch from "../data/Prefetch"
+import * as Peek from "./Peek"
 
 const Debug = require("debug")
 const log = Debug("store:coms")
@@ -7,13 +8,16 @@ const log = Debug("store:coms")
 export default class StoreComms {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
+  debugLogs: { [docId: string]: any } = {}
   prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge) {
     this.hypermerge = hm
     ;(window as any).hm = this.hypermerge
+    ;(window as any).sm = this
     this.hypermerge.joinSwarm({ chrome: true })
     this.prefetcher = new Prefetch.Prefetcher(this.hypermerge, this.docHandles)
+    Peek.enable()
   }
 
   onConnect = (port: chrome.runtime.Port) => {
@@ -34,12 +38,16 @@ export default class StoreComms {
 
         port.onMessage.addListener((changes: any) => {
           handle.applyChanges(changes)
+          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
+          this.debugLogs[docId].push({ changes })
           log("applyChanges", changes)
         })
 
         handle.onPatch((patch: any) => {
           log("patch", patch)
           const actorId = handle.actorId
+          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
+          this.debugLogs[docId].push({ patch })
           port.postMessage({ actorId, patch })
         })
         break
@@ -77,13 +85,18 @@ export default class StoreComms {
     request: any, // the message can, indeed, be anything
     sendResponse: Function,
   ) => {
-    let { command } = request
+    let { command, args } = request
 
     switch (command) {
       case "Create":
         let doc = this.hypermerge.create()
         let docId = this.hypermerge.getId(doc)
         sendResponse(docId)
+        break
+      case "SetIdentity":
+        const { identityUrl } = args
+        console.log("Identity", identityUrl)
+        // TODO
         break
       default:
         console.warn("Received an unusual message: ", request)
