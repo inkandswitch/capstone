@@ -1,12 +1,13 @@
 import * as Preact from "preact"
+import { remove } from "lodash"
+import { AnyDoc, Doc } from "automerge/frontend"
+
+import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import Content from "./Content"
-import { EditDoc, AnyDoc, Doc } from "automerge/frontend"
-import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
-import ArchiveItem from "./ArchiveItem"
+import DocumentGrid from "./DocumentGrid"
+import DocumentGridCell from "./DocumentGridCell"
 import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
-import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
@@ -143,16 +144,16 @@ class Archive extends Preact.Component<Props> {
     return (
       <StrokeRecognizer onGlyph={this.onGlyph}>
         <div style={style.Archive}>
-          <div style={style.Items}>
+          <DocumentGrid>
             {doc.docs.map(({ url }) => (
-              <ArchiveItem
+              <DocumentGridCell
                 key={url}
                 url={url}
                 onDoubleTap={this.onDoubleTapItem}
                 onGlyph={this.onGlyphItem}
               />
             ))}
-          </div>
+          </DocumentGrid>
         </div>
       </StrokeRecognizer>
     )
@@ -169,14 +170,6 @@ const style = {
     height: "100%",
     overflow: "auto",
     zIndex: 1,
-  },
-
-  Items: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-    gridAutoRows: "1fr",
-    gridGap: "10px",
-    width: "100%",
     padding: 30,
   },
 }
