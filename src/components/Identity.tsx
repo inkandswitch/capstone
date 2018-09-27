@@ -176,6 +176,7 @@ const style = {
     width: "100%",
     padding: 50,
     alignItems: "center",
+    position: "relative",
   },
   Profile: {
     border: "1px solid #aaa",
