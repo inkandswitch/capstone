@@ -77,7 +77,7 @@ export default class Touch extends Handler<Props> {
   }
 
   filter(event: TouchEvent) {
-    return event.pointerType !== "pen"
+    return event.pointerType !== "pen" && !event.srcEvent.shiftKey
   }
 
   render() {

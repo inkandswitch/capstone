@@ -47,11 +47,21 @@
   z-index: 0;
 }
 
-.DebugMessage {
+.CommandFeedback {
+  background: rgba(0, 0, 0, 0.75);
+  height: 30px;
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  border-radius: 12px;
+  padding: 4px 8px;
+  left: 50%;
+  transform: translateX(-50%);
   pointer-events: none;
+  z-index: 3;
+}
+
+.CommandFeedback__Text {
+  display: inline-block;
+  vertical-align: middle;
+  color: white;
+  font-size: 12pt;
 }

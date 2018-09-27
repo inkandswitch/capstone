@@ -2,9 +2,7 @@ import * as Preact from "preact"
 import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
-import { Glyph } from "../data/Glyph"
 import Touch, { TouchEvent } from "./Touch"
-import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 
 interface CardModel {
   id: string
@@ -18,7 +16,7 @@ export interface Props {
   card: CardModel
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
-  onPinchEnd?: (url: string) => void
+  onDoubleTap?: (url: string) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
@@ -30,7 +28,7 @@ export default class DraggableCard extends Preact.Component<Props> {
     } = this.props
 
     return (
-      <Touch onPinchEnd={this.onPinchEnd}>
+      <Touch onDoubleTap={this.onDoubleTap}>
         <Draggable
           defaultPosition={{ x, y }}
           onStart={this.start}
@@ -46,10 +44,9 @@ export default class DraggableCard extends Preact.Component<Props> {
     )
   }
 
-  onPinchEnd = (event: TouchEvent) => {
-    if (event.scale < 1) return // TODO: maybe build this into Touch
-    const { onPinchEnd, card } = this.props
-    onPinchEnd && onPinchEnd(card.url)
+  onDoubleTap = (event: TouchEvent) => {
+    const { onDoubleTap, card } = this.props
+    onDoubleTap && onDoubleTap(card.url)
   }
 
   start = () => {

@@ -6,6 +6,7 @@ import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
 import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
+import * as Feedback from "./CommandFeedback"
 
 interface Model {
   selectedUrls: string[]
@@ -18,17 +19,17 @@ export interface AddToShelf extends Message {
 
 export interface ShelfContentsRequested extends Message {
   type: "ShelfContentsRequested"
-  body: { placementPosition: Point }
+  body?: { [k: string]: any }
 }
 
 export interface SendShelfContents extends Message {
   type: "SendShelfContents"
-  body: { recipientUrl: string; placementPosition: Point }
+  body: { recipientUrl: string; [k: string]: any }
 }
 
 export interface ShelfContents extends Message {
   type: "ShelfContents"
-  body: { urls: string[]; placementPosition: Point }
+  body: { urls: string[]; [k: string]: any }
 }
 
 export interface ClearShelf extends Message {
@@ -88,6 +89,7 @@ class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.delete:
+        Feedback.Provider.add("Clear shelf contents", stroke.center)
         this.props.emit({ type: "ClearShelf" })
     }
   }

@@ -17,6 +17,8 @@ interface DownloadActivity {
   seq: number
 }
 
+(window as any).peek = () =>  { console.log("please use peek() on the backend console") }
+
 export type Activity = UploadActivity | DownloadActivity
 
 export default class Store {
@@ -61,6 +63,12 @@ export default class Store {
         resolve(docId)
       })
     })
+  }
+
+  setIdentity(identityUrl: string) {
+    const command = "SetIdentity"
+    const args = { identityUrl }
+    chrome.runtime.sendMessage({ command, args })
   }
 
   makeEntry(id: string): Entry {

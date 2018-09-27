@@ -31,7 +31,10 @@ export default class Pen extends Handler<Props> {
     }
 
     if (onPanMove || onPanEnd) {
-      recognizers.push([Hammer.Pan, { direction: Hammer.DIRECTION_ALL }])
+      recognizers.push([
+        Hammer.Pan,
+        { threshold: 0, direction: Hammer.DIRECTION_ALL },
+      ])
     }
 
     // If we are handling pan events, prevent pen scroll.
@@ -98,7 +101,7 @@ export default class Pen extends Handler<Props> {
   }
 
   filter(event: PenEvent) {
-    return event.pointerType === "pen"
+    return event.pointerType === "pen" || event.srcEvent.shiftKey
   }
 
   render() {
