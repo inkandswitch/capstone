@@ -1,7 +1,6 @@
 import * as Preact from "preact"
 
 import Store from "../data/Store"
-import * as Link from "../data/Link"
 import Root from "./Root"
 import Content from "./Content"
 
@@ -13,6 +12,7 @@ import "./Text"
 import "./Workspace"
 import "./Shelf"
 import "./Identity"
+import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import * as Archive from "./Archive"
 
@@ -83,6 +83,7 @@ export default class App extends Preact.Component<{}, State> {
       <Root store={Content.store}>
         <div style={style.App}>
           <Content mode="fullscreen" url={url} />
+          <Feedback.Renderer />
         </div>
       </Root>
     )

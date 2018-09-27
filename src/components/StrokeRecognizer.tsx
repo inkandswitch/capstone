@@ -2,6 +2,7 @@ import * as Preact from "preact"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
 import { delay } from "lodash"
+import * as Feedback from "./CommandFeedback"
 const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {
@@ -177,7 +178,6 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     const result = this.recognizer.Recognize(this.points, only)
 
     if (result.Score > 0 && result.Score < maxScore) {
-      //this.flashDebugMessage(`I'm a ${result.Name}`)
       const glyph = this.mapResultNameToGlyph(result.Name)
       this.props.onGlyph({
         glyph: glyph,
@@ -186,7 +186,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
         center: this.center(),
       })
     } else {
-      this.flashDebugMessage(`Unrecognized glyph...`)
+      Feedback.Provider.add("Unrecognized glyph...", this.center())
     }
   }
 
@@ -292,18 +292,5 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
 
   getDrawingContext(): CanvasRenderingContext2D | null | undefined {
     return this.canvasElement && this.canvasElement.getContext("2d")
-  }
-
-  flashDebugMessage(text: string) {
-    const div = document.createElement("div")
-    div.className = "DebugMessage"
-    const content = document.createTextNode(text)
-    div.appendChild(content)
-    document.body.appendChild(div)
-
-    const removeText = () => {
-      document.body.removeChild(div)
-    }
-    delay(removeText, 1000)
   }
 }
