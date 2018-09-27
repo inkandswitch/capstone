@@ -1,11 +1,13 @@
 import * as Preact from "preact"
+import { remove } from "lodash"
+import { AnyDoc, Doc } from "automerge/frontend"
+
+import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import { ReceiveDocuments } from "./Content"
-import { AnyDoc, Doc } from "automerge/frontend"
-import * as Reify from "../data/Reify"
-import ArchiveItem from "./ArchiveItem"
+import DocumentGrid from "./DocumentGrid"
+import DocumentGridCell from "./DocumentGridCell"
 import { Glyph, GlyphEvent } from "./StrokeRecognizer"
-import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
@@ -105,11 +107,11 @@ class Archive extends Preact.Component<Props> {
 
     return (
       <div style={style.Archive}>
-        <div style={style.Items}>
+        <DocumentGrid>
           {doc.docs.map(({ url }) => (
-            <ArchiveItem key={url} url={url} onGlyph={this.onGlyphItem} />
+            <DocumentGridCell key={url} url={url} onGlyph={this.onGlyphItem} />
           ))}
-        </div>
+        </DocumentGrid>
       </div>
     )
   }
@@ -125,14 +127,6 @@ const style = {
     height: "100%",
     overflow: "auto",
     zIndex: 1,
-  },
-
-  Items: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-    gridAutoRows: "1fr",
-    gridGap: "10px",
-    width: "100%",
     padding: 30,
   },
 }

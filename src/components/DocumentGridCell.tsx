@@ -1,25 +1,30 @@
 import * as Preact from "preact"
-import Content from "./Content"
-import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 
-interface ArchiveItemProps {
+import Content from "./Content"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
+import Touch from "./Touch"
+
+interface Props {
   url: string
   onGlyph: (stroke: GlyphEvent, url: string) => void
+  onDoubleTap?: (url: string) => void
 }
 
-export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
+export default class Cell extends Preact.Component<Props> {
   render() {
     const { url } = this.props
     return (
       <StrokeRecognizer onGlyph={this.onGlyph}>
-        <div style={style.Item}>
-          <div style={style.ItemContent}>
-            <Content mode="preview" url={url} />
-            <div style={style.NetworkActivity}>
-              <Content mode="embed" type="NetworkActivity" url={url} />
+        <Touch onDoubleTap={this.onDoubleTap}>
+          <div style={style.Cell}>
+            <div style={style.CellContent}>
+              <Content mode="preview" url={url} />
+              <div style={style.NetworkActivity}>
+                <Content mode="embed" type="NetworkActivity" url={url} />
+              </div>
             </div>
           </div>
-        </div>
+        </Touch>
       </StrokeRecognizer>
     )
   }
@@ -27,15 +32,19 @@ export default class ArchiveItem extends Preact.Component<ArchiveItemProps> {
   onGlyph = (stroke: GlyphEvent) => {
     this.props.onGlyph(stroke, this.props.url)
   }
+
+  onDoubleTap = () => {
+    this.props.onDoubleTap && this.props.onDoubleTap(this.props.url)
+  }
 }
 
 const style = {
-  Item: {
+  Cell: {
     position: "relative",
     overflow: "hidden",
     height: 200,
   },
-  ItemContent: {
+  CellContent: {
     background: "#fff",
     overflow: "hidden",
     maxHeight: "100%'",

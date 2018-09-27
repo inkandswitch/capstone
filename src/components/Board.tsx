@@ -168,7 +168,7 @@ class Board extends Preact.Component<Props, State> {
                     <DraggableCard
                       key={card.id}
                       card={card}
-                      onPinchEnd={this.props.onNavigate}
+                      onDoubleTap={this.props.onNavigate}
                       onDragStart={this.onDragStart}
                       onDragStop={this.onDragStop}>
                       <Content
