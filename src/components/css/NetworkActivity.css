@@ -1,26 +1,26 @@
-:local(.NetworkActivity) {
+.NetworkActivity {
   display: flex;
 }
 
-:local(.Status::before) {
+.Status::before {
   height: 10px;
   width: 10px;
   border-radius: 99px;
 }
 
-:local(.Upload),
-:local(.Download) {
+.Upload,
+.Download {
   opacity: 0.1;
 }
 
-:local(.lit) {
+.lit {
   opacity: 1;
 }
 
-:local(.Upload::before) {
+.Upload::before {
   content: "▲";
 }
 
-:local(.Download::after) {
+.Download::after {
   content: "▼";
 }
