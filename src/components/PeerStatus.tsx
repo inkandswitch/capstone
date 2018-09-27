@@ -38,7 +38,7 @@ export default class PeerStatus extends Preact.Component<Props, State> {
     let status = "inactive"
     if (peer) {
       console.log(peer)
-      status = +Date.now() - peer.lastSeen < 10000 ? "inactive" : "active"
+      status = +Date.now() - peer.lastSeen > 10000 ? "inactive" : "active"
       connectionCount = peer.devices.length
     }
     this.setState({ connectionCount, status })
