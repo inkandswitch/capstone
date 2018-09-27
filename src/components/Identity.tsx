@@ -4,7 +4,7 @@ import { union } from "lodash"
 
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
-import { DocumentActor } from "./Content"
+import Content, { DocumentActor } from "./Content"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 import * as Widget from "./Widget"
