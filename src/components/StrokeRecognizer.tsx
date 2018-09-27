@@ -46,6 +46,7 @@ enum StrokeType {
   ink,
   erase,
   glyph,
+  default = ink,
 }
 
 export interface StrokeSettings {
@@ -111,7 +112,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
   lastDrawnPoint = 1 // the boundary case is to move to the 0th point and draw to the 1st
   bounds: Bounds = EMPTY_BOUNDS
 
-  state = { strokeType: StrokeType.glyph }
+  state = { strokeType: StrokeType.default }
 
   render() {
     const { strokeType } = this.state
@@ -181,7 +182,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
     })
   }
 
-  onStrokeTypeChange = (strokeType: StrokeType = StrokeType.glyph) => {
+  onStrokeTypeChange = (strokeType: StrokeType = StrokeType.default) => {
     this.setState({ strokeType })
   }
 
