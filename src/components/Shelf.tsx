@@ -88,7 +88,7 @@ class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.delete:
-        Feedback.Provider.add("Clear shelf contents...", stroke.center)
+        Feedback.Provider.add("Clear shelf contents", stroke.center)
         this.props.emit({ type: "ClearShelf" })
     }
   }
