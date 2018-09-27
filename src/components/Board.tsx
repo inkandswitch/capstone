@@ -255,7 +255,7 @@ class Board extends Preact.Component<Props, State> {
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
-    this.createCard("Text", e.center.x, e.center.y)
+    this.createCard("Text", e.center.x, e.center.y, true)
   }
 
   onDragStart = (id: string) => {
@@ -355,7 +355,7 @@ class Board extends Preact.Component<Props, State> {
     })
   }
 
-  async createCard(type: string, x: number, y: number) {
+  async createCard(type: string, x: number, y: number, focus: boolean = false) {
     if (this.props.doc.focusedCardId != null) return
     if (!this.boardEl) return
 
@@ -372,7 +372,9 @@ class Board extends Preact.Component<Props, State> {
         card: { id, x: cardX, y: cardY },
       },
     })
-    this.setCardFocus(id)
+    if (focus) {
+      this.setCardFocus(id)
+    }
   }
 }
 
