@@ -1,26 +1,34 @@
 import * as Preact from "preact"
-import Content, { DocumentActor } from "./Content"
-import { ShelfContents, ShelfContentsRequested } from "./Shelf"
-import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
+import { AnyDoc } from "automerge/frontend"
+import { union } from "lodash"
+
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
+import { DocumentActor } from "./Content"
+import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
+import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
 import * as Widget from "./Widget"
-import { AnyDoc } from "automerge/frontend"
 import IdentityBadge from "./IdentityBadge"
+import DocumentGrid from "./DocumentGrid"
+import DocumentGridCell from "./DocumentGridCell"
 
 interface Model {
   name: string
   avatarUrl: string
-  documents: string[]
+  documents: { [k: string]: boolean }
 }
 
-type WidgetMessage = ShelfContentsRequested
+type WidgetMessage = ShelfContentsRequested | AddToShelf
 type InMessage = WidgetMessage | ShelfContents
-type OutMessage = ShelfContentsRequested
+type OutMessage = ShelfContentsRequested | AddToShelf
 
 export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
+      case "AddToShelf": {
+        this.emit({ type: "AddToShelf", body: message.body })
+        break
+      }
       case "ShelfContentsRequested": {
         this.emit({ type: "ShelfContentsRequested", body: message.body })
         break
@@ -39,7 +47,9 @@ export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
               doc.avatarUrl = urls[0]
             }
           } else {
-            doc.documents = doc.documents.concat(urls)
+            urls.forEach(url => {
+              doc.documents[url] = true
+            })
           }
           return doc
         })
@@ -49,7 +59,10 @@ export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
-interface Props extends Widget.Props<Model, WidgetMessage> {}
+interface Props extends Widget.Props<Model, WidgetMessage> {
+  onNavigate?: (url: string) => void
+}
+
 interface State {
   isEditing: boolean
 }
@@ -61,12 +74,11 @@ export class Identity extends Preact.Component<Props, State> {
     return {
       name: Reify.string(doc.name),
       avatarUrl: Reify.string(doc.avatarUrl),
-      documents: Reify.array(doc.documents),
+      documents: Reify.map(doc.documents),
     }
   }
 
   onPointerDown = (event: PointerEvent) => {
-    console.log("onTap")
     if (this.state.isEditing) this.setState({ isEditing: false })
   }
 
@@ -87,7 +99,7 @@ export class Identity extends Preact.Component<Props, State> {
     }
   }
 
-  onCubbyGlyph = (stroke: GlyphEvent) => {
+  onGlyphCubby = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.paste:
         this.props.emit({
@@ -98,8 +110,26 @@ export class Identity extends Preact.Component<Props, State> {
     }
   }
 
+  onGlyphCubbyItem = (stroke: GlyphEvent, url: string) => {
+    switch (stroke.glyph) {
+      case Glyph.copy:
+        this.props.emit({
+          type: "AddToShelf",
+          body: { url },
+        })
+        break
+      case Glyph.delete:
+        this.props.change(doc => {
+          delete doc.documents[url]
+        })
+    }
+  }
+
+  onDoubleTapCubbyItem = (url: string) => {
+    this.props.onNavigate && this.props.onNavigate(url)
+  }
+
   onChange = (event: any) => {
-    console.log("CHANGE")
     this.props.change(doc => {
       doc.name = event.target.value
       return doc
@@ -135,15 +165,17 @@ export class Identity extends Preact.Component<Props, State> {
             </div>
           </div>
         </StrokeRecognizer>
-        <StrokeRecognizer onGlyph={this.onCubbyGlyph}>
+        <StrokeRecognizer onGlyph={this.onGlyphCubby}>
           <div style={style.Documents}>
-            {documents.map(docUrl => (
-              <div style={style.Item}>
-                <div style={style.ItemContent}>
-                  <Content mode="embed" url={docUrl} />
-                </div>
-              </div>
-            ))}
+            <DocumentGrid>
+              {Object.keys(documents).map(docUrl => (
+                <DocumentGridCell
+                  url={docUrl}
+                  onGlyph={this.onGlyphCubbyItem}
+                  onDoubleTap={this.onDoubleTapCubbyItem}
+                />
+              ))}
+            </DocumentGrid>
           </div>
         </StrokeRecognizer>
       </div>
@@ -185,24 +217,11 @@ const style = {
   },
   Documents: {
     flexGrow: 1,
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-    gridAutoRows: "1fr",
-    gridGap: "10px",
     width: "75vw",
     padding: 30,
     backgroundColor: "#e5e5e5",
     border: "1px solid #aaa",
-  },
-  Item: {
-    position: "relative",
-    overflow: "hidden",
-    height: 200,
-  },
-  ItemContent: {
-    background: "#fff",
-    overflow: "hidden",
-    maxHeight: "100%'",
+    overflowY: "scroll",
   },
   PeerStatus: {
     position: "absolute",

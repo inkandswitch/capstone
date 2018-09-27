@@ -1,7 +1,6 @@
 import * as Preact from "preact"
 import * as $P from "../modules/$P"
 import Pen, { PenEvent } from "./Pen"
-import { delay } from "lodash"
 import * as Feedback from "./CommandFeedback"
 const templates = require("../modules/$P/glyph-templates.json")
 
@@ -127,6 +126,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
     } else {
       this.strokeType = StrokeType.ink
     }
+    this.onPanMove(event)
   }
 
   onPanMove = (event: PenEvent) => {
@@ -186,7 +186,7 @@ export default class StrokeRecognizer extends Preact.Component<Props> {
         center: this.center(),
       })
     } else {
-      Feedback.Provider.add("Unrecognized glyph...", this.center())
+      Feedback.Provider.add("Unrecognized glyph", this.center())
     }
   }
 

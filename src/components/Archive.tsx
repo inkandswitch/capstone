@@ -1,11 +1,13 @@
 import * as Preact from "preact"
+import { remove } from "lodash"
+import { AnyDoc, Doc } from "automerge/frontend"
+
+import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import Content from "./Content"
-import { AnyDoc, Doc } from "automerge/frontend"
-import * as Reify from "../data/Reify"
-import ArchiveItem from "./ArchiveItem"
+import DocumentGrid from "./DocumentGrid"
+import DocumentGridCell from "./DocumentGridCell"
 import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
-import { remove } from "lodash"
 import {
   DocumentActor,
   DocumentCreated,
@@ -112,7 +114,7 @@ class Archive extends Preact.Component<Props> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.create: {
-        Feedback.Provider.add("Create board...", stroke.center)
+        Feedback.Provider.add("Create board", stroke.center)
         this.props.emit({ type: "CreateBoard" })
         break
       }
@@ -122,12 +124,12 @@ class Archive extends Preact.Component<Props> {
   onGlyphItem = (stroke: GlyphEvent, url: string) => {
     switch (stroke.glyph) {
       case Glyph.copy: {
-        Feedback.Provider.add("Add to shelf...", stroke.center)
+        Feedback.Provider.add("Add to shelf", stroke.center)
         this.props.emit({ type: "AddToShelf", body: { url } })
         break
       }
       case Glyph.delete: {
-        Feedback.Provider.add("Delete document...", stroke.center)
+        Feedback.Provider.add("Delete document", stroke.center)
         this.props.emit({ type: "DocumentDeleted", body: { url } })
         break
       }
@@ -144,16 +146,16 @@ class Archive extends Preact.Component<Props> {
     return (
       <StrokeRecognizer onGlyph={this.onGlyph}>
         <div style={style.Archive}>
-          <div style={style.Items}>
+          <DocumentGrid>
             {doc.docs.map(({ url }) => (
-              <ArchiveItem
+              <DocumentGridCell
                 key={url}
                 url={url}
                 onDoubleTap={this.onDoubleTapItem}
                 onGlyph={this.onGlyphItem}
               />
             ))}
-          </div>
+          </DocumentGrid>
         </div>
       </StrokeRecognizer>
     )
@@ -170,14 +172,6 @@ const style = {
     height: "100%",
     overflow: "auto",
     zIndex: 1,
-  },
-
-  Items: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-    gridAutoRows: "1fr",
-    gridGap: "10px",
-    width: "100%",
     padding: 30,
   },
 }
