@@ -96,7 +96,10 @@ export default class StoreComms {
       case "SetIdentity":
         const { identityUrl } = args
         console.log("Identity", identityUrl)
-        // TODO
+        this.hypermerge.setIdentity( identityUrl )
+        chrome.system.network.getNetworkInterfaces(ifaces => {
+          this.hypermerge.setDevice( identityUrl )
+        })
         break
       default:
         console.warn("Received an unusual message: ", request)

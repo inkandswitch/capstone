@@ -41,7 +41,7 @@ var _enable = once(() => {
                 let purple = "color: purple"
                 let statusColor = age < 10000 ? green : red;
                 console.log(
-                  `user=%c"${p.user}"%c doc=%c"${p.docId.slice(0,5)}"%c status=%c'${stats}'%c" lastSyn=%c${age}ms`,
+                  `user=%c"${p.userUrl} - ${p.device}%c" doc=%c"${p.docId.slice(0,5)}"%c status=%c'${stats}'%c" lastSyn=%c${age}ms`,
                   red, black, red, black, statusColor, black, purple)
               })
             }

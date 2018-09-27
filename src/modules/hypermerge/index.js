@@ -163,20 +163,24 @@ class DocHandle {
 }
 
 function initHypermerge(ops, cb) {
-  chrome.storage.local.get("userAgent", (result) => { // thos os capstone specific - we have many app entries
-    ops.user = result.userAgent
-    let doc = new Hypermerge(ops)
-    doc.ready.then(cb)
+  chrome.system.network.getNetworkInterfaces(ifaces => {
+    let address = ifaces.filter(i => i.prefixLength == 24)[0].address
+    chrome.storage.local.get("deviceAgent", (result) => { // thos os capstone specific - we have many app entries
+        ops.device = result.deviceAgent || address
+        let doc = new Hypermerge(ops)
+        doc.ready.then(cb)
+    })
   })
 }
 
 class Hypermerge extends EventEmitter {
-  constructor({ user, storage, defaultMetadata = {} }) {
+  constructor({ userUrl, device, storage, defaultMetadata = {} }) {
     super()
 
     this.defaultMetadata = defaultMetadata
 
-    this.user = user || haiku.haikunate()
+    this.device = device || haiku.haikunate()
+    this.userUrl = userUrl || null
     this.feeds = {}
     this.docs = {}
     this.handles = {} // docId -> [DocHandle]
@@ -907,7 +911,7 @@ class Hypermerge extends EventEmitter {
         peer.synTime = Date.now()
         peer.interval = setInterval(() => {
           //console.log("Sending SYN");
-          this._messagePeer(peer, { type: "SYN", user: this.user })
+          this._messagePeer(peer, { type: "SYN", userUrl: this.userUrl, device: this.device })
         }, SYN_TIME)
 
 
@@ -926,7 +930,6 @@ class Hypermerge extends EventEmitter {
 
   _onPeerRemoved(actorId) {
     return peer => {
-      //console.log("SYN clear interval",peer,peer.interval)
       clearInterval(peer.interval)
       this._loadMetadata(actorId).then(() => {
         if (!this._isDocId(actorId)) {
@@ -970,7 +973,8 @@ class Hypermerge extends EventEmitter {
       case "SYN":
         //console.log("SYN",msg.user, actorId)
         peer.synTime = Date.now()
-        peer.user = msg.user
+        peer.userUrl = msg.userUrl
+        peer.device = msg.device
         break
       default:
         this.emit("peer:message", actorId, peer, msg)
