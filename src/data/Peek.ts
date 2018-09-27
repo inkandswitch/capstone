@@ -68,10 +68,8 @@ var _enable = once(() => {
       console.log("%c  peek(docid, 'jcp') - do all there", "color: green")
       for (let docId in global.sm.docHandles) {
         let handle = global.sm.docHandles[docId]
-        let body = handle.toString()
         let peers = handle.__actorIds().reduce((acc: any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
-        if (body.length > 40) body = body.slice(0,37) + "..."
-        console.log("%c " + docId.slice(0,5), "color: blue", " : " + peers.length + " peers, '" + body + "'",)
+        console.log("%c " + docId.slice(0,5), "color: blue", " : " + peers.length + " peers, ",JSON.parse(handle.toString()))
       }
     }
   }
