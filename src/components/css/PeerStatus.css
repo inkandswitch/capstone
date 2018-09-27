@@ -1,0 +1,25 @@
+:local(.PeerStatus) {
+  display: flex;
+}
+
+:local(.Status) {
+  height: 10px;
+  width: 10px;
+  border-radius: 99px;
+}
+
+:local(.StatusActive) {
+  background-color: green;
+}
+
+:local(.StatusInactive) {
+  background-color: grey;
+}
+
+:local(.StatusError) {
+  background-color: red;
+}
+
+:local(.ConnectionCount) {
+  color: darkgrey;
+}

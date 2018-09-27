@@ -130,6 +130,9 @@ export class Identity extends Preact.Component<Props, State> {
               isEditing={isEditing}
               onChange={this.onChange}
             />
+            <div style={style.PeerStatus}>
+              <Content mode="embed" type="PeerStatus" url={this.props.url} />
+            </div>
           </div>
         </StrokeRecognizer>
         <StrokeRecognizer onGlyph={this.onCubbyGlyph}>
@@ -152,6 +155,9 @@ export class Identity extends Preact.Component<Props, State> {
     return (
       <div style={style.preview.Identity}>
         <IdentityBadge avatarUrl={avatarUrl} name={name} />
+        <div style={style.PeerStatus}>
+          <Content mode="embed" type="PeerStatus" url={this.props.url} />
+        </div>
       </div>
     )
   }
@@ -196,6 +202,11 @@ const style = {
     background: "#fff",
     overflow: "hidden",
     maxHeight: "100%'",
+  },
+  PeerStatus: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
   },
 }
 
