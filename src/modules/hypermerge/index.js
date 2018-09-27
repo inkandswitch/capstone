@@ -156,7 +156,7 @@ class DocHandle {
   }
 
   peers() {
-    return connections.reduce( peer => !!peer.identity)
+    return this.connections().filter( peer => !!peer.identity)
   }
 
   onMessage(cb) {
