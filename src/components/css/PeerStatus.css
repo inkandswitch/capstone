@@ -13,11 +13,11 @@
 }
 
 :local(.StatusInactive) {
-  background-color: grey;
+  background-color: red;
 }
 
 :local(.StatusError) {
-  background-color: red;
+  background-color: grey;
 }
 
 :local(.ConnectionCount) {

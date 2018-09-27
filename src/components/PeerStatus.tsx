@@ -18,11 +18,11 @@ interface State {
 }
 
 // TODO: move to store
-type status = "inactive" | "active" | "red?"
+type status = "inactive" | "active" | "disconnected"
 
 export default class PeerStatus extends Preact.Component<Props, State> {
   id = Link.parse(this.props.url).id
-  state = { connectionCount: 0, status: "inactive" }
+  state = { connectionCount: 0, status: "disconnected" }
   static reify() {
     return {}
   }
@@ -35,7 +35,7 @@ export default class PeerStatus extends Preact.Component<Props, State> {
   onUpdate = (presence: any) => {
     const peer = presence.peers[this.props.url]
     let connectionCount = 0
-    let status = "inactive"
+    let status = "disconnected"
     if (peer) {
       console.log(peer)
       status = +Date.now() - peer.lastSeen > 10000 ? "inactive" : "active"
@@ -49,7 +49,7 @@ export default class PeerStatus extends Preact.Component<Props, State> {
     const statusClassName = classnames(css.Status, {
       [css.StatusActive]: status === "active",
       [css.StatusInactive]: status === "inactive",
-      [css.StatusError]: status === "red?",
+      [css.StatusDisconnected]: status === "disconnected",
     })
     return (
       <div className={css.PeerStatus}>
