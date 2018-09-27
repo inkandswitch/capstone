@@ -2,6 +2,7 @@ import { Hypermerge } from "../modules/hypermerge"
 import * as Prefetch from "../data/Prefetch"
 import * as Peek from "./Peek"
 
+
 const Debug = require("debug")
 const log = Debug("store:coms")
 
@@ -70,23 +71,24 @@ export default class StoreComms {
             docs : {},
             peers: {}
           }
+          const add : Function = (array : Array<any>, element : any) => array.includes(element) ? null : array.push(element)
           for (const docId in this.docHandles) {
             const handle = this.docHandles[docId]
             const connections = handle.connections()
 
-            message.docs[docId] = message.docs[docId] || { connections: 0, peers: new Set() }
-            message.docs[docId] = connections.length
+            message.docs[docId] = message.docs[docId] || { connections: 0, peers: [] }
+            message.docs[docId].connections = connections.length
 
             const peers = handle.peers().map( (peer : any) => {
               const id = peer.identity
               message.peers[id] = message.peers[id] || {
-                devices : new Set(),
-                docs : new Set(),
+                devices : [],
+                docs : [],
                 lastSeen : 0
               }
-              message.docs[docId].peers.add(id)
-              message.peers[id].devices.add(peer.device)
-              message.peers[id].docs.add(docId)
+              add(message.docs[docId].peers, id)
+              add(message.peers[id].devices, peer.device)
+              add(message.peers[id].docs, docId)
               message.peers[id].lastSeen = Math.max(message.peers[id].lastSeen, peer.synTime)
             })
           }

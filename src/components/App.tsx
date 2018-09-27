@@ -21,6 +21,12 @@ window.Content = Content
 
 Content.store = new Store()
 
+
+Content.store.presence().subscribe((presenceInfo) => {
+  console.log(presenceInfo)
+})
+
+
 type State = {
   url: string
 }
