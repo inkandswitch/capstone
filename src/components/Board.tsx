@@ -76,7 +76,6 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
       case "ReceiveDocuments": {
-        debugger
         const { urls } = message.body
         this.change(doc => {
           urls.forEach((url: string) => addCard(doc, url))
@@ -209,47 +208,6 @@ class Board extends Preact.Component<Props, State> {
     }
   }
 
-  onCardGlyph = (event: GlyphEvent, id: string) => {
-    switch (event.glyph) {
-      case Glyph.delete:
-        this.deleteCard(id)
-        Feedback.Provider.add("Delete...", event.center)
-        break
-      case Glyph.copy: {
-        const card = this.props.doc.cards[id]
-        if (card) {
-          this.props.emit({ type: "AddToShelf", body: { url: card.url } })
-        }
-        Feedback.Provider.add("Add to shelf...", event.center)
-        break
-      }
-      case Glyph.edit: {
-        Feedback.Provider.add("Edit...", event.center)
-        if (this.state.focusedCardId != null) return
-        if (!this.props.doc.cards[id]) return
-
-        // move card to top of stack
-        this.props.change(doc => {
-          const card = doc.cards[id]
-          if (!card) return doc
-          doc.topZ++
-          doc.cards[id] = { ...card, z: doc.topZ }
-          return doc
-        })
-        this.setCardFocus(id)
-        Feedback.Provider.add("Edit...", event.center)
-        break
-      }
-      default: {
-        Feedback.Provider.add(
-          `No command for glyph: ${event.name}...`,
-          event.center,
-        )
-        break
-      }
-    }
-  }
-
   onVirtualKeyboardClose = () => {
     this.clearCardFocus()
   }
@@ -305,6 +263,23 @@ class Board extends Preact.Component<Props, State> {
   }
 
   onGlyph = (stroke: GlyphEvent) => {
+    let glyphHandled = false
+    // Attempt card glyph
+    const card = this.cardAtPoint(stroke.center.x, stroke.center.y)
+    if (card) {
+      glyphHandled = this.onCardGlyph(stroke, card)
+    }
+    // If not handled, attempt board glyph
+    if (!glyphHandled) {
+      glyphHandled = this.onBoardGlyph(stroke)
+    }
+    // If still not handled, we don't recognize the gesture
+    if (!glyphHandled) {
+      Feedback.Provider.add("Unrecognized gesture...", stroke.center)
+    }
+  }
+
+  onBoardGlyph = (stroke: GlyphEvent): boolean => {
     switch (stroke.glyph) {
       case Glyph.paste:
         Feedback.Provider.add("Place contents of shelf...", stroke.center)
@@ -323,14 +298,54 @@ class Board extends Preact.Component<Props, State> {
         this.createCard("Board", stroke.center.x, stroke.center.y)
         break
       default: {
-        const centerPoint = stroke.center
-        const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
-        if (card) {
-          this.onCardGlyph(stroke, card.id)
-        }
-        break
+        return false
       }
     }
+    return true
+  }
+
+  onCardGlyph = (event: GlyphEvent, card: CardModel): boolean => {
+    switch (event.glyph) {
+      case Glyph.paste: {
+        Feedback.Provider.add("Place contents of shelf...", event.center)
+        this.props.emit({
+          type: "ShelfContentsRequested",
+          body: { recipientUrl: card.url },
+        })
+        break
+      }
+      case Glyph.delete:
+        this.deleteCard(card.id)
+        Feedback.Provider.add("Delete...", event.center)
+        break
+      case Glyph.copy: {
+        this.props.emit({ type: "AddToShelf", body: { url: card.url } })
+        Feedback.Provider.add("Add to shelf...", event.center)
+        break
+      }
+      case Glyph.edit: {
+        if (this.state.focusedCardId != null) return false
+
+        // move card to top of stack
+        const cardId = card.id
+        this.props.change(doc => {
+          const card = doc.cards[cardId]
+          if (!card) return doc
+          doc.topZ++
+          doc.cards[card.id] = { ...card, z: doc.topZ }
+          return doc
+        })
+        this.setCardFocus(cardId)
+        Feedback.Provider.add("Edit...", event.center)
+        break
+      }
+      default: {
+        // Return false if the glyph wasn't handled
+        return false
+      }
+    }
+    // Return true if the glyph was handled
+    return true
   }
 
   cardAtPoint = (x: number, y: number): CardModel | undefined => {

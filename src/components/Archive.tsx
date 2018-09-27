@@ -97,6 +97,7 @@ class Archive extends Preact.Component<Props> {
         break
       }
       case Glyph.paste: {
+        Feedback.Provider.add("Place contents of shelf...", stroke.center)
         this.props.emit({
           type: "ShelfContentsRequested",
           body: { recipientUrl: url },
