@@ -150,6 +150,15 @@ class DocHandle {
     }
   }
 
+  connections() {
+    let peers = this.__actorIds().map(actorId => this.hm._trackedFeed(actorId).peers)
+    return peers.reduce((acc,val) => acc.concat(val),[])
+  }
+
+  peers() {
+    return connections.reduce( peer => !!peer.identity)
+  }
+
   onMessage(cb) {
     this._messageCb = cb
     return this
@@ -163,24 +172,18 @@ class DocHandle {
 }
 
 function initHypermerge(ops, cb) {
-  chrome.system.network.getNetworkInterfaces(ifaces => {
-    let address = ifaces.filter(i => i.prefixLength == 24)[0].address
-    chrome.storage.local.get("deviceAgent", (result) => { // thos os capstone specific - we have many app entries
-        ops.device = result.deviceAgent || address
-        let doc = new Hypermerge(ops)
-        doc.ready.then(cb)
-    })
-  })
+  let doc = new Hypermerge(ops)
+  doc.ready.then(cb)
 }
 
 class Hypermerge extends EventEmitter {
-  constructor({ userUrl, device, storage, defaultMetadata = {} }) {
+  constructor({ identity, device, storage, defaultMetadata = {} }) {
     super()
 
     this.defaultMetadata = defaultMetadata
 
-    this.device = device || haiku.haikunate()
-    this.userUrl = userUrl || null
+    this.device = device
+    this.identity = identity
     this.feeds = {}
     this.docs = {}
     this.handles = {} // docId -> [DocHandle]
@@ -204,6 +207,14 @@ class Hypermerge extends EventEmitter {
 
   _feedKeys() {
     return this.core.feedKeys().map(Base58.encode)
+  }
+
+  setIdentity(identity) {
+    this.identity = identity
+  }
+
+  setDevice(device) {
+    this.device = device
   }
 
   chromeJoinSwarm() {
@@ -911,7 +922,7 @@ class Hypermerge extends EventEmitter {
         peer.synTime = Date.now()
         peer.interval = setInterval(() => {
           //console.log("Sending SYN");
-          this._messagePeer(peer, { type: "SYN", userUrl: this.userUrl, device: this.device })
+          this._messagePeer(peer, { type: "SYN", identity: this.identity, device: this.device })
         }, SYN_TIME)
 
 
@@ -973,7 +984,7 @@ class Hypermerge extends EventEmitter {
       case "SYN":
         //console.log("SYN",msg.user, actorId)
         peer.synTime = Date.now()
-        peer.userUrl = msg.userUrl
+        peer.identity = msg.identity
         peer.device = msg.device
         break
       default:

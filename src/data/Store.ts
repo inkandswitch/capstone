@@ -84,4 +84,12 @@ export default class Store {
       port.onDisconnect.addListener(() => obs.complete())
     })
   }
+
+  presence(id: string): Rx.Observable<any> {
+    return new Rx.Observable(obs => {
+      const port = chrome.runtime.connect({ name: `*/presence` })
+      port.onMessage.addListener(msg => obs.next(msg))
+      port.onDisconnect.addListener(() => obs.complete())
+    })
+  }
 }

@@ -17,6 +17,14 @@ export default class StoreComms {
     ;(window as any).sm = this
     this.hypermerge.joinSwarm({ chrome: true })
     this.prefetcher = new Prefetch.Prefetcher(this.hypermerge, this.docHandles)
+
+    // debugging stuff
+    chrome.system.network.getNetworkInterfaces(ifaces => {
+      let address = ifaces.filter(i => i.prefixLength == 24)[0].address
+      chrome.storage.local.get("deviceAgent", (result) => {
+        this.hypermerge.setDevice( result.deviceAgent || address )
+      })
+    })
     Peek.enable()
   }
 
@@ -50,6 +58,41 @@ export default class StoreComms {
 //          this.debugLogs[docId].push({ patch })
           port.postMessage({ actorId, patch })
         })
+        break
+      }
+
+      case "presence": {
+        const hm = this.hypermerge
+        const actorIds: string[] = hm.docIndex[docId] || []
+
+        setInterval(() => {
+          let message : any = {
+            docs : {},
+            peers: {}
+          }
+          for (const docId in this.docHandles) {
+            const handle = this.docHandles[docId]
+            const connections = handle.connections()
+
+            message.docs[docId] = message.docs[docId] || { connections: 0, peers: new Set() }
+            message.docs[docId] = connections.length
+
+            const peers = handle.peers().map( (peer : any) => {
+              const id = peer.identity
+              message.peers[id] = message.peers[id] || {
+                devices : new Set(),
+                docs : new Set(),
+                lastSeen : 0
+              }
+              message.docs[docId].peers.add(id)
+              message.peers[id].devices.add(peer.device)
+              message.peers[id].docs.add(docId)
+              message.peers[id].lastSeen = Math.max(message.peers[id].lastSeen, peer.synTime)
+            })
+          }
+          port.postMessage(message)
+        }, 5000)
+
         break
       }
 
@@ -97,9 +140,6 @@ export default class StoreComms {
         const { identityUrl } = args
         console.log("Identity", identityUrl)
         this.hypermerge.setIdentity( identityUrl )
-        chrome.system.network.getNetworkInterfaces(ifaces => {
-          this.hypermerge.setDevice( identityUrl )
-        })
         break
       default:
         console.warn("Received an unusual message: ", request)
