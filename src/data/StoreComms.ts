@@ -8,7 +8,7 @@ const log = Debug("store:coms")
 export default class StoreComms {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
-  debugLogs: { [docId: string]: any } = {}
+  //debugLogs: { [docId: string]: any } = {}
   prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge) {
@@ -38,16 +38,16 @@ export default class StoreComms {
 
         port.onMessage.addListener((changes: any) => {
           handle.applyChanges(changes)
-          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
-          this.debugLogs[docId].push({ changes })
+//          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
+//          this.debugLogs[docId].push({ changes })
           log("applyChanges", changes)
         })
 
         handle.onPatch((patch: any) => {
           log("patch", patch)
           const actorId = handle.actorId
-          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
-          this.debugLogs[docId].push({ patch })
+//          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
+//          this.debugLogs[docId].push({ patch })
           port.postMessage({ actorId, patch })
         })
         break
