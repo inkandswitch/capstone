@@ -1,5 +1,6 @@
 import classnames from "classnames"
 import * as Preact from "preact"
+import * as Rx from "rxjs"
 
 import * as Link from "../data/Link"
 import Store from "../data/Store"
@@ -13,7 +14,6 @@ interface Props {
 }
 
 interface State {
-  connectionCount: number
   status: string
 }
 
@@ -22,30 +22,38 @@ type status = "inactive" | "active" | "disconnected"
 
 export default class PeerStatus extends Preact.Component<Props, State> {
   id = Link.parse(this.props.url).id
-  state = { connectionCount: 0, status: "disconnected" }
+  state = { status: "disconnected" }
+  presenceSubscription: Rx.Subscription
   static reify() {
     return {}
   }
 
   componentDidMount() {
     // TODO: subscribe to peer activity
-    this.props.store.presence().subscribe(this.onUpdate)
+    this.presenceSubscription = this.props.store
+      .presence()
+      .subscribe(this.onUpdate)
+  }
+
+  componentWillUnmount() {
+    if (this.presenceSubscription) {
+      this.presenceSubscription.unsubscribe()
+    }
   }
 
   onUpdate = (presence: any) => {
+    if (presence === null) return
     const peer = presence.peers[this.props.url]
-    let connectionCount = 0
     let status = "disconnected"
     if (peer) {
       console.log(peer)
       status = +Date.now() - peer.lastSeen > 10000 ? "inactive" : "active"
-      connectionCount = peer.devices.length
     }
-    this.setState({ connectionCount, status })
+    this.setState({ status })
   }
 
   render() {
-    const { connectionCount, status } = this.state
+    const { status } = this.state
     const statusClassName = classnames(css.Status, {
       [css.StatusActive]: status === "active",
       [css.StatusInactive]: status === "inactive",
@@ -54,7 +62,6 @@ export default class PeerStatus extends Preact.Component<Props, State> {
     return (
       <div className={css.PeerStatus}>
         <div className={statusClassName} />
-        <div className={css.ConnectionCount}>{connectionCount}</div>
       </div>
     )
   }

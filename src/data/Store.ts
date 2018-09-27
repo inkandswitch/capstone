@@ -17,12 +17,15 @@ interface DownloadActivity {
   seq: number
 }
 
-(window as any).peek = () =>  { console.log("please use peek() on the backend console") }
+;(window as any).peek = () => {
+  console.log("please use peek() on the backend console")
+}
 
 export type Activity = UploadActivity | DownloadActivity
 
 export default class Store {
   index: { [id: string]: Entry | undefined } = {}
+  presenceSubject: Rx.BehaviorSubject<any>
 
   open(
     id: string,
@@ -85,11 +88,13 @@ export default class Store {
     })
   }
 
-  presence(): Rx.Observable<any> {
-    return new Rx.Observable(obs => {
+  presence(): Rx.BehaviorSubject<any> {
+    if (!this.presenceSubject) {
+      this.presenceSubject = new Rx.BehaviorSubject(null)
       const port = chrome.runtime.connect({ name: `*/presence` })
-      port.onMessage.addListener(msg => obs.next(msg))
-      port.onDisconnect.addListener(() => obs.complete())
-    })
+      port.onMessage.addListener(msg => this.presenceSubject.next(msg))
+      port.onDisconnect.addListener(() => this.presenceSubject.complete())
+    }
+    return this.presenceSubject
   }
 }

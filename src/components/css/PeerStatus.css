@@ -1,5 +1,6 @@
 :local(.PeerStatus) {
   display: flex;
+  padding: 2px;
 }
 
 :local(.Status) {
@@ -16,7 +17,7 @@
   background-color: red;
 }
 
-:local(.StatusError) {
+:local(.StatusDisconnected) {
   background-color: grey;
 }
 
