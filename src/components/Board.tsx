@@ -11,6 +11,7 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
+import { Glyph } from "../data/Glyph"
 import VirtualKeyboard from "./VirtualKeyboard"
 import Ink from "./Ink"
 import { AnyDoc } from "automerge/frontend"
@@ -20,7 +21,6 @@ import StrokeRecognizer, {
   StrokeSettings,
   InkStrokeEvent,
   GlyphEvent,
-  Glyph,
 } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Feedback from "./CommandFeedback"

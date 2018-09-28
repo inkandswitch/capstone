@@ -7,7 +7,8 @@ import * as Widget from "./Widget"
 import Content from "./Content"
 import DocumentGrid from "./DocumentGrid"
 import DocumentGridCell from "./DocumentGridCell"
-import StrokeRecognizer, { Glyph, GlyphEvent } from "./StrokeRecognizer"
+import { Glyph } from "../data/Glyph"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import {
   DocumentActor,
   DocumentCreated,

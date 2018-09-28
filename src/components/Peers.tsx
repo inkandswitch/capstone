@@ -3,7 +3,6 @@ import * as Rx from "rxjs"
 
 import Content from "./Content"
 import Touch from "./Touch"
-import { Glyph, GlyphEvent } from "./StrokeRecognizer"
 
 import * as css from "./css/Peers.css"
 

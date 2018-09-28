@@ -1,12 +1,11 @@
 import * as Preact from "preact"
 import { AnyDoc } from "automerge/frontend"
-import { union } from "lodash"
-
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import Content, { DocumentActor } from "./Content"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
-import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
+import { Glyph } from "../data/Glyph"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import * as Widget from "./Widget"
 import IdentityBadge from "./IdentityBadge"
 import DocumentGrid from "./DocumentGrid"
@@ -152,20 +151,20 @@ export class Identity extends Preact.Component<Props, State> {
     const { isEditing } = this.state
     return (
       <div style={style.Identity} onPointerDown={this.onPointerDown}>
-        <StrokeRecognizer onGlyph={this.onBadgeGlyph}>
-          <div style={style.Profile} onPointerDown={this.onBadgePointerDown}>
+        <div style={style.Profile} onPointerDown={this.onBadgePointerDown}>
+          <StrokeRecognizer onGlyph={this.onBadgeGlyph}>
             <IdentityBadge
               name={name}
               avatarUrl={avatarUrl}
               isEditing={isEditing}
               onChange={this.onChange}
             />
-            <div style={style.PeerStatus}>
-              <Content mode="embed" type="PeerStatus" url={this.props.url} />
-            </div>
+          </StrokeRecognizer>
+          <div style={style.PeerStatus}>
+            <Content mode="embed" type="PeerStatus" url={this.props.url} />
           </div>
-        </StrokeRecognizer>
-        <StrokeRecognizer onGlyph={this.onGlyphCubby}>
+        </div>
+        <StrokeRecognizer onGlyph={this.onGlyphCubby} style={style.Stroke}>
           <div style={style.Documents}>
             <DocumentGrid>
               {Object.keys(documents).map(docUrl => (
@@ -212,16 +211,19 @@ const style = {
   Profile: {
     border: "1px solid #aaa",
     marginBottom: 25,
-    height: 125,
     position: "relative",
   },
-  Documents: {
+  Stroke: {
     flexGrow: 1,
     width: "75vw",
     padding: 30,
     backgroundColor: "#e5e5e5",
     border: "1px solid #aaa",
     overflowY: "scroll",
+    display: "flex",
+  },
+  Documents: {
+    flexGrow: 1,
   },
   PeerStatus: {
     position: "absolute",
