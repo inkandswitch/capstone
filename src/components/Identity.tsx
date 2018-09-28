@@ -208,12 +208,12 @@ const style = {
     width: "100%",
     padding: 50,
     alignItems: "center",
-    position: "relative",
   },
   Profile: {
     border: "1px solid #aaa",
     marginBottom: 25,
     height: 125,
+    position: "relative",
   },
   Documents: {
     flexGrow: 1,
