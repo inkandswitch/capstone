@@ -148,3 +148,20 @@ interactive controls in this mode.
 
 `mode` is not explicitly saying anything about the _size_ of the widget, which
 will likely be provided via a separate prop.
+
+## Debug Tools
+
+In the developer console for the backend process some debug tools are available
+type
+```
+  > peek()
+```
+To see the documents being track by the backend
+```
+  > peek(docid)
+```
+To get more info on a single doc
+```
+  > peek(docid,"p")
+```
+To get more info on peers and network activity

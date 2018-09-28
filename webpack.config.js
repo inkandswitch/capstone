@@ -33,6 +33,21 @@ const shared = {
       },
       {
         test: /\.css$/,
+        include: [path.resolve(__dirname, "src/components")],
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              modules: true,
+              localIdentName: "[local]-[hash:base64:5]",
+            },
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        exclude: [path.resolve(__dirname, "src/components")],
         use: [
           "style-loader",
           {

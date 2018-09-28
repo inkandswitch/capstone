@@ -1,0 +1,9 @@
+.Peer {
+  display: inline-flex;
+  flex-direction: row;
+  padding: 3px;
+}
+
+.PeerName {
+  flex-shrink: 0;
+}

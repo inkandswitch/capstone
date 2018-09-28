@@ -12,7 +12,7 @@ class ProviderSingleton extends EventEmitter {
   add(message: string, position: { x: number; y: number }) {
     this.feedback.push({ message, position })
     this.emit("feedback", this.feedback[0])
-    delay(() => this.removeText(), 500)
+    delay(() => this.removeText(), 1000)
   }
   removeText() {
     this.feedback.shift()

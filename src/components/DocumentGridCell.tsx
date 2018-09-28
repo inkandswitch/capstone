@@ -6,7 +6,7 @@ import Touch from "./Touch"
 
 interface Props {
   url: string
-  onGlyph: (stroke: GlyphEvent, url: string) => void
+  onGlyph?: (stroke: GlyphEvent, url: string) => void
   onDoubleTap?: (url: string) => void
 }
 
@@ -30,7 +30,7 @@ export default class Cell extends Preact.Component<Props> {
   }
 
   onGlyph = (stroke: GlyphEvent) => {
-    this.props.onGlyph(stroke, this.props.url)
+    this.props.onGlyph && this.props.onGlyph(stroke, this.props.url)
   }
 
   onDoubleTap = () => {

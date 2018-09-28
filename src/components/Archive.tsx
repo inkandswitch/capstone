@@ -4,11 +4,16 @@ import { AnyDoc, Doc } from "automerge/frontend"
 
 import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
-import { ReceiveDocuments } from "./Content"
 import DocumentGrid from "./DocumentGrid"
 import DocumentGridCell from "./DocumentGridCell"
-import { Glyph, GlyphEvent } from "./StrokeRecognizer"
-import { DocumentActor, DocumentCreated, Message } from "./Content"
+import { GlyphEvent } from "./StrokeRecognizer"
+import { Glyph } from "../data/Glyph"
+import {
+  ReceiveDocuments,
+  DocumentActor,
+  DocumentCreated,
+  Message,
+} from "./Content"
 import { AddToShelf, ShelfContentsRequested } from "./Shelf"
 import * as Feedback from "./CommandFeedback"
 
@@ -87,12 +92,12 @@ class Archive extends Preact.Component<Props> {
   onGlyphItem = (stroke: GlyphEvent, url: string) => {
     switch (stroke.glyph) {
       case Glyph.copy: {
-        Feedback.Provider.add("Add to shelf...", stroke.center)
+        Feedback.Provider.add("Add to shelf", stroke.center)
         this.props.emit({ type: "AddToShelf", body: { url } })
         break
       }
       case Glyph.delete: {
-        Feedback.Provider.add("Delete document...", stroke.center)
+        Feedback.Provider.add("Delete document", stroke.center)
         this.props.emit({ type: "DocumentDeleted", body: { url } })
         break
       }

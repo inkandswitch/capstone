@@ -1,0 +1,35 @@
+:local(.StrokeLayer) {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 100000000;
+}
+
+:local(.Options) {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+}
+
+:local(.Option) {
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+
+:local(.OptionButton) {
+  height: 60px;
+  width: 60px;
+  background-color: magenta;
+  border-radius: 99px;
+  margin-right: 10px;
+}
+
+:local(.current) {
+  background-color: pink;
+}

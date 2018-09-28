@@ -13,6 +13,8 @@ import "./Text"
 import "./Workspace"
 import "./Shelf"
 import "./Identity"
+import "./PeerStatus"
+import "./Peer"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import * as Identity from "./Identity"
@@ -21,6 +23,10 @@ import * as Identity from "./Identity"
 window.Content = Content
 
 Content.store = new Store()
+
+Content.store.presence().subscribe(presenceInfo => {
+  console.log(presenceInfo)
+})
 
 type State = {
   url: string
@@ -39,6 +45,9 @@ export default class App extends Preact.Component<{}, State> {
     const rootBoardUrl = await rootBoardUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
+
+    Content.store.setIdentity(identityUrl)
+    chrome.storage.local.set({ identityUrl })
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
@@ -76,11 +85,12 @@ export default class App extends Preact.Component<{}, State> {
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl"], val => {
+    chrome.storage.local.get(["workspaceUrl", "identityUrl"], val => {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {
         Content.workspaceUrl = val.workspaceUrl
+        Content.store.setIdentity(val.identityUrl)
         this.setState({ url: val.workspaceUrl })
       }
     })

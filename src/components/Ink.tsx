@@ -41,9 +41,7 @@ export default class Ink extends Preact.Component<Props> {
 
     const path = new Path2D(stroke.path)
 
-    ctx.globalCompositeOperation = stroke.settings.globalCompositeOperation
-    ctx.strokeStyle = stroke.settings.strokeStyle
-    ctx.lineWidth = stroke.settings.lineWidth
+    Object.assign(ctx, stroke.settings)
 
     ctx.stroke(path)
   }

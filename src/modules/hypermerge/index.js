@@ -6,6 +6,9 @@ const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
 const Debug = require("debug")
 const Base58 = require("bs58")
+const Haikunator = require('haikunator')
+const haiku = new Haikunator()
+
 
 const log = Debug("hypermerge:index")
 
@@ -15,6 +18,7 @@ function ERR(str) {
 
 // The first block of each Hypercore feed is used for metadata.
 const START_BLOCK = 1
+const SYN_TIME = 5000
 
 // One piece of metadata every feed will have indicates that the feed is
 // managed by Hypermerge.
@@ -41,6 +45,18 @@ class DocHandle {
       this.hm.applyChanges(this.docId, changes, true)
     } else {
       this._pending_back.push(changes)
+    }
+  }
+
+  __actorIds() {
+    return this.hm.docIndex[this.docId] || []
+  }
+
+  toString(spaces = null) {
+    if (this._back) {
+      return JSON.stringify(this._front ||  Frontend.applyPatch(Frontend.init("_"), Backend.getPatch(this._back)), undefined, spaces)
+    } else {
+      return 'null'
     }
   }
 
@@ -134,6 +150,15 @@ class DocHandle {
     }
   }
 
+  connections() {
+    let peers = this.__actorIds().map(actorId => this.hm._trackedFeed(actorId).peers)
+    return peers.reduce((acc,val) => acc.concat(val),[])
+  }
+
+  peers() {
+    return this.connections().filter( peer => !!peer.identity)
+  }
+
   onMessage(cb) {
     this._messageCb = cb
     return this
@@ -152,11 +177,13 @@ function initHypermerge(ops, cb) {
 }
 
 class Hypermerge extends EventEmitter {
-  constructor({ storage, defaultMetadata = {} }) {
+  constructor({ identity, device, storage, defaultMetadata = {} }) {
     super()
 
     this.defaultMetadata = defaultMetadata
 
+    this.device = device
+    this.identity = identity
     this.feeds = {}
     this.docs = {}
     this.handles = {} // docId -> [DocHandle]
@@ -166,6 +193,8 @@ class Hypermerge extends EventEmitter {
     this.metaIndex = {} // actorId -> metadata
     this.requestedBlocks = {} // docId -> actorId -> blockIndex (exclusive)
     this.appliedSeqs = {} // actorId -> seq -> Boolean
+
+    this._swarmStats = { }
 
     this.core = new Multicore(storage)
 
@@ -178,6 +207,14 @@ class Hypermerge extends EventEmitter {
 
   _feedKeys() {
     return this.core.feedKeys().map(Base58.encode)
+  }
+
+  setIdentity(identity) {
+    this.identity = identity
+  }
+
+  setDevice(device) {
+    this.device = device
   }
 
   chromeJoinSwarm() {
@@ -253,8 +290,18 @@ class Hypermerge extends EventEmitter {
 
     this.swarm.once("error", err => {
       log("joinSwarm.error", err)
+      this._swarmStats["error"] = err
       this.swarm.listen(opts.port)
     })
+
+    const signals = ["handshaking", "handshake-timeout", "listening", "connecting", "connect-failed", "connection", "close", "redundant-connection", "peer", "peer-rejected", "drop", "peer-banned", "connection-closed","connect-failed"]
+    signals.forEach(signal => {
+      this._swarmStats[signal] = 0
+      this.swarm.on(signal, (arg1, arg2) => {
+        this._swarmStats[signal] += 1
+      })
+    })
+
 
     return this
   }
@@ -871,6 +918,14 @@ class Hypermerge extends EventEmitter {
         const keys = this._relatedKeys(actorId)
         this._messagePeer(peer, { type: "FEEDS_SHARED", keys })
 
+        peer.docId = actorId
+        peer.synTime = Date.now()
+        peer.interval = setInterval(() => {
+          //console.log("Sending SYN");
+          this._messagePeer(peer, { type: "SYN", identity: this.identity, device: this.device })
+        }, SYN_TIME)
+
+
         /**
          * Emitted when a network peer has connected.
          *
@@ -886,6 +941,7 @@ class Hypermerge extends EventEmitter {
 
   _onPeerRemoved(actorId) {
     return peer => {
+      clearInterval(peer.interval)
       this._loadMetadata(actorId).then(() => {
         if (!this._isDocId(actorId)) {
           return
@@ -924,6 +980,12 @@ class Hypermerge extends EventEmitter {
         msg.keys.forEach(actorId => {
           this._trackedFeed(actorId)
         })
+        break
+      case "SYN":
+        //console.log("SYN",msg.user, actorId)
+        peer.synTime = Date.now()
+        peer.identity = msg.identity
+        peer.device = msg.device
         break
       default:
         this.emit("peer:message", actorId, peer, msg)

@@ -1,9 +1,10 @@
 import * as Preact from "preact"
 import * as Reify from "../data/Reify"
+import { Glyph } from "../data/Glyph"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
-import StrokeRecognizer, { GlyphEvent, Glyph } from "./StrokeRecognizer"
+import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
 import * as Feedback from "./CommandFeedback"
 
@@ -92,7 +93,7 @@ class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   onGlyph = (stroke: GlyphEvent) => {
     switch (stroke.glyph) {
       case Glyph.delete:
-        Feedback.Provider.add("Clear shelf contents...", stroke.center)
+        Feedback.Provider.add("Clear shelf contents", stroke.center)
         this.props.emit({ type: "ClearShelf" })
     }
   }

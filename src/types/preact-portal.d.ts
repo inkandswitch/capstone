@@ -1,9 +1,14 @@
 declare module "preact-portal" {
   import * as Preact from "preact"
-  export interface Portal extends Preact.Component<any, any> {}
-  export interface PortalClass {
-    new (...k: any[]): Portal
+
+  interface Props {
+    into: string
   }
-  const Portal: PortalClass
-  export default Portal
+
+  class Portal extends Preact.Component<Props> {
+    constructor(props: Props)
+    render(): JSX.Element
+  }
+
+  export = Portal
 }

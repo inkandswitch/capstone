@@ -22,17 +22,6 @@
   max-height: 500px;
 }
 
-.StrokeLayer {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  opacity: 0.8;
-  pointer-events: none;
-  z-index: 100000000;
-}
-
 .InkLayer {
   position: fixed;
   padding: 0;
@@ -63,5 +52,5 @@
   display: inline-block;
   vertical-align: middle;
   color: white;
-  font-size: 14pt;
+  font-size: 12pt;
 }

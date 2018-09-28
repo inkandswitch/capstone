@@ -11,6 +11,7 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
+import { Glyph } from "../data/Glyph"
 import VirtualKeyboard from "./VirtualKeyboard"
 import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
@@ -20,7 +21,6 @@ import StrokeRecognizer, {
   StrokeSettings,
   InkStrokeEvent,
   GlyphEvent,
-  Glyph,
 } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Feedback from "./CommandFeedback"
@@ -282,7 +282,7 @@ class Board extends Preact.Component<Props, State> {
   onBoardGlyph = (stroke: GlyphEvent): boolean => {
     switch (stroke.glyph) {
       case Glyph.paste:
-        Feedback.Provider.add("Place contents of shelf...", stroke.center)
+        Feedback.Provider.add("Place contents of shelf", stroke.center)
         this.props.emit({
           type: "ShelfContentsRequested",
           body: {
@@ -341,6 +341,10 @@ class Board extends Preact.Component<Props, State> {
       }
       default: {
         // Return false if the glyph wasn't handled
+        Feedback.Provider.add(
+          `No command for glyph: ${event.name}`,
+          event.center,
+        )
         return false
       }
     }
