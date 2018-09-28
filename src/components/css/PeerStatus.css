@@ -1,0 +1,26 @@
+.PeerStatus {
+  display: flex;
+  padding: 2px;
+}
+
+.Status {
+  height: 10px;
+  width: 10px;
+  border-radius: 99px;
+}
+
+.StatusActive {
+  background-color: green;
+}
+
+.StatusInactive {
+  background-color: red;
+}
+
+.StatusDisconnected {
+  background-color: grey;
+}
+
+.ConnectionCount {
+  color: darkgrey;
+}
