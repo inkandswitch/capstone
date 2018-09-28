@@ -2,7 +2,7 @@ import * as Preact from "preact"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
-import { DocumentActor } from "./Content"
+import Content, { DocumentActor } from "./Content"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import { Glyph } from "../data/Glyph"
 import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
@@ -160,20 +160,21 @@ export class Identity extends Preact.Component<Props, State> {
               onChange={this.onChange}
             />
           </StrokeRecognizer>
-        </div>
-        <StrokeRecognizer onGlyph={this.onGlyphCubby} style={style.Stroke}>
-          <div style={style.Documents}>
-            <DocumentGrid>
-              {Object.keys(documents).map(docUrl => (
-                <DocumentGridCell
-                  url={docUrl}
-                  onGlyph={this.onGlyphCubbyItem}
-                  onDoubleTap={this.onDoubleTapCubbyItem}
-                />
-              ))}
-            </DocumentGrid>
+          <div style={style.PeerStatus}>
+            <Content mode="embed" type="PeerStatus" url={this.props.url} />
           </div>
-        </StrokeRecognizer>
+        </div>
+        <div style={style.Documents}>
+          <DocumentGrid>
+            {Object.keys(documents).map(docUrl => (
+              <DocumentGridCell
+                url={docUrl}
+                onGlyph={this.onGlyphCubbyItem}
+                onDoubleTap={this.onDoubleTapCubbyItem}
+              />
+            ))}
+          </DocumentGrid>
+        </div>
       </div>
     )
   }
@@ -183,6 +184,9 @@ export class Identity extends Preact.Component<Props, State> {
     return (
       <div style={style.preview.Identity}>
         <IdentityBadge avatarUrl={avatarUrl} name={name} />
+        <div style={style.PeerStatus}>
+          <Content mode="embed" type="PeerStatus" url={this.props.url} />
+        </div>
       </div>
     )
   }
@@ -205,6 +209,7 @@ const style = {
   Profile: {
     border: "1px solid #aaa",
     marginBottom: 25,
+    position: "relative",
   },
   Stroke: {
     flexGrow: 1,
@@ -217,6 +222,11 @@ const style = {
   },
   Documents: {
     flexGrow: 1,
+  },
+  PeerStatus: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
   },
 }
 

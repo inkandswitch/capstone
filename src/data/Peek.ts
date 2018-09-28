@@ -9,10 +9,10 @@ var _enable = once(() => {
         if (docId.startsWith(id)) {
             // copy to clipboard
             let handle = global.sm.docHandles[docId]
-            let _peers = handle.__actorIds().reduce((acc : any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
+            let connections = handle.connections()
+            let peers = handle.peers()
 
-            let peers = _peers.filter((p: any) => !!p.user)
-
+/*
             if (flags.includes("c")) {
               console.log(`%c begin copy...`, "color: green");
               const el = document.createElement('textarea');
@@ -27,10 +27,10 @@ var _enable = once(() => {
               document.body.removeChild(el);
               console.log(`%c ${len} characters copied to clipboard`, "color: green");
             }
+*/
 
             if (flags.includes("p")) {
-              console.log(`${_peers.length} total connections`)
-              console.log("Swarm",global.hm._swarmStats)
+              console.log(`${connections.length} total connections`)
               peers.forEach((p : any) => {
                 let age = Date.now() - p.synTime
                 let stats = age < 10000 ? "connected" : "disconnected"
@@ -40,7 +40,7 @@ var _enable = once(() => {
                 let purple = "color: purple"
                 let statusColor = age < 10000 ? green : red;
                 console.log(
-                  `user=%c"${p.user}"%c doc=%c"${p.docId.slice(0,5)}"%c status=%c'${stats}'%c" lastSyn=%c${age}ms`,
+                  `id=%c"${p.identity} - ${p.device}%c" doc=%c"${p.docId.slice(0,5)}"%c status=%c'${stats}'%c" lastSyn=%c${age}ms`,
                   red, black, red, black, statusColor, black, purple)
               })
             }
@@ -55,7 +55,7 @@ var _enable = once(() => {
               console.log("Document: ", handle)
               //console.log(JSON.parse(handle.toString(4)))
               console.log("ActorIds:", handle.__actorIds())
-              console.log("Peers:", _peers)
+              console.log("Connections:", connections)
             }
         }
       }
@@ -63,13 +63,14 @@ var _enable = once(() => {
       console.log("%c USAGE:", "color: green")
       console.log("%c  peek(docid) - get detailed summary", "color: green")
       console.log("%c  peek(docid, 'j') - show a json dump of the document", "color: green")
-      console.log("%c  peek(docid, 'c') - copy automerge history to clipboard", "color: green")
+//      console.log("%c  peek(docid, 'c') - copy automerge history to clipboard", "color: green")
       console.log("%c  peek(docid, 'p') - show peer and connectivity info", "color: green")
-      console.log("%c  peek(docid, 'jcp') - do all there", "color: green")
+      console.log("%c  peek(docid, 'jp') - do all", "color: green")
+      console.log("Swarm",global.hm._swarmStats)
       for (let docId in global.sm.docHandles) {
         let handle = global.sm.docHandles[docId]
-        let peers = handle.__actorIds().reduce((acc: any,id: any) => acc.concat(global.hm._trackedFeed(id).peers),[])
-        console.log("%c " + docId.slice(0,5), "color: blue", " : " + peers.length + " peers, ",JSON.parse(handle.toString()))
+        let connections = handle.connections()
+        console.log("%c " + docId.slice(0,5), "color: blue", " : " + connections.length + " connections, ",JSON.parse(handle.toString()))
       }
     }
   }
