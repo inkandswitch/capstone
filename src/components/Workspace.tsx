@@ -20,7 +20,7 @@ export interface Model {
   shelfUrl: string
 }
 
-type WidgetMessage = DocumentCreated
+type WidgetMessage = DocumentCreated | AddToShelf
 type InMessage = FullyFormedMessage<
   DocumentCreated | DocumentSelected | AddToShelf | ShelfContentsRequested
 >
@@ -176,6 +176,11 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     this.props.emit({ type: "DocumentCreated", body: pastedUrl })
   }
 
+  onTapPeer = (identityUrl: string) => {
+    console.log("onTapPeer", identityUrl)
+    this.props.emit({ type: "AddToShelf", body: { url: identityUrl } })
+  }
+
   render() {
     return (
       <Touch
@@ -192,7 +197,7 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
           />
           <Content mode="embed" url={this.props.doc.shelfUrl} />
           <div style={style.Peers}>
-            <Peers />
+            <Peers onTapPeer={this.onTapPeer} />
           </div>
         </div>
       </Touch>
