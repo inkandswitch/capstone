@@ -67,6 +67,7 @@ export default class StoreComms {
 
         setInterval(() => {
           let message: any = {
+            errs: hm.errs.map(e => e.toString()),
             docs: {},
             peers: {},
           }

@@ -195,6 +195,7 @@ class Hypermerge extends EventEmitter {
     this.appliedSeqs = {} // actorId -> seq -> Boolean
 
     this._swarmStats = { }
+    this.errs = []
 
     this.core = new Multicore(storage)
 
@@ -217,6 +218,11 @@ class Hypermerge extends EventEmitter {
     this.device = device
   }
 
+  trackError(err) {
+    console.log("Hypermerge Error", err)
+    this.errs.push(err)
+  }
+
   chromeJoinSwarm() {
     const MDNS_PORT = 5307
     const dgram = require("chrome-dgram")
@@ -225,6 +231,8 @@ class Hypermerge extends EventEmitter {
 
     socket.setMulticastTTL(255)
     socket.setMulticastLoopback(true)
+
+    socket.on("error", err => this.trackError(err))
 
     chrome.system.network.getNetworkInterfaces(ifaces => {
       socket.on("listening", () => {
