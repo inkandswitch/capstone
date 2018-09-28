@@ -1,4 +1,5 @@
 import * as Preact from "preact"
+import * as Rx from "rxjs"
 import * as Link from "../data/Link"
 import Content, { Mode } from "./Content"
 import Store, { Activity } from "../data/Store"
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default class NetworkActivity extends Preact.Component<Props> {
+  subscription: Rx.Subscription
   id = Link.parse(this.props.url).id
   upload: HTMLElement | null
   download: HTMLElement | null
@@ -20,7 +22,13 @@ export default class NetworkActivity extends Preact.Component<Props> {
   }
 
   componentDidMount() {
-    this.props.store.activity(this.id).subscribe(this.onActivity)
+    this.subscription = this.props.store
+      .activity(this.id)
+      .subscribe(this.onActivity)
+  }
+
+  componentWillUnmount() {
+    if (this.subscription) this.subscription.unsubscribe()
   }
 
   render() {
