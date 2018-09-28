@@ -341,10 +341,6 @@ class Board extends Preact.Component<Props, State> {
       }
       default: {
         // Return false if the glyph wasn't handled
-        Feedback.Provider.add(
-          `No command for glyph: ${event.name}`,
-          event.center,
-        )
         return false
       }
     }
