@@ -31,6 +31,7 @@ export default class DraggableCard extends Preact.Component<Props> {
       <Touch onDoubleTap={this.onDoubleTap}>
         <Draggable
           defaultPosition={{ x, y }}
+          position={{ x, y }}
           onStart={this.start}
           onStop={this.stop}
           onCancel={this.cancel}
