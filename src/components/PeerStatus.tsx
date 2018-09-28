@@ -46,7 +46,6 @@ export default class PeerStatus extends Preact.Component<Props, State> {
     const peer = presence.peers[this.props.url]
     let status = "disconnected"
     if (peer) {
-      console.log(peer)
       status = +Date.now() - peer.lastSeen > 10000 ? "inactive" : "active"
     }
     this.setState({ status })

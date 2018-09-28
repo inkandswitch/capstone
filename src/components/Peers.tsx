@@ -40,7 +40,6 @@ export default class Peers extends Preact.Component<Props, State> {
   }
 
   onTap = (url: string) => {
-    console.log("tap", url)
     this.props.onTapPeer(url)
   }
 

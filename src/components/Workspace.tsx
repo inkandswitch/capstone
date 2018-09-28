@@ -177,7 +177,6 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   onTapPeer = (identityUrl: string) => {
-    console.log("onTapPeer", identityUrl)
     this.props.emit({ type: "AddToShelf", body: { url: identityUrl } })
   }
 

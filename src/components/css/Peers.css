@@ -1,4 +1,4 @@
-:local(.Peers) {
+.Peers {
   overflow-x: auto;
   display: flex;
   flex-direction: column;
