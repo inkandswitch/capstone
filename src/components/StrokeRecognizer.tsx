@@ -1,5 +1,6 @@
 import * as Preact from "preact"
 import * as $P from "../modules/$P"
+import * as Rx from "rxjs"
 import * as Glyph from "../data/Glyph"
 import * as Frame from "../logic/Frame"
 import Pen, { PenEvent } from "./Pen"
@@ -103,6 +104,8 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
   canvasElement?: HTMLCanvasElement | null
   ctx?: CanvasRenderingContext2D | null
   isPenDown: boolean
+  static strokeTypeSubect: Rx.Subject<StrokeType> = new Rx.Subject()
+  subscription: Rx.Subscription
 
   static defaultProps = {
     delay: 300,
@@ -121,7 +124,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
     const { strokeType } = this.state
 
     return (
-      <div style={{ display: "contents" }}>
+      <span>
         <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
           {this.props.children}
         </Pen>
@@ -144,8 +147,20 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
             </div>
           </div>
         </Portal>
-      </div>
+      </span>
     )
+  }
+
+  componentDidMount() {
+    this.subscription = StrokeRecognizer.strokeTypeSubect.subscribe(
+      strokeType => {
+        this.setState({ strokeType })
+      },
+    )
+  }
+
+  componentWillUnmount() {
+    this.subscription && this.subscription.unsubscribe()
   }
 
   onPanStart = (event: PenEvent) => {
@@ -188,7 +203,10 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
   }
 
   onStrokeTypeChange = (strokeType: StrokeType = StrokeType.default) => {
-    this.setState({ strokeType })
+    if (this.state.strokeType === strokeType) return
+    this.setState({ strokeType }, () => {
+      StrokeRecognizer.strokeTypeSubect.next(strokeType)
+    })
   }
 
   _recognize = () => {
