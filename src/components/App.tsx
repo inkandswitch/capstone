@@ -1,5 +1,5 @@
 import * as Preact from "preact"
-import { EditDoc } from "automerge/frontend"
+import { Doc, EditDoc } from "automerge/frontend"
 
 import Store from "../data/Store"
 import Root from "./Root"
@@ -45,14 +45,13 @@ export default class App extends Preact.Component<{}, State> {
     const rootBoardUrl = await rootBoardUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
-
     Content.store.setIdentity(identityUrl)
-    chrome.storage.local.set({ identityUrl })
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
       change((workspace: EditDoc<Workspace.Model>) => {
         if (!workspace.archiveUrl) {
+          workspace.identityUrl = identityUrl
           workspace.archiveUrl = archiveUrl
           workspace.shelfUrl = shelfUrl
           workspace.rootUrl = rootBoardUrl
@@ -85,13 +84,18 @@ export default class App extends Preact.Component<{}, State> {
   constructor() {
     super()
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl", "identityUrl"], val => {
+    chrome.storage.local.get(["workspaceUrl"], val => {
       if (val.workspaceUrl == undefined) {
         this.initWorkspace()
       } else {
-        Content.workspaceUrl = val.workspaceUrl
-        Content.store.setIdentity(val.identityUrl)
-        this.setState({ url: val.workspaceUrl })
+        Content.open<Workspace.Model>(
+          val.workspaceUrl,
+          (workspace: Doc<Workspace.Model>) => {
+            Content.workspaceUrl = val.workspaceUrl
+            Content.store.setIdentity(workspace.identityUrl)
+            this.setState({ url: val.workspaceUrl })
+          },
+        )
       }
     })
   }
