@@ -12,6 +12,7 @@ import Clipboard from "./Clipboard"
 import Touch, { TouchEvent } from "./Touch"
 import { DocumentSelected, ClearSelection } from "./Archive"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
+import Peers from "./Peers"
 
 export interface Model {
   navStack: string[]
@@ -190,6 +191,9 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
             onNavigate={this.push}
           />
           <Content mode="embed" url={this.props.doc.shelfUrl} />
+          <div style={style.Peers}>
+            <Peers />
+          </div>
         </div>
       </Touch>
     )
@@ -203,6 +207,12 @@ const style = {
     left: 0,
     bottom: 0,
     right: 0,
+  },
+  Peers: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
   },
 }
 

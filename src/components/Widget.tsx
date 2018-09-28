@@ -7,7 +7,7 @@ import Content, {
   MessageHandlerClass,
 } from "./Content"
 
-export interface Props<T, M = never> {
+export interface Props<T = {}, M = never> {
   doc: Doc<T>
   url: string
   mode: Mode

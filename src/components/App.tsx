@@ -13,6 +13,7 @@ import "./Workspace"
 import "./Shelf"
 import "./Identity"
 import "./PeerStatus"
+import "./Peer"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import * as Archive from "./Archive"
@@ -22,11 +23,9 @@ window.Content = Content
 
 Content.store = new Store()
 
-
-Content.store.presence().subscribe((presenceInfo) => {
+Content.store.presence().subscribe(presenceInfo => {
   console.log(presenceInfo)
 })
-
 
 type State = {
   url: string
