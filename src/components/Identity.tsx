@@ -8,13 +8,11 @@ import { Glyph } from "../data/Glyph"
 import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import * as Widget from "./Widget"
 import IdentityBadge from "./IdentityBadge"
-import DocumentGrid from "./DocumentGrid"
-import DocumentGridCell from "./DocumentGridCell"
 
-interface Model {
+export interface Model {
   name: string
   avatarUrl: string
-  documents: { [k: string]: boolean }
+  mailboxUrl: string
 }
 
 type WidgetMessage = ShelfContentsRequested | AddToShelf
@@ -36,8 +34,8 @@ export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
         const { urls, intent } = message.body
         if (!urls.length) return
 
-        this.change(doc => {
-          if (intent === "avatar") {
+        if (intent === "avatar") {
+          this.change(doc => {
             // Only change avatar if there is a single document on the shelf and it is
             // an image.
             // TODO: Feedback if this fails
@@ -45,13 +43,15 @@ export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
             if (urls.length === 1 && type === "Image") {
               doc.avatarUrl = urls[0]
             }
-          } else {
-            urls.forEach(url => {
-              doc.documents[url] = true
-            })
-          }
-          return doc
-        })
+            return doc
+          })
+        } else {
+          this.emit({
+            type: "AddToShelf",
+            to: this.doc.mailboxUrl,
+            body: { urls },
+          })
+        }
         break
       }
     }
@@ -73,7 +73,7 @@ export class Identity extends Preact.Component<Props, State> {
     return {
       name: Reify.string(doc.name),
       avatarUrl: Reify.string(doc.avatarUrl),
-      documents: Reify.map(doc.documents),
+      mailboxUrl: Reify.string(doc.mailboxUrl),
     }
   }
 
@@ -96,36 +96,6 @@ export class Identity extends Preact.Component<Props, State> {
       case Glyph.edit:
         this.setState({ isEditing: true })
     }
-  }
-
-  onGlyphCubby = (stroke: GlyphEvent) => {
-    switch (stroke.glyph) {
-      case Glyph.paste:
-        this.props.emit({
-          type: "ShelfContentsRequested",
-          body: { intent: "cubby" },
-        })
-        break
-    }
-  }
-
-  onGlyphCubbyItem = (stroke: GlyphEvent, url: string) => {
-    switch (stroke.glyph) {
-      case Glyph.copy:
-        this.props.emit({
-          type: "AddToShelf",
-          body: { url },
-        })
-        break
-      case Glyph.delete:
-        this.props.change(doc => {
-          delete doc.documents[url]
-        })
-    }
-  }
-
-  onDoubleTapCubbyItem = (url: string) => {
-    this.props.onNavigate && this.props.onNavigate(url)
   }
 
   onChange = (event: any) => {
@@ -164,19 +134,6 @@ export class Identity extends Preact.Component<Props, State> {
             <Content mode="embed" type="PeerStatus" url={this.props.url} />
           </div>
         </div>
-        <StrokeRecognizer onGlyph={this.onGlyphCubby} style={style.Stroke}>
-          <div style={style.Documents}>
-            <DocumentGrid>
-              {Object.keys(documents).map(docUrl => (
-                <DocumentGridCell
-                  url={docUrl}
-                  onGlyph={this.onGlyphCubbyItem}
-                  onDoubleTap={this.onDoubleTapCubbyItem}
-                />
-              ))}
-            </DocumentGrid>
-          </div>
-        </StrokeRecognizer>
       </div>
     )
   }
@@ -212,18 +169,6 @@ const style = {
     border: "1px solid #aaa",
     marginBottom: 25,
     position: "relative",
-  },
-  Stroke: {
-    flexGrow: 1,
-    width: "75vw",
-    padding: 30,
-    backgroundColor: "#e5e5e5",
-    border: "1px solid #aaa",
-    overflowY: "scroll",
-    display: "flex",
-  },
-  Documents: {
-    flexGrow: 1,
   },
   PeerStatus: {
     position: "absolute",

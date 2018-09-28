@@ -1,12 +1,12 @@
 import * as Preact from "preact"
-import { delay, clamp, isEmpty, size } from "lodash"
+import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
 import DraggableCard from "./DraggableCard"
 import Content, {
   DocumentActor,
   Message,
-  FullyFormedMessage,
+  ReceiveDocuments,
   DocumentCreated,
 } from "./Content"
 import * as Reify from "../data/Reify"
@@ -14,7 +14,7 @@ import * as UUID from "../data/UUID"
 import { Glyph } from "../data/Glyph"
 import VirtualKeyboard from "./VirtualKeyboard"
 import Ink from "./Ink"
-import { AnyDoc } from "automerge/frontend"
+import { EditDoc, AnyDoc } from "automerge/frontend"
 import { CARD_WIDTH, CARD_CLASS } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, {
@@ -56,7 +56,7 @@ interface State {
   focusedCardId: string | null
 }
 
-interface CreateCard extends Message {
+export interface CreateCard extends Message {
   type: "CreateCard"
   body: {
     type: string
@@ -69,12 +69,19 @@ interface CreateCard extends Message {
 }
 
 type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
-type InMessage = FullyFormedMessage<WidgetMessage | ShelfContents>
+type InMessage = WidgetMessage | ShelfContents | ReceiveDocuments
 type OutMessage = DocumentCreated | AddToShelf | ShelfContentsRequested
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
+      case "ReceiveDocuments": {
+        const { urls } = message.body
+        this.change(doc => {
+          urls.forEach((url: string) => addCard(doc, url))
+        })
+        break
+      }
       case "CreateCard": {
         const { type, card } = message.body
         // TODO: async creation - should we split this across multiple messages?
@@ -98,23 +105,32 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       case "ShelfContents": {
         const { urls, placementPosition } = message.body
         this.change(doc => {
-          urls.forEach((url, index) => {
-            const position = Position.radial(index, placementPosition)
-            const card = {
-              id: UUID.create(),
-              x: position.x,
-              y: position.y,
-              z: ++doc.topZ,
-              url,
-            }
-            doc.cards[card.id] = card
-          })
+          urls.forEach((url, index) =>
+            addCard(doc, url, Position.radial(index, placementPosition)),
+          )
           return doc
         })
         break
       }
     }
   }
+}
+
+function addCard(
+  board: EditDoc<Model>,
+  url: string,
+  position?: { x: number; y: number },
+) {
+  position = position || { x: 0, y: 0 }
+  const card = {
+    id: UUID.create(),
+    z: board.topZ++,
+    x: position.x,
+    y: position.y,
+    url,
+  }
+  board.cards[card.id] = card
+  return board
 }
 
 class Board extends Preact.Component<Props, State> {
@@ -192,52 +208,12 @@ class Board extends Preact.Component<Props, State> {
     }
   }
 
-  onCardGlyph = (event: GlyphEvent, id: string) => {
-    switch (event.glyph) {
-      case Glyph.delete:
-        this.deleteCard(id)
-        Feedback.Provider.add("Delete card", event.center)
-        break
-      case Glyph.copy: {
-        const card = this.props.doc.cards[id]
-        if (card) {
-          this.props.emit({ type: "AddToShelf", body: { url: card.url } })
-        }
-        Feedback.Provider.add("Add to shelf", event.center)
-        break
-      }
-      case Glyph.edit: {
-        if (this.state.focusedCardId != null) return
-        if (!this.props.doc.cards[id]) return
-
-        // move card to top of stack
-        this.props.change(doc => {
-          const card = doc.cards[id]
-          if (!card) return doc
-          doc.topZ++
-          doc.cards[id] = { ...card, z: doc.topZ }
-          return doc
-        })
-        this.setCardFocus(id)
-        Feedback.Provider.add("Edit card", event.center)
-        break
-      }
-      default: {
-        Feedback.Provider.add(
-          `No command for glyph: ${event.name}`,
-          event.center,
-        )
-        break
-      }
-    }
-  }
-
   onVirtualKeyboardClose = () => {
     this.clearCardFocus()
   }
 
   onPenDoubleTapBoard = (e: PenEvent) => {
-    this.createCard("Text", e.center.x, e.center.y)
+    this.createCard("Text", e.center.x, e.center.y, true)
   }
 
   onDragStart = (id: string) => {
@@ -287,6 +263,23 @@ class Board extends Preact.Component<Props, State> {
   }
 
   onGlyph = (stroke: GlyphEvent) => {
+    let glyphHandled = false
+    // Attempt card glyph
+    const card = this.cardAtPoint(stroke.center.x, stroke.center.y)
+    if (card) {
+      glyphHandled = this.onCardGlyph(stroke, card)
+    }
+    // If not handled, attempt board glyph
+    if (!glyphHandled) {
+      glyphHandled = this.onBoardGlyph(stroke)
+    }
+    // If still not handled, we don't recognize the gesture
+    if (!glyphHandled) {
+      Feedback.Provider.add("Unrecognized gesture...", stroke.center)
+    }
+  }
+
+  onBoardGlyph = (stroke: GlyphEvent): boolean => {
     switch (stroke.glyph) {
       case Glyph.paste:
         Feedback.Provider.add("Place contents of shelf", stroke.center)
@@ -300,15 +293,59 @@ class Board extends Preact.Component<Props, State> {
           },
         })
         break
-      default: {
-        const centerPoint = stroke.center
-        const card = this.cardAtPoint(centerPoint.x, centerPoint.y)
-        if (card) {
-          this.onCardGlyph(stroke, card.id)
-        }
+      case Glyph.create:
+        Feedback.Provider.add("Create board...", stroke.center)
+        this.createCard("Board", stroke.center.x, stroke.center.y)
         break
+      default: {
+        return false
       }
     }
+    return true
+  }
+
+  onCardGlyph = (event: GlyphEvent, card: CardModel): boolean => {
+    switch (event.glyph) {
+      case Glyph.paste: {
+        Feedback.Provider.add("Place contents of shelf...", event.center)
+        this.props.emit({
+          type: "ShelfContentsRequested",
+          body: { recipientUrl: card.url },
+        })
+        break
+      }
+      case Glyph.delete:
+        this.deleteCard(card.id)
+        Feedback.Provider.add("Delete...", event.center)
+        break
+      case Glyph.copy: {
+        this.props.emit({ type: "AddToShelf", body: { url: card.url } })
+        Feedback.Provider.add("Add to shelf...", event.center)
+        break
+      }
+      case Glyph.edit: {
+        if (this.state.focusedCardId != null) return false
+
+        // move card to top of stack
+        const cardId = card.id
+        this.props.change(doc => {
+          const card = doc.cards[cardId]
+          if (!card) return doc
+          doc.topZ++
+          doc.cards[card.id] = { ...card, z: doc.topZ }
+          return doc
+        })
+        this.setCardFocus(cardId)
+        Feedback.Provider.add("Edit...", event.center)
+        break
+      }
+      default: {
+        // Return false if the glyph wasn't handled
+        return false
+      }
+    }
+    // Return true if the glyph was handled
+    return true
   }
 
   cardAtPoint = (x: number, y: number): CardModel | undefined => {
@@ -333,7 +370,7 @@ class Board extends Preact.Component<Props, State> {
     })
   }
 
-  async createCard(type: string, x: number, y: number) {
+  async createCard(type: string, x: number, y: number, focus: boolean = false) {
     if (this.props.doc.focusedCardId != null) return
     if (!this.boardEl) return
 
@@ -350,7 +387,9 @@ class Board extends Preact.Component<Props, State> {
         card: { id, x: cardX, y: cardY },
       },
     })
-    this.setCardFocus(id)
+    if (focus) {
+      this.setCardFocus(id)
+    }
   }
 }
 

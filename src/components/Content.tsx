@@ -46,6 +46,11 @@ export interface DocumentCreated extends Message {
   body: string
 }
 
+export interface ReceiveDocuments extends Message {
+  type: "ReceiveDocuments"
+  body: { urls: string[] }
+}
+
 export type MessageHandlerClass = {
   new (...k: any[]): DocumentActor<any, any>
 }
@@ -182,18 +187,15 @@ export default class Content extends Preact.Component<Props & unknown> {
 
   static getMessageHandler(type: string) {
     const handler = this.messageHandlerRegistry[type]
-    if (!handler) throw new Error(`Handler not found in registry: ${type}`)
+    if (!handler) console.log(`Message handler not found in registry: ${type}`)
     return handler
   }
 
-  static send(message: Message & WithSender) {
+  static send(message: Message) {
     message.to = message.to || Content.workspaceUrl
-    if (!isFullyFormed(message)) {
-      return
-    }
-
     const { type: recipientType } = Link.parse(message.to)
     const Recipient = Content.getMessageHandler(recipientType)
+    if (!Recipient) return
     const recipient = new Recipient()
     recipient.receive(message)
   }

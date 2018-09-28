@@ -10,19 +10,22 @@ import Content, {
 } from "./Content"
 import Clipboard from "./Clipboard"
 import Touch, { TouchEvent } from "./Touch"
-import { DocumentSelected, ClearSelection } from "./Archive"
+import { ClearSelection } from "./Archive"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
 
 export interface Model {
   navStack: string[]
+  identityUrl: string
+  rootUrl: string
   archiveUrl: string
   shelfUrl: string
+  isShowingArchive: boolean
 }
 
 type WidgetMessage = DocumentCreated | AddToShelf
 type InMessage = FullyFormedMessage<
-  DocumentCreated | DocumentSelected | AddToShelf | ShelfContentsRequested
+  DocumentCreated | AddToShelf | ShelfContentsRequested
 >
 type OutMessage =
   | DocumentCreated
@@ -36,17 +39,6 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
       case "DocumentCreated": {
         if (message.from !== this.doc.archiveUrl) {
           this.emit({ ...message, to: this.doc.archiveUrl })
-        }
-        break
-      }
-      case "DocumentSelected": {
-        // Clear the navstack and push selected document url.
-        const { url } = message.body
-        if (url !== this.doc.currentUrl) {
-          this.change(doc => {
-            doc.navStack = [url]
-            return doc
-          })
         }
         break
       }
@@ -75,36 +67,34 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
 class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
+      identityUrl: Reify.string(doc.identityUrl),
       navStack: Reify.array(doc.navStack),
+      rootUrl: Reify.string(doc.rootUrl),
       archiveUrl: Reify.link(doc.archiveUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
+      isShowingArchive: Reify.boolean(doc.isShowingArchive, () => false),
     }
   }
 
-  get isShowingArchive() {
-    const { archiveUrl } = this.props.doc
-    return this.currentUrl === archiveUrl
-  }
-
   get currentUrl() {
-    const { archiveUrl } = this.props.doc
-    return this.peek() || archiveUrl
+    return this.peek()
   }
 
   showArchive = () => {
-    const { archiveUrl } = this.props.doc
-    if (this.currentUrl === archiveUrl) return
-    this.push(archiveUrl)
+    this.props.change(doc => {
+      doc.isShowingArchive = true
+      return doc
+    })
   }
 
   hideArchive = () => {
-    const { archiveUrl } = this.props.doc
-    if (this.currentUrl !== archiveUrl) return
-    this.pop()
+    this.props.change(doc => {
+      doc.isShowingArchive = false
+      return doc
+    })
   }
 
   push = (url: string) => {
-    if (this.peek() === url) return
     this.props.change(doc => {
       doc.navStack.push(url)
       return doc
@@ -112,7 +102,8 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   pop = () => {
-    if (!this.peek()) return
+    // Don't pop the root url of the stack
+    if (this.props.doc.navStack.length === 1) return
     this.props.change(doc => {
       doc.navStack.pop()
       return doc
@@ -121,7 +112,7 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
 
   peek = () => {
     const { navStack } = this.props.doc
-    return navStack.length ? navStack[navStack.length - 1] : null
+    return navStack[navStack.length - 1]
   }
 
   onThreeFingerSwipeDown = (event: TouchEvent) => {
@@ -181,6 +172,8 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   render() {
+    const { isShowingArchive, shelfUrl, archiveUrl } = this.props.doc
+    const currentUrl = isShowingArchive ? archiveUrl : this.peek()
     return (
       <Touch
         onThreeFingerSwipeDown={this.onThreeFingerSwipeDown}
@@ -189,12 +182,12 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
         <div class="Workspace" style={style.Workspace}>
           <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
-            key={this.currentUrl}
+            key={currentUrl}
             mode={this.props.mode}
-            url={this.currentUrl}
+            url={currentUrl}
             onNavigate={this.push}
           />
-          <Content mode="embed" url={this.props.doc.shelfUrl} />
+          <Content mode="embed" url={shelfUrl} />
           <div style={style.Peers}>
             <Peers onTapPeer={this.onTapPeer} />
           </div>

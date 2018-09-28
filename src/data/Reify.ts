@@ -46,3 +46,10 @@ export function string(
 ): string {
   return typeof existing === "string" ? existing : fallback()
 }
+
+export function boolean(
+  existing: any,
+  fallback: () => boolean = () => false,
+): boolean {
+  return typeof existing === "boolean" ? existing : fallback()
+}

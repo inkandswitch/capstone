@@ -14,7 +14,7 @@ interface Model {
 
 export interface AddToShelf extends Message {
   type: "AddToShelf"
-  body: { url: string }
+  body: { url?: string; urls?: string[] }
 }
 
 export interface ShelfContentsRequested extends Message {
@@ -47,7 +47,11 @@ class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
     switch (message.type) {
       case "AddToShelf": {
         this.change(doc => {
-          doc.selectedUrls.push(message.body.url)
+          if (message.body.urls) {
+            doc.selectedUrls = doc.selectedUrls.concat(message.body.urls)
+          } else if (message.body.url) {
+            doc.selectedUrls.push(message.body.url)
+          }
           return doc
         })
         break
