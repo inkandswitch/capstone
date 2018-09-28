@@ -35,6 +35,7 @@ export interface Props {
   delay?: number
   maxScore?: number
   only?: string[]
+  style?: {}
   children: JSX.Element
 }
 
@@ -122,9 +123,10 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
 
   render() {
     const { strokeType } = this.state
+    const style = this.props.style || {}
 
     return (
-      <span>
+      <div style={style}>
         <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
           {this.props.children}
         </Pen>
@@ -147,7 +149,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
             </div>
           </div>
         </Portal>
-      </span>
+      </div>
     )
   }
 

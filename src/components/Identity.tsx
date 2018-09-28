@@ -151,17 +151,17 @@ export class Identity extends Preact.Component<Props, State> {
     const { isEditing } = this.state
     return (
       <div style={style.Identity} onPointerDown={this.onPointerDown}>
-        <StrokeRecognizer onGlyph={this.onBadgeGlyph}>
-          <div style={style.Profile} onPointerDown={this.onBadgePointerDown}>
+        <div style={style.Profile} onPointerDown={this.onBadgePointerDown}>
+          <StrokeRecognizer onGlyph={this.onBadgeGlyph}>
             <IdentityBadge
               name={name}
               avatarUrl={avatarUrl}
               isEditing={isEditing}
               onChange={this.onChange}
             />
-          </div>
-        </StrokeRecognizer>
-        <StrokeRecognizer onGlyph={this.onGlyphCubby}>
+          </StrokeRecognizer>
+        </div>
+        <StrokeRecognizer onGlyph={this.onGlyphCubby} style={style.Stroke}>
           <div style={style.Documents}>
             <DocumentGrid>
               {Object.keys(documents).map(docUrl => (
@@ -205,15 +205,18 @@ const style = {
   Profile: {
     border: "1px solid #aaa",
     marginBottom: 25,
-    height: 125,
   },
-  Documents: {
+  Stroke: {
     flexGrow: 1,
     width: "75vw",
     padding: 30,
     backgroundColor: "#e5e5e5",
     border: "1px solid #aaa",
     overflowY: "scroll",
+    display: "flex",
+  },
+  Documents: {
+    flexGrow: 1,
   },
 }
 
