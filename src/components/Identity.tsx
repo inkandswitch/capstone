@@ -164,17 +164,19 @@ export class Identity extends Preact.Component<Props, State> {
             <Content mode="embed" type="PeerStatus" url={this.props.url} />
           </div>
         </div>
-        <div style={style.Documents}>
-          <DocumentGrid>
-            {Object.keys(documents).map(docUrl => (
-              <DocumentGridCell
-                url={docUrl}
-                onGlyph={this.onGlyphCubbyItem}
-                onDoubleTap={this.onDoubleTapCubbyItem}
-              />
-            ))}
-          </DocumentGrid>
-        </div>
+        <StrokeRecognizer onGlyph={this.onGlyphCubby} style={style.Stroke}>
+          <div style={style.Documents}>
+            <DocumentGrid>
+              {Object.keys(documents).map(docUrl => (
+                <DocumentGridCell
+                  url={docUrl}
+                  onGlyph={this.onGlyphCubbyItem}
+                  onDoubleTap={this.onDoubleTapCubbyItem}
+                />
+              ))}
+            </DocumentGrid>
+          </div>
+        </StrokeRecognizer>
       </div>
     )
   }
