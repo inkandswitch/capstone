@@ -2,7 +2,7 @@ import * as Preact from "preact"
 import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
-import DraggableCard from "./DraggableCard"
+import DraggableCard, { CardModel } from "./DraggableCard"
 import Content, {
   DocumentActor,
   Message,
@@ -15,7 +15,7 @@ import { Glyph } from "../data/Glyph"
 import VirtualKeyboard from "./VirtualKeyboard"
 import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
-import { CARD_WIDTH, CARD_CLASS } from "./Card"
+import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, {
   StrokeSettings,
@@ -24,18 +24,11 @@ import StrokeRecognizer, {
 } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Feedback from "./CommandFeedback"
+import * as cardCss from "./css/Card.css"
 
 const boardIcon = require("../assets/board_icon.svg")
 
 const BOARD_PADDING = 15
-
-interface CardModel {
-  id: string
-  x: number
-  y: number
-  z: number
-  url: string
-}
 
 export interface CanvasStroke {
   settings: StrokeSettings
@@ -88,7 +81,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const url = await this.create(type)
         this.change(doc => {
           const z = ++doc.topZ
-          doc.cards[card.id] = { ...card, z, url }
+          doc.cards[card.id] = { ...card, z, url, exiting: false }
           return doc
         })
         this.emit({ type: "DocumentCreated", body: url })
@@ -128,6 +121,7 @@ function addCard(
     x: position.x,
     y: position.y,
     url,
+    exiting: false,
   }
   board.cards[card.id] = card
   return board
@@ -169,7 +163,8 @@ class Board extends Preact.Component<Props, State> {
                       card={card}
                       onDoubleTap={this.props.onNavigate}
                       onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}>
+                      onDragStop={this.onDragStop}
+                      onExited={(id: string) => this.deleteCard(id)}>
                       <Content
                         mode="embed"
                         url={card.url}
@@ -254,6 +249,20 @@ class Board extends Preact.Component<Props, State> {
     this.setState({ focusedCardId: null })
   }
 
+  fadeAndDeleteCard = (id: string) => {
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[id] = {
+          ...card,
+          exiting: true,
+        }
+      }
+      return doc
+    })
+  }
+
   deleteCard = (id: string) => {
     this.props.change(doc => {
       delete doc.cards[id]
@@ -315,7 +324,7 @@ class Board extends Preact.Component<Props, State> {
         break
       }
       case Glyph.delete:
-        this.deleteCard(card.id)
+        this.fadeAndDeleteCard(card.id)
         Feedback.Provider.add("Delete...", event.center)
         break
       case Glyph.copy: {
@@ -353,7 +362,7 @@ class Board extends Preact.Component<Props, State> {
       return undefined
     }
     const el = document.elementFromPoint(x, y)
-    const cardEl = el.closest(`.${CARD_CLASS}`)
+    const cardEl = el.closest(`.${cardCss.Card}`)
     if (!cardEl || !cardEl.id) return
     return this.props.doc.cards[cardEl.id]
   }

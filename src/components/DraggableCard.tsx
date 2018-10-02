@@ -4,12 +4,13 @@ import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import Touch, { TouchEvent } from "./Touch"
 
-interface CardModel {
+export interface CardModel {
   id: string
   x: number
   y: number
   z: number
   url: string
+  exiting: boolean
 }
 
 export interface Props {
@@ -17,6 +18,7 @@ export interface Props {
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onDoubleTap?: (url: string) => void
+  onExited?: (id: string) => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
@@ -37,7 +39,11 @@ export default class DraggableCard extends Preact.Component<Props> {
           onCancel={this.cancel}
           z={z}
           enableUserSelectHack={false}>
-          <Card cardId={this.props.card.id} {...rest}>
+          <Card
+            cardId={this.props.card.id}
+            exiting={this.props.card.exiting}
+            onExited={this.props.onExited}
+            {...rest}>
             {children}
           </Card>
         </Draggable>
