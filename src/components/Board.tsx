@@ -164,7 +164,7 @@ class Board extends Preact.Component<Props, State> {
                       onDoubleTap={this.props.onNavigate}
                       onDragStart={this.onDragStart}
                       onDragStop={this.onDragStop}
-                      onExited={(id: string) => this.deleteCard(id)}>
+                      onExited={() => this.deleteCard(card.id)}>
                       <Content
                         mode="embed"
                         url={card.url}

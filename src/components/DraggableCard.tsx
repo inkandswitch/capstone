@@ -18,7 +18,7 @@ export interface Props {
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onDoubleTap?: (url: string) => void
-  onExited?: (id: string) => void
+  onExited: () => void
 }
 
 export default class DraggableCard extends Preact.Component<Props> {
