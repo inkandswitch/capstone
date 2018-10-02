@@ -72,7 +72,7 @@ export class ArchiveActor extends DocumentActor<Model, InMessage, OutMessage> {
         break
       }
       default: {
-        console.log("Unknown message type")
+        console.log("Unknown message type", message)
       }
     }
   }
