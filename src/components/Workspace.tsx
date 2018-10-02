@@ -10,7 +10,6 @@ import Content, {
 } from "./Content"
 import Clipboard from "./Clipboard"
 import Touch, { TouchEvent } from "./Touch"
-import { ClearSelection } from "./Archive"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
 
@@ -18,30 +17,18 @@ export interface Model {
   navStack: string[]
   identityUrl: string
   rootUrl: string
-  archiveUrl: string
   shelfUrl: string
-  isShowingArchive: boolean
 }
 
 type WidgetMessage = DocumentCreated | AddToShelf
 type InMessage = FullyFormedMessage<
   DocumentCreated | AddToShelf | ShelfContentsRequested
 >
-type OutMessage =
-  | DocumentCreated
-  | AddToShelf
-  | SendShelfContents
-  | ClearSelection
+type OutMessage = DocumentCreated | AddToShelf | SendShelfContents
 
 class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
-      case "DocumentCreated": {
-        if (message.from !== this.doc.archiveUrl) {
-          this.emit({ ...message, to: this.doc.archiveUrl })
-        }
-        break
-      }
       case "AddToShelf": {
         this.emit({
           type: "AddToShelf",
@@ -57,7 +44,6 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
           body: { recipientUrl: message.from, ...body },
           to: this.doc.shelfUrl,
         })
-        this.emit({ type: "ClearSelection", to: this.doc.archiveUrl })
         break
       }
     }
@@ -70,28 +56,12 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
       identityUrl: Reify.string(doc.identityUrl),
       navStack: Reify.array(doc.navStack),
       rootUrl: Reify.string(doc.rootUrl),
-      archiveUrl: Reify.link(doc.archiveUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
-      isShowingArchive: Reify.boolean(doc.isShowingArchive, () => false),
     }
   }
 
   get currentUrl() {
     return this.peek()
-  }
-
-  showArchive = () => {
-    this.props.change(doc => {
-      doc.isShowingArchive = true
-      return doc
-    })
-  }
-
-  hideArchive = () => {
-    this.props.change(doc => {
-      doc.isShowingArchive = false
-      return doc
-    })
   }
 
   push = (url: string) => {
@@ -115,14 +85,6 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     return navStack[navStack.length - 1]
   }
 
-  onThreeFingerSwipeDown = (event: TouchEvent) => {
-    this.showArchive()
-  }
-
-  onThreeFingerSwipeUp = (event: TouchEvent) => {
-    this.hideArchive()
-  }
-
   onPinchEnd = (event: TouchEvent) => {
     // Prevent popping the last item off the navStack on pinch end.
     if (event.scale > 1 || this.props.doc.navStack.length < 2) return
@@ -137,11 +99,9 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     }
 
     // Otherwise, prevent default behavior and copy the currently active/fullscreen
-    // document url to the clipboard. The archive cannot be shared, so do nothing
-    // if the archive is currently fullscreen.
+    // document url to the clipboard.
     e.preventDefault()
     const currentUrl = this.peek()
-    if (currentUrl === null || currentUrl === this.props.doc.archiveUrl) return
     e.clipboardData.setData("text/plain", currentUrl)
     console.log(`Copied current url to the clipboard: ${currentUrl}`)
   }
@@ -164,7 +124,7 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
       return
     }
     console.log("Adding document", pastedUrl)
-    this.props.emit({ type: "DocumentCreated", body: pastedUrl })
+    this.props.emit({ type: "AddToShelf", body: { url: pastedUrl } })
   }
 
   onTapPeer = (identityUrl: string) => {
@@ -172,13 +132,10 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   render() {
-    const { isShowingArchive, shelfUrl, archiveUrl } = this.props.doc
-    const currentUrl = isShowingArchive ? archiveUrl : this.peek()
+    const { shelfUrl } = this.props.doc
+    const currentUrl = this.peek()
     return (
-      <Touch
-        onThreeFingerSwipeDown={this.onThreeFingerSwipeDown}
-        onThreeFingerSwipeUp={this.onThreeFingerSwipeUp}
-        onPinchEnd={this.onPinchEnd}>
+      <Touch onPinchEnd={this.onPinchEnd}>
         <div class="Workspace" style={style.Workspace}>
           <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
