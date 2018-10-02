@@ -5,7 +5,6 @@ import Store from "../data/Store"
 import Root from "./Root"
 import Content from "./Content"
 
-import "./Archive"
 import "./Board"
 import "./Image"
 import "./NetworkActivity"
@@ -34,13 +33,11 @@ type State = {
 
 export default class App extends Preact.Component<{}, State> {
   async initWorkspace() {
-    const archiveUrlPromise = Content.create("Archive")
     const shelfUrlPromise = Content.create("Shelf")
     const identityUrlPromise = Content.create("Identity")
     const rootBoardUrlPromise = Content.create("Board")
 
     const shelfUrl = await shelfUrlPromise
-    const archiveUrl = await archiveUrlPromise
     const identityUrl = await identityUrlPromise
     const rootBoardUrl = await rootBoardUrlPromise
     const workspaceUrl = await Content.create("Workspace")
@@ -50,9 +47,8 @@ export default class App extends Preact.Component<{}, State> {
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
       change((workspace: EditDoc<Workspace.Model>) => {
-        if (!workspace.archiveUrl) {
+        if (!workspace.identityUrl) {
           workspace.identityUrl = identityUrl
-          workspace.archiveUrl = archiveUrl
           workspace.shelfUrl = shelfUrl
           workspace.rootUrl = rootBoardUrl
           workspace.navStack = [rootBoardUrl]
@@ -67,11 +63,6 @@ export default class App extends Preact.Component<{}, State> {
       to: rootBoardUrl,
       type: "ReceiveDocuments",
       body: { urls: [identityUrl] },
-    })
-    Content.send({
-      to: archiveUrl,
-      type: "ReceiveDocuments",
-      body: { urls: [rootBoardUrl, identityUrl] },
     })
 
     Content.once<Identity.Model>(identityUrl, async (change: Function) => {

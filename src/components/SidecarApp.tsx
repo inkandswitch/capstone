@@ -5,7 +5,6 @@ import * as Link from "../data/Link"
 import Root from "./Root"
 import Content from "./Content"
 
-import "./Archive"
 import "./Board"
 import "./Image"
 import "./NetworkActivity"
