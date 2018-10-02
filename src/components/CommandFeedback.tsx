@@ -49,6 +49,8 @@ class FeedbackItem extends Preact.Component<FeedbackItemProps> {
 }
 
 export class Renderer extends Preact.Component<{}, FeedbackRendererState> {
+  state: FeedbackRendererState = { feedback: [] }
+
   componentWillMount() {
     Provider.addListener("feedback", this.handleChange)
   }
