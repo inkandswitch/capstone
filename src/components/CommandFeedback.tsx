@@ -12,7 +12,6 @@ class ProviderSingleton extends EventEmitter {
   add(message: string, position: { x: number; y: number }) {
     this.feedback.push({ message, position })
     this.emit("feedback", this.feedback[0])
-    delay(() => this.removeText(), 1000)
   }
   removeText() {
     this.feedback.shift()
@@ -42,13 +41,22 @@ export class Renderer extends Preact.Component {
     })
   }
 
+  addCallback(el: HTMLElement) {
+    el.addEventListener("webkitAnimationEnd", () => {
+      el.remove()
+    })
+  }
+
   render() {
     const { message, position: { x = 0, y = 0 } = {} } = this.state
     if (!this.state.message) {
       return null
     }
     return (
-      <div className="CommandFeedback" style={{ left: x, top: y }}>
+      <div
+        ref={(el: HTMLElement) => this.addCallback(el)}
+        className="CommandFeedback"
+        style={{ left: x, top: y }}>
         <span className="CommandFeedback__Text">{message}</span>
       </div>
     )
