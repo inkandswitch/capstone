@@ -22,14 +22,31 @@ class ProviderSingleton extends EventEmitter {
 
 export let Provider = new ProviderSingleton()
 
-class FeedbackItem extends Preact.Component<FeedbackData> {
+interface FeedbackItemProps {
+  animationEnded: (id: number) => void
+  feedbackData: FeedbackData
+}
+
+class FeedbackItem extends Preact.Component<FeedbackItemProps> {
+  addCallback(el?: HTMLElement) {
+    if (!el) {
+      return
+    }
+    el.addEventListener("webkitAnimationEnd", () => {
+      this.props.animationEnded(this.props.feedbackData.id)
+    })
+  }
+
   render() {
-    const { message, position: { x = 0, y = 0 } = {} } = this.props
-    if (!this.props.message) {
+    const { message, position: { x = 0, y = 0 } = {} } = this.props.feedbackData
+    if (!message) {
       return null
     }
     return (
-      <div className="CommandFeedback" style={{ left: x, top: y }}>
+      <div
+        className="CommandFeedback"
+        ref={(el: HTMLElement) => this.addCallback(el)}
+        style={{ left: x, top: y }}>
         <span className="CommandFeedback__Text">{message}</span>
       </div>
     )
@@ -51,26 +68,23 @@ export class Renderer extends Preact.Component {
     this.setState((prevState: FeedbackRendererState) => ({
       feedback: [...prevState.feedback, feedbackData],
     }))
-    // filter this item out after two seconds
-    delay(
-      () =>
-        this.setState((prevState: FeedbackRendererState) => ({
-          feedback: prevState.feedback.filter(i => i.id != feedbackData.id),
-        })),
-      2000,
-    )
+  }
+
+  animationEnded = (feedbackId: number) => {
+    this.setState((prevState: FeedbackRendererState) => ({
+      feedback: prevState.feedback.filter(i => i.id != feedbackId),
+    }))
   }
 
   render() {
     const feedback = this.state.feedback
     return (
       <div class="FeedbackContainer">
-        {feedback.map(({ id, message, position }) => (
+        {feedback.map(feedbackData => (
           <FeedbackItem
-            key={id.toString()}
-            id={id}
-            message={message}
-            position={position}
+            key={feedbackData.id.toString()}
+            animationEnded={(id: number) => this.animationEnded(id)}
+            feedbackData={feedbackData}
           />
         ))}
       </div>

@@ -46,11 +46,38 @@
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 3;
+  animation: fadeinout 1.5s linear 1 forwards;
+  /* opacity: 0.1;
+  transition-property: opacity 2s, transform 2s; */
 }
+
+/* .CommandFeedback:end {
+  transform: translateX(-50%), scale(1);
+  opacity: 1;
+} */
 
 .CommandFeedback__Text {
   display: inline-block;
   vertical-align: middle;
   color: white;
   font-size: 12pt;
+}
+
+@keyframes fadeinout {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  90% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
 }
