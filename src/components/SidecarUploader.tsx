@@ -8,9 +8,7 @@ import { AnyDoc, AnyEditDoc, ChangeFn } from "automerge/frontend"
 import Clipboard from "./Clipboard"
 
 interface Model {
-  docs: Array<{
-    url: string
-  }>
+  selectedUrls: Array<string>
 }
 
 interface Props extends Widget.Props<Model> {}
@@ -22,7 +20,7 @@ interface State {
 export default class SidecarUploader extends Preact.Component<Props, State> {
   static reify(doc: AnyDoc): Model {
     return {
-      docs: Reify.array(doc.docs),
+      selectedUrls: Reify.array(doc.selectedUrls),
     }
   }
 
@@ -30,7 +28,7 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
 
   render() {
     const {
-      doc: { docs },
+      doc: { selectedUrls },
     } = this.props
     const { isDropping } = this.state
 
@@ -112,7 +110,7 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
     const change = Content.open(url, once(onOpen))
 
     this.props.change(doc => {
-      doc.docs.push({ url })
+      doc.selectedUrls.push(url)
       return doc
     })
   }
