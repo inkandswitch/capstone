@@ -2,54 +2,77 @@ import * as Preact from "preact"
 import { delay } from "lodash"
 import { EventEmitter } from "events"
 
+interface FeedbackRendererState {
+  feedback: FeedbackData[]
+}
+
 interface FeedbackData {
+  id: number
   message?: string
   position?: { x: number; y: number }
 }
 
 class ProviderSingleton extends EventEmitter {
-  feedback: FeedbackData[] = []
+  feedbackId = 0
   add(message: string, position: { x: number; y: number }) {
-    this.feedback.push({ message, position })
-    this.emit("feedback", this.feedback[0])
-    delay(() => this.removeText(), 1000)
-  }
-  removeText() {
-    this.feedback.shift()
-    this.emit("feedback", this.feedback[0])
+    const feedback: FeedbackData = { message, position, id: this.feedbackId++ }
+    this.emit("feedback", feedback)
   }
 }
+
 export let Provider = new ProviderSingleton()
 
-export class Renderer extends Preact.Component {
-  state: FeedbackData = { message: "", position: { x: 0, y: 0 } }
-
-  componentWillMount() {
-    Provider.addListener("feedback", this.handleChange)
-  }
-
-  componentWillUnmount() {
-    Provider.removeListener("feedback", this.handleChange)
-  }
-
-  handleChange = (feedbackData: FeedbackData) => {
-    if (!feedbackData) {
-      feedbackData = {}
-    }
-    this.setState({
-      message: feedbackData.message,
-      position: feedbackData.position,
-    })
-  }
-
+class FeedbackItem extends Preact.Component<FeedbackData> {
   render() {
-    const { message, position: { x = 0, y = 0 } = {} } = this.state
-    if (!this.state.message) {
+    const { message, position: { x = 0, y = 0 } = {} } = this.props
+    if (!this.props.message) {
       return null
     }
     return (
       <div className="CommandFeedback" style={{ left: x, top: y }}>
         <span className="CommandFeedback__Text">{message}</span>
+      </div>
+    )
+  }
+}
+
+export class Renderer extends Preact.Component {
+  state: FeedbackRendererState = { feedback: [] }
+
+  componentWillMount() {
+    Provider.addListener("feedback", f => this.handleChange(f))
+  }
+
+  componentWillUnmount() {
+    Provider.removeListener("feedback", f => this.handleChange(f))
+  }
+
+  handleChange = (feedbackData: FeedbackData) => {
+    this.setState((prevState: FeedbackRendererState) => ({
+      feedback: [...prevState.feedback, feedbackData],
+    }))
+    // filter this item out after two seconds
+    delay(
+      () =>
+        this.setState((prevState: FeedbackRendererState) => ({
+          feedback: prevState.feedback.filter(i => i.id != feedbackData.id),
+        })),
+      2000,
+    )
+  }
+
+  render() {
+    const feedback = this.state.feedback
+    return (
+      <div class="FeedbackContainer">
+        {feedback.map(({ id, message, position }) => (
+          <FeedbackItem
+            key={id.toString()}
+            id={id}
+            message={message}
+            position={position}
+          />
+        ))}
       </div>
     )
   }
