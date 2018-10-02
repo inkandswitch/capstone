@@ -28,13 +28,8 @@ interface FeedbackItemProps {
 }
 
 class FeedbackItem extends Preact.Component<FeedbackItemProps> {
-  addCallback(el?: HTMLElement) {
-    if (!el) {
-      return
-    }
-    el.addEventListener("webkitAnimationEnd", () => {
-      this.props.animationEnded(this.props.feedbackData.id)
-    })
+  onAnimationEnd = (event: AnimationEvent) => {
+    this.props.animationEnded(this.props.feedbackData.id)
   }
 
   render() {
@@ -45,7 +40,7 @@ class FeedbackItem extends Preact.Component<FeedbackItemProps> {
     return (
       <div
         className="CommandFeedback"
-        ref={(el: HTMLElement) => this.addCallback(el)}
+        onAnimationEnd={this.onAnimationEnd}
         style={{ left: x, top: y }}>
         <span className="CommandFeedback__Text">{message}</span>
       </div>
@@ -53,15 +48,13 @@ class FeedbackItem extends Preact.Component<FeedbackItemProps> {
   }
 }
 
-export class Renderer extends Preact.Component {
-  state: FeedbackRendererState = { feedback: [] }
-
+export class Renderer extends Preact.Component<{}, FeedbackRendererState> {
   componentWillMount() {
-    Provider.addListener("feedback", f => this.handleChange(f))
+    Provider.addListener("feedback", this.handleChange)
   }
 
   componentWillUnmount() {
-    Provider.removeListener("feedback", f => this.handleChange(f))
+    Provider.removeListener("feedback", this.handleChange)
   }
 
   handleChange = (feedbackData: FeedbackData) => {
@@ -83,7 +76,7 @@ export class Renderer extends Preact.Component {
         {feedback.map(feedbackData => (
           <FeedbackItem
             key={feedbackData.id.toString()}
-            animationEnded={(id: number) => this.animationEnded(id)}
+            animationEnded={this.animationEnded}
             feedbackData={feedbackData}
           />
         ))}
