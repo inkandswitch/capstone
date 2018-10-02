@@ -148,43 +148,41 @@ class Board extends Preact.Component<Props, State> {
           <StrokeRecognizer
             onGlyph={this.onGlyph}
             onInkStroke={this.onInkStroke}>
-            <Pen onDoubleTap={this.onPenDoubleTapBoard}>
-              <div
-                style={style.Board}
-                ref={(el: HTMLElement) => (this.boardEl = el)}>
-                <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
+            <div
+              style={style.Board}
+              ref={(el: HTMLElement) => (this.boardEl = el)}>
+              <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
 
-                {Object.values(cards).map(card => {
-                  if (!card) return null
+              {Object.values(cards).map(card => {
+                if (!card) return null
 
-                  return (
-                    <DraggableCard
-                      key={card.id}
-                      card={card}
-                      onDoubleTap={this.props.onNavigate}
-                      onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}
-                      onExited={() => this.deleteCard(card.id)}>
-                      <Content
-                        mode="embed"
-                        url={card.url}
-                        isFocused={focusedCardId === card.id}
-                      />
-                    </DraggableCard>
-                  )
-                })}
-                <Ink strokes={strokes} />
-                {focusedCardId != null ? (
-                  <div
-                    style={{
-                      ...style.FocusBackgroundOverlay,
-                      zIndex: topZ - 1,
-                    }}
-                    onPointerDown={this.onPointerDown}
-                  />
-                ) : null}
-              </div>
-            </Pen>
+                return (
+                  <DraggableCard
+                    key={card.id}
+                    card={card}
+                    onDoubleTap={this.props.onNavigate}
+                    onDragStart={this.onDragStart}
+                    onDragStop={this.onDragStop}
+                    onExited={() => this.deleteCard(card.id)}>
+                    <Content
+                      mode="embed"
+                      url={card.url}
+                      isFocused={focusedCardId === card.id}
+                    />
+                  </DraggableCard>
+                )
+              })}
+              <Ink strokes={strokes} />
+              {focusedCardId != null ? (
+                <div
+                  style={{
+                    ...style.FocusBackgroundOverlay,
+                    zIndex: topZ - 1,
+                  }}
+                  onPointerDown={this.onPointerDown}
+                />
+              ) : null}
+            </div>
           </StrokeRecognizer>
         )
       case "embed":
@@ -205,10 +203,6 @@ class Board extends Preact.Component<Props, State> {
 
   onVirtualKeyboardClose = () => {
     this.clearCardFocus()
-  }
-
-  onPenDoubleTapBoard = (e: PenEvent) => {
-    this.createCard("Text", e.center.x, e.center.y, true)
   }
 
   onDragStart = (id: string) => {

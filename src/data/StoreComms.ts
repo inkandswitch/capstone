@@ -30,7 +30,14 @@ export default class StoreComms {
 
   onConnect = (port: chrome.runtime.Port) => {
     const [docId, mode = "changes"] = port.name.split("/", 2)
+    let defer : Function[] = []
+    let presenceInterval = 0
     log("connect", docId)
+
+    port.onDisconnect.addListener(() => {
+      console.log("port disconnected for", port.name, "because", chrome.runtime.lastError)
+      defer.forEach(f => f())
+    })
 
     switch (mode) {
       case "changes": {
@@ -58,6 +65,9 @@ export default class StoreComms {
           //          this.debugLogs[docId].push({ patch })
           port.postMessage({ actorId, patch })
         })
+
+        defer.push(() => {handle.onPatch(() => {})})
+
         break
       }
 
@@ -65,7 +75,7 @@ export default class StoreComms {
         const hm = this.hypermerge
         const actorIds: string[] = hm.docIndex[docId] || []
 
-        setInterval(() => {
+        const tick = setInterval(() => {
           let message: any = {
             errs: hm.errs.map(e => e.toString()),
             docs: {},
@@ -102,6 +112,8 @@ export default class StoreComms {
           port.postMessage(message)
         }, 5000)
 
+        defer.push(() => { clearInterval(tick) })
+
         break
       }
 
@@ -112,20 +124,29 @@ export default class StoreComms {
         actorIds.forEach(actorId => {
           const feed = hm._feed(actorId)
 
-          feed.on("download", (seq: number) => {
+          const ondownload = (seq: number) => {
             port.postMessage({
               type: "Download",
               actorId,
               seq,
             })
-          })
+          }
 
-          feed.on("upload", (seq: number) => {
+
+          const onupload = (seq: number) => {
             port.postMessage({
               type: "Upload",
               actorId,
               seq,
             })
+          }
+
+          feed.on("download", ondownload)
+          feed.on("upload", onupload)
+
+          defer.push(() => {
+            feed.off("download", ondownload)
+            feed.off("upload", onupload)
           })
         })
         break
