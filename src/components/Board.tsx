@@ -195,14 +195,40 @@ class Board extends Preact.Component<Props, State> {
       case "embed":
       case "preview":
         return (
-          <div style={style.Preview.Board}>
-            <img style={style.Preview.Icon} src={boardIcon} />
-            <div style={style.Preview.TitleContainer}>
-              <div style={style.Preview.Title}>Board</div>
-              <div style={style.Preview.SubTitle}>
-                {isEmpty(cards) ? "No" : size(cards)} items
-              </div>
+          <div
+            style={style.Preview.Board}
+            ref={(el: HTMLElement) => (this.boardEl = el)}>
+            <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
+
+            <div style={style.Preview.Cards}>
+              {Object.values(cards).map(card => {
+                if (!card) return null
+
+                return (
+                  <DraggableCard
+                    key={card.id}
+                    card={card}
+                    onDoubleTap={() => {}}
+                    onDragStart={() => {}}
+                    onDragStop={() => {}}>
+                    <Content
+                      mode="embed"
+                      url={card.url}
+                      isFocused={focusedCardId === card.id}
+                    />
+                  </DraggableCard>
+                )
+              })}
             </div>
+            <Ink strokes={strokes} />
+            {focusedCardId != null ? (
+              <div
+                style={{
+                  ...style.FocusBackgroundOverlay,
+                  zIndex: topZ - 1,
+                }}
+              />
+            ) : null}
           </div>
         )
     }
@@ -415,30 +441,15 @@ const style = {
 
   Preview: {
     Board: {
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "center",
-      padding: "50px 25px",
-      fontSize: 16,
+      height: "300px",
+      padding: BOARD_PADDING,
+      zIndex: 1,
       backgroundColor: "#fff",
+      overflow: "hidden",
     },
-    Icon: {
-      height: 50,
-      width: 50,
-    },
-    TitleContainer: {
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      margin: "0 15px",
-    },
-    Title: {
-      fontSize: 24,
-      fontWeight: 500,
-      lineHeight: "1.2em",
-    },
-    SubTitle: {
-      fontSize: "smaller",
+    Cards: {
+      transform: "scale(0.3)",
+      transformOrigin: "0 0",
     },
   },
 }
