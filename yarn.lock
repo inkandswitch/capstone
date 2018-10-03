@@ -387,9 +387,9 @@ atomic-batcher@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/atomic-batcher/-/atomic-batcher-1.0.2.tgz#d16901d10ccec59516c197b9ccd8930689b813b4"
 
-automerge@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/automerge/-/automerge-0.9.0.tgz#af9edd227efddfc4ff5fc669cf3e738c2339986c"
+automerge@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/automerge/-/automerge-0.9.1.tgz#08c8bd2645da8cddf52afef25499e5c0e4bad0d9"
   dependencies:
     immutable "^3.8.2"
     transit-immutable-js "^0.7.0"
