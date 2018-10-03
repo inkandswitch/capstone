@@ -4327,8 +4327,8 @@ utp-native@^1.2.2, utp-native@^1.7.2:
     readable-stream "^2.2.2"
 
 "utp@github:pvh/utp":
-  version "0.0.10"
-  resolved "https://codeload.github.com/pvh/utp/tar.gz/7f8dbc2999ef3fc9235c746c3d3512b2df2b208c"
+  version "0.0.11"
+  resolved "https://codeload.github.com/pvh/utp/tar.gz/4bcf1727f0e76d23bef51b6f108b9a0c491c8d25"
   dependencies:
     buffer-alloc "^1.1.0"
     chrome-dgram "^3.0.1"
