@@ -363,14 +363,14 @@ class Hypermerge extends EventEmitter {
 
   // Finds or creates, and returns, a feed that is not yet tracked. See `feed`
   // for cases for `actorId`.
-  _feed (actorId = null) {
-    if (typeof actorId == 'object' && actorId.secretKey) {
-      let { publicKey, secretKey } = actorId
-      log("_feed w key", actorId.publicKey)
+  _feed (actorIdOrKeys = null) {
+    if (typeof actorIdOrKeys == 'object' && actorIdOrKeys.secretKey) {
+      let { publicKey, secretKey } = actorIdOrKeys
+      log("_feed w key", actorIdOrKeys.publicKey)
       return this.core.createFeed(publicKey, { secretKey })
     } else {
-      const key = actorId ? Base58.decode(actorId) : null
-      log("_feed", actorId)
+      const key = typeof actorIdOrKeys == 'string' ? Base58.decode(actorIdOrKeys) : null
+      log("_feed", actorIdOrKeys)
       return this.core.createFeed(key)
     }
   }
