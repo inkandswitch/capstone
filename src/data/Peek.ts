@@ -2,7 +2,7 @@ import { init, applyPatch } from "automerge/frontend"
 import { once } from "lodash"
 
 var _enable = once(() => {
-  let global: any = window
+  let global: any = this
   console.log("Enabling Peek")
   global.peek = (id: any, flags = "") => {
     if (id) {

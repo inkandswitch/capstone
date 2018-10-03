@@ -34,7 +34,12 @@ function initHypermerge(ops, cb) {
 }
 
 class Hypermerge extends EventEmitter {
-  constructor({ identity, device, storage, defaultMetadata = {} }) {
+  constructor({
+    identity = null,
+    device = null,
+    storage,
+    defaultMetadata = {},
+  }) {
     super()
 
     this.defaultMetadata = defaultMetadata

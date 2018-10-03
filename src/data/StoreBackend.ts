@@ -2,39 +2,32 @@ import { Hypermerge } from "../modules/hypermerge"
 import * as Prefetch from "../data/Prefetch"
 import * as Peek from "./Peek"
 import * as Base58 from "bs58"
+import * as Msg from "./StoreMsg"
 
 const Debug = require("debug")
 const log = Debug("store:coms")
 
 export default class StoreBackend {
+  presenceTick?: NodeJS.Timer
+  _send: (msg: Msg.BackendToFrontend) => void
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
   pendingChanges: { [docId: string]: any } = {}
   //debugLogs: { [docId: string]: any } = {}
   //  prefetcher: Prefetch.Prefetcher
 
-  constructor(hm: Hypermerge) {
+  constructor(hm: Hypermerge, send: (msg: Msg.BackendToFrontend) => void) {
     this.hypermerge = hm
-    ;(window as any).hm = this.hypermerge
-    ;(window as any).sm = this
-    this.hypermerge.joinSwarm({ chrome: true })
+    this._send = send
+    ;(global as any).hm = this.hypermerge
+    ;(global as any).sm = this
 
-    // debugging stuff
-    chrome.system.network.getNetworkInterfaces(ifaces => {
-      let address = ifaces.filter(i => i.prefixLength == 24)[0].address
-      chrome.storage.local.get("deviceAgent", result => {
-        this.hypermerge.setDevice(result.deviceAgent || address)
-      })
-    })
     Peek.enable()
   }
 
-  applyChanges = (changes: any, port: chrome.runtime.Port) => {
-    const [docId, _] = port.name.split("/", 2)
+  applyChanges = (docId: string, changes: any, port: chrome.runtime.Port) => {
     const handle = this.docHandles[docId]
-    if (docId.startsWith("98bbA")) {
-      console.log("CHANGE", docId, changes)
-    }
+
     if (handle) {
       handle.applyChanges(changes)
     } else {
@@ -44,17 +37,59 @@ export default class StoreBackend {
     }
   }
 
-  onConnect = (port: chrome.runtime.Port) => {
-    const [docId, mode = "changes"] = port.name.split("/", 2)
+  startPresence() {
+    const hm = this.hypermerge
 
-    console.log("connect", docId)
+    this.presenceTick = setInterval(() => {
+      let message: Msg.Presence = {
+        type: "Presence",
+        errs: hm.errs.map(e => e.toString()),
+        docs: {},
+        peers: {},
+      }
 
-    port.onDisconnect.addListener(() =>
-      console.log("port discon: ", port.name, chrome.runtime.lastError),
-    )
+      for (const docId in this.docHandles) {
+        const handle = this.docHandles[docId]
+        const connections = handle.connections()
 
-    switch (mode) {
-      case "changes": {
+        message.docs[docId] = message.docs[docId] || {
+          connections: 0,
+          peers: {},
+        }
+        message.docs[docId].connections = connections.length
+
+        handle.peers().forEach((peer: any) => {
+          const id = peer.identity as string
+
+          message.peers[id] = message.peers[id] || {
+            devices: [],
+            docs: [],
+            lastSeen: 0,
+          }
+
+          add(message.docs[docId].peers, id)
+          add(message.peers[id].devices, peer.device)
+          add(message.peers[id].docs, docId)
+          message.peers[id].lastSeen = Math.max(
+            message.peers[id].lastSeen,
+            peer.synTime,
+          )
+        })
+      }
+
+      this.sendToFrontend(message)
+    }, 5000)
+  }
+
+  stopPresence() {
+    if (this.presenceTick != null) clearInterval(this.presenceTick)
+  }
+
+  onMessage = (msg: Msg.FrontendToBackend) => {
+    switch (msg.type) {
+      case "Open": {
+        const { docId } = msg
+
         if (!this.docHandles[docId]) {
           const handle = this.hypermerge.openHandle(docId)
           this.docHandles[docId] = handle
@@ -74,64 +109,16 @@ export default class StoreBackend {
 
         handle.on("patch", (patch: any) => {
           const actorId = handle.actorId
-          if (docId.startsWith("98bbA")) {
-            console.log("PATCH", docId, actorId, patch)
-          }
-          port.postMessage({ actorId, patch })
+
+          this.sendToFrontend({ type: "Patch", docId, actorId, patch })
         })
 
-        port.onDisconnect.addListener(() => handle.release())
-
         break
       }
 
-      case "presence": {
-        const hm = this.hypermerge
-        const actorIds: string[] = hm.docIndex[docId] || []
+      case "RequestActivity": {
+        const { docId } = msg
 
-        const tick = setInterval(() => {
-          let message: any = {
-            errs: hm.errs.map(e => e.toString()),
-            docs: {},
-            peers: {},
-          }
-          const add: Function = (array: Array<any>, element: any) =>
-            array.includes(element) ? null : array.push(element)
-          for (const docId in this.docHandles) {
-            const handle = this.docHandles[docId]
-            const connections = handle.connections()
-
-            message.docs[docId] = message.docs[docId] || {
-              connections: 0,
-              peers: [],
-            }
-            message.docs[docId].connections = connections.length
-
-            const peers = handle.peers().map((peer: any) => {
-              const id = peer.identity
-              message.peers[id] = message.peers[id] || {
-                devices: [],
-                docs: [],
-                lastSeen: 0,
-              }
-              add(message.docs[docId].peers, id)
-              add(message.peers[id].devices, peer.device)
-              add(message.peers[id].docs, docId)
-              message.peers[id].lastSeen = Math.max(
-                message.peers[id].lastSeen,
-                peer.synTime,
-              )
-            })
-          }
-          port.postMessage(message)
-        }, 5000)
-
-        port.onDisconnect.addListener(() => clearInterval(tick))
-
-        break
-      }
-
-      case "activity": {
         const hm = this.hypermerge
         const actorIds: string[] = hm.docIndex[docId] || []
 
@@ -139,7 +126,7 @@ export default class StoreBackend {
           const feed = hm._feed(actorId)
 
           const ondownload = (seq: number) => {
-            port.postMessage({
+            this.sendToFrontend({
               type: "Download",
               actorId,
               seq,
@@ -147,7 +134,7 @@ export default class StoreBackend {
           }
 
           const onupload = (seq: number) => {
-            port.postMessage({
+            this.sendToFrontend({
               type: "Upload",
               actorId,
               seq,
@@ -157,36 +144,39 @@ export default class StoreBackend {
           feed.on("download", ondownload)
           feed.on("upload", onupload)
 
-          port.onDisconnect.addListener(() => {
-            feed.off("download", ondownload)
-            feed.off("upload", onupload)
-          })
+          // TODO: reimplement this:
+          // port.onDisconnect.addListener(() => {
+          //   feed.off("download", ondownload)
+          //   feed.off("upload", onupload)
+          // })
         })
         break
       }
-    }
-  }
 
-  onMessage = (request: any) => {
-    let { command, args } = request
-
-    switch (command) {
-      case "Create":
-        const { keys } = args
+      case "Create": {
+        const { keys } = msg
         let keyPair = {
           publicKey: Base58.decode(keys.publicKey),
           secretKey: Base58.decode(keys.secretKey),
         }
         this.hypermerge.create(keyPair)
         break
-      case "SetIdentity":
-        const { identityUrl } = args
+      }
+
+      case "SetIdentity": {
+        const { identityUrl } = msg
         console.log("Identity", identityUrl)
         this.hypermerge.setIdentity(identityUrl)
         break
-      default:
-        console.warn("Received an unusual message: ", request)
+      }
     }
-    //    return true // indicate we will respond asynchronously
   }
+
+  sendToFrontend(msg: Msg.BackendToFrontend) {
+    this._send(msg)
+  }
+}
+
+function add<T>(array: Array<T>, element: T) {
+  array.includes(element) ? null : array.push(element)
 }

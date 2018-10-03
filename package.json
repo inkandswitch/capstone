@@ -21,7 +21,9 @@
     "@types/codemirror": "^0.0.59",
     "@types/diff-match-patch": "^1.0.32",
     "@types/hammerjs": "^2.0.35",
+    "@types/node": "^10.11.4",
     "@types/tape": "^4.2.32",
+    "@types/ws": "^6.0.1",
     "awesome-typescript-loader": "^5.2.0",
     "copy-webpack-plugin": "^4.5.2",
     "cross-env": "^5.2.0",
@@ -67,6 +69,7 @@
     "random-access-memory": "^3.0.0",
     "rxjs": "^6.3.2",
     "tap-browser-el": "^2.0.0",
-    "utp": "github:pvh/utp"
+    "utp": "github:pvh/utp",
+    "ws": "^6.0.0"
   }
 }

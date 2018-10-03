@@ -3,35 +3,28 @@ import * as Automerge from "automerge/frontend"
 import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
+import * as Msg from "./StoreMsg"
 import { FrontendHandle } from "../modules/hypermerge/frontend"
 
 function isId(id: string) {
   return id.length >= 32 && id.length <= 44
 }
 
-type CommandMessage = "Create" | "Open" | "Replace"
-
-interface UploadActivity {
-  type: "Upload"
-  actorId: string
-  seq: number
-}
-
-interface DownloadActivity {
-  type: "Download"
-  actorId: string
-  seq: number
-}
-
 ;(window as any).peek = () => {
   console.log("please use peek() on the backend console")
 }
 
-export type Activity = UploadActivity | DownloadActivity
+export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
 export default class Store {
+  _send: (msg: Msg.FrontendToBackend) => void
   index: { [id: string]: FrontendHandle } = {}
-  presenceSubject: Rx.BehaviorSubject<any>
+  presence$: Rx.BehaviorSubject<Msg.Presence | null>
+
+  constructor(send: (msg: Msg.FrontendToBackend) => void) {
+    this._send = send
+    this.presence$ = new Rx.BehaviorSubject(null)
+  }
 
   handle(id: string): FrontendHandle {
     return this.index[id] || this.makeHandle(id)
@@ -61,45 +54,62 @@ export default class Store {
     chrome.runtime.sendMessage({ command, args })
   }
 
-  makeHandle(id: string): FrontendHandle {
-    let port = chrome.runtime.connect({ name: `${id}/changes` })
-    let handle = new FrontendHandle(id)
-
-    port.onMessage.addListener(({ actorId, patch }) => {
-      handle.setActorId(actorId)
-      handle.patch(patch)
-    })
+  makeHandle(docId: string): FrontendHandle {
+    const handle = new FrontendHandle(docId)
 
     handle.on("requests", requests => {
-      port.postMessage(requests)
+      this.sendToBackend(requests)
     })
 
-    port.onDisconnect.addListener(() => {
-      console.log("Port disconnect handle", id)
-      handle.release()
-      delete this.index[id]
-    })
+    this.sendToBackend({ type: "Open", docId })
 
-    this.index[id] = handle
+    // TODO:
+    // port.onDisconnect.addListener(() => {
+    //   console.log("Port disconnect handle", docId)
+    //   handle.release()
+    //   delete this.index[docId]
+    // })
+
+    this.index[docId] = handle
 
     return handle
   }
 
   activity(id: string): Rx.Observable<Activity> {
     return new Rx.Observable(obs => {
-      const port = chrome.runtime.connect({ name: `${id}/activity` })
-      port.onMessage.addListener(msg => obs.next(msg))
-      port.onDisconnect.addListener(() => obs.complete())
+      // TODO:
+      // const port = chrome.runtime.connect({ name: `${id}/activity` })
+      // port.onMessage.addListener(msg => obs.next(msg))
+      // port.onDisconnect.addListener(() => obs.complete())
     })
   }
 
-  presence(): Rx.BehaviorSubject<any> {
-    if (!this.presenceSubject) {
-      this.presenceSubject = new Rx.BehaviorSubject(null)
-      const port = chrome.runtime.connect({ name: `*/presence` })
-      port.onMessage.addListener(msg => this.presenceSubject.next(msg))
-      port.onDisconnect.addListener(() => this.presenceSubject.complete())
+  presence(): Rx.Observable<Msg.Presence | null> {
+    return this.presence$
+  }
+
+  sendToBackend = (msg: Msg.FrontendToBackend) => {
+    this._send(msg)
+  }
+
+  onMessage(msg: Msg.BackendToFrontend) {
+    switch (msg.type) {
+      case "Patch": {
+        const handle = this.handle(msg.docId)
+        handle.setActorId(msg.actorId)
+        handle.patch(msg.patch)
+        break
+      }
+
+      case "Presence":
+        this.presence$.next(msg)
+        break
+
+      case "Upload":
+        break
+
+      case "Download":
+        break
     }
-    return this.presenceSubject
   }
 }
