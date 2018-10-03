@@ -2,19 +2,30 @@ const EventEmitter = require("events")
 const Backend = require("automerge/backend")
 const Frontend = require("automerge/frontend")
 
-export class BackendHandle {
+export class BackendHandle extends EventEmitter {
   constructor(hm, docId, doc) {
+    super()
+
     this.hm = hm
     this.docId = docId
-    this.actorId = doc ? doc.get("actorId") : null
     this._back = doc || null
-    this._onpatch = () => {}
-    this._pending_back = []
+
+    this.pBack = new Promise((resolve,reject) => this.on("ready", resolve))
+
+    if (this._back) this.emit("ready",this._back)
+
+    this.on('newListener', (event, listener) => {
+      if (event === 'patch' && this._back) {
+        const patch = Backend.getPatch(this._back)
+        listener(patch)
+      }
+    });
   }
 
   // for debugging
   toFrontend() {
-    return Frontend.applyPatch(Frontend.init("_"), Backend.getPatch(this._back))
+    const front = Frontend.init("_")
+    return this._back ? Frontend.applyPatch(front, Backend.getPatch(this._back)) : front
   }
 
   // for debugging
@@ -23,18 +34,7 @@ export class BackendHandle {
   }
 
   applyChanges(changes) {
-    if (this._back) {
-      this.hm.applyChanges(this.docId, changes, true)
-    } else {
-      this._pending_back.push(changes)
-    }
-  }
-
-  onPatch(cb) {
-    this._onpatch = cb
-    if (this._back) {
-      cb(this._uberPatch())
-    }
+    this.pBack.then(back => this.hm.applyChanges(this.docId, changes, true))
   }
 
   actorIds() {
@@ -42,29 +42,21 @@ export class BackendHandle {
   }
 
   release() {
+    this.removeAllListeners()
     this.hm.releaseHandle(this)
-  }
-
-  // internals
-
-  _uberPatch() {
-    // memoize for speed?
-    return Backend.getPatch(this._back)
   }
 
   _update(back, patch) {
     this._back = back
-    this._onpatch(patch)
+    this.emit("patch",patch)
   }
 
   _ready(back) {
     this._back = back
-    this.actorId = back.get("actorId")
+    const patch = Backend.getPatch(this._back)
 
-    this._onpatch(this._uberPatch())
-
-    this._pending_back.map(changes => this.applyChanges(changes))
-    this._pending_back = []
+    this.emit("ready",back)
+    this.emit("patch",patch)
   }
 
   // message stuff

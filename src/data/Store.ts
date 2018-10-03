@@ -1,9 +1,13 @@
 import { Doc, ChangeFn } from "automerge/frontend"
 import * as Automerge from "automerge/frontend"
 import * as Rx from "rxjs"
-import Entry from "./StoreEntry"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
+import { FrontendHandle  } from "../modules/hypermerge/frontend"
+
+function isId(id: string) {
+  return id.length >= 32 && id.length <= 44
+}
 
 type CommandMessage = "Create" | "Open" | "Replace"
 
@@ -26,34 +30,11 @@ interface DownloadActivity {
 export type Activity = UploadActivity | DownloadActivity
 
 export default class Store {
-  index: { [id: string]: Entry | undefined } = {}
+  index: { [id: string]: FrontendHandle } = {}
   presenceSubject: Rx.BehaviorSubject<any>
 
-  open(
-    id: string,
-    changeListener?: (doc: Doc<unknown>) => void,
-  ): (cfn: ChangeFn<any>) => void {
-    const existing = this.index[id]
-
-    if (existing) {
-      if (changeListener) {
-        existing.listeners.push(changeListener)
-
-        setImmediate(() => {
-          // The caller may want to change on the first emit, so this must
-          // be called async.
-          if (existing.doc) changeListener(existing.doc)
-        })
-      }
-
-      return existing.change
-    }
-
-    const entry = this.makeEntry(id)
-
-    if (changeListener) entry.listeners.push(changeListener)
-
-    return entry.change
+  handle(id: string): FrontendHandle {
+    return (this.index[id] || this.makeHandle(id))
   }
 
   create(setup: ChangeFn<any>): string {
@@ -65,9 +46,9 @@ export default class Store {
     const docId = keys.publicKey
 
     chrome.runtime.sendMessage({ command, args })
-    const entry = this.makeEntry(docId)
-    entry.doc = Automerge.init(docId)
-    entry.change(setup)
+    const handle = this.makeHandle(docId)
+    handle.setActorId(docId)
+    handle.change(setup)
     return docId
   }
 
@@ -77,10 +58,28 @@ export default class Store {
     chrome.runtime.sendMessage({ command, args })
   }
 
-  makeEntry(id: string): Entry {
-    const entry = new Entry(id)
-    this.index[id] = entry
-    return entry
+  makeHandle(id: string): FrontendHandle {
+    let port = chrome.runtime.connect({ name: `${id}/changes` })
+    let handle = new FrontendHandle(id)
+
+    port.onMessage.addListener(({ actorId, patch }) => {
+      handle.setActorId(actorId)
+      handle.patch(patch)
+    })
+
+    handle.on("requests", (requests) => {
+      port.postMessage(requests)
+    })
+
+    port.onDisconnect.addListener(() => {
+      console.log("Port disconnect handle",id)
+      handle.release()
+      delete this.index[id]
+    })
+
+    this.index[id] = handle
+
+    return handle
   }
 
   activity(id: string): Rx.Observable<Activity> {
