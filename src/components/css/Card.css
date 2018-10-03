@@ -10,10 +10,11 @@
   grid-template-rows: auto;
   grid-template-columns: auto;
   transition-property: transform opacity;
-  transition-duration: 0.5s;
+  transition-timing-function: ease-in;
+  transition-duration: 100ms;
 }
 
 .exiting .Card {
-  transform: scale(0.3);
-  opacity: 0;
+  transform: scale(0);
+  opacity: 0.1;
 }

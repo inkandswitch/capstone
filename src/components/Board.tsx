@@ -42,6 +42,11 @@ export interface Model {
   topZ: number
 }
 
+interface CardMatch {
+  card: CardModel
+  center: Point
+}
+
 interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string) => void
 }
@@ -257,9 +262,9 @@ class Board extends Preact.Component<Props, State> {
   onGlyph = (stroke: GlyphEvent) => {
     let glyphHandled = false
     // Attempt card glyph
-    const card = this.cardAtPoint(stroke.center.x, stroke.center.y)
-    if (card) {
-      glyphHandled = this.onCardGlyph(stroke, card)
+    const cardMatch = this.cardMatchAtPoint(stroke.center.x, stroke.center.y)
+    if (cardMatch) {
+      glyphHandled = this.onCardGlyph(stroke, cardMatch)
     }
     // If not handled, attempt board glyph
     if (!glyphHandled) {
@@ -267,7 +272,7 @@ class Board extends Preact.Component<Props, State> {
     }
     // If still not handled, we don't recognize the gesture
     if (!glyphHandled) {
-      Feedback.Provider.add("Unrecognized gesture...", stroke.center)
+      Feedback.Provider.add("Unrecognized gesture", stroke.center)
     }
   }
 
@@ -286,7 +291,7 @@ class Board extends Preact.Component<Props, State> {
         })
         break
       case Glyph.create:
-        Feedback.Provider.add("Create board...", stroke.center)
+        Feedback.Provider.add("Create board", stroke.center)
         this.createCard("Board", stroke.center.x, stroke.center.y)
         break
       default: {
@@ -296,30 +301,33 @@ class Board extends Preact.Component<Props, State> {
     return true
   }
 
-  onCardGlyph = (event: GlyphEvent, card: CardModel): boolean => {
+  onCardGlyph = (event: GlyphEvent, cardMatch: CardMatch): boolean => {
     switch (event.glyph) {
       case Glyph.paste: {
-        Feedback.Provider.add("Place contents of shelf...", event.center)
+        Feedback.Provider.add("Place contents of shelf", cardMatch.center)
         this.props.emit({
           type: "ShelfContentsRequested",
-          body: { recipientUrl: card.url },
+          body: { recipientUrl: cardMatch.card.url },
         })
         break
       }
       case Glyph.delete:
-        this.deleteCard(card.id)
-        Feedback.Provider.add("Delete...", event.center)
+        this.deleteCard(cardMatch.card.id)
+        Feedback.Provider.add("Delete", cardMatch.center)
         break
       case Glyph.copy: {
-        this.props.emit({ type: "AddToShelf", body: { url: card.url } })
-        Feedback.Provider.add("Add to shelf...", event.center)
+        this.props.emit({
+          type: "AddToShelf",
+          body: { url: cardMatch.card.url },
+        })
+        Feedback.Provider.add("Add to shelf", cardMatch.center)
         break
       }
       case Glyph.edit: {
         if (this.state.focusedCardId != null) return false
 
         // move card to top of stack
-        const cardId = card.id
+        const cardId = cardMatch.card.id
         this.props.change(doc => {
           const card = doc.cards[cardId]
           if (!card) return doc
@@ -328,7 +336,7 @@ class Board extends Preact.Component<Props, State> {
           return doc
         })
         this.setCardFocus(cardId)
-        Feedback.Provider.add("Edit...", event.center)
+        Feedback.Provider.add("Edit", cardMatch.center)
         break
       }
       default: {
@@ -340,14 +348,20 @@ class Board extends Preact.Component<Props, State> {
     return true
   }
 
-  cardAtPoint = (x: number, y: number): CardModel | undefined => {
+  cardMatchAtPoint = (x: number, y: number): CardMatch | undefined => {
     if (isNaN(x) || isNaN(y)) {
       return undefined
     }
     const el = document.elementFromPoint(x, y)
     const cardEl = el.closest(`.${cardCss.Card}`)
     if (!cardEl || !cardEl.id) return
-    return this.props.doc.cards[cardEl.id]
+    const card = this.props.doc.cards[cardEl.id]
+    const cardRect = cardEl.getBoundingClientRect()
+    const center = {
+      x: cardRect.left + cardRect.width / 2,
+      y: cardRect.top + cardRect.height / 2,
+    }
+    return card && { card, center }
   }
 
   onInkStroke = (stroke: InkStrokeEvent) => {

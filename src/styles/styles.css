@@ -37,40 +37,49 @@
 }
 
 .CommandFeedback {
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.5);
   height: 30px;
   position: fixed;
-  border-radius: 12px;
-  padding: 4px 8px;
-  left: 50%;
-  transform: translateX(-50%);
+  border-radius: 15px;
+  padding: 5px 12px;
+  opacity: 1;
   pointer-events: none;
   z-index: 3;
-  animation: fadeinout 1.5s linear 1 forwards;
+  transition-property: transform opacity;
+  transition-duration: 0.5s;
+  animation-name: fadein, fadeout;
+  animation-duration: 300ms, 300ms;
+  animation-delay: 0ms, 600ms;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  animation-fill-mode: forwards, forwards;
 }
 
 .CommandFeedback__Text {
   display: inline-block;
+  text-align: center;
   vertical-align: middle;
   color: white;
   font-size: 12pt;
 }
 
-@keyframes fadeinout {
+@keyframes fadein {
   0% {
     opacity: 0;
-    transform: scale(0.2);
-  }
-  20% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-  90% {
-    opacity: 1;
-    transform: scale(1);
+    transform: translateX(-50%) translateY(-50%) scale(0);
   }
   100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-50%) scale(1);
+  }
+}
+
+@keyframes fadeout {
+  0% {
+    transform: translateX(-50%) translateY(-50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(-50%) scale(1);
     opacity: 0;
-    transform: scale(0);
   }
 }
