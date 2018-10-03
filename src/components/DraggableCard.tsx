@@ -4,7 +4,7 @@ import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import Touch, { TouchEvent } from "./Touch"
 
-interface CardModel {
+export interface CardModel {
   id: string
   x: number
   y: number

@@ -1,8 +1,9 @@
 import * as Preact from "preact"
+import TransitionGroup = require("preact-css-transition-group")
 import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
-import DraggableCard from "./DraggableCard"
+import DraggableCard, { CardModel } from "./DraggableCard"
 import Content, {
   DocumentActor,
   Message,
@@ -15,7 +16,7 @@ import { Glyph } from "../data/Glyph"
 import VirtualKeyboard from "./VirtualKeyboard"
 import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
-import { CARD_WIDTH, CARD_CLASS } from "./Card"
+import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
 import StrokeRecognizer, {
   StrokeSettings,
@@ -24,18 +25,11 @@ import StrokeRecognizer, {
 } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Feedback from "./CommandFeedback"
+import * as cardCss from "./css/Card.css"
 
 const boardIcon = require("../assets/board_icon.svg")
 
 const BOARD_PADDING = 15
-
-interface CardModel {
-  id: string
-  x: number
-  y: number
-  z: number
-  url: string
-}
 
 export interface CanvasStroke {
   settings: StrokeSettings
@@ -158,25 +152,28 @@ class Board extends Preact.Component<Props, State> {
               style={style.Board}
               ref={(el: HTMLElement) => (this.boardEl = el)}>
               <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
+              <TransitionGroup
+                transitionName={{ leave: cardCss.exiting }}
+                transitionLeaveTimeout={500}>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
 
-              {Object.values(cards).map(card => {
-                if (!card) return null
-
-                return (
-                  <DraggableCard
-                    key={card.id}
-                    card={card}
-                    onDoubleTap={this.props.onNavigate}
-                    onDragStart={this.onDragStart}
-                    onDragStop={this.onDragStop}>
-                    <Content
-                      mode="embed"
-                      url={card.url}
-                      isFocused={focusedCardId === card.id}
-                    />
-                  </DraggableCard>
-                )
-              })}
+                  return (
+                    <DraggableCard
+                      key={card.id}
+                      card={card}
+                      onDoubleTap={this.props.onNavigate}
+                      onDragStart={this.onDragStart}
+                      onDragStop={this.onDragStop}>
+                      <Content
+                        mode="embed"
+                        url={card.url}
+                        isFocused={focusedCardId === card.id}
+                      />
+                    </DraggableCard>
+                  )
+                })}
+              </TransitionGroup>
               <Ink strokes={strokes} />
               {focusedCardId != null ? (
                 <div
@@ -347,7 +344,7 @@ class Board extends Preact.Component<Props, State> {
       return undefined
     }
     const el = document.elementFromPoint(x, y)
-    const cardEl = el.closest(`.${CARD_CLASS}`)
+    const cardEl = el.closest(`.${cardCss.Card}`)
     if (!cardEl || !cardEl.id) return
     return this.props.doc.cards[cardEl.id]
   }
