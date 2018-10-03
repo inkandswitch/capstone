@@ -199,13 +199,13 @@ class Hypermerge extends EventEmitter {
   releaseHandle(handle) {
     log("releaseHandle", handle)
 
-    const handles = this.handles[handle.id]
+    const handles = this.handles[handle.docId]
 
     if (!handles) {
-      throw new Error(`No handles found for docId: ${handle.id}.`)
+      throw new Error(`No handles found for docId: ${handle.docId}.`)
     }
 
-    this.handles[handle.id] = handles.filter(h => h !== handle)
+    this.handles[handle.docId] = handles.filter(h => h !== handle)
 
     return true
   }
