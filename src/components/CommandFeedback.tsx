@@ -28,7 +28,12 @@ interface FeedbackItemProps {
 }
 
 class FeedbackItem extends Preact.Component<FeedbackItemProps> {
+  hasEntered = false
   onAnimationEnd = (event: AnimationEvent) => {
+    if (!this.hasEntered) {
+      this.hasEntered = true
+      return
+    }
     this.props.animationEnded(this.props.feedbackData.id)
   }
 
