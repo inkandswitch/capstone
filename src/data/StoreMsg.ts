@@ -1,5 +1,6 @@
 export interface Create {
   type: "Create"
+  docId: string
   keys: {
     publicKey: string
     secretKey: string
@@ -19,6 +20,12 @@ export interface RequestActivity {
 export interface SetIdentity {
   type: "SetIdentity"
   identityUrl: string
+}
+
+export interface ChangeRequest {
+  type: "ChangeRequest"
+  docId: string
+  changes: unknown
 }
 
 export interface Patch {
@@ -58,7 +65,12 @@ export interface DownloadActivity {
   seq: number
 }
 
-export type FrontendToBackend = Create | Open | RequestActivity | SetIdentity
+export type FrontendToBackend =
+  | Create
+  | Open
+  | ChangeRequest
+  | RequestActivity
+  | SetIdentity
 
 export type BackendToFrontend =
   | Patch

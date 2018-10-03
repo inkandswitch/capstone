@@ -1,7 +1,6 @@
 import * as Preact from "preact"
 import { Doc, EditDoc } from "automerge/frontend"
 
-import Store from "../data/Store"
 import Root from "./Root"
 import Content from "./Content"
 
@@ -17,26 +16,6 @@ import "./Peer"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import * as Identity from "./Identity"
-
-// Used for debugging from the console:
-window.Content = Content
-const socket = new WebSocket("ws://localhost:8585")
-
-Content.store = new Store(msg => {
-  socket.send(JSON.stringify(msg))
-})
-
-socket.addEventListener("open", event => {
-  console.log("Connected to backend")
-})
-
-socket.addEventListener("message", event => {
-  Content.store.onMessage(JSON.parse(event.data))
-})
-
-Content.store.presence().subscribe(presenceInfo => {
-  console.log(presenceInfo)
-})
 
 type State = {
   url: string

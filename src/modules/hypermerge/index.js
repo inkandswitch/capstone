@@ -228,7 +228,7 @@ class Hypermerge extends EventEmitter {
     const handles = this.handles[handle.id]
 
     if (!handles) {
-      throw new Error(`No handles found for docId: ${handle.id}.`)
+      return false
     }
 
     this.handles[handle.id] = handles.filter(h => h !== handle)

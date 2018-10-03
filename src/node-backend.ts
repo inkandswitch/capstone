@@ -5,6 +5,7 @@ import * as Msg from "./data/StoreMsg"
 import StoreBackend from "./data/StoreBackend"
 
 const hm = new Hypermerge({ storage: "./.data" })
+;(global as any).hm = hm
 
 hm.ready.then(() => {
   hm.joinSwarm()
@@ -30,6 +31,7 @@ server.on("connection", conn => {
   })
 
   conn.on("close", () => {
+    backend.reset()
     console.error("frontend disconnected")
   })
 })

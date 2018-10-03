@@ -25,7 +25,7 @@ export default class StoreBackend {
     Peek.enable()
   }
 
-  applyChanges = (docId: string, changes: any, port: chrome.runtime.Port) => {
+  applyChanges = (docId: string, changes: any) => {
     const handle = this.docHandles[docId]
 
     if (handle) {
@@ -85,20 +85,31 @@ export default class StoreBackend {
     if (this.presenceTick != null) clearInterval(this.presenceTick)
   }
 
+  reset() {
+    this.stopPresence()
+
+    Object.values(this.docHandles).forEach(handle => {
+      handle.release()
+    })
+
+    this.docHandles = {}
+  }
+
   onMessage = (msg: Msg.FrontendToBackend) => {
+    console.log("backend <- frontend", msg)
     switch (msg.type) {
       case "Open": {
         const { docId } = msg
 
-        if (!this.docHandles[docId]) {
-          const handle = this.hypermerge.openHandle(docId)
-          this.docHandles[docId] = handle
-          // IMPORTANT: the handle must be cached in `this.docHandles` before setting the onChange
-          // callback. The `onChange` callback is invoked as soon as it is set, in the same tick.
-          // This can cause infinite loops if the handlesCache isn't set.
-          // setImmediate(() => handle.onChange(this.prefetcher.onDocumentUpdate))
-        }
-        const handle = this.docHandles[docId]
+        if (this.docHandles[docId])
+          throw new Error("Frontend opened a doc twice")
+
+        const handle = this.hypermerge.openHandle(docId)
+        this.docHandles[docId] = handle
+        // IMPORTANT: the handle must be cached in `this.docHandles` before setting the onChange
+        // callback. The `onChange` callback is invoked as soon as it is set, in the same tick.
+        // This can cause infinite loops if the handlesCache isn't set.
+        // setImmediate(() => handle.onChange(this.prefetcher.onDocumentUpdate))
 
         if (this.pendingChanges[docId]) {
           this.pendingChanges[docId].forEach((change: any) =>
@@ -113,6 +124,12 @@ export default class StoreBackend {
           this.sendToFrontend({ type: "Patch", docId, actorId, patch })
         })
 
+        break
+      }
+
+      case "ChangeRequest": {
+        const { docId, changes } = msg
+        this.applyChanges(docId, changes)
         break
       }
 
@@ -173,6 +190,7 @@ export default class StoreBackend {
   }
 
   sendToFrontend(msg: Msg.BackendToFrontend) {
+    console.log("backend -> frontend", msg)
     this._send(msg)
   }
 }

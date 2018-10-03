@@ -31,17 +31,15 @@ export default class Store {
   }
 
   create(setup: ChangeFn<any>): string {
-    const command = "Create"
-
     const buffers = keyPair()
     const keys = {
       publicKey: Base58.encode(buffers.publicKey),
       secretKey: Base58.encode(buffers.secretKey),
     }
-    const args = { keys }
     const docId = keys.publicKey
 
-    chrome.runtime.sendMessage({ command, args })
+    this.sendToBackend({ type: "Create", docId, keys })
+
     const handle = this.makeHandle(docId)
     handle.setActorId(docId)
     handle.change(setup)
@@ -49,16 +47,16 @@ export default class Store {
   }
 
   setIdentity(identityUrl: string) {
-    const command = "SetIdentity"
-    const args = { identityUrl }
-    chrome.runtime.sendMessage({ command, args })
+    this.sendToBackend({ type: "SetIdentity", identityUrl })
   }
 
   makeHandle(docId: string): FrontendHandle {
     const handle = new FrontendHandle(docId)
 
-    handle.on("requests", requests => {
-      this.sendToBackend(requests)
+    this.index[docId] = handle
+
+    handle.on("requests", changes => {
+      this.sendToBackend({ type: "ChangeRequest", docId, changes })
     })
 
     this.sendToBackend({ type: "Open", docId })
@@ -69,8 +67,6 @@ export default class Store {
     //   handle.release()
     //   delete this.index[docId]
     // })
-
-    this.index[docId] = handle
 
     return handle
   }
@@ -89,10 +85,12 @@ export default class Store {
   }
 
   sendToBackend = (msg: Msg.FrontendToBackend) => {
+    console.log("frontend -> backend", msg)
     this._send(msg)
   }
 
   onMessage(msg: Msg.BackendToFrontend) {
+    console.log("frontend <- backend", msg)
     switch (msg.type) {
       case "Patch": {
         const handle = this.handle(msg.docId)
