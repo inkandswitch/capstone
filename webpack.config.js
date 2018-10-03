@@ -91,9 +91,6 @@ function app(name, overrides = {}) {
       new CopyWebpackPlugin(["manifest.json", "index.html"], {
         context: `./src/apps/${name}`,
       }),
-      new webpack.DefinePlugin({
-        LOCAL_IP: `"${os.networkInterfaces().eth0[0].address}"`,
-      }),
     ],
     ...overrides,
   }

@@ -12,8 +12,8 @@ hm.ready.then(() => {
 })
 
 const server = new ws.Server({
-  host: "0.0.0.0",
-  port: 8585,
+  host: "localhost",
+  port: 8085,
 })
 
 server.on("listening", () => {
