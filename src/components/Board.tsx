@@ -122,7 +122,6 @@ function addCard(
     x: position.x,
     y: position.y,
     url,
-    exiting: false,
   }
   board.cards[card.id] = card
   return board
