@@ -3,6 +3,7 @@ import { once } from "lodash"
 
 var _enable = once(() => {
   let global : any = window;
+  console.log("Enabling Peek")
   global.peek = (id : any, flags = "") => {
     if (id) {
       for (let docId in global.sm.docHandles) {

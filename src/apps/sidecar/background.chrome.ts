@@ -18,7 +18,7 @@ chrome.app.runtime.onLaunched.addListener(() => {
   )
 })
 
-let pComms = new Promise(resolve => {
+let pComm = new Promise(resolve => {
   initHypermerge({ storage: racf }, (hm: Hypermerge) => {
     let comms = new StoreComms(hm)
     resolve(comms)
@@ -26,10 +26,12 @@ let pComms = new Promise(resolve => {
 })
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  pComms.then((comms: StoreComms) => comms.onMessage(request, sendResponse))
-  return true // this allows sendReponse to respond async - DO NOT REMOVE
+  pComm.then((comms: StoreComms) => comms.onMessage(request))
 })
 
 chrome.runtime.onConnect.addListener(port => {
-  pComms.then((comms: StoreComms) => comms.onConnect(port))
+  port.onMessage.addListener((changes: any) => {
+    pComm.then((comms: StoreComms) => comms.applyChanges(changes, port))
+  })
+  pComm.then((comms: StoreComms) => comms.onConnect(port))
 })

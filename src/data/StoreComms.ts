@@ -1,6 +1,7 @@
 import { Hypermerge } from "../modules/hypermerge"
 import * as Prefetch from "../data/Prefetch"
 import * as Peek from "./Peek"
+import * as Base58 from "bs58"
 
 const Debug = require("debug")
 const log = Debug("store:coms")
@@ -8,15 +9,15 @@ const log = Debug("store:coms")
 export default class StoreComms {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
+  pendingChanges: { [docId: string]: any } = {}
   //debugLogs: { [docId: string]: any } = {}
-  prefetcher: Prefetch.Prefetcher
+//  prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge) {
     this.hypermerge = hm
     ;(window as any).hm = this.hypermerge
     ;(window as any).sm = this
     this.hypermerge.joinSwarm({ chrome: true })
-    this.prefetcher = new Prefetch.Prefetcher(this.hypermerge, this.docHandles)
 
     // debugging stuff
     chrome.system.network.getNetworkInterfaces(ifaces => {
@@ -28,16 +29,22 @@ export default class StoreComms {
     Peek.enable()
   }
 
+  applyChanges = (changes: any, port: chrome.runtime.Port) => {
+    const [docId, _] = port.name.split("/", 2)
+    const handle = this.docHandles[docId]
+    if (handle) {
+      handle.applyChanges(changes)
+    } else {
+      this.pendingChanges[docId] = (this.pendingChanges[docId] || []).concat([changes])
+    }
+  }
+
   onConnect = (port: chrome.runtime.Port) => {
     const [docId, mode = "changes"] = port.name.split("/", 2)
-    let defer : Function[] = []
-    let presenceInterval = 0
-    log("connect", docId)
 
-    port.onDisconnect.addListener(() => {
-      console.log("port disconnected for", port.name, "because", chrome.runtime.lastError)
-      defer.forEach(f => f())
-    })
+    console.log("connect", docId)
+
+    port.onDisconnect.addListener(() => console.log("port discon: ", port.name, chrome.runtime.lastError))
 
     switch (mode) {
       case "changes": {
@@ -47,26 +54,20 @@ export default class StoreComms {
           // IMPORTANT: the handle must be cached in `this.docHandles` before setting the onChange
           // callback. The `onChange` callback is invoked as soon as it is set, in the same tick.
           // This can cause infinite loops if the handlesCache isn't set.
-          setImmediate(() => handle.onChange(this.prefetcher.onDocumentUpdate))
+          // setImmediate(() => handle.onChange(this.prefetcher.onDocumentUpdate))
         }
         const handle = this.docHandles[docId]
 
-        port.onMessage.addListener((changes: any) => {
-          handle.applyChanges(changes)
-          //          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
-          //          this.debugLogs[docId].push({ changes })
-          log("applyChanges", changes)
-        })
+        if (this.pendingChanges[docId]) {
+          this.pendingChanges[docId].forEach((change : any)=> handle.applyChanges(change))
+        }
 
         handle.onPatch((patch: any) => {
-          log("patch", patch)
           const actorId = handle.actorId
-          //          this.debugLogs[docId] = this.debugLogs[docId] || [{docId}]
-          //          this.debugLogs[docId].push({ patch })
           port.postMessage({ actorId, patch })
         })
 
-        defer.push(() => {handle.onPatch(() => {})})
+        port.onDisconnect.addListener(() => handle.release())
 
         break
       }
@@ -112,7 +113,7 @@ export default class StoreComms {
           port.postMessage(message)
         }, 5000)
 
-        defer.push(() => { clearInterval(tick) })
+        port.onDisconnect.addListener(() => clearInterval(tick))
 
         break
       }
@@ -144,7 +145,7 @@ export default class StoreComms {
           feed.on("download", ondownload)
           feed.on("upload", onupload)
 
-          defer.push(() => {
+          port.onDisconnect.addListener(() => {
             feed.off("download", ondownload)
             feed.off("upload", onupload)
           })
@@ -154,17 +155,14 @@ export default class StoreComms {
     }
   }
 
-  onMessage = (
-    request: any, // the message can, indeed, be anything
-    sendResponse: Function,
-  ) => {
+  onMessage = ( request: any ) => {
     let { command, args } = request
 
     switch (command) {
       case "Create":
-        let doc = this.hypermerge.create()
-        let docId = this.hypermerge.getId(doc)
-        sendResponse(docId)
+        const { keys } = args
+        let keyPair = { publicKey: Base58.decode(keys.publicKey), secretKey: Base58.decode(keys.secretKey) }
+        this.hypermerge.create(keyPair)
         break
       case "SetIdentity":
         const { identityUrl } = args
@@ -174,6 +172,6 @@ export default class StoreComms {
       default:
         console.warn("Received an unusual message: ", request)
     }
-    return true // indicate we will respond asynchronously
+//    return true // indicate we will respond asynchronously
   }
 }

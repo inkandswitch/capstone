@@ -2,6 +2,8 @@ import { Doc, ChangeFn } from "automerge/frontend"
 import * as Automerge from "automerge/frontend"
 import * as Rx from "rxjs"
 import Entry from "./StoreEntry"
+import { keyPair } from "hypercore/lib/crypto"
+import * as Base58 from "bs58"
 
 type CommandMessage = "Create" | "Open" | "Replace"
 
@@ -54,18 +56,19 @@ export default class Store {
     return entry.change
   }
 
-  create(setup: ChangeFn<any>): Promise<string> {
+  create(setup: ChangeFn<any>): string {
     const command = "Create"
-    const args = {}
 
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ command, args }, docId => {
-        const entry = this.makeEntry(docId)
-        entry.doc = Automerge.init(docId)
-        entry.change(setup)
-        resolve(docId)
-      })
-    })
+    const buffers = keyPair()
+    const keys = { publicKey: Base58.encode(buffers.publicKey), secretKey: Base58.encode(buffers.secretKey) }
+    const args = { keys }
+    const docId = keys.publicKey
+
+    chrome.runtime.sendMessage({ command, args })
+    const entry = this.makeEntry(docId)
+    entry.doc = Automerge.init(docId)
+    entry.change(setup)
+    return docId
   }
 
   setIdentity(identityUrl: string) {

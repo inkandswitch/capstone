@@ -336,8 +336,6 @@ class Hypermerge extends EventEmitter {
   openHandle(docId) {
     docId = cleanDocId(docId)
 
-    log("openHandle", docId)
-
     this._trackedFeed(docId)
 
     const doc = this.readyIndex[docId] ? this.docs[docId] : null
@@ -372,9 +370,9 @@ class Hypermerge extends EventEmitter {
    *
    * @param {object} metadata - metadata to be associated with this document
    */
-  create(metadata = {}) {
+  create (metadata = {}) {
     log("create")
-    return this._create(metadata)
+    return this._create(metadata, {})
   }
 
   /**
@@ -447,7 +445,11 @@ class Hypermerge extends EventEmitter {
   }
 
   _create(metadata, parentMetadata = {}) {
-    const feed = this._trackedFeed()
+    const { publicKey, secretKey } = metadata
+    delete metadata.publicKey
+    delete metadata.secretKey
+
+    const feed = this._trackedFeed({publicKey, secretKey})
     const actorId = Base58.encode(feed.key)
 
     log("_create", actorId)
@@ -504,11 +506,16 @@ class Hypermerge extends EventEmitter {
 
   // Finds or creates, and returns, a feed that is not yet tracked. See `feed`
   // for cases for `actorId`.
-  _feed(actorId = null) {
-    const key = actorId ? Base58.decode(actorId) : null
-
-    log("_feed", actorId)
-    return this.core.createFeed(key)
+  _feed (actorId = null) {
+    if (typeof actorId == 'object' && actorId.secretKey) {
+      let { publicKey, secretKey } = actorId
+      log("_feed w key", actorId.publicKey)
+      return this.core.createFeed(publicKey, { secretKey })
+    } else {
+      const key = actorId ? Base58.decode(actorId) : null
+      log("_feed", actorId)
+      return this.core.createFeed(key)
+    }
   }
 
   // Finds or creates, and returns, a tracked feed. This means that updates to
@@ -519,8 +526,9 @@ class Hypermerge extends EventEmitter {
   // * `actorId` is given but we don't have a feed yet because we just found
   //   out about it from another user - create the feed with the given actorId.
   // * `actorId` is given and we know of the feed already - return from cache.
-  _trackedFeed(actorId = null) {
-    if (actorId && this.feeds[actorId]) {
+  // * `actorId` is given as a public private keypair we make a new feed with them
+  _trackedFeed (actorId = null) {
+    if (actorId && typeof actorId == 'string' && this.feeds[actorId]) {
       return this.feeds[actorId]
     }
 

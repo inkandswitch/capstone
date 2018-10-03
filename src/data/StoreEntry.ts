@@ -3,10 +3,13 @@ import * as Automerge from "automerge/frontend"
 
 export default class Entry {
   doc: Doc<unknown> | null = null
+  id: string
   listeners: Array<(doc: Doc<any>) => void> = []
   port: chrome.runtime.Port
 
   constructor(id: string) {
+    console.log("StoreEntry",id)
+    this.id = id
     this.port = chrome.runtime.connect({ name: `${id}/changes` })
     this.port.onMessage.addListener(this._onMessage)
   }

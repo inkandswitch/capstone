@@ -138,9 +138,8 @@ export default class Content extends Preact.Component<Props & unknown> {
     const setup: any = (doc: any) => {
       Reify.reify(doc, widget.reify)
     }
-    return this.store.create(setup).then(id => {
-      return Link.format({ type, id })
-    })
+    let id = this.store.create(setup)
+    return Promise.resolve(Link.format({ type, id }))
   }
 
   // Opens an initialized document at the given URL
@@ -151,17 +150,6 @@ export default class Content extends Preact.Component<Props & unknown> {
   ): (cfn: ChangeFn<T>) => void {
     const { type, id } = Link.parse(url)
     const sendChangeFn = this.store.open(id, callback)
-    //      } else {
-    /*
-        sendChangeFn((doc) => {
-          Reify.reify(doc, widget.reify)
-          doc.version = 1
-          console.log("After Reify", doc)
-        })
-*/
-    //      }
-    //callback(Reify.reify(doc, widget.reify)),
-    //      callback(doc)
     return sendChangeFn
   }
 
