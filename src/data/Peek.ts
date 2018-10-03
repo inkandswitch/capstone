@@ -2,14 +2,15 @@ import { init, applyPatch } from "automerge/frontend"
 import { once } from "lodash"
 
 var _enable = once(() => {
-  let global: any = this
   console.log("Enabling Peek")
-  global.peek = (id: any, flags = "") => {
+  const sm = (global as any).sm
+  const hm = (global as any).hm
+  ;(global as any).peek = (id: any, flags = "") => {
     if (id) {
-      for (let docId in global.sm.docHandles) {
+      for (let docId in sm.docHandles) {
         if (docId.startsWith(id)) {
           // copy to clipboard
-          let handle = global.sm.docHandles[docId]
+          let handle = sm.docHandles[docId]
           let connections = handle.connections()
           let peers = handle.peers()
 
@@ -82,9 +83,9 @@ var _enable = once(() => {
         "color: green",
       )
       console.log("%c  peek(docid, 'jp') - do all", "color: green")
-      console.log("Swarm", global.hm._swarmStats)
-      for (let docId in global.sm.docHandles) {
-        let handle = global.sm.docHandles[docId]
+      console.log("Swarm", hm._swarmStats)
+      for (let docId in sm.docHandles) {
+        let handle = sm.docHandles[docId]
         let connections = handle.connections()
         console.log(
           "%c " + docId.slice(0, 5),

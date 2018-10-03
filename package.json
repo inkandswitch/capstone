@@ -8,7 +8,7 @@
     "start": "webpack --watch",
     "test": "yarn launch-tests",
     "format": "prettier --write 'src/**/*.{js,ts,txx}'",
-    "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache node -r ts-node/register --inspect",
+    "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache node -r ts-node/register --inspect=0.0.0.0:9229",
     "clean": "rm -r dist .data",
     "launch-capstone": "node ./bin/launch.js capstone",
     "launch-sidecar": "node ./bin/launch.js sidecar",
