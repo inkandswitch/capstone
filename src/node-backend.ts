@@ -3,12 +3,19 @@ import * as ws from "ws"
 import { Hypermerge } from "./modules/hypermerge"
 import * as Msg from "./data/StoreMsg"
 import StoreBackend from "./data/StoreBackend"
+let mdns = require("multicast-dns")
 
 const hm = new Hypermerge({ storage: "./.data" })
 ;(global as any).hm = hm
 
 hm.ready.then(() => {
-  hm.joinSwarm()
+  const multicast = mdns({
+    port: 8008,
+  })
+
+  hm.joinSwarm({
+    dns: { multicast },
+  })
 })
 
 const server = new ws.Server({
