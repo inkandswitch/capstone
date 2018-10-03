@@ -5,7 +5,7 @@ import Content from "./Content"
 import { AnyDoc } from "automerge/frontend"
 
 export interface Model {
-  archiveUrl: string
+  shelfUrl: string
 }
 
 interface Props extends Widget.Props<Model> {}
@@ -13,16 +13,16 @@ interface Props extends Widget.Props<Model> {}
 export default class SidecarWorkspace extends Preact.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
-      archiveUrl: Reify.link(doc.archiveUrl),
+      shelfUrl: Reify.link(doc.shelfUrl),
     }
   }
 
   render() {
     const {
-      doc: { archiveUrl },
+      doc: { shelfUrl },
     } = this.props
 
-    return <Content mode="fullscreen" type="SidecarUploader" url={archiveUrl} />
+    return <Content mode="fullscreen" type="SidecarUploader" url={shelfUrl} />
   }
 }
 
