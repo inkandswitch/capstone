@@ -15,6 +15,7 @@ hm.ready.then(() => {
   })
 
   const sm = hm.joinSwarm({
+    port: 5000,
     dns: { multicast },
   })
   ;(global as any).sm = sm
