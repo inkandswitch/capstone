@@ -149,8 +149,11 @@ export default class Content extends Preact.Component<Props & unknown> {
     callback: (doc: Doc<T>) => void,
   ): (cfn: ChangeFn<T>) => void {
     const { type, id } = Link.parse(url)
-    const sendChangeFn = this.store.open(id, callback)
-    return sendChangeFn
+    const handle = this.store.handle(id)
+    setImmediate(() => {
+      handle.on("doc",callback)
+    })
+    return handle.change
   }
 
   static once<T>(url: string, cfn: Function): void {

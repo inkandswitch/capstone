@@ -62,7 +62,7 @@ export default class StoreBackend {
           this.pendingChanges[docId].forEach((change : any)=> handle.applyChanges(change))
         }
 
-        handle.onPatch((patch: any) => {
+        handle.on("patch", (patch: any) => {
           const actorId = handle.actorId
           port.postMessage({ actorId, patch })
         })
