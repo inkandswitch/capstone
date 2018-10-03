@@ -6,7 +6,7 @@ import * as Base58 from "bs58"
 const Debug = require("debug")
 const log = Debug("store:coms")
 
-export default class StoreComms {
+export default class StoreBackend {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
   pendingChanges: { [docId: string]: any } = {}
