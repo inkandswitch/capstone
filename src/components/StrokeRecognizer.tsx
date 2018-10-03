@@ -268,12 +268,27 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
     }
   }
 
+  prepareCanvas(canvas: HTMLCanvasElement) {
+    // Get the device pixel ratio, falling back to 1.
+    var dpr = window.devicePixelRatio || 1
+    // Get the size of the canvas in CSS pixels.
+    var rect = canvas.getBoundingClientRect()
+    // Give the canvas pixel dimensions of their CSS
+    // size * the device pixel ratio.
+    canvas.width = window.innerWidth * dpr
+    canvas.height = window.innerHeight * dpr
+    var ctx = canvas.getContext("2d")
+    // Scale all drawing operations by the dpr, so you
+    // don't have to worry about the difference.
+    ctx && ctx.translate(0.5, 0.5)
+    ctx && ctx.scale(dpr, dpr)
+    return ctx
+  }
+
   canvasAdded = (canvas: HTMLCanvasElement | null) => {
     this.canvasElement = canvas
     if (canvas) {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      this.ctx = canvas.getContext("2d")
+      this.ctx = this.prepareCanvas(canvas)
     }
   }
 

@@ -32,6 +32,7 @@ export default class StoreBackend {
   applyChanges = (changes: any, port: chrome.runtime.Port) => {
     const [docId, _] = port.name.split("/", 2)
     const handle = this.docHandles[docId]
+    if (docId.startsWith("98bbA")) { console.log("CHANGE", docId, changes) }
     if (handle) {
       handle.applyChanges(changes)
     } else {
@@ -60,10 +61,12 @@ export default class StoreBackend {
 
         if (this.pendingChanges[docId]) {
           this.pendingChanges[docId].forEach((change : any)=> handle.applyChanges(change))
+          this.pendingChanges[docId] = []
         }
 
         handle.on("patch", (patch: any) => {
           const actorId = handle.actorId
+          if (docId.startsWith("98bbA")) { console.log("PATCH", docId, actorId, patch) }
           port.postMessage({ actorId, patch })
         })
 
