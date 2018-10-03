@@ -3,8 +3,10 @@ declare module "preact-css-transition-group" {
 
   interface Props {
     transitionName: string | { [name: string]: string }
+    transitionEnter?: boolean
+    transitionLeave?: boolean
     transitionEnterTimeout?: number
-    transitionLeaveTimeout: number
+    transitionLeaveTimeout?: number
   }
 
   class CSSTransitionGroup extends preact.Component<Props> {

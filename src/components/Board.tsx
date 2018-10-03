@@ -154,6 +154,7 @@ class Board extends Preact.Component<Props, State> {
               <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
               <TransitionGroup
                 transitionName={{ leave: cardCss.exiting }}
+                transitionEnter={false}
                 transitionLeaveTimeout={500}>
                 {Object.values(cards).map(card => {
                   if (!card) return null
