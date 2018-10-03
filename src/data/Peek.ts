@@ -1,4 +1,5 @@
 
+import { init, applyPatch } from "automerge/frontend"
 import { once } from "lodash"
 
 var _enable = once(() => {
@@ -53,9 +54,8 @@ var _enable = once(() => {
             if (flags == "") {
               // doc detail
               console.log("DocId: - %c " + docId, "color: blue")
-              console.log("Document: ", handle)
-              //console.log(JSON.parse(handle.toString(4)))
-              console.log("ActorIds:", handle.__actorIds())
+              console.log("Document: ", handle.toFrontend())
+              console.log("ActorIds:", handle.actorIds())
               console.log("Connections:", connections)
             }
         }
