@@ -6,6 +6,10 @@ import * as Base58 from "bs58"
 const Debug = require("debug")
 const log = Debug("store:coms")
 
+;(window as any).peek = () => {
+  console.log("peek() hasnt loaded yet")
+}
+
 export default class StoreBackend {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}

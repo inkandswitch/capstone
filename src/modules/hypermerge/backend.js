@@ -13,7 +13,7 @@ export class BackendHandle extends EventEmitter {
     this.pBack = new Promise((resolve,reject) => this.on("ready", resolve))
 
     if (this._back) {
-      this.actorId = this.hm.docActorId[docId]
+      this.actorId = this.hm.docActorId[this.docId]
       this.emit("ready",this._back)
     }
 
@@ -56,7 +56,7 @@ export class BackendHandle extends EventEmitter {
 
   _ready(back) {
     this._back = back
-    this.actorId = this.hm.docActorId[docId]
+    this.actorId = this.hm.docActorId[this.docId]
     const patch = Backend.getPatch(this._back)
 
     this.emit("ready",back)
