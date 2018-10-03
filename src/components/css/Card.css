@@ -1,18 +1,19 @@
 .Card {
-  width: 398; /* XXX: should probably not be a constant, eventually */
-  font-size: 11;
+  width: 398px; /* XXX: should probably not be a constant, eventually */
+  font-size: 11px;
   line-height: 1.4;
   background-color: white;
-  border-radius: 3;
+  border-radius: 3px;
   overflow: hidden;
   border: 1px solid #e8e8e8;
   display: grid;
   grid-template-rows: auto;
   grid-template-columns: auto;
-  transition-property: transform;
+  transition-property: transform opacity;
   transition-duration: 0.5s;
 }
 
-.Exiting {
+.exiting .Card {
   transform: scale(0.3);
+  opacity: 0;
 }

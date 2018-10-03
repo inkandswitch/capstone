@@ -1,4 +1,5 @@
 import * as Preact from "preact"
+import TransitionGroup = require("preact-css-transition-group")
 import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
@@ -81,7 +82,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const url = await this.create(type)
         this.change(doc => {
           const z = ++doc.topZ
-          doc.cards[card.id] = { ...card, z, url, exiting: false }
+          doc.cards[card.id] = { ...card, z, url }
           return doc
         })
         this.emit({ type: "DocumentCreated", body: url })
@@ -152,26 +153,28 @@ class Board extends Preact.Component<Props, State> {
               style={style.Board}
               ref={(el: HTMLElement) => (this.boardEl = el)}>
               <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
+              <TransitionGroup
+                transitionName={{ leave: cardCss.exiting }}
+                transitionLeaveTimeout={500}>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
 
-              {Object.values(cards).map(card => {
-                if (!card) return null
-
-                return (
-                  <DraggableCard
-                    key={card.id}
-                    card={card}
-                    onDoubleTap={this.props.onNavigate}
-                    onDragStart={this.onDragStart}
-                    onDragStop={this.onDragStop}
-                    onExited={() => this.deleteCard(card.id)}>
-                    <Content
-                      mode="embed"
-                      url={card.url}
-                      isFocused={focusedCardId === card.id}
-                    />
-                  </DraggableCard>
-                )
-              })}
+                  return (
+                    <DraggableCard
+                      key={card.id}
+                      card={card}
+                      onDoubleTap={this.props.onNavigate}
+                      onDragStart={this.onDragStart}
+                      onDragStop={this.onDragStop}>
+                      <Content
+                        mode="embed"
+                        url={card.url}
+                        isFocused={focusedCardId === card.id}
+                      />
+                    </DraggableCard>
+                  )
+                })}
+              </TransitionGroup>
               <Ink strokes={strokes} />
               {focusedCardId != null ? (
                 <div
@@ -243,20 +246,6 @@ class Board extends Preact.Component<Props, State> {
     this.setState({ focusedCardId: null })
   }
 
-  fadeAndDeleteCard = (id: string) => {
-    this.props.change(doc => {
-      const card = doc.cards[id]
-      if (card) {
-        // XXX: Remove once backend/store handles object immutability.
-        doc.cards[id] = {
-          ...card,
-          exiting: true,
-        }
-      }
-      return doc
-    })
-  }
-
   deleteCard = (id: string) => {
     this.props.change(doc => {
       delete doc.cards[id]
@@ -318,7 +307,7 @@ class Board extends Preact.Component<Props, State> {
         break
       }
       case Glyph.delete:
-        this.fadeAndDeleteCard(card.id)
+        this.deleteCard(card.id)
         Feedback.Provider.add("Delete...", event.center)
         break
       case Glyph.copy: {
