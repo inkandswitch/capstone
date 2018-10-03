@@ -1,5 +1,5 @@
 process.hrtime = require("browser-process-hrtime")
-import StoreBackground from "../../data/StoreBackground"
+import StoreBackend from "../../data/StoreBackend"
 
 import { Hypermerge, initHypermerge } from "../../modules/hypermerge"
 let racf = require("random-access-chrome-file")
@@ -20,18 +20,18 @@ chrome.app.runtime.onLaunched.addListener(() => {
 
 let pBackground = new Promise(resolve => {
   initHypermerge({ storage: racf }, (hm: Hypermerge) => {
-    let store = new StoreBackground(hm)
+    let store = new StoreBackend(hm)
     resolve(store)
   })
 })
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  pBackground.then((store: StoreBackground) => store.onMessage(request))
+  pBackground.then((store: StoreBackend) => store.onMessage(request))
 })
 
 chrome.runtime.onConnect.addListener(port => {
   port.onMessage.addListener((changes: any) => {
-    pBackground.then((store: StoreBackground) => store.applyChanges(changes, port))
+    pBackground.then((store: StoreBackend) => store.applyChanges(changes, port))
   })
-  pBackground.then((store: StoreBackground) => store.onConnect(port))
+  pBackground.then((store: StoreBackend) => store.onConnect(port))
 })
