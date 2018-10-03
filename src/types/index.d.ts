@@ -1,6 +1,8 @@
 import Content from "../components/Content"
 
 declare global {
+  const LOCAL_IP: string
+
   interface Window {
     Content: typeof Content
     visualViewport: VisualViewport

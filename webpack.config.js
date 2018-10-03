@@ -1,7 +1,9 @@
 const path = require("path")
+const webpack = require("webpack")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const glob = require("glob")
 const env = process.env.NODE_ENV
+const os = require("os")
 
 const shared = {
   mode: "development",
@@ -88,6 +90,9 @@ function app(name, overrides = {}) {
     plugins: [
       new CopyWebpackPlugin(["manifest.json", "index.html"], {
         context: `./src/apps/${name}`,
+      }),
+      new webpack.DefinePlugin({
+        LOCAL_IP: `"${os.networkInterfaces().eth0[0].address}"`,
       }),
     ],
     ...overrides,

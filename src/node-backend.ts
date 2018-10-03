@@ -12,7 +12,7 @@ hm.ready.then(() => {
 })
 
 const server = new ws.Server({
-  host: "localhost",
+  host: "0.0.0.0",
   port: 8585,
 })
 

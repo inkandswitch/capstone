@@ -9,7 +9,7 @@ installRenderErrorHandler()
 
 // Used for debugging from the console:
 window.Content = Content
-const socket = new WebSocket("ws://localhost:8585")
+const socket = new WebSocket(`ws://${LOCAL_IP}:8585`)
 
 Content.store = new Store(msg => {
   socket.send(JSON.stringify(msg))
