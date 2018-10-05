@@ -1,7 +1,7 @@
 process.hrtime = require("browser-process-hrtime")
 import StoreBackend from "../../data/StoreBackend"
-
 import { Hypermerge } from "../../modules/hypermerge"
+import swarm from "../../modules/hypermerge/cloud-swarm"
 let racf = require("random-access-chrome-file")
 
 chrome.app.runtime.onLaunched.addListener(() => {
@@ -22,6 +22,11 @@ const hm = new Hypermerge({ storage: racf })
 
 chrome.runtime.onConnect.addListener(port => {
   hm.ready.then(hm => {
+    swarm(hm, {
+      id: hm.core.archiver.changes.id,
+      url: "wss://discovery-cloud.herokuapp.com",
+    })
+
     const store = new StoreBackend(hm, msg => {
       port.postMessage(msg)
     })

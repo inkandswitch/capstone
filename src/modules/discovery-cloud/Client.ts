@@ -1,4 +1,4 @@
-import * as WebSocket from "ws"
+// import * as WebSocket from "ws"
 import * as Base58 from "bs58"
 import { EventEmitter } from "events"
 import { Duplex } from "stream"
@@ -82,23 +82,25 @@ export default class DiscoveryCloudClient extends EventEmitter {
     log("connectDiscovery", url)
 
     this.discovery = new WebSocket(url)
-      .on("open", () => {
-        log("open")
-        this.isOpen = true
-        this.sendHello()
-      })
-      .on("close", () => {
-        log("closed... reconnecting in 5s")
-        this.isOpen = false
-        this.discovery.terminate()
-        setTimeout(() => {
-          this.connectDiscovery()
-        }, 5000)
-      })
-      .on("message", data => this.receive(JSON.parse(data as string)))
-      .on("error", err => {
-        log("error", err)
-      })
+    this.discovery.addEventListener("open", () => {
+      log("open")
+      this.isOpen = true
+      this.sendHello()
+    })
+    this.discovery.addEventListener("close", () => {
+      log("closed... reconnecting in 5s")
+      this.isOpen = false
+      // this.discovery.terminate()
+      setTimeout(() => {
+        this.connectDiscovery()
+      }, 5000)
+    })
+    this.discovery.addEventListener("message", event =>
+      this.receive(JSON.parse(event.data)),
+    )
+    this.discovery.addEventListener("error", err => {
+      log("error", err)
+    })
 
     return this.discovery
   }
@@ -162,20 +164,19 @@ class WebSocketStream extends Duplex {
     super()
     this.socket = new WebSocket(url)
 
-    this.socket
-      .on("error", err => {
-        log("socket error", err)
-      })
-      .on("open", () => {
-        this.emit("open")
-      })
-      .on("message", data => {
-        log("peerdata from socket", data)
-        if (!this.push(data)) {
-          log("stream closed, cannot write")
-          this.socket.close()
-        }
-      })
+    this.socket.addEventListener("error", err => {
+      log("socket error", err)
+    })
+    this.socket.addEventListener("open", () => {
+      this.emit("open")
+    })
+    this.socket.addEventListener("message", data => {
+      log("peerdata from socket", data)
+      if (!this.push(data)) {
+        log("stream closed, cannot write")
+        this.socket.close()
+      }
+    })
   }
 
   _write(data: Buffer, _: unknown, cb: () => void) {
@@ -189,8 +190,8 @@ class WebSocketStream extends Duplex {
 
   _destroy(err: Error | null, cb: (error: Error | null) => void) {
     if (err) {
-      this.socket.emit("error", err)
-      this.socket.terminate()
+      // this.socket.emit("error", err)
+      // this.socket.terminate()
       cb(null)
     }
   }
