@@ -98,6 +98,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
   }
 
   private send(msg: Msg.ClientToServer) {
+    log("send %o", msg)
     this.discovery.send(JSON.stringify(msg))
   }
 
