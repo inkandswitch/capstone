@@ -28,30 +28,38 @@ class DiscoveryCloudServer {
     }
   }
 
-  ifUnion(id1, id2, cb) {
-    log("If union",id1,id2)
+  ifIntersection(id1, id2, cb) {
     if (id1 != id2) {
-      log("ALL",this.peerKeys)
       const k1 = this.peerKeys[id1] || []
-      log("k1",k1)
       const k2 = this.peerKeys[id2] || []
-      log("k2",k2)
-      const union = k1.filter(val => k2.includes(val))
-      log("union",union)
-      if (union.length > 0) {
-        log("union!",id1,id2)
-        cb(union)
+      const intersection = k1.filter(val => k2.includes(val))
+      if (intersection.length > 0) {
+        cb(intersection)
       }
     }
   }
 
-  notifyUnions(id1) {
+  notifyIntersections(id1) {
     for (const id2 in this.peers) {
-      this.ifUnion(id1, id2, (keys) => {
+      this.ifIntersection(id1, id2, (keys) => {
         this.send(id1, { type: "Connect", peerId: id2, peerChannels: keys })
         this.send(id2, { type: "Connect", peerId: id1, peerChannels: keys })
       })
     }
+  }
+
+  join(ws1,ws2) {
+    ws1.on("message",(data) => {
+      ws2.send(data)
+    })
+    ws2.on("message",(data) => {
+      ws1.send(data)
+    })
+    const cleanup = () => { ws1.close(), ws2.close() }
+    w1.on("error", cleanup)
+    w2.on("error", cleanup)
+    w1.on("close", cleanup)
+    w2.on("close", cleanup)
   }
 
   listen() {
@@ -76,16 +84,14 @@ class DiscoveryCloudServer {
         id = msg.id
         this.peers[id] = ws
         this.applyPeers(msg.id,msg.join,msg.leave)
-        this.notifyUnions(msg.id)
+        this.notifyIntersections(msg.id)
       });
-      const cleanup = () => {
+      ws.on('close', () => {
         if (id) {
           delete this.peers[id]
           delete this.peerKeys[id]
         }
-      }
-      ws.on('error', cleanup)
-      ws.on('close', cleanup)
+      })
     });
 
     app.ws('/connect/:peer1/:peer2', (ws, req) => {
@@ -96,12 +102,12 @@ class DiscoveryCloudServer {
         const other = this.looking[key2]
         delete this.looking[key2]
         log("piping", key1)
-        other.pipe(ws).pipe(other)
+//        this.join(ws,other)
+        ws.pipe(other).pipe(ws)
       } else {
+        log("holding connection - waiting for peer", key1, key2)
         this.looking[key1] = ws
-        const cleanup = () => (delete this.looking[key1])
-        ws.on('close', cleanup)
-        ws.on('error', cleanup)
+        ws.on('close', () => (delete this.looking[key1])) // race condition?
       }
     })
 
