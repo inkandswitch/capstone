@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Handler from "./Handler"
 
 import * as Hammer from "hammerjs"
@@ -13,12 +13,13 @@ interface Props {
 }
 
 export default class Pen extends Handler<Props> {
+  ref?: HTMLElement
   hammer: HammerManager
   shouldPreventPenScroll = false
   isPenActive = false
 
   componentDidMount() {
-    if (!this.base) return
+    if (!this.ref) return
     const { onDoubleTap, onPanMove, onPanEnd } = this.props
 
     const recognizers: RecognizerTuple[] = []
@@ -44,7 +45,7 @@ export default class Pen extends Handler<Props> {
       : Hammer.defaults.touchAction
     if (this.shouldPreventPenScroll) this.addPreventPenScrolListeners()
 
-    this.hammer = new Hammer.Manager(this.base, {
+    this.hammer = new Hammer.Manager(this.ref, {
       recognizers,
       touchAction,
     })
@@ -68,24 +69,24 @@ export default class Pen extends Handler<Props> {
   }
 
   addPreventPenScrolListeners() {
-    if (!this.base) return
-    this.base.addEventListener("pointerdown", this.onPointerDown)
-    this.base.addEventListener("pointerup", this.onPointerUp)
-    this.base.addEventListener("pointercancel", this.onPointerCancel)
-    this.base.addEventListener("touchstart", this.onTouchStart)
+    if (!this.ref) return
+    this.ref.addEventListener("pointerdown", this.onPointerDown)
+    this.ref.addEventListener("pointerup", this.onPointerUp)
+    this.ref.addEventListener("pointercancel", this.onPointerCancel)
+    this.ref.addEventListener("touchstart", this.onTouchStart)
   }
 
   removePreventPenScrollListeners() {
-    if (!this.base) return
-    this.base.removeEventListener("pointerdown", this.onPointerDown)
-    this.base.removeEventListener("pointerup", this.onPointerUp)
-    this.base.removeEventListener("pointercancel", this.onPointerCancel)
-    this.base.removeEventListener("touchstart", this.onTouchStart)
+    if (!this.ref) return
+    this.ref.removeEventListener("pointerdown", this.onPointerDown)
+    this.ref.removeEventListener("pointerup", this.onPointerUp)
+    this.ref.removeEventListener("pointercancel", this.onPointerCancel)
+    this.ref.removeEventListener("touchstart", this.onTouchStart)
   }
 
   onPointerDown = (event: PointerEvent) => {
     this.isPenActive = event.pointerType === "pen"
-    if (this.base) this.base.setPointerCapture(event.pointerId)
+    if (this.ref) this.ref.setPointerCapture(event.pointerId)
   }
 
   onPointerUp = (event: PointerEvent) => {
@@ -104,8 +105,16 @@ export default class Pen extends Handler<Props> {
     return event.pointerType === "pen" || event.srcEvent.shiftKey
   }
 
+  onRef(ref: HTMLElement) {
+    this.ref = ref
+  }
+
   render() {
-    const { onDoubleTap, onPanMove, onPanEnd, ...rest } = this.props
-    return Preact.cloneElement(this.child, rest)
+    if (!this.child || !React.isValidElement(this.child)) {
+      return null
+    }
+
+    const { onDoubleTap, onPanMove, onPanEnd, ref: onRef, ...rest } = this.props
+    return React.cloneElement(this.child, rest)
   }
 }

@@ -3,7 +3,7 @@ import * as Automerge from "automerge/frontend"
 import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
-import { FrontendHandle  } from "../modules/hypermerge/frontend"
+import { FrontendHandle } from "../modules/hypermerge/frontend"
 
 function isId(id: string) {
   return id.length >= 32 && id.length <= 44
@@ -34,14 +34,17 @@ export default class Store {
   presenceSubject: Rx.BehaviorSubject<any>
 
   handle(id: string): FrontendHandle {
-    return (this.index[id] || this.makeHandle(id))
+    return this.index[id] || this.makeHandle(id)
   }
 
   create(setup: ChangeFn<any>): string {
     const command = "Create"
 
     const buffers = keyPair()
-    const keys = { publicKey: Base58.encode(buffers.publicKey), secretKey: Base58.encode(buffers.secretKey) }
+    const keys = {
+      publicKey: Base58.encode(buffers.publicKey),
+      secretKey: Base58.encode(buffers.secretKey),
+    }
     const args = { keys }
     const docId = keys.publicKey
 
@@ -67,12 +70,12 @@ export default class Store {
       handle.patch(patch)
     })
 
-    handle.on("requests", (requests) => {
+    handle.on("requests", requests => {
       port.postMessage(requests)
     })
 
     port.onDisconnect.addListener(() => {
-      console.log("Port disconnect handle",id)
+      console.log("Port disconnect handle", id)
       handle.release()
       delete this.index[id]
     })

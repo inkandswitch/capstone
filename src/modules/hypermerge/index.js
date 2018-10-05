@@ -6,7 +6,7 @@ const discoverySwarm = require("discovery-swarm")
 const swarmDefaults = require("dat-swarm-defaults")
 const Debug = require("debug")
 const Base58 = require("bs58")
-const Haikunator = require('haikunator')
+const Haikunator = require("haikunator")
 const haiku = new Haikunator()
 
 const log = Debug("hypermerge:index")
@@ -51,7 +51,7 @@ class Hypermerge extends EventEmitter {
     this.requestedBlocks = {} // docId -> actorId -> blockIndex (exclusive)
     this.appliedSeqs = {} // actorId -> seq -> Boolean
 
-    this._swarmStats = { }
+    this._swarmStats = {}
     this.errs = []
 
     this.core = new Multicore(storage)
@@ -159,14 +159,28 @@ class Hypermerge extends EventEmitter {
       this.swarm.listen(opts.port)
     })
 
-    const signals = ["handshaking", "handshake-timeout", "listening", "connecting", "connect-failed", "connection", "close", "redundant-connection", "peer", "peer-rejected", "drop", "peer-banned", "connection-closed","connect-failed"]
+    const signals = [
+      "handshaking",
+      "handshake-timeout",
+      "listening",
+      "connecting",
+      "connect-failed",
+      "connection",
+      "close",
+      "redundant-connection",
+      "peer",
+      "peer-rejected",
+      "drop",
+      "peer-banned",
+      "connection-closed",
+      "connect-failed",
+    ]
     signals.forEach(signal => {
       this._swarmStats[signal] = 0
       this.swarm.on(signal, (arg1, arg2) => {
         this._swarmStats[signal] += 1
       })
     })
-
 
     return this
   }
@@ -227,7 +241,7 @@ class Hypermerge extends EventEmitter {
    *
    * @param {object} metadata - metadata to be associated with this document
    */
-  create (metadata = {}) {
+  create(metadata = {}) {
     log("create")
     return this._create(metadata, {})
   }
@@ -306,7 +320,7 @@ class Hypermerge extends EventEmitter {
     delete metadata.publicKey
     delete metadata.secretKey
 
-    const feed = this._trackedFeed({publicKey, secretKey})
+    const feed = this._trackedFeed({ publicKey, secretKey })
     const actorId = Base58.encode(feed.key)
 
     log("_create", actorId)
@@ -363,13 +377,14 @@ class Hypermerge extends EventEmitter {
 
   // Finds or creates, and returns, a feed that is not yet tracked. See `feed`
   // for cases for `actorId`.
-  _feed (actorIdOrKeys = null) {
-    if (typeof actorIdOrKeys == 'object' && actorIdOrKeys.secretKey) {
+  _feed(actorIdOrKeys = null) {
+    if (typeof actorIdOrKeys == "object" && actorIdOrKeys.secretKey) {
       let { publicKey, secretKey } = actorIdOrKeys
       log("_feed w key", actorIdOrKeys.publicKey)
       return this.core.createFeed(publicKey, { secretKey })
     } else {
-      const key = typeof actorIdOrKeys == 'string' ? Base58.decode(actorIdOrKeys) : null
+      const key =
+        typeof actorIdOrKeys == "string" ? Base58.decode(actorIdOrKeys) : null
       log("_feed", actorIdOrKeys)
       return this.core.createFeed(key)
     }
@@ -384,8 +399,8 @@ class Hypermerge extends EventEmitter {
   //   out about it from another user - create the feed with the given actorId.
   // * `actorId` is given and we know of the feed already - return from cache.
   // * `actorId` is given as a public private keypair we make a new feed with them
-  _trackedFeed (actorId = null) {
-    if (actorId && typeof actorId == 'string' && this.feeds[actorId]) {
+  _trackedFeed(actorId = null) {
+    if (actorId && typeof actorId == "string" && this.feeds[actorId]) {
       return this.feeds[actorId]
     }
 
@@ -795,9 +810,12 @@ class Hypermerge extends EventEmitter {
         peer.synTime = Date.now()
         peer.interval = setInterval(() => {
           //console.log("Sending SYN");
-          this._messagePeer(peer, { type: "SYN", identity: this.identity, device: this.device })
+          this._messagePeer(peer, {
+            type: "SYN",
+            identity: this.identity,
+            device: this.device,
+          })
         }, SYN_TIME)
-
 
         /**
          * Emitted when a network peer has connected.

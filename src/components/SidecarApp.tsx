@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 
 import Store from "../data/Store"
 import * as Link from "../data/Link"
@@ -24,7 +24,7 @@ type State = {
   error?: string
 }
 
-export default class SidecarApp extends Preact.Component<{}, State> {
+export default class SidecarApp extends React.Component<{}, State> {
   constructor(props: {}, ctx: any) {
     super(props, ctx)
     this.state = { mode: "loading" }
@@ -100,7 +100,7 @@ export default class SidecarApp extends Preact.Component<{}, State> {
 const style = {
   App: {
     fontFamily: "system-ui",
-    position: "fixed",
+    position: "fixed" as "fixed",
     top: 0,
     left: 0,
     right: 0,

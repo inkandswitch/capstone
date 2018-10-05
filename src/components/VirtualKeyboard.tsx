@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 
 interface Props {
   onOpen?: () => void
@@ -19,7 +19,7 @@ interface Props {
 *
 * There is discussion around adding a virtual keyboard API here: https://bugs.chromium.org/p/chromium/issues/detail?id=856269
 */
-export default class VirtualKeyboard extends Preact.Component<Props> {
+export default class VirtualKeyboard extends React.Component<Props> {
   lastSeenViewportSize: { width: number; height: number }
 
   componentDidMount() {

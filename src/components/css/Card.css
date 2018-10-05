@@ -14,7 +14,7 @@
   transition-duration: 100ms;
 }
 
-.exiting .Card {
+.Card-exit {
   transform: scale(0);
   opacity: 0.1;
 }

@@ -1,5 +1,5 @@
 import classNames from "classnames"
-import * as Preact from "preact"
+import * as React from "react"
 
 import {
   matchesSelectorAndParentsTo,
@@ -68,10 +68,12 @@ interface DraggableProps {
   z: number
 }
 
-export default class Draggable extends Preact.Component<
+export default class Draggable extends React.Component<
   DraggableProps,
   DraggableState
 > {
+  private ref: HTMLDivElement | undefined
+
   // TODO: not sure why these as are needed.
   static defaultProps = {
     allowAnyClick: false, // by default only accept left click
@@ -129,7 +131,7 @@ export default class Draggable extends Preact.Component<
 
     // Remove any leftover event handlers. Remove both touch and mouse handlers in case
     // some browser quirk caused a touch event to fire during a mouse move, or vice versa.
-    const thisNode = this.base
+    const thisNode = this.ref
     if (thisNode) {
       const { ownerDocument } = thisNode
       removeEvent(ownerDocument, eventNames.move, this.handleDrag)
@@ -140,7 +142,7 @@ export default class Draggable extends Preact.Component<
     }
   }
 
-  handleDragStart: EventHandler<PointerEvent> = e => {
+  handleDragStart = (e: React.PointerEvent) => {
     // Only accept left-clicks.
     if (
       !this.props.allowAnyClick &&
@@ -150,8 +152,12 @@ export default class Draggable extends Preact.Component<
       return false
     }
 
+    if (!this.ref) {
+      return false
+    }
+
     // Get nodes. Be sure to grab relative document (could be iframed)
-    const thisNode = this.base
+    const thisNode = this.ref
     if (!thisNode || !thisNode.ownerDocument || !thisNode.ownerDocument.body) {
       throw new Error("<Draggable> not mounted on DragStart!")
     }
@@ -185,10 +191,10 @@ export default class Draggable extends Preact.Component<
     this.setState({ pointerId: e.pointerId })
 
     // Get the current drag point from the event. This is used as the offset.
-    const { x, y } = getControlPosition(e, this)
+    const { x, y } = getControlPosition(e, this, this.ref)
 
     // Create an event object with all the data parents need to make a decision here.
-    const coreEvent = createCoreData(this, x, y)
+    const coreEvent = createCoreData(this, this.ref, x, y)
 
     // Call event handler. If it returns explicit false, cancel.
     const shouldUpdate = this.props.onStart && this.props.onStart(e, coreEvent)
@@ -218,8 +224,13 @@ export default class Draggable extends Preact.Component<
     addEvent(ownerDocument, eventNames.stop, this.handleDragStop)
   }
 
-  handleDrag: EventHandler<PointerEvent> = e => {
+  handleDrag = (e: React.PointerEvent) => {
     if (!this.state.dragging) {
+      return false
+    }
+
+    // Ignore if we have no ref
+    if (!this.ref) {
       return false
     }
 
@@ -231,8 +242,8 @@ export default class Draggable extends Preact.Component<
     }
 
     // Get the current drag point from the event. This is used as the offset.
-    const { x, y } = getControlPosition(e, this)
-    const coreData = createCoreData(this, x, y)
+    const { x, y } = getControlPosition(e, this, this.ref)
+    const coreData = createCoreData(this, this.ref, x, y)
     const uiData = createDraggableData(this, coreData)
 
     // TODO: should by DraggableState.
@@ -255,6 +266,7 @@ export default class Draggable extends Preact.Component<
       // Get bound position. This will ceil/floor the x and y within the boundaries.
       const [newStateX, newStateY] = getBoundPosition(
         this,
+        this.ref,
         newState.x,
         newState.y,
       )
@@ -276,8 +288,12 @@ export default class Draggable extends Preact.Component<
     this.setState({ ...newState, lastX: x, lastY: y })
   }
 
-  handleDragStop: EventHandler<PointerEvent> = e => {
+  handleDragStop = (e: React.PointerEvent) => {
     if (!this.state.dragging) {
+      return
+    }
+
+    if (!this.ref) {
       return
     }
 
@@ -285,9 +301,9 @@ export default class Draggable extends Preact.Component<
       return
     }
 
-    const position = getControlPosition(e, this)
+    const position = getControlPosition(e, this, this.ref)
     const { x, y } = position as ControlPosition
-    const coreEvent = createCoreData(this, x, y)
+    const coreEvent = createCoreData(this, this.ref, x, y)
 
     const shouldUpdate =
       this.props.onStop &&
@@ -300,9 +316,13 @@ export default class Draggable extends Preact.Component<
   }
 
   handleDragCancel = () => {
+    if (!this.ref) {
+      return
+    }
+
     const { lastX, lastY } = this.state
     // Fake coreData
-    const coreEvent = createCoreData(this, lastX, lastY)
+    const coreEvent = createCoreData(this, this.ref, lastX, lastY)
     const draggableData = createDraggableData(this, coreEvent)
     this.props.onCancel && this.props.onCancel(draggableData)
     this.endDrag()
@@ -310,7 +330,7 @@ export default class Draggable extends Preact.Component<
 
   // Clean up drag state and remove listeners.
   endDrag = () => {
-    const thisNode = this.base
+    const thisNode = this.ref
     if (thisNode) {
       // Remove user-select hack
       if (this.props.enableUserSelectHack) {
@@ -325,20 +345,24 @@ export default class Draggable extends Preact.Component<
       lastY: NaN,
     })
 
-    if (this.base) {
-      removeEvent(this.base.ownerDocument, eventNames.move, this.handleDrag)
-      removeEvent(this.base.ownerDocument, eventNames.stop, this.handleDragStop)
+    if (this.ref) {
+      removeEvent(this.ref.ownerDocument, eventNames.move, this.handleDrag)
+      removeEvent(this.ref.ownerDocument, eventNames.stop, this.handleDragStop)
     }
   }
 
-  onPointerDown: EventHandler<PointerEvent> = e => {
+  onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === "pen" || !e.isPrimary) return
-    return this.handleDragStart(e)
+    this.handleDragStart(e)
   }
 
-  onPointerCancel = (e: PointerEvent) => {
+  onPointerCancel = (e: React.PointerEvent) => {
     // Handle cancel events to make sure we clean up.
     this.handleDragCancel()
+  }
+
+  onRef = (ref: HTMLDivElement) => {
+    this.ref = ref
   }
 
   render() {
@@ -372,6 +396,7 @@ export default class Draggable extends Preact.Component<
 
     return (
       <div
+        ref={this.onRef}
         className={className}
         style={style}
         onPointerCancel={this.onPointerCancel}

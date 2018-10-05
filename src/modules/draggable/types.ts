@@ -1,5 +1,5 @@
 export type DraggableEventHandler = (
-  e: PointerEvent,
+  e: React.PointerEvent,
   data: DraggableData,
 ) => void | false
 
@@ -20,7 +20,4 @@ export type Bounds = {
   bottom: number
 }
 export type ControlPosition = { x: number; y: number }
-export type EventHandler<T> = (e: T) => void | false
-
-// export class SVGElement extends HTMLElement {
-// }
+export type EventHandler<T> = (e: T) => void

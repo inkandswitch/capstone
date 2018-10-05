@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
@@ -50,7 +50,7 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
-class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
+class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
       identityUrl: Reify.string(doc.identityUrl),
@@ -136,7 +136,7 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     const currentUrl = this.peek()
     return (
       <Touch onPinchEnd={this.onPinchEnd}>
-        <div class="Workspace" style={style.Workspace}>
+        <div className="Workspace" style={style.Workspace}>
           <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
             key={currentUrl}
@@ -156,14 +156,14 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
 
 const style = {
   Workspace: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     top: 0,
     left: 0,
     bottom: 0,
     right: 0,
   },
   Peers: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     top: 0,
     right: 0,
     bottom: 0,

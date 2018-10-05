@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import { AnyDoc } from "automerge/frontend"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
@@ -11,7 +11,7 @@ export interface Props extends Widget.Props<Model> {
   src: string
 }
 
-class Image extends Preact.Component<Props> {
+class Image extends React.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       src: Reify.string(doc.src),
@@ -26,8 +26,8 @@ class Image extends Preact.Component<Props> {
 
 const style = {
   Image: {
-    objectFit: "cover",
-    pointerEvents: "none",
+    objectFit: "cover" as "cover",
+    pointerEvents: "none" as "none",
     display: "block",
     maxHeight: "100%",
     maxWidth: "100%",

@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/frontend"
 import Content, {
   WidgetProps,
@@ -21,7 +21,7 @@ interface State<T> {
 
 // TODO: This is necessary to avoid Typescript warning, must be a better way.
 interface WrappedComponent<T, M = never>
-  extends Preact.Component<Props<T, M>, any> {}
+  extends React.Component<Props<T, M>, any> {}
 type WrappedComponentClass<T, M = never> = {
   new (...k: any[]): WrappedComponent<T, M>
 }
@@ -32,13 +32,14 @@ export function create<T, M extends Message = never>(
   reify: (doc: AnyDoc) => T,
   messageHandler?: MessageHandlerClass,
 ) {
-  const WidgetClass = class extends Preact.Component<WidgetProps<T>, State<T>> {
+  const WidgetClass = class extends React.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
     requestChanges: (ChangeFn: any) => void
 
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
+      this.state = {}
     }
 
     componentDidMount() {
@@ -80,7 +81,7 @@ export function create<T, M extends Message = never>(
       }
     }
 
-    loading(): Preact.ComponentChild {
+    loading() {
       return "Loading..."
     }
   }

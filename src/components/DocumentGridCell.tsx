@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 
 import Content from "./Content"
 import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
@@ -10,7 +10,7 @@ interface Props {
   onDoubleTap?: (url: string) => void
 }
 
-export default class Cell extends Preact.Component<Props> {
+export default class Cell extends React.Component<Props> {
   render() {
     const { url } = this.props
     return (
@@ -40,7 +40,7 @@ export default class Cell extends Preact.Component<Props> {
 
 const style = {
   Cell: {
-    position: "relative",
+    position: "relative" as "relative",
     overflow: "hidden",
     height: 200,
   },
@@ -48,11 +48,11 @@ const style = {
     background: "#fff",
     overflow: "hidden",
     maxHeight: "100%'",
-    pointerEvents: "none",
-    position: "relative",
+    pointerEvents: "none" as "none",
+    position: "relative" as "relative",
   },
   NetworkActivity: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     left: 0,
     bottom: 0,
   },

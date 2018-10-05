@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import { once } from "lodash"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
@@ -17,7 +17,7 @@ interface State {
   isDropping: boolean
 }
 
-export default class SidecarUploader extends Preact.Component<Props, State> {
+export default class SidecarUploader extends React.Component<Props, State> {
   static reify(doc: AnyDoc): Model {
     return {
       selectedUrls: Reify.array(doc.selectedUrls),
@@ -52,16 +52,16 @@ export default class SidecarUploader extends Preact.Component<Props, State> {
     )
   }
 
-  onDragOver = (event: DragEvent) => {
+  onDragOver = (event: React.DragEvent) => {
     event.preventDefault()
     this.setState({ isDropping: true })
   }
 
-  onDragLeave = (event: DragEvent) => {
+  onDragLeave = (event: React.DragEvent) => {
     this.setState({ isDropping: false })
   }
 
-  onDrop = (event: DragEvent) => {
+  onDrop = (event: React.DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
 
@@ -120,7 +120,7 @@ Widget.create("SidecarUploader", SidecarUploader, SidecarUploader.reify)
 
 const style = {
   SidecarUploader: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     top: 0,
     right: 0,
     bottom: 0,
@@ -139,7 +139,7 @@ const style = {
     border: "3px #D0D0D0 dashed",
     gridArea: "drop",
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as "column",
     alignItems: "center",
     justifyContent: "center",
   },
