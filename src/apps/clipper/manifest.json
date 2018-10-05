@@ -1,0 +1,14 @@
+{
+  "name": "Capstone Clipper",
+  "description": "Send the contents of the active to Capstone.",
+  "version": "1.0",
+  "permissions": ["activeTab"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_title": "Clip to Capstone"
+  },
+  "manifest_version": 2
+}
