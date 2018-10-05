@@ -57,6 +57,7 @@
     "codemirror": "^5.39.0",
     "diff-match-patch": "^1.0.1",
     "discovery-swarm": "^5.1.2",
+    "freeze-dry": "^0.2.1",
     "haikunator": "^2.0.0",
     "hammerjs": "^2.0.8",
     "hypercore": "^6.18.3",

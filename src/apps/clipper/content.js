@@ -1,13 +1,15 @@
-document.body.style.backgroundColor = "orange"
+document.body.style.backgroundColor = "red"
+
+import freezeDry from "freeze-dry"
 
 // The ID of the extension we want to talk to.
 var capstoneExtensionId = "chockaehepbpnfkjbagoinpcpbbmbllm"
 
-// Make a simple request:
-chrome.runtime.sendMessage(
-  capstoneExtensionId,
-  { "content script": "data" },
-  response => {
-    console.log("Received response from capstone", response)
-  },
-)
+console.log("prefreeze")
+freezeDry(document, { addMetadata: true }).then(html => {
+  console.log("froze", html)
+  // Make a simple request:
+  chrome.runtime.sendMessage(capstoneExtensionId, { html }, response => {
+    console.log("Capstone got the HTML: ", response)
+  })
+})
