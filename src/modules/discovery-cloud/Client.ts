@@ -1,7 +1,7 @@
 import * as WebSocket from "ws"
 import * as Base58 from "bs58"
 import { EventEmitter } from "events"
-import { Stream } from "stream"
+import { Stream, Duplex } from "stream"
 import * as Debug from "debug"
 import * as Msg from "./Msg"
 
@@ -10,23 +10,24 @@ Debug.formatters.b = Base58.encode
 const log = Debug("discovery-cloud:client")
 
 export interface Info {
-  id: string
+  channel: Buffer
 }
 
 export interface Options {
   id: Buffer
   url: string
-  stream: (info: Info) => Stream
+  stream: (info: Info) => Duplex
   [k: string]: unknown
 }
 
 export default class DiscoveryCloudClient extends EventEmitter {
+  connect: (info: Info) => Duplex
   id: string
   selfKey: Buffer
   url: string
   isOpen: boolean = false
   channels: Set<string> = new Set()
-  peers: Map<string, WebSocket> = new Map()
+  peers: Map<string, Duplex> = new Map()
   discovery: WebSocket
 
   constructor(opts: Options) {
@@ -35,6 +36,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     this.selfKey = opts.id
     this.id = Base58.encode(opts.id)
     this.url = opts.url
+    this.connect = opts.stream
     this.connectDiscovery()
 
     log("Initialized %o", opts)
@@ -126,21 +128,50 @@ export default class DiscoveryCloudClient extends EventEmitter {
   }
 
   private onPeer(id: string, channels: string[]) {
-    const url = `${this.url}/connect/${this.id}/${id}`
-    const socket = new WebSocket(url)
-      .on("open", () => {
-        log("peer open", id, channels)
-      })
-      .on("close", () => {
-        log("peer close")
-      })
-      .on("message", data => {
-        log("peer message", data)
-      })
-      .on("error", err => {
-        log("Error", err)
+    const wireToPeer = this.peers.get(id) || this.createPeer(id)
+
+    channels.forEach(channel => {
+      const local = this.connect({
+        channel: Base58.decode(channel),
       })
 
-    this.peers.set(id, socket)
+      wireToPeer.pipe(local).pipe(wireToPeer)
+    })
   }
+
+  private createPeer(id: string): Duplex {
+    const url = `${this.url}/connect/${this.id}/${id}`
+    const stream = asStream(new WebSocket(url))
+
+    this.peers.set(id, stream)
+
+    return stream
+  }
+}
+
+function asStream(socket: WebSocket): Duplex {
+  const stream = new Duplex()
+    .on("close", () => {
+      // maybe for "end" too?
+      socket.close()
+    })
+    .on("data", data => {
+      socket.send(data)
+    })
+    .on("error", err => {
+      socket.emit("error", err)
+    })
+
+  socket
+    .on("close", () => {
+      stream.destroy()
+    })
+    .on("message", data => {
+      stream.write(data)
+    })
+    .on("error", err => {
+      stream.emit("error", err)
+    })
+
+  return stream
 }
