@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import { delay } from "lodash"
 import { EventEmitter } from "events"
 
@@ -27,9 +27,9 @@ interface FeedbackItemProps {
   feedbackData: FeedbackData
 }
 
-class FeedbackItem extends Preact.Component<FeedbackItemProps> {
+class FeedbackItem extends React.Component<FeedbackItemProps> {
   hasEntered = false
-  onAnimationEnd = (event: AnimationEvent) => {
+  onAnimationEnd = (event: React.AnimationEvent) => {
     if (!this.hasEntered) {
       this.hasEntered = true
       return
@@ -53,7 +53,7 @@ class FeedbackItem extends Preact.Component<FeedbackItemProps> {
   }
 }
 
-export class Renderer extends Preact.Component<{}, FeedbackRendererState> {
+export class Renderer extends React.Component<{}, FeedbackRendererState> {
   state: FeedbackRendererState = { feedback: [] }
 
   componentWillMount() {
@@ -79,7 +79,7 @@ export class Renderer extends Preact.Component<{}, FeedbackRendererState> {
   render() {
     const feedback = this.state.feedback
     return (
-      <div class="FeedbackContainer">
+      <div className="FeedbackContainer">
         {feedback.map(feedbackData => (
           <FeedbackItem
             key={feedbackData.id.toString()}

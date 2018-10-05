@@ -71,7 +71,7 @@ Otherwise, you can format the code by running `yarn format`.
 
 ## Widgets
 
-Widgets are Preact components that handle the rendering and construction of a document.
+Widgets are React components that handle the rendering and construction of a document.
 
 A widget component is required to accept two props:
 
@@ -101,7 +101,7 @@ To make widgets easier to build, a base `Widget` class is provided.
 A basic widget looks like this:
 
 ```typescript
-import * as Preact from "preact"
+import * as React from "react"
 import Content from "./Content"
 import Widget, { Doc, AnyDoc } from "./Widget"
 

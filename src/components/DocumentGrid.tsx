@@ -1,6 +1,6 @@
-import * as Preact from "preact"
+import * as React from "react"
 
-export default class Grid extends Preact.Component {
+export default class Grid extends React.Component {
   render() {
     return <div style={style.Grid}>{this.props.children}</div>
   }

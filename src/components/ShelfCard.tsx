@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Content from "./Content"
 import * as Position from "../logic/Position"
 
@@ -7,7 +7,7 @@ interface Props {
   index: number
 }
 
-export default class ShelfCard extends Preact.Component<Props> {
+export default class ShelfCard extends React.Component<Props> {
   render() {
     const { url, index } = this.props
 
@@ -34,7 +34,7 @@ const style = {
     maxWidth: 200,
     minWidth: 150,
     maxHeight: 200,
-    position: "absolute",
+    position: "absolute" as "absolute",
     backgroundColor: "#fff",
     overflow: "hidden",
     boxShadow: "0 0 30px rgba(0,0,0,0.3)",

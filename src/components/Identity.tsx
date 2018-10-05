@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
@@ -66,7 +66,7 @@ interface State {
   isEditing: boolean
 }
 
-export class Identity extends Preact.Component<Props, State> {
+export class Identity extends React.Component<Props, State> {
   state = { isEditing: false }
 
   static reify(doc: AnyDoc): Model {
@@ -77,11 +77,11 @@ export class Identity extends Preact.Component<Props, State> {
     }
   }
 
-  onPointerDown = (event: PointerEvent) => {
+  onPointerDown = (event: React.PointerEvent) => {
     if (this.state.isEditing) this.setState({ isEditing: false })
   }
 
-  onBadgePointerDown = (event: PointerEvent) => {
+  onBadgePointerDown = (event: React.PointerEvent) => {
     if (this.state.isEditing) event.stopPropagation()
   }
 
@@ -98,9 +98,11 @@ export class Identity extends Preact.Component<Props, State> {
     }
   }
 
-  onChange = (event: any) => {
+  onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target
+
     this.props.change(doc => {
-      doc.name = event.target.value
+      doc.name = value
       return doc
     })
   }
@@ -158,8 +160,8 @@ const style = {
     },
   },
   Identity: {
-    display: "flex",
-    flexDirection: "column",
+    display: "flex" as "flex",
+    flexDirection: "column" as "column",
     height: "100%",
     width: "100%",
     padding: 50,
@@ -168,10 +170,10 @@ const style = {
   Profile: {
     border: "1px solid #aaa",
     marginBottom: 25,
-    position: "relative",
+    position: "relative" as "relative",
   },
   PeerStatus: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     bottom: 0,
     right: 0,
   },

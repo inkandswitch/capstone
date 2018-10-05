@@ -11,7 +11,7 @@ export default class StoreBackend {
   docHandles: { [docId: string]: any } = {}
   pendingChanges: { [docId: string]: any } = {}
   //debugLogs: { [docId: string]: any } = {}
-//  prefetcher: Prefetch.Prefetcher
+  //  prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge) {
     this.hypermerge = hm
@@ -32,11 +32,15 @@ export default class StoreBackend {
   applyChanges = (changes: any, port: chrome.runtime.Port) => {
     const [docId, _] = port.name.split("/", 2)
     const handle = this.docHandles[docId]
-    if (docId.startsWith("98bbA")) { console.log("CHANGE", docId, changes) }
+    if (docId.startsWith("98bbA")) {
+      console.log("CHANGE", docId, changes)
+    }
     if (handle) {
       handle.applyChanges(changes)
     } else {
-      this.pendingChanges[docId] = (this.pendingChanges[docId] || []).concat([changes])
+      this.pendingChanges[docId] = (this.pendingChanges[docId] || []).concat([
+        changes,
+      ])
     }
   }
 
@@ -45,7 +49,9 @@ export default class StoreBackend {
 
     console.log("connect", docId)
 
-    port.onDisconnect.addListener(() => console.log("port discon: ", port.name, chrome.runtime.lastError))
+    port.onDisconnect.addListener(() =>
+      console.log("port discon: ", port.name, chrome.runtime.lastError),
+    )
 
     switch (mode) {
       case "changes": {
@@ -60,13 +66,17 @@ export default class StoreBackend {
         const handle = this.docHandles[docId]
 
         if (this.pendingChanges[docId]) {
-          this.pendingChanges[docId].forEach((change : any)=> handle.applyChanges(change))
+          this.pendingChanges[docId].forEach((change: any) =>
+            handle.applyChanges(change),
+          )
           this.pendingChanges[docId] = []
         }
 
         handle.on("patch", (patch: any) => {
           const actorId = handle.actorId
-          if (docId.startsWith("98bbA")) { console.log("PATCH", docId, actorId, patch) }
+          if (docId.startsWith("98bbA")) {
+            console.log("PATCH", docId, actorId, patch)
+          }
           port.postMessage({ actorId, patch })
         })
 
@@ -136,7 +146,6 @@ export default class StoreBackend {
             })
           }
 
-
           const onupload = (seq: number) => {
             port.postMessage({
               type: "Upload",
@@ -158,13 +167,16 @@ export default class StoreBackend {
     }
   }
 
-  onMessage = ( request: any ) => {
+  onMessage = (request: any) => {
     let { command, args } = request
 
     switch (command) {
       case "Create":
         const { keys } = args
-        let keyPair = { publicKey: Base58.decode(keys.publicKey), secretKey: Base58.decode(keys.secretKey) }
+        let keyPair = {
+          publicKey: Base58.decode(keys.publicKey),
+          secretKey: Base58.decode(keys.secretKey),
+        }
         this.hypermerge.create(keyPair)
         break
       case "SetIdentity":
@@ -175,6 +187,6 @@ export default class StoreBackend {
       default:
         console.warn("Received an unusual message: ", request)
     }
-//    return true // indicate we will respond asynchronously
+    //    return true // indicate we will respond asynchronously
   }
 }
