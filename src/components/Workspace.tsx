@@ -1,10 +1,8 @@
 import * as Preact from "preact"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
-import * as DataTransfer from "../logic/DataTransfer"
-import { once, isUndefined, first } from "lodash"
-import { AnyDoc, AnyEditDoc, ChangeFn } from "automerge/frontend"
+import * as DataImport from "./DataImport"
+import { AnyDoc } from "automerge/frontend"
 import Content, {
   DocumentActor,
   FullyFormedMessage,
@@ -109,53 +107,10 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   onPaste = (e: ClipboardEvent) => {
-    const urlPromises = this.importData(e.clipboardData)
+    const urlPromises = DataImport.importData(e.clipboardData)
     Promise.all(urlPromises).then(urls => {
       this.props.emit({ type: "AddToShelf", body: { urls } })
     })
-  }
-
-  importData(data: DataTransfer): Promise<string>[] {
-    const prefixMap: { [k: string]: Function } = {
-      image: async (item: DataTransferItem) =>
-        this.addImage(await DataTransfer.extractAsDataURL(item)),
-      text: async (item: DataTransferItem) =>
-        this.addText(await DataTransfer.extractAsText(item)),
-    }
-    return DataTransfer.extractEntries(data)
-      .filter(entry => {
-        const typePrefix = first(entry.type.split("/"))
-        return typePrefix && typePrefix in prefixMap
-      })
-      .map(entry => {
-        const typePrefix: string = first(entry.type.split("/"))!
-        return prefixMap[typePrefix](entry.item)
-      })
-  }
-
-  async addText(content: string) {
-    return this.addDoc("Text", doc => {
-      doc.content = content.split("")
-      return doc
-    })
-  }
-
-  async addImage(src: string) {
-    return this.addDoc("Image", doc => {
-      doc.src = src
-      return doc
-    })
-  }
-
-  async addDoc(type: string, changeFn: ChangeFn<unknown>) {
-    const url = await Content.create(type)
-
-    const onOpen = (doc: AnyEditDoc) => {
-      change(changeFn)
-    }
-
-    const change = Content.open(url, once(onOpen))
-    return url
   }
 
   onTapPeer = (identityUrl: string) => {
