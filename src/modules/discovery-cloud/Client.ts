@@ -135,9 +135,13 @@ export default class DiscoveryCloudClient extends EventEmitter {
         channel: Base58.decode(channel),
       })
 
-      wireToPeer.on("open", () => {
-        wireToPeer.pipe(local).pipe(wireToPeer)
-      })
+      wireToPeer
+        .on("open", () => {
+          wireToPeer.pipe(local).pipe(wireToPeer)
+        })
+        .on("error", err => {
+          log("error", err)
+        })
     })
   }
 
@@ -158,22 +162,27 @@ class WebSocketStream extends Duplex {
     super()
     this.socket = new WebSocket(url)
 
-    this.socket.on("open", () => {
-      this.emit("open")
-    })
-
-    this.socket.on("message", data => {
-      log("peerdata from socket", data)
-      if (!this.push(data)) {
-        this.socket.close()
-      }
-    })
+    this.socket
+      .on("error", err => {
+        log("socket error", err)
+      })
+      .on("open", () => {
+        this.emit("open")
+      })
+      .on("message", data => {
+        log("peerdata from socket", data)
+        if (!this.push(data)) {
+          log("stream closed, cannot write")
+          this.socket.close()
+        }
+      })
   }
 
   _write(data: Buffer, _: unknown, cb: () => void) {
     log("peerdata to socket", data)
 
-    this.socket.send(data, cb)
+    this.socket.send(data)
+    cb()
   }
 
   _read() {}
