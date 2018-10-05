@@ -10,7 +10,7 @@ let ram = require("random-access-memory")
 const log1 = Debug("discovery-cloud:test:client1")
 const log2 = Debug("discovery-cloud:test:client2")
 
-const url = "ws://localhost:8080"
+const url = "wss://discovery-cloud.herokuapp.com"
 // const keys = crypto.keyPair()
 const keys = {
   publicKey: Buffer.from(
