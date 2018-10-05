@@ -34,7 +34,6 @@ export default class DiscoveryCloudClient extends EventEmitter {
     this.selfKey = opts.id
     this.id = Base58.encode(opts.id)
     this.url = opts.url
-    this.discovery = this.connectDiscovery(this.url)
 
     log("Initialized %o", opts)
   }
@@ -70,8 +69,14 @@ export default class DiscoveryCloudClient extends EventEmitter {
     this.channels.delete(channel)
   }
 
-  listen(_port: number) {
-    // NOOP
+  listen(_port: unknown) {
+    this.discovery = this.connectDiscovery(this.url)
+    this.discovery.on("open", () => {
+      this.send({
+        type: "Hello",
+        channels: [...this.channels],
+      })
+    })
   }
 
   send(msg: Msg.ClientToServer) {
