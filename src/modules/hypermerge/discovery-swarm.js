@@ -1,6 +1,7 @@
 const swarmDefaults = require("dat-swarm-defaults")
 const discoverySwarm = require("discovery-swarm")
 const Debug = require("debug")
+const mdns = require("multicast-dns")
 
 const log = Debug("hypermerge:discovery-swarm")
 
@@ -9,11 +10,17 @@ export default function swarm(hm, opts = {}) {
 
   if (opts.port == null) opts.port = 0
 
+  const multicast = mdns({
+    port: 8008,
+  })
+
   let mergedOpts = Object.assign(
     swarmDefaults(),
     {
       hash: false,
       encrypt: true,
+      port: 5000,
+      dns: { multicast }
       stream: opts => hm.replicate(opts),
     },
     opts,

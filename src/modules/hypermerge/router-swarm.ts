@@ -1,48 +1,33 @@
-import { EventEmitter } from "events"
-import { Stream } from "stream"
 import { Hypermerge } from "."
-import * as bs58 from "bs58"
-import * as Debug from "debug"
+import RouterClient from "./RouterClient"
 
-Debug.formatters.b = bs58.encode
-
-const log = Debug("hypermerge:discovery-swarm")
-
-export interface Info {
-  id: string
-}
-
-export interface Options {
-  stream: (info: Info) => Stream
-}
-
-export default function routerSwarm(hm: Hypermerge, opts: Options) {
-  return new RouterSwarm(hm, opts)
-}
-
-export class RouterSwarm extends EventEmitter {
-  channels: Set<string> = new Set()
-
-  constructor(hm: Hypermerge, opts: Options) {
-    super()
-    console.log(opts)
+export default function routerSwarm(hm: Hypermerge, opts: any) {
+  const mergedOpts = {
+    stream: (opts: any) => hm.replicate(opts),
+    ...opts,
   }
 
-  join(key: Buffer) {
-    log("join %b", key)
+  const swarm = (hm.swarm = new RouterClient(mergedOpts))
 
-    const channel = bs58.encode(key)
-    this.channels.add(channel)
-  }
+  swarm.join(hm.core.archiver.changes.discoveryKey)
 
-  leave(key: Buffer) {
-    log("leave %b", key)
+  Object.values(hm.feeds).forEach(feed => {
+    swarm.join(feed.discoveryKey)
+  })
 
-    const channel = bs58.encode(key)
-    this.channels.delete(channel)
-  }
+  hm.core.archiver.on("add", (feed: any) => {
+    swarm.join(feed.discoveryKey)
+  })
 
-  listen(_port: number) {
-    // NOOP
-  }
+  hm.core.archiver.on("remove", (feed: any) => {
+    swarm.leave(feed.discoveryKey)
+  })
+
+  swarm.listen(0)
+
+  swarm.once("error", err => {
+    swarm.listen(0)
+  })
+
+  return swarm
 }

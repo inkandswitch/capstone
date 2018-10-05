@@ -42,6 +42,7 @@ class Hypermerge extends EventEmitter {
 
     this.defaultMetadata = defaultMetadata
 
+    this.swarm = null
     this.device = device
     this.identity = identity
     this.feeds = {}
