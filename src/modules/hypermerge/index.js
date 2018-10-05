@@ -26,11 +26,6 @@ const METADATA = {
 const { FrontendHandle } = require("./frontend")
 const { BackendHandle } = require("./backend")
 
-function initHypermerge(ops, cb) {
-  let doc = new Hypermerge(ops)
-  doc.ready.then(cb)
-}
-
 class Hypermerge extends EventEmitter {
   constructor({
     identity = null,
@@ -62,7 +57,9 @@ class Hypermerge extends EventEmitter {
 
     this.ready = new Promise(resolve => {
       this.core.on("ready", () => {
-        this._initFeeds(this._feedKeys(), resolve)
+        this._initFeeds(this._feedKeys(), () => {
+          resolve(this)
+        })
       })
     })
   }
