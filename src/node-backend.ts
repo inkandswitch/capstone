@@ -11,7 +11,7 @@ const hm = new Hypermerge({ storage: "./.data" })
 
 hm.ready.then(() => {
   const sm = swarm(hm, {
-    id: hm.core.archiver.changes.discoverykey,
+    id: hm.core.archiver.changes.id,
     url: "ws://localhost:8080",
   })
   ;(global as any).sm = sm
