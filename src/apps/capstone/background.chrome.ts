@@ -35,6 +35,15 @@ chrome.app.runtime.onLaunched.addListener(() => {
   )
 })
 
+chrome.runtime.onMessageExternal.addListener(
+  (request, sender, sendResponse) => {
+    if (sender.id == "blocklistedExtension") return
+
+    console.log("Received message from external extension", request, sender)
+    sendResponse({ contentReceived: "success" })
+  },
+)
+
 let pBackend = new Promise(resolve => {
   initHypermerge({ storage: racf }, (hm: Hypermerge) => {
     const store = new StoreBackend(hm)
