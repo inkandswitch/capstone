@@ -132,7 +132,7 @@ function addCard(
 }
 
 class Board extends React.Component<Props, State> {
-  boardEl: HTMLDivElement | undefined
+  boardEl?: HTMLDivElement
   state = { focusedCardId: null }
 
   static reify(doc: AnyDoc): Model {
