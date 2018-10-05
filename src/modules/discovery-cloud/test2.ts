@@ -13,7 +13,7 @@ const log2 = Debug("discovery-cloud:test:client2")
 const url = "ws://localhost:8080"
 const keys = crypto.keyPair()
 
-const feed1 = hypercore(ram, keys.publicKey, { secretkey: keys.secretKey })
+const feed1 = hypercore(ram, keys.publicKey, { secretKey: keys.secretKey })
 const feed2 = hypercore(ram, keys.publicKey)
 
 const client1 = new DiscoveryCloudClient({
