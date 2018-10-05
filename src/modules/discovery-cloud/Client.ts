@@ -11,6 +11,9 @@ const log = Debug("discovery-cloud:client")
 
 export interface Info {
   channel: Buffer
+  live?: boolean
+  encrypt?: boolean
+  hash?: boolean
 }
 
 export interface Options {
@@ -135,15 +138,17 @@ export default class DiscoveryCloudClient extends EventEmitter {
     channels.forEach(channel => {
       const local = this.connect({
         channel: Base58.decode(channel),
+        live: true,
+        encrypt: false,
+        hash: false,
       })
 
-      wireToPeer
-        .on("open", () => {
-          wireToPeer.pipe(local).pipe(wireToPeer)
-        })
-        .on("error", err => {
+      setTimeout(() => {
+        wireToPeer.pipe(local).pipe(wireToPeer)
+        wireToPeer.on("error", err => {
           log("error", err)
         })
+      }, 500)
     })
   }
 
