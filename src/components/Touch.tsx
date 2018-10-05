@@ -86,19 +86,6 @@ export default class Touch extends Handler<Props> {
   }
 
   render() {
-    if (!this.child || !React.isValidElement(this.child)) {
-      return null
-    }
-
-    const {
-      onPinchEnd,
-      onTap,
-      onDoubleTap,
-      onThreeFingerSwipeDown,
-      onThreeFingerSwipeUp,
-      ...rest
-    } = this.props
-
-    return <div ref={this.onRef}>{React.cloneElement(this.child, rest)}</div>
+    return <div ref={this.onRef}>{this.props.children}</div>
   }
 }
