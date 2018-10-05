@@ -1,8 +1,7 @@
 import * as Preact from "preact"
 import TransitionGroup = require("preact-css-transition-group")
-import { clamp, isEmpty, size } from "lodash"
+import { clamp, isEmpty, size, noop } from "lodash"
 import * as Widget from "./Widget"
-import Pen, { PenEvent } from "./Pen"
 import DraggableCard, { CardModel } from "./DraggableCard"
 import Content, {
   DocumentActor,
@@ -194,6 +193,44 @@ class Board extends Preact.Component<Props, State> {
           </StrokeRecognizer>
         )
       case "embed":
+        return (
+          <div
+            style={style.Board}
+            ref={(el: HTMLElement) => (this.boardEl = el)}>
+            <TransitionGroup
+              transitionName={{ leave: cardCss.exiting }}
+              transitionEnter={false}
+              transitionLeaveTimeout={500}>
+              {Object.values(cards).map(card => {
+                if (!card) return null
+
+                return (
+                  <DraggableCard
+                    key={card.id}
+                    card={card}
+                    onDoubleTap={noop}
+                    onDragStart={noop}
+                    onDragStop={noop}>
+                    <Content
+                      mode="preview"
+                      url={card.url}
+                      isFocused={focusedCardId === card.id}
+                    />
+                  </DraggableCard>
+                )
+              })}
+            </TransitionGroup>
+            {focusedCardId != null ? (
+              <div
+                style={{
+                  ...style.FocusBackgroundOverlay,
+                  zIndex: topZ - 1,
+                }}
+                onPointerDown={this.onPointerDown}
+              />
+            ) : null}
+          </div>
+        )
       case "preview":
         return (
           <div style={style.Preview.Board}>
@@ -417,6 +454,17 @@ const style = {
     position: "absolute",
     backgroundColor: "#000",
     opacity: 0.15,
+  },
+  Embed: {
+    Board: {
+      height: 300,
+      padding: BOARD_PADDING,
+      overflow: "hidden",
+    },
+    Cards: {
+      transform: "scale(0.3)",
+      transformOrigin: "top left",
+    },
   },
 
   Preview: {
