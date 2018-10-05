@@ -9,21 +9,15 @@ installRenderErrorHandler()
 
 // Used for debugging from the console:
 window.Content = Content
-const socket = new WebSocket("ws://localhost:8085")
+
+const port = chrome.runtime.connect()
 
 Content.store = new Store(msg => {
-  socket.send(JSON.stringify(msg))
+  port.postMessage(msg)
 })
 
-socket.addEventListener("open", () => {
-  setTimeout(() => Preact.render(<App />, document.body), 1000)
-  console.log("Connected to backend")
+port.onMessage.addListener(msg => {
+  Content.store.onMessage(msg)
 })
 
-socket.addEventListener("message", event => {
-  Content.store.onMessage(JSON.parse(event.data))
-})
-
-Content.store.presence().subscribe(presenceInfo => {
-  console.log(presenceInfo)
-})
+setTimeout(() => Preact.render(<App />, document.body), 1000)
