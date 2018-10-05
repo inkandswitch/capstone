@@ -16,8 +16,7 @@ interface Props {
 }
 
 export default class Touch extends Handler<Props> {
-  ref?: HTMLElement
-
+  ref: HTMLDivElement | undefined
   hammer: HammerManager
 
   componentDidMount() {
@@ -82,8 +81,8 @@ export default class Touch extends Handler<Props> {
     return event.pointerType !== "pen" && !event.srcEvent.shiftKey
   }
 
-  onRef(e: HTMLElement) {
-    this.ref = e
+  onRef = (ref: HTMLDivElement) => {
+    this.ref = ref
   }
 
   render() {
@@ -97,10 +96,9 @@ export default class Touch extends Handler<Props> {
       onDoubleTap,
       onThreeFingerSwipeDown,
       onThreeFingerSwipeUp,
-      ref: onRef,
       ...rest
     } = this.props
 
-    return React.cloneElement(this.child, rest)
+    return <div ref={this.onRef}>{React.cloneElement(this.child, rest)}</div>
   }
 }
