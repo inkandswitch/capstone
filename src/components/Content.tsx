@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Link from "../data/Link"
 import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
@@ -10,7 +10,7 @@ export interface WidgetProps<T> {
   mode: Mode
   store: Store
 }
-interface Widget<T> extends Preact.Component<WidgetProps<T>, any> {}
+interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
 
 export type WidgetClass<T> = {
   new (...k: any[]): Widget<T>
@@ -114,7 +114,7 @@ export class DocumentActor<
   }
 }
 
-export default class Content extends Preact.Component<Props & unknown> {
+export default class Content extends React.Component<Props & unknown> {
   static defaultProps = {
     isFocused: false,
   }
@@ -151,7 +151,7 @@ export default class Content extends Preact.Component<Props & unknown> {
     const { type, id } = Link.parse(url)
     const handle = this.store.handle(id)
     setImmediate(() => {
-      handle.on("doc",callback)
+      handle.on("doc", callback)
     })
     return handle.change
   }
@@ -219,7 +219,7 @@ export default class Content extends Preact.Component<Props & unknown> {
   }
 }
 
-export class Missing extends Preact.Component<{ type: string }> {
+export class Missing extends React.Component<{ type: string }> {
   render() {
     return <div>'{this.props.type}' not found in Content.registry</div>
   }

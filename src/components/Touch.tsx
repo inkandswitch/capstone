@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Handler from "./Handler"
 import * as Hammer from "hammerjs"
 
@@ -16,10 +16,12 @@ interface Props {
 }
 
 export default class Touch extends Handler<Props> {
+  ref?: HTMLElement
+
   hammer: HammerManager
 
   componentDidMount() {
-    if (!this.base) return
+    if (!this.ref) return
 
     const {
       onPinchEnd,
@@ -59,7 +61,7 @@ export default class Touch extends Handler<Props> {
       ])
     }
 
-    this.hammer = new Hammer.Manager(this.base, {
+    this.hammer = new Hammer.Manager(this.ref, {
       recognizers,
     })
     this.hammer.on("pinchend", this.handle("onPinchEnd"))
@@ -80,15 +82,25 @@ export default class Touch extends Handler<Props> {
     return event.pointerType !== "pen" && !event.srcEvent.shiftKey
   }
 
+  onRef(e: HTMLElement) {
+    this.ref = e
+  }
+
   render() {
+    if (!this.child || !React.isValidElement(this.child)) {
+      return null
+    }
+
     const {
       onPinchEnd,
       onTap,
       onDoubleTap,
       onThreeFingerSwipeDown,
       onThreeFingerSwipeUp,
+      ref: onRef,
       ...rest
     } = this.props
-    return Preact.cloneElement(this.child, rest)
+
+    return React.cloneElement(this.child, rest)
   }
 }

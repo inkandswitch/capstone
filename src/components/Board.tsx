@@ -1,5 +1,5 @@
-import * as Preact from "preact"
-import TransitionGroup = require("preact-css-transition-group")
+import * as React from "react"
+import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Pen, { PenEvent } from "./Pen"
@@ -132,8 +132,8 @@ function addCard(
   return board
 }
 
-class Board extends Preact.Component<Props, State> {
-  boardEl?: HTMLElement
+class Board extends React.Component<Props, State> {
+  boardEl?: HTMLDivElement
   state = { focusedCardId: null }
 
   static reify(doc: AnyDoc): Model {
@@ -155,28 +155,30 @@ class Board extends Preact.Component<Props, State> {
             onInkStroke={this.onInkStroke}>
             <div
               style={style.Board}
-              ref={(el: HTMLElement) => (this.boardEl = el)}>
+              ref={(el: HTMLDivElement) => (this.boardEl = el)}>
               <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
-              <TransitionGroup
-                transitionName={{ leave: cardCss.exiting }}
-                transitionEnter={false}
-                transitionLeaveTimeout={500}>
+              <TransitionGroup>
                 {Object.values(cards).map(card => {
                   if (!card) return null
 
                   return (
-                    <DraggableCard
+                    <CSSTransition
                       key={card.id}
-                      card={card}
-                      onDoubleTap={this.props.onNavigate}
-                      onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}>
-                      <Content
-                        mode="embed"
-                        url={card.url}
-                        isFocused={focusedCardId === card.id}
-                      />
-                    </DraggableCard>
+                      classNames="Card"
+                      enter={false}
+                      timeout={{ exit: 500 }}>
+                      <DraggableCard
+                        card={card}
+                        onDoubleTap={this.props.onNavigate}
+                        onDragStart={this.onDragStart}
+                        onDragStop={this.onDragStop}>
+                        <Content
+                          mode="embed"
+                          url={card.url}
+                          isFocused={focusedCardId === card.id}
+                        />
+                      </DraggableCard>
+                    </CSSTransition>
                   )
                 })}
               </TransitionGroup>
@@ -237,7 +239,7 @@ class Board extends Preact.Component<Props, State> {
     })
   }
 
-  onPointerDown = (e: PointerEvent) => {
+  onPointerDown = (e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
     this.clearCardFocus()
@@ -404,7 +406,7 @@ const style = {
     width: "100%",
     height: "100%",
     padding: BOARD_PADDING,
-    position: "absolute",
+    position: "absolute" as "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
     overflow: "hidden",
@@ -414,15 +416,15 @@ const style = {
     right: 0,
     bottom: 0,
     left: 0,
-    position: "absolute",
+    position: "absolute" as "absolute",
     backgroundColor: "#000",
     opacity: 0.15,
   },
 
   Preview: {
     Board: {
-      display: "flex",
-      flexDirection: "row",
+      display: "flex" as "flex",
+      flexDirection: "row" as "row",
       justifyContent: "center",
       padding: "50px 25px",
       fontSize: 16,
@@ -433,8 +435,8 @@ const style = {
       width: 50,
     },
     TitleContainer: {
-      display: "flex",
-      flexDirection: "column",
+      display: "flex" as "flex",
+      flexDirection: "column" as "column",
       justifyContent: "center",
       margin: "0 15px",
     },

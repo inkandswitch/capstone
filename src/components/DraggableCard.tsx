@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
@@ -19,7 +19,7 @@ export interface Props {
   onDoubleTap?: (url: string) => void
 }
 
-export default class DraggableCard extends Preact.Component<Props> {
+export default class DraggableCard extends React.Component<Props> {
   render() {
     const {
       card: { x, y, z },
@@ -54,7 +54,7 @@ export default class DraggableCard extends Preact.Component<Props> {
     this.props.onDragStart(this.props.card.id)
   }
 
-  stop = (e: PointerEvent, data: DraggableData) => {
+  stop = (e: React.PointerEvent, data: DraggableData) => {
     this.props.onDragStop &&
       this.props.onDragStop(data.x, data.y, this.props.card.id)
   }

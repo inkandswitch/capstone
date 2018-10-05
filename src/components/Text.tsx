@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
@@ -12,7 +12,7 @@ interface Props extends Widget.Props<Model> {
   isFocused: boolean
 }
 
-class Text extends Preact.Component<Props> {
+class Text extends React.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       content: Reify.array(doc.content),

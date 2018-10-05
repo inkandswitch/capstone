@@ -1,20 +1,21 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Store from "../data/Store"
 
 interface Props {
   store: Store
 }
 
-export default class Root extends Preact.Component<Props> {
-  getChildContext() {
-    return {
-      store: this.props.store,
-    }
-  }
-
+export default class Root extends React.Component<Props> {
   render() {
-    const child =
-      (this.props.children instanceof Array && this.props.children[0]) || null
+    const { children } = this.props
+    const childArray = React.Children.toArray(children)
+
+    const child = childArray ? childArray[0] : null
+
+    if (!child || !React.isValidElement(child)) {
+      return null
+    }
+
     return child
   }
 }

@@ -8,7 +8,6 @@
     "lib": ["es2017", "es6", "dom", "dom.iterable", "scripthost"],
     "jsx": "react",
     "experimentalDecorators": true,
-    "jsxFactory": "Preact.h",
     "allowJs": true,
     "sourceMap": true
   },
