@@ -8,15 +8,3 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     file: "content.js",
   })
 })
-
-// The ID of the extension we want to talk to.
-var capstoneExtensionId = "chockaehepbpnfkjbagoinpcpbbmbllm"
-
-// Make a simple request:
-chrome.runtime.sendMessage(
-  capstoneExtensionId,
-  { "other extension": "data" },
-  response => {
-    console.log("Received response from capstone", response)
-  },
-)
