@@ -141,7 +141,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
           style={style.Workspace}
           onDragOver={this.onDragOver}
           onDrop={this.onDrop}>
-          ><Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
             key={currentUrl}
             mode={this.props.mode}
