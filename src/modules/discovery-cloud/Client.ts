@@ -106,6 +106,8 @@ export default class DiscoveryCloudClient extends EventEmitter {
   }
 
   private receive(msg: Msg.ServerToClient) {
+    log("receive %o", msg)
+
     switch (msg.type) {
       case "Connect":
         this.onPeer(msg.peerId, msg.peerChannels)
