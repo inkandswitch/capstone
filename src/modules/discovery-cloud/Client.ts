@@ -1,7 +1,7 @@
 import * as WebSocket from "ws"
 import * as Base58 from "bs58"
 import { EventEmitter } from "events"
-import { Stream, Duplex } from "stream"
+import { Stream, Duplex, DuplexOptions } from "stream"
 import * as Debug from "debug"
 import * as Msg from "./Msg"
 
@@ -135,13 +135,15 @@ export default class DiscoveryCloudClient extends EventEmitter {
         channel: Base58.decode(channel),
       })
 
-      wireToPeer.pipe(local).pipe(wireToPeer)
+      wireToPeer.on("open", () => {
+        wireToPeer.pipe(local).pipe(wireToPeer)
+      })
     })
   }
 
   private createPeer(id: string): Duplex {
     const url = `${this.url}/connect/${this.id}/${id}`
-    const stream = asStream(new WebSocket(url))
+    const stream = new WebSocketStream(url)
 
     this.peers.set(id, stream)
 
@@ -149,29 +151,27 @@ export default class DiscoveryCloudClient extends EventEmitter {
   }
 }
 
-function asStream(socket: WebSocket): Duplex {
-  const stream = new Duplex()
-    .on("close", () => {
-      // maybe for "end" too?
-      socket.close()
-    })
-    .on("data", data => {
-      socket.send(data)
-    })
-    .on("error", err => {
-      socket.emit("error", err)
+class WebSocketStream extends Duplex {
+  socket: WebSocket
+
+  constructor(url: string) {
+    super()
+    this.socket = new WebSocket(url)
+
+    this.socket.on("open", () => {
+      this.emit("open")
     })
 
-  socket
-    .on("close", () => {
-      stream.destroy()
+    this.socket.on("message", data => {
+      if (!this.push(data)) {
+        this.socket.close()
+      }
     })
-    .on("message", data => {
-      stream.write(data)
-    })
-    .on("error", err => {
-      stream.emit("error", err)
-    })
+  }
 
-  return stream
+  _write(chunk: Buffer, _: unknown, cb: () => void) {
+    this.socket.send(chunk, cb)
+  }
+
+  _read() {}
 }
