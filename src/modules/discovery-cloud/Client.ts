@@ -1,7 +1,7 @@
 import * as WebSocket from "ws"
 import * as Base58 from "bs58"
 import { EventEmitter } from "events"
-import { Stream, Duplex, DuplexOptions } from "stream"
+import { Duplex } from "stream"
 import * as Debug from "debug"
 import * as Msg from "./Msg"
 
@@ -177,4 +177,17 @@ class WebSocketStream extends Duplex {
   }
 
   _read() {}
+
+  _destroy(err: Error | null, cb: (error: Error | null) => void) {
+    if (err) {
+      this.socket.emit("error", err)
+      this.socket.terminate()
+      cb(null)
+    }
+  }
+
+  _final(cb: (error?: Error | null | undefined) => void) {
+    this.socket.close()
+    cb()
+  }
 }
