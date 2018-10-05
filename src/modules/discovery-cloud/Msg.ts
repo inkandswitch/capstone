@@ -10,7 +10,8 @@ export interface Leave {
 
 export interface Connect {
   type: "Connect"
-  channel: string
+  peerId: string
+  peerChannels: string[]
 }
 
 export type ClientToServer = Join | Leave

@@ -1,13 +1,13 @@
 import { Hypermerge } from "."
-import RouterClient from "./RouterClient"
+import CloudClient from "../discovery-cloud/Client"
 
-export default function routerSwarm(hm: Hypermerge, opts: any) {
+export default function cloudSwarm(hm: Hypermerge, opts: any) {
   const mergedOpts = {
     stream: (opts: any) => hm.replicate(opts),
     ...opts,
   }
 
-  const swarm = (hm.swarm = new RouterClient(mergedOpts))
+  const swarm = (hm.swarm = new CloudClient(mergedOpts))
 
   swarm.join(hm.core.archiver.changes.discoveryKey)
 
