@@ -4,9 +4,19 @@
 
 // Called when the user clicks on the browser action.
 chrome.browserAction.onClicked.addListener(function(tab) {
-  // No tabs or host permissions needed!
-  console.log("Turning " + tab.url + " red!")
   chrome.tabs.executeScript({
     file: "content.js",
   })
 })
+
+// The ID of the extension we want to talk to.
+var capstoneExtensionId = "chockaehepbpnfkjbagoinpcpbbmbllm"
+
+// Make a simple request:
+chrome.runtime.sendMessage(
+  capstoneExtensionId,
+  { "other extension": "data" },
+  response => {
+    console.log("Received response from capstone", response)
+  },
+)
