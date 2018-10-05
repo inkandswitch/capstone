@@ -3,6 +3,7 @@ import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import Touch, { TouchEvent } from "./Touch"
+import { omit } from "lodash"
 
 export interface CardModel {
   id: string
@@ -37,7 +38,9 @@ export default class DraggableCard extends React.Component<Props> {
           onCancel={this.cancel}
           z={z}
           enableUserSelectHack={false}>
-          <Card cardId={this.props.card.id} {...rest}>
+          <Card
+            cardId={this.props.card.id}
+            {...omit(rest, ["onDoubleTap", "onDragStop"])}>
             {children}
           </Card>
         </Draggable>
