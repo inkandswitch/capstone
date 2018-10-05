@@ -30,7 +30,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
   url: string
   isOpen: boolean = false
   channels: Set<string> = new Set()
-  peers: Map<string, Duplex> = new Map()
+  peers: Map<string, WebSocketStream> = new Map()
   discovery: WebSocket
 
   constructor(opts: Options) {
@@ -143,16 +143,21 @@ export default class DiscoveryCloudClient extends EventEmitter {
         hash: false,
       })
 
-      setTimeout(() => {
+      if (wireToPeer.socket.readyState === WebSocket.OPEN) {
         wireToPeer.pipe(local).pipe(wireToPeer)
-        wireToPeer.on("error", err => {
-          log("error", err)
+      } else {
+        wireToPeer.on("open", () => {
+          wireToPeer.pipe(local).pipe(wireToPeer)
         })
-      }, 500)
+      }
+
+      wireToPeer.on("error", err => {
+        log("error", err)
+      })
     })
   }
 
-  private createPeer(id: string): Duplex {
+  private createPeer(id: string): WebSocketStream {
     const url = `${this.url}/connect/${this.id}/${id}`
     const stream = new WebSocketStream(url)
 
