@@ -98,7 +98,7 @@ function app(name, overrides = {}) {
 
 module.exports = [
   app("capstone"),
-  // app("sidecar"),
+  app("sidecar"),
   app("tests", {
     entry: {
       main: [
