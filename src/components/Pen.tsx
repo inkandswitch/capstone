@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default class Pen extends Handler<Props> {
-  ref?: HTMLElement
+  ref: HTMLDivElement | undefined
   hammer: HammerManager
   shouldPreventPenScroll = false
   isPenActive = false
@@ -105,7 +105,7 @@ export default class Pen extends Handler<Props> {
     return event.pointerType === "pen" || event.srcEvent.shiftKey
   }
 
-  onRef(ref: HTMLElement) {
+  onRef = (ref: HTMLDivElement) => {
     this.ref = ref
   }
 
@@ -114,7 +114,8 @@ export default class Pen extends Handler<Props> {
       return null
     }
 
-    const { onDoubleTap, onPanMove, onPanEnd, ref: onRef, ...rest } = this.props
-    return React.cloneElement(this.child, rest)
+    const { onDoubleTap, onPanMove, onPanEnd, ...rest } = this.props
+
+    return <div ref={this.onRef}>{React.cloneElement(this.child, rest)}</div>
   }
 }

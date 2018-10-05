@@ -193,6 +193,8 @@ export default class Draggable extends React.Component<
     // Get the current drag point from the event. This is used as the offset.
     const { x, y } = getControlPosition(e, this, this.ref)
 
+    console.log("getControlPosition", { x, y })
+
     // Create an event object with all the data parents need to make a decision here.
     const coreEvent = createCoreData(this, this.ref, x, y)
 
@@ -245,6 +247,8 @@ export default class Draggable extends React.Component<
     const { x, y } = getControlPosition(e, this, this.ref)
     const coreData = createCoreData(this, this.ref, x, y)
     const uiData = createDraggableData(this, coreData)
+
+    console.log("handleDrag", { x, y })
 
     // TODO: should by DraggableState.
     const newState: any = {
@@ -304,6 +308,8 @@ export default class Draggable extends React.Component<
     const position = getControlPosition(e, this, this.ref)
     const { x, y } = position as ControlPosition
     const coreEvent = createCoreData(this, this.ref, x, y)
+
+    console.log("handleDragStop", { x, y })
 
     const shouldUpdate =
       this.props.onStop &&

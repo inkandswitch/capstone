@@ -2,7 +2,6 @@ import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
-import Pen, { PenEvent } from "./Pen"
 import DraggableCard, { CardModel } from "./DraggableCard"
 import Content, {
   DocumentActor,
@@ -133,7 +132,7 @@ function addCard(
 }
 
 class Board extends React.Component<Props, State> {
-  boardEl?: HTMLDivElement
+  boardEl: HTMLDivElement | undefined
   state = { focusedCardId: null }
 
   static reify(doc: AnyDoc): Model {
@@ -142,6 +141,10 @@ class Board extends React.Component<Props, State> {
       strokes: Reify.array(doc.strokes),
       topZ: Reify.number(doc.topZ),
     }
+  }
+
+  onRef = (ref: HTMLDivElement) => {
+    this.boardEl = ref
   }
 
   render() {
@@ -153,9 +156,7 @@ class Board extends React.Component<Props, State> {
           <StrokeRecognizer
             onGlyph={this.onGlyph}
             onInkStroke={this.onInkStroke}>
-            <div
-              style={style.Board}
-              ref={(el: HTMLDivElement) => (this.boardEl = el)}>
+            <div style={style.Board} ref={this.onRef}>
               <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
               <TransitionGroup>
                 {Object.values(cards).map(card => {

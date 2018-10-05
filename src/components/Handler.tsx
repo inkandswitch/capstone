@@ -19,9 +19,7 @@ export default abstract class Handler<
 
   // Easy way to get a sole child component
   get child() {
-    const { children } = this.props
-    const childArray = React.Children.toArray(children)
-    return childArray ? childArray[0] : null
+    return React.Children.only(this.props.children)
   }
 
   // Override and return false for events that shouldn't be emitted.
