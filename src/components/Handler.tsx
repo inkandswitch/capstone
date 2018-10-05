@@ -17,11 +17,6 @@ export default abstract class Handler<
 > extends React.Component<InProps & Props, State> {
   handlers: { [name: string]: (event: Event) => void } = {}
 
-  // Easy way to get a sole child component
-  get child() {
-    return React.Children.only(this.props.children)
-  }
-
   // Override and return false for events that shouldn't be emitted.
   abstract filter(event: Event): Boolean
 

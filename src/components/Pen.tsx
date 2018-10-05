@@ -110,12 +110,6 @@ export default class Pen extends Handler<Props> {
   }
 
   render() {
-    if (!this.child || !React.isValidElement(this.child)) {
-      return null
-    }
-
-    const { onDoubleTap, onPanMove, onPanEnd, ...rest } = this.props
-
-    return <div ref={this.onRef}>{React.cloneElement(this.child, rest)}</div>
+    return <div ref={this.onRef}>{this.props.children}</div>
   }
 }
