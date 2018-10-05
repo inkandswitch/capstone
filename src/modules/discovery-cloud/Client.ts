@@ -163,14 +163,17 @@ class WebSocketStream extends Duplex {
     })
 
     this.socket.on("message", data => {
+      log("peerdata from socket", data)
       if (!this.push(data)) {
         this.socket.close()
       }
     })
   }
 
-  _write(chunk: Buffer, _: unknown, cb: () => void) {
-    this.socket.send(chunk, cb)
+  _write(data: Buffer, _: unknown, cb: () => void) {
+    log("peerdata to socket", data)
+
+    this.socket.send(data, cb)
   }
 
   _read() {}
