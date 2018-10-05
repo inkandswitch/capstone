@@ -175,9 +175,9 @@ class WebSocketStream extends Duplex {
     this.socket.addEventListener("open", () => {
       this.emit("open")
     })
-    this.socket.addEventListener("message", data => {
-      log("peerdata from socket", data)
-      if (!this.push(data)) {
+    this.socket.addEventListener("message", event => {
+      log("peerdata from socket", event.data)
+      if (!this.push(event.data)) {
         log("stream closed, cannot write")
         this.socket.close()
       }
