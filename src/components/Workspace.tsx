@@ -110,11 +110,11 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     this.importData(e.clipboardData)
   }
 
-  onDragOver = (event: DragEvent) => {
+  onDragOver = (event: React.DragEvent) => {
     event.preventDefault()
   }
 
-  onDrop = (event: DragEvent) => {
+  onDrop = (event: React.DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
     this.importData(event.dataTransfer)
@@ -137,7 +137,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     return (
       <Touch onPinchEnd={this.onPinchEnd}>
         <div
-          class="Workspace"
+          className="Workspace"
           style={style.Workspace}
           onDragOver={this.onDragOver}
           onDrop={this.onDrop}>
