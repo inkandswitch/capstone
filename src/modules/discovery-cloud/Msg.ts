@@ -1,3 +1,8 @@
+export interface Hello {
+  type: "Hello"
+  channels: string[]
+}
+
 export interface Join {
   type: "Join"
   channel: string
@@ -14,5 +19,5 @@ export interface Connect {
   peerChannels: string[]
 }
 
-export type ClientToServer = Join | Leave
+export type ClientToServer = Hello | Join | Leave
 export type ServerToClient = Connect
