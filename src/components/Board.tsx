@@ -167,7 +167,7 @@ class Board extends React.Component<Props, State> {
                       key={card.id}
                       classNames="Card"
                       enter={false}
-                      timeout={{ exit: 500 }}>
+                      timeout={{ exit: 1 }}>
                       <DraggableCard
                         card={card}
                         onDoubleTap={this.props.onNavigate}
