@@ -1,6 +1,7 @@
 import * as File from "./File"
 
 export interface Entry {
+  item: DataTransferItem
   type: string
   getAsText: () => Promise<string>
   getAsDataURL: () => Promise<string>
@@ -14,6 +15,7 @@ export const extractEntries = ({ files, items }: DataTransfer): Entry[] => {
   return ([...items] as DataTransferItem[])
     .filter(item => item.kind === kind)
     .map(item => ({
+      item: item,
       type: item.type,
       getAsText: () => extractAsText(item),
       getAsDataURL: () => extractAsDataURL(item),
