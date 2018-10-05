@@ -50,12 +50,17 @@ class DiscoveryCloudServer {
 
   join(ws1,ws2) {
     ws1.on("message",(data) => {
+      log("pipe -> ",data)
       ws2.send(data)
     })
     ws2.on("message",(data) => {
+      log("pipe <- ",data)
       ws1.send(data)
     })
-    const cleanup = () => { ws1.close(), ws2.close() }
+    const cleanup = () => {
+      log("cleaning up joined pipes")
+      ws1.close(), ws2.close()
+    }
     w1.on("error", cleanup)
     w2.on("error", cleanup)
     w1.on("close", cleanup)
@@ -102,8 +107,7 @@ class DiscoveryCloudServer {
         const other = this.looking[key2]
         delete this.looking[key2]
         log("piping", key1)
-//        this.join(ws,other)
-        ws.pipe(other).pipe(ws)
+        this.join(ws,other)
       } else {
         log("holding connection - waiting for peer", key1, key2)
         this.looking[key1] = ws
