@@ -111,5 +111,10 @@ module.exports = [
       content: ["./src/apps/clipper/content.js"],
       background: "./src/apps/clipper/background.js",
     },
+    plugins: [
+      new CopyWebpackPlugin(["manifest.json"], {
+        context: `./src/apps/clipper`,
+      }),
+    ],
   }),
 ]
