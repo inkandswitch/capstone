@@ -35,7 +35,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     this.selfKey = opts.id
     this.id = Base58.encode(opts.id)
     this.url = opts.url
-    this.discovery = this.connectDiscovery(this.url)
+    this.connectDiscovery()
 
     log("Initialized %o", opts)
   }
@@ -50,7 +50,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
       this.send({
         type: "Join",
         id: this.id,
-        channels: [channel],
+        join: [channel],
       })
     }
   }
@@ -65,7 +65,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
       this.send({
         type: "Leave",
         id: this.id,
-        channels: [channel],
+        leave: [channel],
       })
     }
   }
@@ -74,29 +74,38 @@ export default class DiscoveryCloudClient extends EventEmitter {
     // NOOP
   }
 
-  private connectDiscovery(url: string) {
-    return new WebSocket(`${url}/discovery`)
+  private connectDiscovery() {
+    const url = `${this.url}/discovery`
+
+    log("connectDiscovery", url)
+
+    this.discovery = new WebSocket(url)
       .on("open", () => {
-        console.log("OPEN")
+        log("open")
         this.isOpen = true
         this.sendHello()
       })
       .on("close", () => {
-        console.log("CLOSE")
+        log("closed... reconnecting in 5s")
         this.isOpen = false
+        this.discovery.terminate()
+        setTimeout(() => {
+          this.connectDiscovery()
+        }, 5000)
       })
       .on("message", data => this.receive(JSON.parse(data as string)))
       .on("error", err => {
-        console.log("ERR")
-        log("Error", err)
+        log("error", err)
       })
+
+    return this.discovery
   }
 
   private sendHello() {
     this.send({
       type: "Hello",
       id: this.id,
-      channels: [...this.channels],
+      join: [...this.channels],
     })
   }
 
@@ -117,10 +126,13 @@ export default class DiscoveryCloudClient extends EventEmitter {
   }
 
   private onPeer(id: string, channels: string[]) {
-    const url = `${this.url}/peers/${this.id}/${id}`
+    const url = `${this.url}/connect/${this.id}/${id}`
     const socket = new WebSocket(url)
       .on("open", () => {
-        log("peer open", url)
+        log("peer open", id, channels)
+      })
+      .on("close", () => {
+        log("peer close")
       })
       .on("message", data => {
         log("peer message", data)

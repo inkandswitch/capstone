@@ -3,7 +3,7 @@ let app = express();
 let expressWs = require('express-ws')(app);
 
 function mergeUniq(base = [], add = [], remove = []) {
-  return base.concat(add).reduce((acc,val) => acc.includes(val) || remove.includes(val) ? acc : acc.push(val),[])
+  return base.concat(add).reduce((acc,val) => acc.includes(val) || remove.includes(val) ? acc : acc.concat(val),[])
 }
 
 class DiscoveryCloudServer {
@@ -47,8 +47,8 @@ class DiscoveryCloudServer {
   notifyUnions(id1) {
     for (const id2 in this.peers) {
       this.ifUnion(id1, id2, (keys) => {
-        this.send(id1, { peer: id2, keys })
-        this.send(id2, { peer: id1, keys })
+        this.send(id1, { type: "Connect", peerId: id2, peerChannels: keys })
+        this.send(id2, { type: "Connect", peerId: id1, peerChannels: keys })
       })
     }
   }
@@ -87,7 +87,7 @@ class DiscoveryCloudServer {
       ws.on('close', cleanup)
     });
 
-    app.ws('/peer/:peer1/:peer2', (ws, req) => {
+    app.ws('/connect/:peer1/:peer2', (ws, req) => {
       const key1 = req.params.peer1 + ":" + req.params.peer2
       const key2 = req.params.peer2 + ":" + req.params.peer1
 
