@@ -106,4 +106,10 @@ module.exports = [
       background: "./src/apps/tests/background.chrome.ts",
     },
   }),
+  app("clipper", {
+    entry: {
+      content: ["./src/apps/clipper/content.js"],
+      background: "./src/apps/clipper/background.js",
+    },
+  }),
 ]
