@@ -107,14 +107,28 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   onPaste = (e: ClipboardEvent) => {
-    const urlPromises = DataImport.importData(e.clipboardData)
-    Promise.all(urlPromises).then(urls => {
-      this.props.emit({ type: "AddToShelf", body: { urls } })
-    })
+    this.importData(e.clipboardData)
+  }
+
+  onDragOver = (event: DragEvent) => {
+    event.preventDefault()
+  }
+
+  onDrop = (event: DragEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    this.importData(event.dataTransfer)
   }
 
   onTapPeer = (identityUrl: string) => {
     this.props.emit({ type: "AddToShelf", body: { url: identityUrl } })
+  }
+
+  importData = (dataTransfer: DataTransfer) => {
+    const urlPromises = DataImport.importData(dataTransfer)
+    Promise.all(urlPromises).then(urls => {
+      this.props.emit({ type: "AddToShelf", body: { urls } })
+    })
   }
 
   render() {
@@ -122,7 +136,11 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     const currentUrl = this.peek()
     return (
       <Touch onPinchEnd={this.onPinchEnd}>
-        <div class="Workspace" style={style.Workspace}>
+        <div
+          class="Workspace"
+          style={style.Workspace}
+          onDragOver={this.onDragOver}
+          onDrop={this.onDrop}>
           <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
             key={currentUrl}
