@@ -85,6 +85,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     log("connectDiscovery", url)
 
     this.discovery = new WebSocket(url)
+    this.discovery.binaryType = "arraybuffer"
     this.discovery.addEventListener("open", () => {
       log("open")
       this.isOpen = true
@@ -173,6 +174,7 @@ class WebSocketStream extends Duplex {
   constructor(url: string) {
     super()
     this.socket = new WebSocket(url)
+    this.socket.binaryType = "arraybuffer"
 
     this.socket.addEventListener("error", err => {
       log("socket error", err)
@@ -181,8 +183,10 @@ class WebSocketStream extends Duplex {
       this.emit("open")
     })
     this.socket.addEventListener("message", event => {
-      log("peerdata from socket", event.data)
-      if (!this.push(event.data)) {
+      const data = new Uint8Array(event.data)
+      log("peerdata from socket", data)
+      // HEEEEELP
+      if (!this.push(data)) {
         log("stream closed, cannot write")
         this.socket.close()
       }
