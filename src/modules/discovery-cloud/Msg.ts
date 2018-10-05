@@ -1,16 +1,19 @@
 export interface Hello {
   type: "Hello"
+  id: string
   channels: string[]
 }
 
 export interface Join {
   type: "Join"
-  channel: string
+  id: string
+  channels: string[]
 }
 
 export interface Leave {
   type: "Leave"
-  channel: string
+  id: string
+  channels: string[]
 }
 
 export interface Connect {
