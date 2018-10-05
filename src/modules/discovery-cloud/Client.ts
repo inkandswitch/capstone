@@ -77,14 +77,17 @@ export default class DiscoveryCloudClient extends EventEmitter {
   private connectDiscovery(url: string) {
     return new WebSocket(`${url}/discovery`)
       .on("open", () => {
+        console.log("OPEN")
         this.isOpen = true
         this.sendHello()
       })
       .on("close", () => {
+        console.log("CLOSE")
         this.isOpen = false
       })
       .on("message", data => this.receive(JSON.parse(data as string)))
       .on("error", err => {
+        console.log("ERR")
         log("Error", err)
       })
   }
