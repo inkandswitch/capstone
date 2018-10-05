@@ -19,7 +19,7 @@ const feed2 = hypercore(ram, keys.publicKey)
 const client1 = new DiscoveryCloudClient({
   id: crypto.randomBytes(32),
   url,
-  stream: info => feed1.replicate(info),
+  stream: info => feed1.replicate({live:true}),
 })
 
 feed1.on("ready", () => {
@@ -33,7 +33,7 @@ feed1.on("ready", () => {
 const client2 = new DiscoveryCloudClient({
   id: crypto.randomBytes(32),
   url,
-  stream: info => feed2.replicate(info),
+  stream: info => feed2.replicate({live:true}),
 })
 
 feed2.on("ready", () => {
