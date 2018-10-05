@@ -1,6 +1,7 @@
 import * as ws from "ws"
 
 import { Hypermerge } from "./modules/hypermerge"
+import swarm from "./modules/hypermerge/discovery-swarm"
 import * as Msg from "./data/StoreMsg"
 import StoreBackend from "./data/StoreBackend"
 import * as Peek from "./data/Peek"
@@ -14,7 +15,7 @@ hm.ready.then(() => {
     port: 8008,
   })
 
-  const sm = hm.joinSwarm({
+  const sm = swarm(hm, {
     port: 5000,
     dns: { multicast },
   })
