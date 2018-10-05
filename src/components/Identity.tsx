@@ -98,9 +98,11 @@ export class Identity extends React.Component<Props, State> {
     }
   }
 
-  onChange = (event: any) => {
+  onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target
+
     this.props.change(doc => {
-      doc.name = event.target.value
+      doc.name = value
       return doc
     })
   }
