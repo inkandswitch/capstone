@@ -1,4 +1,4 @@
-// import * as WebSocket from "ws"
+import * as WebSocket from "websocket"
 import * as Base58 from "bs58"
 import { EventEmitter } from "events"
 import { Duplex } from "stream"
@@ -31,7 +31,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
   isOpen: boolean = false
   channels: Set<string> = new Set()
   peers: Map<string, WebSocketStream> = new Map()
-  discovery: WebSocket
+  discovery: WebSocket.connection
 
   constructor(opts: Options) {
     super()
@@ -84,29 +84,31 @@ export default class DiscoveryCloudClient extends EventEmitter {
 
     log("connectDiscovery", url)
 
-    this.discovery = new WebSocket(url)
-    this.discovery.binaryType = "arraybuffer"
-    this.discovery.addEventListener("open", () => {
-      log("open")
-      this.isOpen = true
+    const ws = new WebSocket.client()
+    ws.connect(url)
+
+    ws.on("connect", (connection) => {
+      log("connect")
+      this.discovery = connection
       this.sendHello()
+      this.discovery.on("close", (event) => {
+        log("closed... reconnecting in 5s")
+        this.isOpen = false
+        setTimeout(() => { this.connectDiscovery() }, 5000)
+      })
+      this.discovery.on("message", (event) => {
+        log("message",event)
+        this.receive(JSON.parse((event.utf8Data || "")))
+      })
+      this.discovery.on("error", (err) => {
+        log("error", err)
+      })
     })
-    this.discovery.addEventListener("close", () => {
-      log("closed... reconnecting in 5s")
-      this.isOpen = false
-      // this.discovery.terminate()
-      setTimeout(() => {
-        this.connectDiscovery()
-      }, 5000)
-    })
-    this.discovery.addEventListener("message", event =>
-      this.receive(JSON.parse(event.data)),
-    )
-    this.discovery.addEventListener("error", err => {
-      log("error", err)
+    ws.on("connectFailed", (err) => {
+      log("conncetionFailed", err)
+      setTimeout(() => { this.connectDiscovery() }, 5000)
     })
 
-    return this.discovery
   }
 
   private sendHello() {
@@ -144,13 +146,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
         hash: false,
       })
 
-      if (wireToPeer.socket.readyState === WebSocket.OPEN) {
-        wireToPeer.pipe(local).pipe(wireToPeer)
-      } else {
-        wireToPeer.on("open", () => {
-          wireToPeer.pipe(local).pipe(wireToPeer)
-        })
-      }
+      wireToPeer.ready.then(() => wireToPeer.pipe(local).pipe(wireToPeer))
 
       wireToPeer.on("error", err => {
         log("error", err)
@@ -169,27 +165,30 @@ export default class DiscoveryCloudClient extends EventEmitter {
 }
 
 class WebSocketStream extends Duplex {
-  socket: WebSocket
+  socket: WebSocket.connection
+  ready: Promise<void>
 
   constructor(url: string) {
     super()
-    this.socket = new WebSocket(url)
-    this.socket.binaryType = "arraybuffer"
+    const ws = new WebSocket.client()
+    ws.connect(url)
 
-    this.socket.addEventListener("error", err => {
-      log("socket error", err)
-    })
-    this.socket.addEventListener("open", () => {
-      this.emit("open")
-    })
-    this.socket.addEventListener("message", event => {
-      const data = new Uint8Array(event.data)
-      log("peerdata from socket", data)
-      // HEEEEELP
-      if (!this.push(data)) {
-        log("stream closed, cannot write")
-        this.socket.close()
-      }
+    this.ready = new Promise((resolve,reject) => {
+      ws.on("connect",connection => {
+        this.socket = connection
+        resolve()
+        this.socket.on("error", err => {
+          log("socket error", err)
+        })
+        this.socket.on("message", event => {
+          const data = event.binaryData
+          log("peerdata from socket", data)
+          if (!this.push(data)) {
+            log("stream closed, cannot write")
+            this.socket.close()
+          }
+        })
+      })
     })
   }
 

@@ -11,17 +11,8 @@ const log1 = Debug("discovery-cloud:test:client1")
 const log2 = Debug("discovery-cloud:test:client2")
 
 const url = "wss://discovery-cloud.herokuapp.com"
-// const keys = crypto.keyPair()
-const keys = {
-  publicKey: Buffer.from(
-    "e958afad0b384781ec4479bce2032998c42f2e429e9247be7dcc6aa1e2801788",
-    "hex",
-  ),
-  secretKey: Buffer.from(
-    "40dc03cb0963efee9d08047a22ae0ffe56cc06be6c792da7002f3c0637ff302ce958afad0b384781ec4479bce2032998c42f2e429e9247be7dcc6aa1e2801788",
-    "hex",
-  ),
-}
+//const url = "ws://0.0.0.0:8080"
+const keys = crypto.keyPair()
 
 const feed1 = hypercore(ram, keys.publicKey, { secretKey: keys.secretKey })
 const feed2 = hypercore(ram, keys.publicKey)
