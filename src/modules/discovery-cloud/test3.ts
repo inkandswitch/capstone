@@ -11,13 +11,29 @@ import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import { FrontendHandle } from "../../modules/hypermerge/frontend"
 import { Doc, AnyEditDoc, EditDoc, AnyDoc } from "automerge/frontend"
+const log = Debug("discovery-cloud:test")
 let ram = require("random-access-memory")
 
 const hm = new Hypermerge({ storage: ram })
 
 interface Model {
-  counter?: number
+  counter1?: number
+  counter2?: number
 }
+
+type Handle = FrontendHandle | null
+
+const buffers = keyPair()
+const keys = {
+  publicKey: Base58.encode(buffers.publicKey),
+  secretKey: Base58.encode(buffers.secretKey),
+}
+
+const input = process.argv[2]
+
+const docId = input || keys.publicKey
+
+log("DOCID", docId)
 
 hm.ready.then(hm => {
   swarm(hm, {
@@ -25,35 +41,30 @@ hm.ready.then(hm => {
     url: "wss://discovery-cloud.herokuapp.com",
   })
 
+  let handle = new FrontendHandle()
+  handle.setActorId(docId)
+
   const store = new StoreBackend(hm, msg => {
-    console.log("msg to frontend", msg)
+    if (msg.type == "Patch") {
+      handle.patch(msg.patch)
+    } else {
+      log("Uhandled message", msg)
+    }
   })
 
-  const buffers = keyPair()
-  const keys = {
-    publicKey: Base58.encode(buffers.publicKey),
-    secretKey: Base58.encode(buffers.secretKey),
-  }
-  const docId = keys.publicKey
-  store.onMessage({ type: "Create", docId, keys })
-
-  console.log("Opening DocId:", docId)
-  const handle = new FrontendHandle(docId)
+  if (!input) store.onMessage({ type: "Create", docId, keys })
+  store.onMessage({ type: "Open", docId })
 
   handle.on("requests", changes => {
     store.onMessage({ type: "ChangeRequest", docId, changes })
   })
 
   setInterval(() => {
+    log("About to change")
     handle.change((doc: EditDoc<Model>) => {
-      if (!doc.counter) doc.counter = 0
-      doc.counter++
+      if (input) doc.counter1 = (doc.counter1 || 0) + 1
+      else doc.counter2 = (doc.counter2 || 0) + 1
     })
+    log("CHANGE", handle._front)
   }, 2000)
-
-  //  store.onMessage({ type: "Open", docId })
-
-  //  port.onMessage.addListener(msg => {
-  //    store.onMessage(msg)
-  //  })
 })

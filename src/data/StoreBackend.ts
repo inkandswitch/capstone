@@ -96,7 +96,6 @@ export default class StoreBackend {
   }
 
   onMessage = (msg: Msg.FrontendToBackend) => {
-    console.log("backend <- frontend", msg)
     switch (msg.type) {
       case "Open": {
         const { docId } = msg
@@ -182,7 +181,6 @@ export default class StoreBackend {
 
       case "SetIdentity": {
         const { identityUrl } = msg
-        console.log("Identity", identityUrl)
         this.hypermerge.setIdentity(identityUrl)
         break
       }
@@ -190,7 +188,6 @@ export default class StoreBackend {
   }
 
   sendToFrontend(msg: Msg.BackendToFrontend) {
-    console.log("backend -> frontend", msg)
     this._send(msg)
   }
 }
