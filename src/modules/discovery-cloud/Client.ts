@@ -7,7 +7,13 @@ import { Duplex } from "stream"
 
 Debug.formatters.b = Base58.encode
 
-const log = Debug("discovery-cloud:client")
+const log = Debug("discovery-cloud:Client")
+
+export interface Peer {
+  id: string
+  socket: WebSocketStream
+  channels: string[]
+}
 
 export interface Info {
   channel: Buffer
@@ -30,7 +36,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
   selfKey: Buffer
   url: string
   channels: Set<string> = new Set()
-  connections: Map<string, WebSocketStream> = new Map()
+  peers: Map<string, Peer> = new Map()
   discovery: WebSocketStream
 
   constructor(opts: Options) {
@@ -88,18 +94,18 @@ export default class DiscoveryCloudClient extends EventEmitter {
       .on("open", () => {
         this.sendHello()
       })
-      .on("close", () => {
-        log("discovery.closed... reconnecting in 5s")
+      .on("end", () => {
+        log("discovery.onend... reconnecting in 5s")
         setTimeout(() => {
           this.connectDiscovery()
         }, 5000)
       })
       .on("data", data => {
-        log("discovery.data", data)
+        log("discovery.ondata", data)
         this.receive(JSON.parse(data))
       })
       .on("error", err => {
-        log("discovery.error", err)
+        log("discovery.onerror", err)
       })
   }
 
@@ -122,21 +128,16 @@ export default class DiscoveryCloudClient extends EventEmitter {
     switch (msg.type) {
       case "Connect":
         this.onConnect(msg.peerId, msg.peerChannels)
-
-        break // NOOP
+        break
     }
   }
 
   private onConnect(id: string, channels: string[]) {
-    channels.forEach(channel => {
-      const path = [id, channel].join("/")
-      if (this.connections.has(path)) {
-        log("connection exists. skipping %s", path)
-        return
-      }
+    const peer = this.peers.get(id) || this.createPeer(id)
 
-      const wire = this.createConnection(path)
+    const newChannels = channels.filter(ch => !peer.channels.includes(ch))
 
+    newChannels.forEach(channel => {
       const local = this.connect({
         channel: Base58.decode(channel),
         discoveryKey: Base58.decode(channel),
@@ -145,30 +146,32 @@ export default class DiscoveryCloudClient extends EventEmitter {
         hash: false,
       })
 
-      wire.ready.then(wire => wire.pipe(local).pipe(wire))
+      peer.socket.ready.then(socket => socket.pipe(local).pipe(socket))
     })
+    peer.channels = channels
   }
 
-  private createConnection(id: string): WebSocketStream {
+  private createPeer(id: string): Peer {
     const url = `${this.url}/connect/${this.id}/${id}`
-    const stream = new WebSocketStream(url)
+    log("connecting %s", url)
+    const socket = new WebSocketStream(url)
+    const peer = { id, socket, channels: [] }
+    this.peers.set(id, peer)
 
-    stream.on("error", err => {
-      log("wire.error %s", id, err)
+    socket.on("error", err => {
+      log("wire.onerror %s", id, err)
     })
 
-    stream.once("end", () => {
-      log("wire ended, deleting peer: %s", id)
-      this.connections.delete(id)
+    socket.once("end", () => {
+      log("wire.onend deleting peer: %s", id)
+      this.peers.delete(id)
     })
 
-    stream.once("close", () => {
-      log("wire closed, deleting peer: %s", id)
-      this.connections.delete(id)
+    socket.once("close", () => {
+      log("wire.onclose deleting peer: %s", id)
+      this.peers.delete(id)
     })
 
-    this.connections.set(id, stream)
-
-    return stream
+    return peer
   }
 }

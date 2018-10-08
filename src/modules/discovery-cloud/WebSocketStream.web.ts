@@ -13,13 +13,7 @@ export default class WebSocketStream extends Duplex {
     this.socket = new WebSocket(url)
     this.socket.binaryType = "arraybuffer"
 
-    this.ready = new Promise(resolve => {
-      const onOpen = () => {
-        resolve(this)
-        this.socket.removeEventListener("open", onOpen)
-      }
-      this.socket.addEventListener("open", onOpen)
-    })
+    this.resetReady()
 
     this.socket.addEventListener("open", () => {
       this.emit("open", this)
@@ -27,7 +21,7 @@ export default class WebSocketStream extends Duplex {
     })
 
     this.socket.addEventListener("close", () => {
-      this.end()
+      this.resetReady()
       this.isOpen = false
     })
 
@@ -43,6 +37,16 @@ export default class WebSocketStream extends Duplex {
         log("stream closed, cannot write")
         this.socket.close()
       }
+    })
+  }
+
+  resetReady() {
+    this.ready = new Promise(resolve => {
+      const onOpen = () => {
+        resolve(this)
+        this.socket.removeEventListener("open", onOpen)
+      }
+      this.socket.addEventListener("open", onOpen)
     })
   }
 
