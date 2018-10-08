@@ -3,7 +3,7 @@ document.body.style.backgroundColor = "red"
 import freezeDry from "freeze-dry"
 
 // The ID of the extension we want to talk to.
-var capstoneExtensionId = "chockaehepbpnfkjbagoinpcpbbmbllm"
+var capstoneExtensionId = "oiemcadceddgdehdimlfdajbkdjcdkdb"
 
 console.log("prefreeze")
 freezeDry(document, { addMetadata: true }).then(html => {

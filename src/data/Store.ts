@@ -85,6 +85,14 @@ export default class Store {
     return handle
   }
 
+  clipper(): Rx.Observable<any> {
+    return new Rx.Observable(obs => {
+      const port = chrome.runtime.connect({ name: "clipper" })
+      port.onMessage.addListener(msg => obs.next(msg))
+      port.onDisconnect.addListener(() => obs.complete())
+    })
+  }
+
   activity(id: string): Rx.Observable<Activity> {
     return new Rx.Observable(obs => {
       const port = chrome.runtime.connect({ name: `${id}/activity` })
