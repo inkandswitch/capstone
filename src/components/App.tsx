@@ -44,6 +44,20 @@ export default class App extends Preact.Component<{}, State> {
     Content.workspaceUrl = workspaceUrl
     Content.store.setIdentity(identityUrl)
 
+    Content.store.clipper().subscribe(async ({ request }) => {
+      const textUrlPromise = Content.create("Text")
+      const textUrl = await textUrlPromise
+
+      Content.once(textUrl, async (change: Function) => {
+        change((doc: any) => {
+          doc.content = request.html
+        })
+
+        console.log("text url", textUrl)
+        Content.send({ type: "AddToShelf", body: { url: textUrl } })
+      })
+    })
+
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
       change((workspace: EditDoc<Workspace.Model>) => {
@@ -90,6 +104,7 @@ export default class App extends Preact.Component<{}, State> {
       }
     })
   }
+
   render() {
     const { url } = this.state
     console.log("APP RENDER", url)

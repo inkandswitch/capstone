@@ -60,7 +60,10 @@ export default class Store {
     const command = "Create"
 
     const buffers = keyPair()
-    const keys = { publicKey: Base58.encode(buffers.publicKey), secretKey: Base58.encode(buffers.secretKey) }
+    const keys = {
+      publicKey: Base58.encode(buffers.publicKey),
+      secretKey: Base58.encode(buffers.secretKey),
+    }
     const args = { keys }
     const docId = keys.publicKey
 
@@ -81,6 +84,14 @@ export default class Store {
     const entry = new Entry(id)
     this.index[id] = entry
     return entry
+  }
+
+  clipper(): Rx.Observable<any> {
+    return new Rx.Observable(obs => {
+      const port = chrome.runtime.connect({ name: "clipper" })
+      port.onMessage.addListener(msg => obs.next(msg))
+      port.onDisconnect.addListener(() => obs.complete())
+    })
   }
 
   activity(id: string): Rx.Observable<Activity> {
