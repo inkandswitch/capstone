@@ -46,13 +46,13 @@ export default class App extends React.Component<Props, State> {
     Content.workspaceUrl = workspaceUrl
     Content.store.setIdentity(identityUrl)
 
-    Content.store.clipper().subscribe(async ({ request }) => {
+    Content.store.clipper().subscribe(async ({ request, sender }) => {
       const textUrlPromise = Content.create("Text")
       const textUrl = await textUrlPromise
 
       Content.once(textUrl, async (change: Function) => {
         change((doc: any) => {
-          doc.content = request.html
+          doc.content = [sender.url] // request.html once we have HTML widget
         })
 
         console.log("text url", textUrl)

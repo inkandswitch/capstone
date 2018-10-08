@@ -5,7 +5,7 @@ import { Hypermerge, initHypermerge } from "../../modules/hypermerge"
 let racf = require("random-access-chrome-file")
 
 let mainWindow: chrome.app.window.AppWindow
-let clipperPort
+let clipperPort: chrome.runtime.Port
 
 chrome.app.runtime.onLaunched.addListener(() => {
   chrome.app.window.create(
@@ -65,7 +65,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.runtime.onConnect.addListener(port => {
   if (port.name === "clipper") {
-    console.log("FOUND CLIPPER")
     clipperPort = port
     return
   }
