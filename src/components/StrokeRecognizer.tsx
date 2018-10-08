@@ -3,7 +3,6 @@ import * as $P from "../modules/$P"
 import * as Rx from "rxjs"
 import * as Glyph from "../data/Glyph"
 import * as Frame from "../logic/Frame"
-import Pen, { PenEvent } from "./Pen"
 import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
 import * as Feedback from "./CommandFeedback"
@@ -127,9 +126,6 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
     return (
       <div style={style}>
-        <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
-          {this.props.children}
-        </Pen>
         <Portal>
           <div>
             <canvas ref={this.canvasAdded} className={css.StrokeLayer} />
@@ -163,35 +159,6 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
   componentWillUnmount() {
     this.subscription && this.subscription.unsubscribe()
-  }
-
-  onPanStart = (event: PenEvent) => {
-    this.onPanMove(event)
-  }
-
-  onPanMove = (event: PenEvent) => {
-    const { x, y } = event.center
-    if (!this.isPenDown) this.isPenDown = true
-    this.points.push(new $P.Point(x, y, 0))
-    this.updateBounds(x, y)
-    this.draw()
-  }
-
-  onPanEnd = (event: PenEvent) => {
-    if (this.isPenDown) this.isPenDown = false
-    this.strokeId += 1
-    switch (this.state.strokeType) {
-      case StrokeType.glyph:
-        this.recognize()
-        break
-      case StrokeType.ink:
-        this.inkStroke()
-        break
-      case StrokeType.erase:
-        this.inkStroke()
-        break
-    }
-    this.reset()
   }
 
   inkStroke = () => {

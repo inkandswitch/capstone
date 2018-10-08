@@ -2,7 +2,8 @@ import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
-import DraggableCard, { CardModel } from "./DraggableCard"
+import { CardModel } from "./DraggableCard"
+import Card from "./Card"
 import Content, {
   DocumentActor,
   Message,
@@ -153,48 +154,28 @@ class Board extends React.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer
-            onGlyph={this.onGlyph}
-            onInkStroke={this.onInkStroke}>
-            <div style={style.Board} ref={this.onRef}>
-              <VirtualKeyboard onClose={this.onVirtualKeyboardClose} />
-              <TransitionGroup>
-                {Object.values(cards).map(card => {
-                  if (!card) return null
+          <div style={style.Board} ref={this.onRef}>
+            <TransitionGroup>
+              {Object.values(cards).map(card => {
+                if (!card) return null
 
-                  return (
-                    <CSSTransition
-                      key={card.id}
-                      classNames="Card"
-                      enter={false}
-                      timeout={{ exit: 1 }}>
-                      <DraggableCard
-                        card={card}
-                        onDoubleTap={this.props.onNavigate}
-                        onDragStart={this.onDragStart}
-                        onDragStop={this.onDragStop}>
-                        <Content
-                          mode="embed"
-                          url={card.url}
-                          isFocused={focusedCardId === card.id}
-                        />
-                      </DraggableCard>
-                    </CSSTransition>
-                  )
-                })}
-              </TransitionGroup>
-              <Ink strokes={strokes} />
-              {focusedCardId != null ? (
-                <div
-                  style={{
-                    ...style.FocusBackgroundOverlay,
-                    zIndex: topZ - 1,
-                  }}
-                  onPointerDown={this.onPointerDown}
-                />
-              ) : null}
-            </div>
-          </StrokeRecognizer>
+                return (
+                  <CSSTransition
+                    key={card.id}
+                    classNames="Card"
+                    enter={false}
+                    timeout={{ exit: 1 }}>
+                    <Card
+                      cardId={card.id}
+                      style={{ top: card.y, left: card.x }}>
+                      <Content mode="embed" url={card.url} />
+                    </Card>
+                  </CSSTransition>
+                )
+              })}
+            </TransitionGroup>
+            <Ink strokes={strokes} />
+          </div>
         )
       case "embed":
       case "preview":
@@ -209,195 +190,6 @@ class Board extends React.Component<Props, State> {
             </div>
           </div>
         )
-    }
-  }
-
-  onVirtualKeyboardClose = () => {
-    this.clearCardFocus()
-  }
-
-  onDragStart = (id: string) => {
-    this.props.change(doc => {
-      const card = doc.cards[id]
-      if (!card) return doc
-      if (card.z === doc.topZ) return doc
-
-      doc.topZ += 1
-      // XXX: Remove once backend/store handles object immutability.
-      doc.cards[id] = { ...card, z: doc.topZ }
-      return doc
-    })
-  }
-
-  onDragStop = (x: number, y: number, id: string) => {
-    this.props.change(doc => {
-      const card = doc.cards[id]
-      if (card) {
-        // XXX: Remove once backend/store handles object immutability.
-        doc.cards[id] = { ...card, x: x, y: y }
-      }
-      return doc
-    })
-  }
-
-  onPointerDown = (e: React.PointerEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    this.clearCardFocus()
-  }
-
-  setCardFocus = (cardId: string) => {
-    this.setState({ focusedCardId: cardId })
-  }
-
-  clearCardFocus = () => {
-    this.setState({ focusedCardId: null })
-  }
-
-  deleteCard = (id: string) => {
-    this.props.change(doc => {
-      delete doc.cards[id]
-      return doc
-    })
-    this.clearCardFocus()
-  }
-
-  onGlyph = (stroke: GlyphEvent) => {
-    let glyphHandled = false
-    // Attempt card glyph
-    const cardMatch = this.cardMatchAtPoint(stroke.center.x, stroke.center.y)
-    if (cardMatch) {
-      glyphHandled = this.onCardGlyph(stroke, cardMatch)
-    }
-    // If not handled, attempt board glyph
-    if (!glyphHandled) {
-      glyphHandled = this.onBoardGlyph(stroke)
-    }
-    // If still not handled, we don't recognize the gesture
-    if (!glyphHandled) {
-      Feedback.Provider.add("Unrecognized gesture", stroke.center)
-    }
-  }
-
-  onBoardGlyph = (stroke: GlyphEvent): boolean => {
-    switch (stroke.glyph) {
-      case Glyph.paste:
-        Feedback.Provider.add("Place contents of shelf", stroke.center)
-        this.props.emit({
-          type: "ShelfContentsRequested",
-          body: {
-            placementPosition: {
-              x: stroke.center.x - CARD_WIDTH / 2,
-              y: stroke.bounds.top,
-            },
-          },
-        })
-        break
-      case Glyph.create:
-        Feedback.Provider.add("Create board", stroke.center)
-        this.createCard("Board", stroke.center.x, stroke.center.y)
-        break
-      default: {
-        return false
-      }
-    }
-    return true
-  }
-
-  onCardGlyph = (event: GlyphEvent, cardMatch: CardMatch): boolean => {
-    switch (event.glyph) {
-      case Glyph.paste: {
-        Feedback.Provider.add("Place contents of shelf", cardMatch.center)
-        this.props.emit({
-          type: "ShelfContentsRequested",
-          body: { recipientUrl: cardMatch.card.url },
-        })
-        break
-      }
-      case Glyph.delete:
-        this.deleteCard(cardMatch.card.id)
-        Feedback.Provider.add("Delete", cardMatch.center)
-        break
-      case Glyph.copy: {
-        this.props.emit({
-          type: "AddToShelf",
-          body: { url: cardMatch.card.url },
-        })
-        Feedback.Provider.add("Add to shelf", cardMatch.center)
-        break
-      }
-      case Glyph.edit: {
-        if (this.state.focusedCardId != null) return false
-
-        // move card to top of stack
-        const cardId = cardMatch.card.id
-        this.props.change(doc => {
-          const card = doc.cards[cardId]
-          if (!card) return doc
-          doc.topZ++
-          doc.cards[card.id] = { ...card, z: doc.topZ }
-          return doc
-        })
-        this.setCardFocus(cardId)
-        Feedback.Provider.add("Edit", cardMatch.center)
-        break
-      }
-      default: {
-        // Return false if the glyph wasn't handled
-        return false
-      }
-    }
-    // Return true if the glyph was handled
-    return true
-  }
-
-  cardMatchAtPoint = (x: number, y: number): CardMatch | undefined => {
-    if (isNaN(x) || isNaN(y)) {
-      return undefined
-    }
-    const el = document.elementFromPoint(x, y)
-    const cardEl = el.closest(`.${cardCss.Card}`)
-    if (!cardEl || !cardEl.id) return
-    const card = this.props.doc.cards[cardEl.id]
-    const cardRect = cardEl.getBoundingClientRect()
-    const center = {
-      x: cardRect.left + cardRect.width / 2,
-      y: cardRect.top + cardRect.height / 2,
-    }
-    return card && { card, center }
-  }
-
-  onInkStroke = (stroke: InkStrokeEvent) => {
-    this.props.change(doc => {
-      doc.strokes.push({
-        settings: stroke.settings,
-        path:
-          "M " +
-          stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
-      })
-      return doc
-    })
-  }
-
-  async createCard(type: string, x: number, y: number, focus: boolean = false) {
-    if (this.props.doc.focusedCardId != null) return
-    if (!this.boardEl) return
-
-    const id = UUID.create()
-    const maxX = this.boardEl.clientWidth - CARD_WIDTH - 2 * BOARD_PADDING
-    const maxY = this.boardEl.clientHeight - 2 * BOARD_PADDING
-    const cardX = clamp(x - CARD_WIDTH / 2, 0, maxX)
-    const cardY = clamp(y, 0, maxY)
-
-    this.props.emit({
-      type: "CreateCard",
-      body: {
-        type: type,
-        card: { id, x: cardX, y: cardY },
-      },
-    })
-    if (focus) {
-      this.setCardFocus(id)
     }
   }
 }
