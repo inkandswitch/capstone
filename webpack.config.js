@@ -23,7 +23,7 @@ const shared = {
       "bittorrent-dht": path.resolve("./stubs/bittorrent-dht.js"),
       "random-access-file": path.resolve("./stubs/blank.js"),
     },
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [".web.ts", ".tsx", ".ts", ".js"],
   },
 
   module: {
