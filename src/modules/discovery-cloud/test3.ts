@@ -15,6 +15,9 @@ let ram = require("random-access-memory")
 
 const hm = new Hypermerge({ storage: ram })
 
+interface Model {
+  counter?: number
+}
 
 hm.ready.then(hm => {
   swarm(hm, {
@@ -23,7 +26,7 @@ hm.ready.then(hm => {
   })
 
   const store = new StoreBackend(hm, msg => {
-    console.log("msg to frontend",msg)
+    console.log("msg to frontend", msg)
   })
 
   const buffers = keyPair()
@@ -42,15 +45,15 @@ hm.ready.then(hm => {
   })
 
   setInterval(() => {
-    handle.change((doc : AnyEditDoc) => {
-      if (typeof doc.counter !== "number") doc.counter = 0;
+    handle.change((doc: EditDoc<Model>) => {
+      if (!doc.counter) doc.counter = 0
       doc.counter++
     })
-  },2000)
- 
-//  store.onMessage({ type: "Open", docId })
+  }, 2000)
 
-//  port.onMessage.addListener(msg => {
-//    store.onMessage(msg)
-//  })
+  //  store.onMessage({ type: "Open", docId })
+
+  //  port.onMessage.addListener(msg => {
+  //    store.onMessage(msg)
+  //  })
 })
