@@ -36,7 +36,7 @@ export default class WebSocketStream extends Duplex {
     })
 
     this.socket.addEventListener("message", event => {
-      const data = new Uint8Array(event.data)
+      const data = Buffer.from(event.data)
       log("socket.message", data)
 
       if (!this.push(data)) {

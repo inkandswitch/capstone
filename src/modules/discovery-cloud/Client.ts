@@ -11,6 +11,7 @@ const log = Debug("discovery-cloud:client")
 
 export interface Info {
   channel: Buffer
+  discoveryKey: Buffer
   live?: boolean
   encrypt?: boolean
   hash?: boolean
@@ -29,7 +30,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
   selfKey: Buffer
   url: string
   channels: Set<string> = new Set()
-  peers: Map<string, WebSocketStream> = new Map()
+  connections: Map<string, WebSocketStream> = new Map()
   discovery: WebSocketStream
 
   constructor(opts: Options) {
@@ -120,41 +121,53 @@ export default class DiscoveryCloudClient extends EventEmitter {
 
     switch (msg.type) {
       case "Connect":
-        this.onPeer(msg.peerId, msg.peerChannels)
+        this.onConnect(msg.peerId, msg.peerChannels)
 
         break // NOOP
     }
   }
 
-  private onPeer(id: string, channels: string[]) {
-    const wireToPeer = this.peers.get(id) || this.createPeer(id)
-
+  private onConnect(id: string, channels: string[]) {
     channels.forEach(channel => {
+      const path = [id, channel].join("/")
+      if (this.connections.has(path)) {
+        log("connection exists. skipping %s", path)
+        return
+      }
+
+      const wire = this.createConnection(path)
+
       const local = this.connect({
         channel: Base58.decode(channel),
+        discoveryKey: Base58.decode(channel),
         live: true,
         encrypt: false,
         hash: false,
       })
 
-      wireToPeer.ready.then(wire => wire.pipe(local).pipe(wire))
-
-      wireToPeer.once("end", () => {
-        log("wire closed, deleting peer: %s on channel %s", id, channel)
-        this.peers.delete(id)
-      })
-
-      wireToPeer.on("error", err => {
-        log("wire.error %s", id, err)
-      })
+      wire.ready.then(wire => wire.pipe(local).pipe(wire))
     })
   }
 
-  private createPeer(id: string): WebSocketStream {
+  private createConnection(id: string): WebSocketStream {
     const url = `${this.url}/connect/${this.id}/${id}`
     const stream = new WebSocketStream(url)
 
-    this.peers.set(id, stream)
+    stream.on("error", err => {
+      log("wire.error %s", id, err)
+    })
+
+    stream.once("end", () => {
+      log("wire ended, deleting peer: %s", id)
+      this.connections.delete(id)
+    })
+
+    stream.once("close", () => {
+      log("wire closed, deleting peer: %s", id)
+      this.connections.delete(id)
+    })
+
+    this.connections.set(id, stream)
 
     return stream
   }
