@@ -23,9 +23,7 @@ export default class Ink extends Preact.Component<Props> {
 
   draw = () => {
     const { strokes } = this.props
-
-    this.strokesCanvasEl && (this.strokesCanvasEl.width = window.innerWidth)
-    this.strokesCanvasEl && (this.strokesCanvasEl.height = window.innerHeight)
+    this.strokesCanvasEl && this.prepareCanvas(this.strokesCanvasEl)
 
     const ctx = this.getDrawingContext()
 
@@ -39,11 +37,35 @@ export default class Ink extends Preact.Component<Props> {
     const ctx = this.getDrawingContext()
     if (!ctx || stroke.path.length == 0) return
 
-    const path = new Path2D(stroke.path)
+    const points = stroke.path.split("/").filter(v => {
+      return v.indexOf("#") >= 0
+    })
+    if (points.length < 1) return
+    let lastPoint = points[0]
+    points.forEach((point, index) => {
+      if (index == 0) return
+      const lastProps = lastPoint.split("#")
+      if (lastProps.length != 3) return
 
-    Object.assign(ctx, stroke.settings)
+      const theseProps = point.split("#")
+      if (theseProps.length != 3) return
 
-    ctx.stroke(path)
+      const pathString = `M ${lastProps[0]} ${lastProps[1]} L ${
+        theseProps[0]
+      } ${theseProps[1]}`
+      const path = new Path2D(pathString)
+      let s = stroke.settings
+      s.lineWidth = stroke.settings.maxLineWith * parseFloat(theseProps[2])
+      Object.assign(ctx, s)
+      ctx.stroke(path)
+      lastPoint = point
+    })
+
+    // const path = new Path2D(stroke.path)
+    // console.log(`line width: ${stroke.settings.lineWidth}`)
+    // Object.assign(ctx, stroke.settings)
+
+    // ctx.stroke(path)
   }
 
   prepareCanvas(canvas: HTMLCanvasElement) {
