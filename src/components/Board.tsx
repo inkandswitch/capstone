@@ -26,6 +26,7 @@ import StrokeRecognizer, {
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Feedback from "./CommandFeedback"
 import * as cardCss from "./css/Card.css"
+import * as GPS from "./GPS"
 
 const boardIcon = require("../assets/board_icon.svg")
 
@@ -142,6 +143,12 @@ class Board extends React.Component<Props, State> {
       strokes: Reify.array(doc.strokes),
       topZ: Reify.number(doc.topZ),
     }
+  }
+
+  componentDidMount() {
+    GPS.Provider.events$.subscribe((e: HammerInput) => {
+      console.log("in board event")
+    })
   }
 
   onRef = (ref: HTMLDivElement) => {
