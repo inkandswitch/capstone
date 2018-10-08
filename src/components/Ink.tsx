@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import { StrokeSettings } from "./StrokeRecognizer"
 
 export interface CanvasStroke {
@@ -10,7 +10,7 @@ export interface Props {
   strokes: CanvasStroke[]
 }
 
-export default class Ink extends Preact.Component<Props> {
+export default class Ink extends React.Component<Props> {
   strokesCanvasEl?: HTMLCanvasElement
 
   componentDidMount() {

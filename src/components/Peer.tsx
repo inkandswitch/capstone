@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
@@ -10,7 +10,7 @@ interface Model {
   name: string
 }
 
-class Peer extends Preact.Component<Widget.Props<Model>> {
+class Peer extends React.Component<Widget.Props<Model>> {
   static reify(doc: AnyDoc) {
     return {
       name: Reify.string(doc.string),

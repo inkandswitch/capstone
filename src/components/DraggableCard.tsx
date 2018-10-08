@@ -1,8 +1,9 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import Touch, { TouchEvent } from "./Touch"
+import { omit } from "lodash"
 
 export interface CardModel {
   id: string
@@ -19,7 +20,7 @@ export interface Props {
   onDoubleTap?: (url: string) => void
 }
 
-export default class DraggableCard extends Preact.Component<Props> {
+export default class DraggableCard extends React.Component<Props> {
   render() {
     const {
       card: { x, y, z },
@@ -37,7 +38,9 @@ export default class DraggableCard extends Preact.Component<Props> {
           onCancel={this.cancel}
           z={z}
           enableUserSelectHack={false}>
-          <Card cardId={this.props.card.id} {...rest}>
+          <Card
+            cardId={this.props.card.id}
+            {...omit(rest, ["onDoubleTap", "onDragStop"])}>
             {children}
           </Card>
         </Draggable>
@@ -54,7 +57,7 @@ export default class DraggableCard extends Preact.Component<Props> {
     this.props.onDragStart(this.props.card.id)
   }
 
-  stop = (e: PointerEvent, data: DraggableData) => {
+  stop = (e: React.PointerEvent, data: DraggableData) => {
     this.props.onDragStop &&
       this.props.onDragStop(data.x, data.y, this.props.card.id)
   }

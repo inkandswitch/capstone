@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as $P from "../modules/$P"
 import * as Rx from "rxjs"
 import * as Glyph from "../data/Glyph"
@@ -7,7 +7,7 @@ import Pen, { PenEvent } from "./Pen"
 import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
 import * as Feedback from "./CommandFeedback"
-import Portal = require("preact-portal")
+import { Portal } from "react-portal"
 const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {
@@ -117,7 +117,7 @@ interface State {
   strokeType: StrokeType
 }
 
-export default class StrokeRecognizer extends Preact.Component<Props, State> {
+export default class StrokeRecognizer extends React.Component<Props, State> {
   canvasElement?: HTMLCanvasElement | null
   ctx?: CanvasRenderingContext2D | null
   isPenDown: boolean
@@ -146,7 +146,7 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
         <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
           {this.props.children}
         </Pen>
-        <Portal into="body">
+        <Portal>
           <div>
             <canvas ref={this.canvasAdded} className={css.StrokeLayer} />
             <div className={css.Options}>
@@ -344,13 +344,13 @@ export default class StrokeRecognizer extends Preact.Component<Props, State> {
 }
 
 interface OptionProps<T> {
-  label: Preact.ComponentChildren
+  label: React.ReactNode
   value: T
   selected: boolean
   onChange: (value?: T) => void
 }
 
-class Option<T> extends Preact.Component<OptionProps<T>> {
+class Option<T> extends React.Component<OptionProps<T>> {
   render() {
     const { label, value, selected, onChange } = this.props
 
@@ -368,7 +368,7 @@ class Option<T> extends Preact.Component<OptionProps<T>> {
     )
   }
 
-  onContextMenu = (event: Event) => {
+  onContextMenu = (event: React.MouseEvent) => {
     event.preventDefault()
   }
 }

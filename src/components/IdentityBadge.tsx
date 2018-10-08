@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Content from "./Content"
 const anonymousIcon = require("../assets/anonymous.svg")
 
@@ -6,11 +6,11 @@ interface Props {
   avatarUrl: string
   name: string
   isEditing?: boolean
-  onChange?: (e: Event) => void
+  onChange?: (e: React.FormEvent) => void
 }
 
-export default class IdentityBadge extends Preact.Component<Props> {
-  inputEl?: HTMLElement
+export default class IdentityBadge extends React.Component<Props> {
+  inputEl: HTMLInputElement | null
 
   componentDidMount() {
     if (this.inputEl && this.props.isEditing) {
@@ -82,8 +82,8 @@ const style = {
   },
   // Match `Image.tsx` style
   AnonymousImage: {
-    objectFit: "cover",
-    pointerEvents: "none",
+    objectFit: "cover" as "cover",
+    pointerEvents: "none" as "none",
     display: "block",
     maxHeight: "100%",
     maxWidth: "100%",

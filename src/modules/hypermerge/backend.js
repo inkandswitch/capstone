@@ -10,26 +10,27 @@ export class BackendHandle extends EventEmitter {
     this.docId = docId
     this._back = doc || null
 
-    this.pBack = new Promise((resolve,reject) => this.on("ready", resolve))
+    this.pBack = new Promise((resolve, reject) => this.on("ready", resolve))
 
     if (this._back) {
       this.actorId = this._back.get("actorId")
-      this.emit("ready",this._back)
+      this.emit("ready", this._back)
     }
 
-
-    this.on('newListener', (event, listener) => {
-      if (event === 'patch' && this._back) {
+    this.on("newListener", (event, listener) => {
+      if (event === "patch" && this._back) {
         const patch = Backend.getPatch(this._back)
         listener(patch)
       }
-    });
+    })
   }
 
   // for debugging
   toFrontend() {
     const front = Frontend.init("_")
-    return this._back ? Frontend.applyPatch(front, Backend.getPatch(this._back)) : front
+    return this._back
+      ? Frontend.applyPatch(front, Backend.getPatch(this._back))
+      : front
   }
 
   // for debugging
@@ -52,7 +53,7 @@ export class BackendHandle extends EventEmitter {
 
   _update(back, patch) {
     this._back = back
-    this.emit("patch",patch)
+    this.emit("patch", patch)
   }
 
   _ready(back) {
@@ -60,8 +61,8 @@ export class BackendHandle extends EventEmitter {
     this.actorId = back.get("actorId")
     const patch = Backend.getPatch(this._back)
 
-    this.emit("ready",back)
-    this.emit("patch",patch)
+    this.emit("ready", back)
+    this.emit("patch", patch)
   }
 
   // message stuff
@@ -73,12 +74,14 @@ export class BackendHandle extends EventEmitter {
   }
 
   connections() {
-    let peers = this.actorIds().map(actorId => this.hm._trackedFeed(actorId).peers)
-    return peers.reduce((acc,val) => acc.concat(val),[])
+    let peers = this.actorIds().map(
+      actorId => this.hm._trackedFeed(actorId).peers,
+    )
+    return peers.reduce((acc, val) => acc.concat(val), [])
   }
 
   peers() {
-    return this.connections().filter( peer => !!peer.identity)
+    return this.connections().filter(peer => !!peer.identity)
   }
 
   onMessage(cb) {
@@ -92,4 +95,3 @@ export class BackendHandle extends EventEmitter {
     }
   }
 }
-

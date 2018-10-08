@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Reify from "../data/Reify"
 import { Glyph } from "../data/Glyph"
 import * as Widget from "./Widget"
@@ -83,7 +83,7 @@ class ShelfActor extends DocumentActor<Model, InboundMessage, OutboundMessage> {
   }
 }
 
-class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
+class Shelf extends React.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
       selectedUrls: Reify.array(doc.selectedUrls),
@@ -118,7 +118,7 @@ class Shelf extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
 
 const style = {
   Shelf: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     bottom: -100,
     right: -70,
     borderRadius: 9999,

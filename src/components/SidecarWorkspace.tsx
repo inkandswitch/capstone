@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import Content from "./Content"
@@ -10,7 +10,7 @@ export interface Model {
 
 interface Props extends Widget.Props<Model> {}
 
-export default class SidecarWorkspace extends Preact.Component<Props> {
+export default class SidecarWorkspace extends React.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       shelfUrl: Reify.link(doc.shelfUrl),

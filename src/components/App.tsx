@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import { Doc, EditDoc } from "automerge/frontend"
 
 import Store from "../data/Store"
@@ -28,10 +28,12 @@ Content.store.presence().subscribe(presenceInfo => {
 })
 
 type State = {
-  url: string
+  url?: string
 }
 
-export default class App extends Preact.Component<{}, State> {
+type Props = {}
+
+export default class App extends React.Component<Props, State> {
   async initWorkspace() {
     const shelfUrlPromise = Content.create("Shelf")
     const identityUrlPromise = Content.create("Identity")
@@ -72,8 +74,8 @@ export default class App extends Preact.Component<{}, State> {
     })
   }
 
-  constructor() {
-    super()
+  constructor(props: Props) {
+    super(props)
     // initialize the workspace at startup (since we have no persistence)
     chrome.storage.local.get(["workspaceUrl"], val => {
       if (val.workspaceUrl == undefined) {
@@ -89,13 +91,17 @@ export default class App extends Preact.Component<{}, State> {
         )
       }
     })
+
+    this.state = { url: undefined }
   }
+
   render() {
     const { url } = this.state
     console.log("APP RENDER", url)
     if (!url) {
       return null
     }
+
     return (
       <Root store={Content.store}>
         <div style={style.App}>

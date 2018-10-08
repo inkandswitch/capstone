@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import Handler from "./Handler"
 
 interface Props {
