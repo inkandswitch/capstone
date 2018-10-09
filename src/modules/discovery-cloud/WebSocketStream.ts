@@ -2,42 +2,49 @@ import * as Debug from "debug"
 import { Duplex } from "stream"
 import WebSocket from "./WebSocket"
 
+const crypto = require('crypto')
+
 const log = Debug("discovery-cloud:WebSocketStream")
 
 export default class WebSocketStream extends Duplex {
   socket: WebSocket
   ready: Promise<this>
+  tag: string
 
   constructor(url: string) {
     super()
+    this.tag = crypto.randomBytes(2).toString('hex')
     this.socket = new WebSocket(url)
     this.socket.binaryType = "arraybuffer"
 
     this.ready = new Promise(resolve => {
       this.socket.addEventListener("open", () => {
+        log("socket.open(2)", this.tag)
         resolve(this)
       })
     })
 
     this.socket.addEventListener("open", () => {
+      log("socket.open", this.tag)
       this.emit("open", this)
     })
 
     this.socket.addEventListener("close", () => {
+      log("socket.close", this.tag)
       this.destroy() // TODO is this right?
     })
 
     this.socket.addEventListener("error", err => {
-      log("error", err)
+      log("socket.error", this.tag, err)
       this.emit("error", err)
     })
 
     this.socket.addEventListener("message", event => {
       const data = Buffer.from(event.data)
-      log("socket.message", data)
+      log("socket.message", this.tag, data)
 
       if (!this.push(data)) {
-        log("stream closed, cannot write")
+        log("stream closed, cannot write", this.tag)
         this.socket.close()
       }
     })

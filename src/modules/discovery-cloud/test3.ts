@@ -1,4 +1,4 @@
-process.env["DEBUG"] = "discovery-cloud:Client discovery-cloud:test protocol discovery-cloud:ClientPeer"
+process.env["DEBUG"] = "discovery-cloud:Client discovery-cloud:test protocol discovery-cloud:ClientPeer discovery-cloud:WebSocketStream"
 
 import DiscoveryCloudClient from "./Client"
 import { Stream } from "stream"

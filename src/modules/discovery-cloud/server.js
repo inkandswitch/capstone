@@ -5,6 +5,7 @@ let express = require("express")
 let app = express()
 let WebSocket = require("ws")
 let expressWs = require("express-ws")(app)
+let crypto = require("crypto")
 let log = require("debug")("discovery-cloud:server")
 
 
@@ -24,6 +25,7 @@ class DiscoveryCloudServer {
     this.peers = {}
     this.peerKeys = {}
     this.looking = {}
+    this.buffers = {}
   }
 
   applyPeers(id, join, leave) {
@@ -59,8 +61,11 @@ class DiscoveryCloudServer {
   }
 
   join(ws1, ws2) {
+    let tag1 = crypto.randomBytes(2).toString('hex')
+    let tag2 = crypto.randomBytes(2).toString('hex')
+
     ws1.on("message", data => {
-//      log("pipe -> ", data)
+      log("pipe", tag1, data)
       if (ws2.readyState === WebSocket.OPEN) {
         ws2.send(data)
       } else {
@@ -69,7 +74,7 @@ class DiscoveryCloudServer {
       }
     })
     ws2.on("message", data => {
-//      log("pipe <- ", data)
+      log("pipe", tag2, data)
       if (ws1.readyState === WebSocket.OPEN) {
         ws1.send(data)
       } else {
@@ -78,7 +83,7 @@ class DiscoveryCloudServer {
       }
     })
     const cleanup = () => {
-//      log("cleaning up joined pipes")
+      log("cleaning up joined pipes", tag1, tag2)
       ws1.close()
       ws2.close()
     }
@@ -90,7 +95,7 @@ class DiscoveryCloudServer {
 
   listen() {
     app.use(function(req, res, next) {
-      log("middleware", req.url)
+//      log("middleware", req.url)
       return next()
     })
 
@@ -124,13 +129,22 @@ class DiscoveryCloudServer {
 
       if (this.looking[key2]) {
         const other = this.looking[key2]
+        this.buffers[key2].forEach(data => ws.send(data))
         delete this.looking[key2]
+        delete this.buffers[key2]
         log("piping", key1)
         this.join(ws, other)
       } else {
         log("holding connection - waiting for peer", key1, key2)
         this.looking[key1] = ws
-        ws.on("close", () => delete this.looking[key1]) // race condition?
+        this.buffers[key1] = []
+        ws.on("message", data => {
+          if (this.buffers[key1]) this.buffers[key1].push(data)
+        })
+        ws.on("close", () => {
+          delete this.looking[key1]
+          delete this.buffers[key1]
+        }) // race condition?
       }
     })
 
