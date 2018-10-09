@@ -1,10 +1,12 @@
 import { Doc, ChangeFn } from "automerge/frontend"
-import * as Automerge from "automerge/frontend"
+import * as Debug from "debug"
 import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
 import { FrontendHandle } from "../modules/hypermerge/frontend"
+
+const log = Debug("store:frontend")
 
 function isId(id: string) {
   return id.length >= 32 && id.length <= 44
@@ -22,6 +24,8 @@ export default class Store {
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
 
   constructor(send: (msg: Msg.FrontendToBackend) => void) {
+    log("constructing")
+
     this._send = send
     this.presence$ = new Rx.BehaviorSubject(null)
   }
@@ -85,12 +89,12 @@ export default class Store {
   }
 
   sendToBackend = (msg: Msg.FrontendToBackend) => {
-    console.log("frontend -> backend", msg)
+    log("frontend -> backend", msg)
     this._send(msg)
   }
 
   onMessage(msg: Msg.BackendToFrontend) {
-    console.log("frontend <- backend", msg)
+    log("frontend <- backend", msg)
     switch (msg.type) {
       case "Patch": {
         const handle = this.handle(msg.docId)

@@ -1,11 +1,11 @@
+import * as Debug from "debug"
 import { Hypermerge } from "../modules/hypermerge"
 import * as Prefetch from "../data/Prefetch"
 import * as Peek from "./Peek"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
 
-const Debug = require("debug")
-const log = Debug("store:coms")
+const log = Debug("store:backend")
 
 export default class StoreBackend {
   presenceTick?: NodeJS.Timer
@@ -17,6 +17,7 @@ export default class StoreBackend {
   //  prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge, send: (msg: Msg.BackendToFrontend) => void) {
+    log("constructing")
     this.hypermerge = hm
     this._send = send
     ;(global as any).hm = this.hypermerge
@@ -96,6 +97,8 @@ export default class StoreBackend {
   }
 
   onMessage = (msg: Msg.FrontendToBackend) => {
+    log("backend <- frontend", msg)
+
     switch (msg.type) {
       case "Open": {
         const { docId } = msg
@@ -188,6 +191,7 @@ export default class StoreBackend {
   }
 
   sendToFrontend(msg: Msg.BackendToFrontend) {
+    log("backend -> frontend", msg)
     this._send(msg)
   }
 }
