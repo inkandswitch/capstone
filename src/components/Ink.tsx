@@ -1,5 +1,5 @@
 import * as React from "react"
-import { StrokeSettings } from "./StrokeRecognizer"
+import { StrokeSettings, StrokeWidth } from "./StrokeRecognizer"
 
 export interface CanvasStroke {
   settings: StrokeSettings
@@ -55,17 +55,12 @@ export default class Ink extends React.Component<Props> {
       } ${theseProps[1]}`
       const path = new Path2D(pathString)
       let s = stroke.settings
-      s.lineWidth = stroke.settings.maxLineWith * parseFloat(theseProps[2])
+      const pressure = parseFloat(theseProps[2])
+      s.lineWidth = StrokeWidth(pressure, s.maxLineWith)
       Object.assign(ctx, s)
       ctx.stroke(path)
       lastPoint = point
     })
-
-    // const path = new Path2D(stroke.path)
-    // console.log(`line width: ${stroke.settings.lineWidth}`)
-    // Object.assign(ctx, stroke.settings)
-
-    // ctx.stroke(path)
   }
 
   prepareCanvas(canvas: HTMLCanvasElement) {

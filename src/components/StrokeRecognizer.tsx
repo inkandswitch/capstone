@@ -74,14 +74,18 @@ export interface StrokeSettings {
   lineWidth: number
 }
 
+export const StrokeWidth = (pressure: number, maxWidth: number) => {
+  return Math.max(1, maxWidth * Math.pow(pressure, 3))
+}
+
 const StrokeSettings: { [st: number]: StrokeSettings } = {
   [StrokeType.ink]: {
     globalCompositeOperation: "source-over",
     strokeStyle: "black",
     lineCap: "round",
     lineJoin: "round",
-    maxLineWith: 12,
-    lineWidth: 12,
+    maxLineWith: 20,
+    lineWidth: 20,
   },
   [StrokeType.erase]: {
     globalCompositeOperation: "destination-out",
@@ -188,6 +192,19 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   onPanMove = (event: PenEvent) => {
     const { x, y } = event.center
     if (!this.isPenDown) this.isPenDown = true
+    const srcEvent = event.srcEvent as PointerEvent
+    if (srcEvent) {
+      const coalesced: PointerEvent[] = srcEvent.getCoalescedEvents()
+      this.points.push(
+        ...coalesced.map((value, i, a) => {
+          return {
+            x: value.x,
+            y: value.y,
+            pressure: value.pressure,
+          }
+        }),
+      )
+    }
     this.points.push({
       x,
       y,
@@ -329,7 +346,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
     ) {
       let point = this.points[this.lastDrawnPoint]
       let settings = StrokeSettings[this.state.strokeType]
-      settings.lineWidth = point.pressure * settings.maxLineWith
+      settings.lineWidth = StrokeWidth(point.pressure, settings.maxLineWith)
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {
         continue
