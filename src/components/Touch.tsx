@@ -17,7 +17,7 @@ interface Props {
 
 export default class Touch extends Handler<Props> {
   ref: HTMLDivElement | undefined
-  hammer: HammerManager
+  hammer?: HammerManager
 
   componentDidMount() {
     if (!this.ref) return
@@ -74,7 +74,7 @@ export default class Touch extends Handler<Props> {
   }
 
   componentWillUnmount() {
-    this.hammer.destroy()
+    this.hammer && this.hammer.destroy()
   }
 
   filter(event: TouchEvent) {

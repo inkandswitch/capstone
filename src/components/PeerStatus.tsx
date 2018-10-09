@@ -23,7 +23,7 @@ type status = "inactive" | "active" | "disconnected"
 export default class PeerStatus extends React.Component<Props, State> {
   id = Link.parse(this.props.url).id
   state = { status: "disconnected" }
-  presenceSubscription: Rx.Subscription
+  presenceSubscription?: Rx.Subscription
   static reify() {
     return {}
   }

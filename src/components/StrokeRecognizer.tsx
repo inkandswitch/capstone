@@ -104,9 +104,9 @@ interface State {
 export default class StrokeRecognizer extends React.Component<Props, State> {
   canvasElement?: HTMLCanvasElement | null
   ctx?: CanvasRenderingContext2D | null
-  isPenDown: boolean
+  isPenDown: boolean = false
   static strokeTypeSubect: Rx.Subject<StrokeType> = new Rx.Subject()
-  subscription: Rx.Subscription
+  subscription?: Rx.Subscription
 
   static defaultProps = {
     delay: 300,

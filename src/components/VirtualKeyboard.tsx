@@ -20,7 +20,10 @@ interface Props {
 * There is discussion around adding a virtual keyboard API here: https://bugs.chromium.org/p/chromium/issues/detail?id=856269
 */
 export default class VirtualKeyboard extends React.Component<Props> {
-  lastSeenViewportSize: { width: number; height: number }
+  lastSeenViewportSize: { width: number; height: number } = {
+    width: 0,
+    height: 0,
+  }
 
   componentDidMount() {
     const { visualViewport } = window

@@ -6,11 +6,11 @@ interface Props {
   avatarUrl: string
   name: string
   isEditing?: boolean
-  onChange?: (e: React.FormEvent) => void
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export default class IdentityBadge extends React.Component<Props> {
-  inputEl: HTMLInputElement | null
+  inputEl?: HTMLInputElement | null
 
   componentDidMount() {
     if (this.inputEl && this.props.isEditing) {
