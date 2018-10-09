@@ -1,9 +1,7 @@
 const path = require("path")
-const webpack = require("webpack")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const glob = require("glob")
 const env = process.env.NODE_ENV
-const os = require("os")
 
 const shared = {
   mode: "development",
