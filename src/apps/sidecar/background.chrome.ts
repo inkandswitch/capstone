@@ -21,19 +21,21 @@ chrome.app.runtime.onLaunched.addListener(() => {
 const hm = new Hypermerge({ storage: racf })
 
 chrome.runtime.onConnect.addListener(port => {
+  const store = new StoreBackend(hm, msg => {
+    port.postMessage(msg)
+  })
+
+  port.onMessage.addListener(msg => {
+    hm.ready.then(() => {
+      store.onMessage(msg)
+    })
+  })
+
   hm.ready.then(hm => {
     swarm(hm, {
       id: hm.core.archiver.changes.id,
       url: "wss://discovery-cloud.herokuapp.com",
       // url: "ws://localhost:8080",
-    })
-
-    const store = new StoreBackend(hm, msg => {
-      port.postMessage(msg)
-    })
-
-    port.onMessage.addListener(msg => {
-      store.onMessage(msg)
     })
   })
 })

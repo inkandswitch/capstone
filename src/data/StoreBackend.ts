@@ -22,7 +22,6 @@ export default class StoreBackend {
     this._send = send
     ;(global as any).hm = this.hypermerge
     ;(global as any).sm = this
-
     Peek.enable()
   }
 
