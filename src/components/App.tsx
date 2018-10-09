@@ -14,6 +14,7 @@ import "./Shelf"
 import "./Identity"
 import "./PeerStatus"
 import "./Peer"
+import "./HTML"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import * as Identity from "./Identity"
@@ -47,16 +48,14 @@ export default class App extends React.Component<Props, State> {
     Content.store.setIdentity(identityUrl)
 
     Content.store.clipper().subscribe(async ({ request, sender }) => {
-      const textUrlPromise = Content.create("Text")
-      const textUrl = await textUrlPromise
+      const htmlUrl = await Content.create("HTML")
 
-      Content.once(textUrl, async (change: Function) => {
+      Content.once(htmlUrl, async (change: Function) => {
         change((doc: any) => {
-          doc.content = [sender.url] // request.html once we have HTML widget
+          doc.html = request.html
         })
 
-        console.log("text url", textUrl)
-        Content.send({ type: "AddToShelf", body: { url: textUrl } })
+        Content.send({ type: "AddToShelf", body: { url: htmlUrl } })
       })
     })
 
