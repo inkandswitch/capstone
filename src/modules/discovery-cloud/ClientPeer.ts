@@ -37,11 +37,12 @@ export default class ClientPeer {
     if (this.connections.has(channel)) return
 
     const url = [this.url, this.id, channel].join("/")
-    const socket = new WebSocketStream(url)
+    const tag = [this.id.slice(0, 2), channel.slice(0, 2)].join("-")
+    const socket = new WebSocketStream(url, tag)
 
     this.connections.set(channel, socket)
 
-    const local = this.stream({
+    const protocol = this.stream({
       channel: Base58.decode(channel),
       discoveryKey: Base58.decode(channel),
       live: true,
@@ -51,17 +52,23 @@ export default class ClientPeer {
       hash: false,
     })
 
-    socket.ready.then(socket => local.pipe(socket).pipe(local))
+    socket.ready.then(socket => protocol.pipe(socket).pipe(protocol))
+
+    protocol.on("error", err => {
+      log("protocol.onerror %s", this.id, err)
+    })
 
     socket.on("error", err => {
       log("socket.onerror %s", this.id, err)
     })
 
     socket.once("end", () => {
+      log("socket.onend")
       this.remove(channel)
     })
 
     socket.once("close", () => {
+      log("socket.onclose")
       this.remove(channel)
     })
   }

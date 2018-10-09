@@ -3,7 +3,7 @@ import { Duplex } from "stream"
 import * as Base58 from "bs58"
 import * as Debug from "debug"
 import * as Msg from "./Msg"
-import WebSocketStream from "./WebSocketStream"
+import WebSocket from "./WebSocket"
 import Peer, { Info } from "./ClientPeer"
 
 Debug.formatters.b = Base58.encode
@@ -24,7 +24,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
   url: string
   channels: Set<string> = new Set()
   peers: Map<string, Peer> = new Map()
-  discovery: WebSocketStream
+  discovery: WebSocket
 
   constructor(opts: Options) {
     super()
@@ -44,7 +44,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     const channel = Base58.encode(channelBuffer)
     this.channels.add(channel)
 
-    if (this.discovery.isOpen) {
+    if (this.discovery.readyState === WebSocket.OPEN) {
       this.send({
         type: "Join",
         id: this.id,
@@ -59,7 +59,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     const channel = Base58.encode(channelBuffer)
     this.channels.delete(channel)
 
-    if (this.discovery.isOpen) {
+    if (this.discovery.readyState === WebSocket.OPEN) {
       this.send({
         type: "Leave",
         id: this.id,
@@ -77,29 +77,28 @@ export default class DiscoveryCloudClient extends EventEmitter {
 
     log("connectDiscovery", url)
 
-    this.discovery = new WebSocketStream(url)
-      .on("open", () => {
-        this.sendHello()
-      })
-      .on("end", () => {
-        log("discovery.onend... reconnecting in 5s")
-        setTimeout(() => {
-          this.connectDiscovery()
-        }, 5000)
-      })
-      .on("close", () => {
-        log("discovery.onclose... reconnecting in 5s")
-        setTimeout(() => {
-          this.connectDiscovery()
-        }, 5000)
-      })
-      .on("data", data => {
-        log("discovery.ondata", data)
-        this.receive(JSON.parse(data))
-      })
-      .on("error", err => {
-        log("discovery.onerror", err)
-      })
+    this.discovery = new WebSocket(url)
+
+    this.discovery.addEventListener("open", () => {
+      this.sendHello()
+    })
+
+    this.discovery.addEventListener("close", () => {
+      log("discovery.onclose... reconnecting in 5s")
+      setTimeout(() => {
+        this.connectDiscovery()
+      }, 5000)
+    })
+
+    this.discovery.addEventListener("message", event => {
+      const data = Buffer.from(event.data)
+      log("discovery.ondata", data)
+      this.receive(JSON.parse(data))
+    })
+
+    this.discovery.addEventListener("error", event => {
+      log("discovery.onerror", event.error)
+    })
   }
 
   private sendHello() {
@@ -112,7 +111,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
 
   private send(msg: Msg.ClientToServer) {
     log("discovery.send %o", msg)
-    this.discovery.write(JSON.stringify(msg))
+    this.discovery.send(JSON.stringify(msg))
   }
 
   private receive(msg: Msg.ServerToClient) {

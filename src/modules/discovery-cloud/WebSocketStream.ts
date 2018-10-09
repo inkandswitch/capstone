@@ -1,50 +1,44 @@
 import * as Debug from "debug"
 import { Duplex } from "stream"
+import * as crypto from "crypto"
 import WebSocket from "./WebSocket"
-
-const crypto = require('crypto')
-
-const log = Debug("discovery-cloud:WebSocketStream")
 
 export default class WebSocketStream extends Duplex {
   socket: WebSocket
   ready: Promise<this>
   tag: string
+  log: Debug.IDebugger
 
-  constructor(url: string) {
+  constructor(url: string, tag?: string) {
     super()
-    this.tag = crypto.randomBytes(2).toString('hex')
+    this.tag = tag || crypto.randomBytes(2).toString("hex")
+    this.log = Debug(`discovery-cloud:wsStream-${this.tag}`)
     this.socket = new WebSocket(url)
-    this.socket.binaryType = "arraybuffer"
 
     this.ready = new Promise(resolve => {
       this.socket.addEventListener("open", () => {
-        log("socket.open(2)", this.tag)
+        this.log("socket.onopen")
+        this.emit("open", this)
         resolve(this)
       })
     })
 
-    this.socket.addEventListener("open", () => {
-      log("socket.open", this.tag)
-      this.emit("open", this)
-    })
-
     this.socket.addEventListener("close", () => {
-      log("socket.close", this.tag)
+      this.log("socket.onclose")
       this.destroy() // TODO is this right?
     })
 
     this.socket.addEventListener("error", err => {
-      log("socket.error", this.tag, err)
+      this.log("socket.onerror", err)
       this.emit("error", err)
     })
 
     this.socket.addEventListener("message", event => {
       const data = Buffer.from(event.data)
-      log("socket.message", this.tag, data)
+      this.log("socket.onmessage", data)
 
       if (!this.push(data)) {
-        log("stream closed, cannot write", this.tag)
+        this.log("closed, cannot write")
         this.socket.close()
       }
     })
@@ -54,11 +48,13 @@ export default class WebSocketStream extends Duplex {
     return this.socket.readyState === WebSocket.OPEN
   }
 
-  _write(data: Buffer, _: unknown, cb: () => void) {
-    log("_write", data)
-
-    this.socket.send(data)
-    cb()
+  _write(data: Buffer, _: unknown, cb: (error?: Error) => void) {
+    if (this.isOpen) {
+      this.socket.send(data)
+      cb()
+    } else {
+      cb(new Error(`socket[${this.tag}] is closed, cannot write.`))
+    }
   }
 
   _read() {
@@ -66,18 +62,10 @@ export default class WebSocketStream extends Duplex {
   }
 
   _destroy(err: Error | null, cb: (error: Error | null) => void) {
-    log("_destroy", err)
+    this.log("_destroy", err)
 
-    if (err) {
-      // this.socket.emit("error", err)
-      // this.socket.terminate()
-      cb(null)
-    }
-  }
+    super._destroy(err, cb)
 
-  _final(cb: (error?: Error | null | undefined) => void) {
-    log("_final", cb)
     this.socket.close()
-    cb()
   }
 }
