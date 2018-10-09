@@ -46,7 +46,6 @@
   "dependencies": {
     "@types/classnames": "^2.2.6",
     "@types/lodash": "^4.14.115",
-    "@types/websocket": "^0.0.40",
     "automerge": "^0.9.0",
     "browser-process-hrtime": "^0.1.2",
     "bs58": "^4.0.1",
@@ -74,7 +73,6 @@
     "rxjs": "^6.3.2",
     "tap-browser-el": "^2.0.0",
     "utp": "github:pvh/utp",
-    "websocket": "^1.0.28",
     "ws": "^6.1.0"
   }
 }
