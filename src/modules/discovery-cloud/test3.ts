@@ -62,8 +62,8 @@ hm.ready.then(hm => {
 
   setInterval(() => {
     handle.change((doc: EditDoc<Model>) => {
-      if (input) doc.counter1 = (doc.counter1 || 0) + 1
-      else doc.counter2 = (doc.counter2 || 0) + 1
+      if (input) doc.counter2 = (doc.counter2 || 0) + 1
+      else doc.counter1 = (doc.counter1 || 0) + 1
     })
     log("CHANGE", handle._front)
   }, 2000)
