@@ -1,27 +1,14 @@
 import { EventEmitter } from "events"
-import WebSocketStream from "./WebSocketStream"
+import { Duplex } from "stream"
 import * as Base58 from "bs58"
 import * as Debug from "debug"
 import * as Msg from "./Msg"
-import { Duplex } from "stream"
+import WebSocketStream from "./WebSocketStream"
+import Peer, { Info } from "./ClientPeer"
 
 Debug.formatters.b = Base58.encode
 
 const log = Debug("discovery-cloud:Client")
-
-export interface Peer {
-  id: string
-  socket: WebSocketStream
-  channels: string[]
-}
-
-export interface Info {
-  channel: Buffer
-  discoveryKey: Buffer
-  live?: boolean
-  encrypt?: boolean
-  hash?: boolean
-}
 
 export interface Options {
   id: Buffer
@@ -100,6 +87,12 @@ export default class DiscoveryCloudClient extends EventEmitter {
           this.connectDiscovery()
         }, 5000)
       })
+      .on("close", () => {
+        log("discovery.onclose... reconnecting in 5s")
+        setTimeout(() => {
+          this.connectDiscovery()
+        }, 5000)
+      })
       .on("data", data => {
         log("discovery.ondata", data)
         this.receive(JSON.parse(data))
@@ -133,44 +126,24 @@ export default class DiscoveryCloudClient extends EventEmitter {
   }
 
   private onConnect(id: string, channels: string[]) {
-    const peer = this.peers.get(id) || this.createPeer(id)
+    const peer = this.peer(id)
 
-    const newChannels = channels.filter(ch => !peer.channels.includes(ch))
+    const newChannels = channels.filter(ch => !peer.connections.has(ch))
 
     newChannels.forEach(channel => {
-      const local = this.connect({
-        channel: Base58.decode(channel),
-        discoveryKey: Base58.decode(channel),
-        live: true,
-        encrypt: false,
-        hash: false,
-      })
-
-      peer.socket.ready.then(socket => socket.pipe(local).pipe(socket))
+      peer.add(channel)
     })
-    peer.channels = channels
   }
 
-  private createPeer(id: string): Peer {
-    const url = `${this.url}/connect/${this.id}/${id}`
-    log("connecting %s", url)
-    const socket = new WebSocketStream(url)
-    const peer = { id, socket, channels: [] }
+  private peer(id: string): Peer {
+    const existing = this.peers.get(id)
+    if (existing) return existing
+
+    log("creating peer %s", id)
+
+    const url = `${this.url}/connect/${this.id}`
+    const peer = new Peer({ url, id, stream: this.connect })
     this.peers.set(id, peer)
-
-    socket.on("error", err => {
-      log("wire.onerror %s", id, err)
-    })
-
-    socket.once("end", () => {
-      log("wire.onend deleting peer: %s", id)
-      this.peers.delete(id)
-    })
-
-    socket.once("close", () => {
-      log("wire.onclose deleting peer: %s", id)
-      this.peers.delete(id)
-    })
 
     return peer
   }

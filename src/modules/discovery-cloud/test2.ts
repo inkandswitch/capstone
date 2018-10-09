@@ -10,8 +10,8 @@ let ram = require("random-access-memory")
 const log1 = Debug("discovery-cloud:test:client1")
 const log2 = Debug("discovery-cloud:test:client2")
 
-const url = "wss://discovery-cloud.herokuapp.com"
-//const url = "ws://0.0.0.0:8080"
+// const url = "wss://discovery-cloud.herokuapp.com"
+const url = "ws://0.0.0.0:8080"
 const keys = crypto.keyPair()
 
 const feed1 = hypercore(ram, keys.publicKey, { secretKey: keys.secretKey })
@@ -20,7 +20,7 @@ const feed2 = hypercore(ram, keys.publicKey)
 const client1 = new DiscoveryCloudClient({
   id: crypto.randomBytes(32),
   url,
-  stream: info => feed1.replicate({ encrypt: false, live: true }),
+  stream: info => feed1.replicate(info),
 })
 
 feed1.on("ready", () => {
@@ -34,7 +34,7 @@ feed1.on("ready", () => {
 const client2 = new DiscoveryCloudClient({
   id: crypto.randomBytes(32),
   url,
-  stream: info => feed2.replicate({ encrypt: false, live: true }),
+  stream: info => feed2.replicate(info),
 })
 
 feed2.on("ready", () => {

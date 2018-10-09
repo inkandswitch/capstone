@@ -23,11 +23,5 @@ export default function cloudSwarm(hm: Hypermerge, opts: any) {
     swarm.leave(feed.discoveryKey)
   })
 
-  swarm.listen(0)
-
-  swarm.once("error", err => {
-    swarm.listen(0)
-  })
-
   return swarm
 }

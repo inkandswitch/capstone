@@ -64,7 +64,8 @@ class DiscoveryCloudServer {
     })
     const cleanup = () => {
       log("cleaning up joined pipes")
-      ws1.close(), ws2.close()
+      ws1.close()
+      ws2.close()
     }
     w1.on("error", cleanup)
     w2.on("error", cleanup)
@@ -103,10 +104,10 @@ class DiscoveryCloudServer {
       })
     })
 
-    app.ws("/connect/:peer1/:peer2", (ws, req) => {
-      const { peer1, peer2 } = req.params
-      const key1 = [peer1, peer2].join(":")
-      const key2 = [peer2, peer1].join(":")
+    app.ws("/connect/:peer1/:peer2/:channel", (ws, req) => {
+      const { peer1, peer2, channel } = req.params
+      const key1 = [peer1, peer2, channel].join(":")
+      const key2 = [peer2, peer1, channel].join(":")
 
       if (this.looking[key2]) {
         const other = this.looking[key2]

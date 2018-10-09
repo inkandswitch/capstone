@@ -1,41 +1,50 @@
-import * as WebSocket from "ws"
 import * as Debug from "debug"
 import { Duplex } from "stream"
+import WebSocket from "./WebSocket"
 
-const log = Debug("discovery-cloud:websocket")
+const log = Debug("discovery-cloud:WebSocketStream")
 
 export default class WebSocketStream extends Duplex {
   socket: WebSocket
-  isOpen: boolean
   ready: Promise<this>
 
   constructor(url: string) {
     super()
     this.socket = new WebSocket(url)
+    this.socket.binaryType = "arraybuffer"
 
     this.ready = new Promise(resolve => {
-      this.socket.once("open", () => resolve(this))
+      this.socket.addEventListener("open", () => {
+        resolve(this)
+      })
     })
 
-    this.socket
-      .on("open", () => {
-        this.emit("open", this)
-        this.isOpen = true
-      })
-      .on("close", () => {
-        this.end()
-        this.isOpen = false
-      })
-      .on("error", err => {
-        log("error", err)
-      })
-      .on("message", data => {
-        log("socket.message", data)
-        if (!this.push(data)) {
-          log("stream closed, cannot write")
-          this.socket.close()
-        }
-      })
+    this.socket.addEventListener("open", () => {
+      this.emit("open", this)
+    })
+
+    this.socket.addEventListener("close", () => {
+      this.destroy() // TODO is this right?
+    })
+
+    this.socket.addEventListener("error", err => {
+      log("error", err)
+      this.emit("error", err)
+    })
+
+    this.socket.addEventListener("message", event => {
+      const data = Buffer.from(event.data)
+      log("socket.message", data)
+
+      if (!this.push(data)) {
+        log("stream closed, cannot write")
+        this.socket.close()
+      }
+    })
+  }
+
+  get isOpen() {
+    return this.socket.readyState === WebSocket.OPEN
   }
 
   _write(data: Buffer, _: unknown, cb: () => void) {
@@ -45,7 +54,9 @@ export default class WebSocketStream extends Duplex {
     cb()
   }
 
-  _read() {}
+  _read() {
+    // Reading is done async
+  }
 
   _destroy(err: Error | null, cb: (error: Error | null) => void) {
     log("_destroy", err)
