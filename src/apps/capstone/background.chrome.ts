@@ -42,8 +42,8 @@ chrome.runtime.onConnect.addListener(port => {
   hm.ready.then(hm => {
     swarm(hm, {
       id: hm.core.archiver.changes.id,
-      // url: "wss://discovery-cloud.herokuapp.com",
-      url: "ws://localhost:8080",
+      url: "wss://discovery-cloud.herokuapp.com",
+      // url: "ws://localhost:8080",
     })
 
     const store = new StoreBackend(hm, msg => {

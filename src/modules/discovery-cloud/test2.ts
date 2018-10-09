@@ -10,8 +10,8 @@ let ram = require("random-access-memory")
 const log1 = Debug("discovery-cloud:test:client1")
 const log2 = Debug("discovery-cloud:test:client2")
 
-// const url = "wss://discovery-cloud.herokuapp.com"
-const url = "ws://0.0.0.0:8080"
+const url = "wss://discovery-cloud.herokuapp.com"
+// const url = "ws://0.0.0.0:8080"
 const keys = crypto.keyPair()
 
 const feed1 = hypercore(ram, keys.publicKey, { secretKey: keys.secretKey })

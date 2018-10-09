@@ -1,4 +1,5 @@
-process.env["DEBUG"] = "discovery-cloud:Client discovery-cloud:test protocol discovery-cloud:ClientPeer discovery-cloud:WebSocketStream"
+process.env["DEBUG"] =
+  "discovery-cloud:Client discovery-cloud:test protocol discovery-cloud:ClientPeer discovery-cloud:WebSocketStream"
 
 import DiscoveryCloudClient from "./Client"
 import { Stream } from "stream"
@@ -38,8 +39,8 @@ log("DOCID", docId)
 hm.ready.then(hm => {
   swarm(hm, {
     id: hm.core.archiver.changes.id,
-    //url: "wss://discovery-cloud.herokuapp.com",
-    url: "ws://0.0.0.0:8080",
+    url: "wss://discovery-cloud.herokuapp.com",
+    // url: "ws://0.0.0.0:8080",
   })
 
   let handle = new FrontendHandle()
