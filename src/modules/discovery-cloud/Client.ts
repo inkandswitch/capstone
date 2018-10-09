@@ -96,7 +96,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
       this.receive(JSON.parse(data))
     })
 
-    this.discovery.addEventListener("error", event => {
+    this.discovery.addEventListener("error", (event: any) => {
       log("discovery.onerror", event.error)
     })
   }

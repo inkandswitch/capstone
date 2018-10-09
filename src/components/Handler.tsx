@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 
 interface Event {}
 
@@ -14,14 +14,8 @@ interface Props {
 export default abstract class Handler<
   InProps = {},
   State = {}
-> extends Preact.Component<InProps & Props, State> {
+> extends React.Component<InProps & Props, State> {
   handlers: { [name: string]: (event: Event) => void } = {}
-
-  // Easy way to get a sole child component
-  get child(): JSX.Element {
-    const { children } = this.props
-    return Array.isArray(children) ? children[0] : null
-  }
 
   // Override and return false for events that shouldn't be emitted.
   abstract filter(event: Event): Boolean

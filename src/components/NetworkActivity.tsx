@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Rx from "rxjs"
 import * as Link from "../data/Link"
 import Content, { Mode } from "./Content"
@@ -11,7 +11,7 @@ interface Props {
   url: string
 }
 
-export default class NetworkActivity extends Preact.Component<Props> {
+export default class NetworkActivity extends React.Component<Props> {
   subscription: Rx.Subscription
   id = Link.parse(this.props.url).id
   upload: HTMLElement | null

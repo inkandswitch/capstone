@@ -40,6 +40,7 @@ export default class Store {
       publicKey: Base58.encode(buffers.publicKey),
       secretKey: Base58.encode(buffers.secretKey),
     }
+
     const docId = keys.publicKey
 
     this.sendToBackend({ type: "Create", docId, keys })

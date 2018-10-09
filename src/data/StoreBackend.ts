@@ -8,7 +8,7 @@ import * as Msg from "./StoreMsg"
 const log = Debug("store:backend")
 
 export default class StoreBackend {
-  presenceTick?: NodeJS.Timer
+  presenceTick?: any
   _send: (msg: Msg.BackendToFrontend) => void
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
@@ -28,7 +28,6 @@ export default class StoreBackend {
 
   applyChanges = (docId: string, changes: any) => {
     const handle = this.docHandles[docId]
-
     if (handle) {
       handle.applyChanges(changes)
     } else {

@@ -1,7 +1,7 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
+import * as DataImport from "./DataImport"
 import { AnyDoc } from "automerge/frontend"
 import Content, {
   DocumentActor,
@@ -50,7 +50,7 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
-class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
+class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
       identityUrl: Reify.string(doc.identityUrl),
@@ -107,28 +107,28 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   onPaste = (e: ClipboardEvent) => {
-    // If an element other than body has focus (e.g. a text card input),
-    // don't interfere with normal behavior.
-    if (document.activeElement !== document.body) {
-      return
-    }
+    this.importData(e.clipboardData)
+  }
 
-    // Otherwise, prevent default behavior, validate the contents of the clipboard
-    // against the Link scheme, and (if a valid url) add to the archive.
-    e.preventDefault()
-    const pastedUrl = e.clipboardData.getData("text/plain")
-    try {
-      Link.parse(pastedUrl)
-    } catch {
-      console.log("Invalid document url")
-      return
-    }
-    console.log("Adding document", pastedUrl)
-    this.props.emit({ type: "AddToShelf", body: { url: pastedUrl } })
+  onDragOver = (event: React.DragEvent) => {
+    event.preventDefault()
+  }
+
+  onDrop = (event: React.DragEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    this.importData(event.dataTransfer)
   }
 
   onTapPeer = (identityUrl: string) => {
     this.props.emit({ type: "AddToShelf", body: { url: identityUrl } })
+  }
+
+  importData = (dataTransfer: DataTransfer) => {
+    const urlPromises = DataImport.importData(dataTransfer)
+    Promise.all(urlPromises).then(urls => {
+      this.props.emit({ type: "AddToShelf", body: { urls } })
+    })
   }
 
   render() {
@@ -136,7 +136,11 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
     const currentUrl = this.peek()
     return (
       <Touch onPinchEnd={this.onPinchEnd}>
-        <div class="Workspace" style={style.Workspace}>
+        <div
+          className="Workspace"
+          style={style.Workspace}
+          onDragOver={this.onDragOver}
+          onDrop={this.onDrop}>
           <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
             key={currentUrl}
@@ -156,14 +160,14 @@ class Workspace extends Preact.Component<Widget.Props<Model, WidgetMessage>> {
 
 const style = {
   Workspace: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     top: 0,
     left: 0,
     bottom: 0,
     right: 0,
   },
   Peers: {
-    position: "absolute",
+    position: "absolute" as "absolute",
     top: 0,
     right: 0,
     bottom: 0,

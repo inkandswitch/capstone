@@ -1,4 +1,4 @@
-import * as Preact from "preact"
+import * as React from "react"
 import * as Rx from "rxjs"
 
 import Content from "./Content"
@@ -14,7 +14,7 @@ interface State {
   peers: {}
 }
 
-export default class Peers extends Preact.Component<Props, State> {
+export default class Peers extends React.Component<Props, State> {
   state = { peers: {} }
   presenceSubscription: Rx.Subscription
 

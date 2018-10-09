@@ -12,6 +12,7 @@ import { Bounds, ControlPosition, DraggableData } from "./types"
 
 export function getBoundPosition(
   draggable: Draggable,
+  node: HTMLDivElement,
   x: number,
   y: number,
 ): [number, number] {
@@ -21,7 +22,6 @@ export function getBoundPosition(
   // Clone new bounds
   let { bounds } = draggable.props
   bounds = typeof bounds === "string" ? bounds : cloneBounds(bounds)
-  const node = findDOMNode(draggable)
 
   if (typeof bounds === "string") {
     const { ownerDocument } = node
@@ -95,10 +95,10 @@ export function canDragY(draggable: Draggable): boolean {
 
 // Get {x, y} positions from event.
 export function getControlPosition(
-  e: PointerEvent,
+  e: React.PointerEvent,
   draggable: Draggable,
+  node: HTMLDivElement,
 ): ControlPosition {
-  const node = findDOMNode(draggable)
   // User can provide an offsetParent if desired.
   const offsetParent =
     draggable.props.offsetParent || node.offsetParent || node.ownerDocument.body
@@ -108,12 +108,12 @@ export function getControlPosition(
 // Create an data object exposed by <Draggable>'s events
 export function createCoreData(
   draggable: Draggable,
+  node: HTMLDivElement,
   x: number,
   y: number,
 ): DraggableData {
   const state = draggable.state
   const isStart = !isNum(state.lastX)
-  const node = findDOMNode(draggable)
 
   if (isStart) {
     // If this is our first move, use the x and y as last coords.
@@ -164,12 +164,4 @@ function cloneBounds(bounds: Bounds): Bounds {
     right: bounds.right,
     bottom: bounds.bottom,
   }
-}
-
-function findDOMNode(draggable: Draggable): HTMLElement {
-  const node = draggable.base
-  if (!node) {
-    throw new Error("<Draggable>: Unmounted during event!")
-  }
-  return node
 }

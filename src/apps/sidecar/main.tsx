@@ -1,4 +1,5 @@
-import * as Preact from "preact"
+import * as React from "react"
+import * as ReactDOM from "react-dom"
 import SidecarApp from "../../components/SidecarApp"
 import Content from "../../components/Content"
 import Store from "../../data/Store"
@@ -16,4 +17,4 @@ port.onMessage.addListener(msg => {
   Content.store.onMessage(msg)
 })
 
-setTimeout(() => Preact.render(<SidecarApp />, document.body), 1000)
+ReactDOM.render(<SidecarApp />, document.body)

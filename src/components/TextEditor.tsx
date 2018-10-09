@@ -1,6 +1,6 @@
 import { random } from "lodash/fp"
 import * as DiffMatchPatch from "diff-match-patch"
-import * as Preact from "preact"
+import * as React from "react"
 import * as CodeMirror from "codemirror"
 import "codemirror/lib/codemirror.css"
 import "../styles/styles.css"
@@ -30,7 +30,7 @@ export interface State {
   codeMirror: CodeMirror.Editor
 }
 
-export default class TextEditor extends Preact.Component<Props, State> {
+export default class TextEditor extends React.Component<Props, State> {
   wrapper?: HTMLElement
   codeMirror?: CodeMirror.Editor
 
@@ -146,13 +146,13 @@ export default class TextEditor extends Preact.Component<Props, State> {
     this.props.onChange(changes)
   }
 
+  onRef = (el: HTMLDivElement) => {
+    this.wrapper = el
+  }
+
   render() {
     return (
-      <div
-        className="CodeMirrorEditor"
-        ref={(el: HTMLElement) => (this.wrapper = el)}
-        style={style.Text}
-      />
+      <div className="CodeMirrorEditor" ref={this.onRef} style={style.Text} />
     )
   }
 }
@@ -163,7 +163,7 @@ const style = {
     padding: 10,
     color: "#333",
     lineHeight: 1.5,
-    position: "relative",
+    position: "relative" as "relative",
     touchAction: "none",
   },
 }

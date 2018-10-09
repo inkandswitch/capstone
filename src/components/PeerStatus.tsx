@@ -1,5 +1,5 @@
 import classnames from "classnames"
-import * as Preact from "preact"
+import * as React from "react"
 import * as Rx from "rxjs"
 
 import * as Link from "../data/Link"
@@ -20,7 +20,7 @@ interface State {
 // TODO: move to store
 type status = "inactive" | "active" | "disconnected"
 
-export default class PeerStatus extends Preact.Component<Props, State> {
+export default class PeerStatus extends React.Component<Props, State> {
   id = Link.parse(this.props.url).id
   state = { status: "disconnected" }
   presenceSubscription: Rx.Subscription
