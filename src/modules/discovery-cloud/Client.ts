@@ -33,7 +33,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     this.id = Base58.encode(opts.id)
     this.url = opts.url
     this.connect = opts.stream
-    this.connectDiscovery()
+    this.discovery = this.connectDiscovery()
 
     log("Initialized %o", opts)
   }
@@ -72,7 +72,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     // NOOP
   }
 
-  private connectDiscovery() {
+  private connectDiscovery(): WebSocket {
     const url = `${this.url}/discovery/${this.id}`
 
     log("connectDiscovery", url)
@@ -99,6 +99,8 @@ export default class DiscoveryCloudClient extends EventEmitter {
     this.discovery.addEventListener("error", (event: any) => {
       log("discovery.onerror", event.error)
     })
+
+    return this.discovery
   }
 
   private sendHello() {

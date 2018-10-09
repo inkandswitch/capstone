@@ -20,7 +20,7 @@ export default function swarm(hm, opts = {}) {
       hash: false,
       encrypt: true,
       port: 5000,
-      dns: { multicast }
+      dns: { multicast },
       stream: opts => hm.replicate(opts),
     },
     opts,
