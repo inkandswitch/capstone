@@ -1,6 +1,4 @@
 
-process.env.DEBUG = "discovery-cloud:server"
-
 let express = require("express")
 let app = express()
 let WebSocket = require("ws")
@@ -61,8 +59,8 @@ class DiscoveryCloudServer {
   }
 
   join(ws1, ws2) {
-    let tag1 = crypto.randomBytes(2).toString('hex')
-    let tag2 = crypto.randomBytes(2).toString('hex')
+    let tag1 = crypto.randomBytes(2).toString("hex")
+    let tag2 = crypto.randomBytes(2).toString("hex")
 
     ws1.on("message", data => {
       log("pipe", tag1, data)
@@ -149,10 +147,10 @@ class DiscoveryCloudServer {
     })
 
     app.listen(this.port, "0.0.0.0", err => {
-      log("Listening on port", this.port)
+      console.log("Listening on port", this.port)
     })
   }
 }
 
-const server = new DiscoveryCloudServer()
+const server = new DiscoveryCloudServer({ port: process.env.PORT })
 server.listen()
