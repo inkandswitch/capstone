@@ -73,7 +73,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
   }
 
   private connectDiscovery() {
-    const url = `${this.url}/discovery`
+    const url = `${this.url}/discovery/${this.id}`
 
     log("connectDiscovery", url)
 

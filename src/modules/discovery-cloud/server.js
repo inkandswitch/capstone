@@ -84,23 +84,21 @@ class DiscoveryCloudServer {
       res.end()
     })
 
-    app.ws("/discovery", (ws, req) => {
+    app.ws("/discovery/:id", (ws, req) => {
       log("discovery connection")
-      let id = null
+      const { id } = req.params
+      this.peers[id] = ws
+
       ws.on("message", data => {
-        // {id:id,join:[...],leave:[...]}
+        // {id: id, join: [...], leave: [...]}
         log("message", data)
         const msg = JSON.parse(data)
-        id = msg.id
-        this.peers[id] = ws
-        this.applyPeers(msg.id, msg.join, msg.leave)
-        this.notifyIntersections(msg.id)
+        this.applyPeers(id, msg.join, msg.leave)
+        this.notifyIntersections(id)
       })
       ws.on("close", () => {
-        if (id) {
-          delete this.peers[id]
-          delete this.peerKeys[id]
-        }
+        delete this.peers[id]
+        delete this.peerKeys[id]
       })
     })
 
