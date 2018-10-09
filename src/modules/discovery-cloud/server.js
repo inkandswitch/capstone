@@ -1,7 +1,12 @@
+
+process.env.DEBUG = "discovery-cloud:server"
+
 let express = require("express")
 let app = express()
+let WebSocket = require("ws")
 let expressWs = require("express-ws")(app)
 let log = require("debug")("discovery-cloud:server")
+
 
 function mergeUniq(base = [], add = [], remove = []) {
   return base
@@ -55,15 +60,25 @@ class DiscoveryCloudServer {
 
   join(ws1, ws2) {
     ws1.on("message", data => {
-      log("pipe -> ", data)
-      ws2.send(data)
+//      log("pipe -> ", data)
+      if (ws2.readyState === WebSocket.OPEN) {
+        ws2.send(data)
+      } else {
+//        log("target socket closed - end of line")
+        ws1.close()
+      }
     })
     ws2.on("message", data => {
-      log("pipe <- ", data)
-      ws1.send(data)
+//      log("pipe <- ", data)
+      if (ws1.readyState === WebSocket.OPEN) {
+        ws1.send(data)
+      } else {
+//        log("target socket closed - end of line")
+        ws2.close()
+      }
     })
     const cleanup = () => {
-      log("cleaning up joined pipes")
+//      log("cleaning up joined pipes")
       ws1.close()
       ws2.close()
     }
@@ -91,8 +106,8 @@ class DiscoveryCloudServer {
 
       ws.on("message", data => {
         // {id: id, join: [...], leave: [...]}
-        log("message", data)
         const msg = JSON.parse(data)
+        log("message", msg)
         this.applyPeers(id, msg.join, msg.leave)
         this.notifyIntersections(id)
       })

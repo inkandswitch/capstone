@@ -1,8 +1,7 @@
-process.env["DEBUG"] = "*"
+process.env["DEBUG"] = "discovery-cloud:Client discovery-cloud:test protocol discovery-cloud:ClientPeer"
 
 import DiscoveryCloudClient from "./Client"
 import { Stream } from "stream"
-import * as Debug from "debug"
 import StoreBackend from "../../data/StoreBackend"
 import * as Msg from "../../data/StoreMsg"
 import { Hypermerge } from "../../modules/hypermerge"
@@ -11,6 +10,7 @@ import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import { FrontendHandle } from "../../modules/hypermerge/frontend"
 import { Doc, AnyEditDoc, EditDoc, AnyDoc } from "automerge/frontend"
+import * as Debug from "debug"
 const log = Debug("discovery-cloud:test")
 let ram = require("random-access-memory")
 
@@ -38,7 +38,8 @@ log("DOCID", docId)
 hm.ready.then(hm => {
   swarm(hm, {
     id: hm.core.archiver.changes.id,
-    url: "wss://discovery-cloud.herokuapp.com",
+    //url: "wss://discovery-cloud.herokuapp.com",
+    url: "ws://0.0.0.0:8080",
   })
 
   let handle = new FrontendHandle()
@@ -60,7 +61,6 @@ hm.ready.then(hm => {
   })
 
   setInterval(() => {
-    log("About to change")
     handle.change((doc: EditDoc<Model>) => {
       if (input) doc.counter1 = (doc.counter1 || 0) + 1
       else doc.counter2 = (doc.counter2 || 0) + 1
