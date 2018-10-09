@@ -9,6 +9,8 @@ export interface Info {
   channel: Buffer
   discoveryKey: Buffer
   live?: boolean
+  download?: boolean
+  upload?: boolean
   encrypt?: boolean
   hash?: boolean
 }
@@ -43,6 +45,8 @@ export default class ClientPeer {
       channel: Base58.decode(channel),
       discoveryKey: Base58.decode(channel),
       live: true,
+      download: true,
+      upload: true,
       encrypt: false,
       hash: false,
     })
