@@ -7,7 +7,8 @@ import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
 import * as Feedback from "./CommandFeedback"
 import { Portal } from "react-portal"
-import Pen, { PenEvent } from "./Pen"
+import * as GPS from "./GPS"
+import { filter } from "rxjs/operators"
 const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {
@@ -65,7 +66,6 @@ const EMPTY_BOUNDS: Bounds = {
 enum StrokeType {
   ink,
   erase,
-  glyph,
   default = ink,
 }
 
@@ -99,14 +99,6 @@ const StrokeSettings: { [st: number]: StrokeSettings } = {
     maxLineWith: 40,
     lineWidth: 40,
   },
-  [StrokeType.glyph]: {
-    globalCompositeOperation: "source-over",
-    strokeStyle: "SkyBlue",
-    lineCap: "round",
-    lineJoin: "round",
-    maxLineWith: 4,
-    lineWidth: 4,
-  },
 }
 
 const $P_RECOGNIZER = new $P.Recognizer()
@@ -122,7 +114,7 @@ const $P_RECOGNIZER = new $P.Recognizer()
 })()
 
 interface State {
-  strokeType: StrokeType
+  strokeType?: StrokeType
 }
 
 export default class StrokeRecognizer extends React.Component<Props, State> {
@@ -131,6 +123,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   isPenDown: boolean = false
   static strokeTypeSubect: Rx.Subject<StrokeType> = new Rx.Subject()
   subscription?: Rx.Subscription
+  pointerEventSubscription?: Rx.Subscription
 
   static defaultProps = {
     delay: 300,
@@ -143,7 +136,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   lastDrawnPoint = 0
   bounds: Bounds = EMPTY_BOUNDS
 
-  state = { strokeType: StrokeType.default }
+  state = { strokeType: undefined }
 
   render() {
     const { strokeType } = this.state
@@ -151,17 +144,15 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
     return (
       <div style={style}>
-        <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
-          {this.props.children}
-        </Pen>
+        {this.props.children}
         <Portal>
           <div>
             <canvas ref={this.canvasAdded} className={css.StrokeLayer} />
             <div className={css.Options}>
               <Option
-                label="Glyph"
-                value={StrokeType.glyph}
-                selected={strokeType === StrokeType.glyph}
+                label="Ink"
+                value={StrokeType.ink}
+                selected={strokeType === StrokeType.ink}
                 onChange={this.onStrokeTypeChange}
               />
               <Option
@@ -178,6 +169,11 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
+    this.pointerEventSubscription =
+      GPS.Provider.events$ &&
+      GPS.Provider.events$
+        .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
+        .subscribe(this.onPenEvent)
     this.subscription = StrokeRecognizer.strokeTypeSubect.subscribe(
       strokeType => {
         this.setState({ strokeType })
@@ -187,61 +183,66 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
   componentWillUnmount() {
     this.subscription && this.subscription.unsubscribe()
+    this.pointerEventSubscription && this.pointerEventSubscription.unsubscribe()
   }
 
-  onPanStart = (event: PenEvent) => {
+  onPenEvent = (event: PointerEvent) => {
+    if (this.state.strokeType === undefined) return
+    if (event.type == "pointerdown") {
+      this.onPanStart(event)
+    } else if (event.type == "pointerup" || event.type == "pointercancel") {
+      this.onPanEnd(event)
+    } else if (event.type == "pointermove") {
+      this.onPanMove(event)
+    }
+  }
+
+  onPanStart = (event: PointerEvent) => {
     this.onPanMove(event)
   }
 
-  onPanMove = (event: PenEvent) => {
-    const { x, y } = event.center
+  onPanMove = (event: PointerEvent) => {
+    const { x, y } = event
     if (!this.isPenDown) this.isPenDown = true
-    const srcEvent = event.srcEvent as PointerEvent
-    if (srcEvent) {
-      const coalesced: PointerEvent[] = srcEvent.getCoalescedEvents()
-      if (!this.strokes[this.strokeId]) {
-        this.strokes[this.strokeId] = []
-      }
-      this.strokes[this.strokeId].push(
-        ...coalesced.map((value, i, a) => {
-          return {
-            x: value.x,
-            y: value.y,
-            pressure: value.pressure,
-          }
-        }),
-      )
+    const coalesced: PointerEvent[] = event.getCoalescedEvents()
+    if (!this.strokes[this.strokeId]) {
+      this.strokes[this.strokeId] = []
     }
+    this.strokes[this.strokeId].push(
+      ...coalesced.map((value, i, a) => {
+        return {
+          x: value.x,
+          y: value.y,
+          pressure: value.pressure,
+        }
+      }),
+    )
 
     this.updateBounds(x, y)
     this.draw()
   }
 
-  onPanEnd = (event: PenEvent) => {
+  onPanEnd = (event: PointerEvent) => {
     if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 0
-    if (this.state.strokeType == StrokeType.glyph) {
-      this.recognize()
-      this.reset()
-    }
   }
 
   inkStroke = () => {
-    if (!this.props.onInkStroke || this.state.strokeType === StrokeType.glyph) {
+    if (!this.props.onInkStroke || this.state.strokeType == undefined) {
       return
     }
     this.props.onInkStroke(
       this.strokes.map((points, i, a) => {
         return {
           points: points,
-          settings: StrokeSettings[this.state.strokeType],
+          settings: StrokeSettings[this.state.strokeType!],
         }
       }),
     )
   }
 
-  onStrokeTypeChange = (strokeType: StrokeType = StrokeType.default) => {
+  onStrokeTypeChange = (strokeType?: StrokeType) => {
     if (this.state.strokeType === strokeType) return
     this.inkStroke()
     this.reset()
@@ -338,7 +339,12 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   draw = Frame.throttle(() => {
-    if (!this.ctx || !this.strokes[this.strokeId]) return
+    if (
+      !this.ctx ||
+      !this.strokes[this.strokeId] ||
+      this.state.strokeType == undefined
+    )
+      return
 
     for (
       this.lastDrawnPoint;
@@ -346,7 +352,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
       this.lastDrawnPoint++
     ) {
       let point = this.strokes[this.strokeId][this.lastDrawnPoint]
-      let settings = StrokeSettings[this.state.strokeType]
+      let settings = StrokeSettings[this.state.strokeType!]
       settings.lineWidth = StrokeWidth(point.pressure, settings.maxLineWith)
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {
