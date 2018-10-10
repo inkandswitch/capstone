@@ -10,9 +10,10 @@ export const Provider = new ProviderSingleton()
 export class InputHandler extends React.Component {
   componentDidMount() {
     Provider.events$ = Rx.merge(
-      Rx.fromEvent<PointerEvent>(document, "pointerdown"),
-      Rx.fromEvent<PointerEvent>(document, "pointermove"),
-      Rx.fromEvent<PointerEvent>(document, "pointerup"),
+      Rx.fromEvent<PointerEvent>(document.body, "pointerdown"),
+      Rx.fromEvent<PointerEvent>(document.body, "pointermove"),
+      Rx.fromEvent<PointerEvent>(document.body, "pointerup"),
+      Rx.fromEvent<PointerEvent>(document.body, "pointercancel"),
     )
   }
 
