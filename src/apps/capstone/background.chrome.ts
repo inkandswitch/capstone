@@ -5,7 +5,7 @@ let racf = require("random-access-chrome-file")
 
 process.hrtime = require("browser-process-hrtime")
 
-let mainWindow: chrome.app.window.AppWindow
+let mainWindow: chrome.app.AppWindow
 
 chrome.app.runtime.onLaunched.addListener(() => {
   chrome.app.window.create(

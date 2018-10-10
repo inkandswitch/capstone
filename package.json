@@ -16,8 +16,8 @@
   },
   "author": "Ink & Switch",
   "devDependencies": {
-    "@types/chrome": "^0.0.71",
-    "@types/chrome-apps": "^0.0.1",
+    "@types/chrome": "^0.0.74",
+    "@types/chrome-apps": "^0.0.5",
     "@types/codemirror": "^0.0.59",
     "@types/debug": "^0.0.31",
     "@types/diff-match-patch": "^1.0.32",
@@ -30,6 +30,7 @@
     "cross-env": "^5.2.0",
     "css-loader": "^1.0.0",
     "file-loader": "^1.1.11",
+    "fork-ts-checker-webpack-plugin": "^0.4.10",
     "postcss-loader": "^2.1.6",
     "prettier": "1.14.2",
     "source-map-loader": "^0.2.3",
