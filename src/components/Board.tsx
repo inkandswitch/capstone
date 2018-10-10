@@ -367,14 +367,19 @@ class Board extends React.Component<Props, State> {
     return card && { card, center }
   }
 
-  onInkStroke = (stroke: InkStrokeEvent) => {
+  onInkStroke = (strokes: InkStrokeEvent[]) => {
     this.props.change(doc => {
-      doc.strokes.push({
-        settings: stroke.settings,
-        path: stroke.points
-          .map(point => `${point.x}/${point.y}/${point.pressure}`)
-          .join("|"),
-      })
+      const canvasStrokes: CanvasStroke[] = strokes.map(
+        (event: InkStrokeEvent) => {
+          return {
+            settings: event.settings,
+            path: event.points
+              .map(point => `${point.x}/${point.y}/${point.pressure}`)
+              .join("|"),
+          }
+        },
+      )
+      doc.strokes.push(...canvasStrokes)
       return doc
     })
   }
