@@ -88,12 +88,12 @@ const StrokeSettings: { [st: number]: StrokeSettings } = {
     lineWidth: 20,
   },
   [StrokeType.erase]: {
-    globalCompositeOperation: "destination-out",
-    strokeStyle: "LightCoral",
+    globalCompositeOperation: "source-over",
+    strokeStyle: "white",
     lineCap: "round",
     lineJoin: "round",
-    maxLineWith: 20,
-    lineWidth: 20,
+    maxLineWith: 30,
+    lineWidth: 30,
   },
   [StrokeType.glyph]: {
     globalCompositeOperation: "source-over",
