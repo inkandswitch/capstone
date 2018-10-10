@@ -2,7 +2,7 @@ import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { clamp, isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
-import { CardModel } from "./DraggableCard"
+import DraggableCard, { CardModel } from "./DraggableCard"
 import Card from "./Card"
 import Content, {
   DocumentActor,
@@ -145,14 +145,32 @@ class Board extends React.Component<Props, State> {
     }
   }
 
-  componentDidMount() {
-    GPS.Provider.events$.subscribe((e: HammerInput) => {
-      console.log("in board event")
+  onRef = (ref: HTMLDivElement) => {
+    this.boardEl = ref
+  }
+
+  onDragStart = (id: string) => {
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (!card) return doc
+      if (card.z === doc.topZ) return doc
+
+      doc.topZ += 1
+      // XXX: Remove once backend/store handles object immutability.
+      doc.cards[id] = { ...card, z: doc.topZ }
+      return doc
     })
   }
 
-  onRef = (ref: HTMLDivElement) => {
-    this.boardEl = ref
+  onDragStop = (x: number, y: number, id: string) => {
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[id] = { ...card, x: x, y: y }
+      }
+      return doc
+    })
   }
 
   render() {
@@ -172,11 +190,12 @@ class Board extends React.Component<Props, State> {
                     classNames="Card"
                     enter={false}
                     timeout={{ exit: 1 }}>
-                    <Card
-                      cardId={card.id}
-                      style={{ top: card.y, left: card.x }}>
+                    <DraggableCard
+                      card={card}
+                      onDragStart={this.onDragStart}
+                      onDragStop={this.onDragStop}>
                       <Content mode="embed" url={card.url} />
-                    </Card>
+                    </DraggableCard>
                   </CSSTransition>
                 )
               })}

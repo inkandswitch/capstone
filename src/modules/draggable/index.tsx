@@ -1,5 +1,9 @@
 import classNames from "classnames"
 import * as React from "react"
+import * as Rx from "rxjs"
+import { filter } from "rxjs/operators"
+
+import * as GPS from "../../components/GPS" // TODO: organization
 
 import {
   matchesSelectorAndParentsTo,
@@ -73,6 +77,7 @@ export default class Draggable extends React.Component<
   DraggableState
 > {
   private ref: HTMLDivElement | undefined
+  private subscription: Rx.Subscription
 
   // TODO: not sure why these as are needed.
   static defaultProps = {
@@ -125,6 +130,12 @@ export default class Draggable extends React.Component<
     }
   }
 
+  componentDidMount() {
+    this.subscription = GPS.Provider.events$
+      .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
+      .subscribe(this.onPointerEvent)
+  }
+
   componentWillUnmount() {
     // Prevents invariant if unmounted while dragging.
     this.setState({ dragging: false })
@@ -134,15 +145,45 @@ export default class Draggable extends React.Component<
     const thisNode = this.ref
     if (thisNode) {
       const { ownerDocument } = thisNode
-      removeEvent(ownerDocument, eventNames.move, this.handleDrag)
-      removeEvent(ownerDocument, eventNames.stop, this.handleDragStop)
       if (this.props.enableUserSelectHack) {
         removeUserSelectStyles(ownerDocument)
       }
     }
+
+    if (this.subscription) {
+      this.subscription.unsubscribe()
+    }
   }
 
-  handleDragStart = (e: React.PointerEvent) => {
+  onPointerEvent = (e: PointerEvent) => {
+    if (
+      e.type === "pointerdown" &&
+      this.ref &&
+      this.ref.contains(e.target as Node)
+    ) {
+      this.onPointerDown(e)
+    } else if (this.state.dragging) {
+      if (e.type === "pointermove") {
+        this.handleDrag(e)
+      } else if (e.type === "pointerup") {
+        this.handleDragStop(e)
+      } else if (e.type === "pointercancel") {
+        this.onPointerCancel(e)
+      }
+    }
+  }
+
+  onPointerDown = (e: PointerEvent) => {
+    if (e.pointerType === "pen" || !e.isPrimary) return
+    this.handleDragStart(e)
+  }
+
+  onPointerCancel = (e: PointerEvent) => {
+    // Handle cancel events to make sure we clean up.
+    this.handleDragCancel()
+  }
+
+  handleDragStart = (e: PointerEvent) => {
     // Only accept left-clicks.
     if (
       !this.props.allowAnyClick &&
@@ -220,11 +261,11 @@ export default class Draggable extends React.Component<
     // Add events to the document directly so we catch when the user's mouse/touch moves outside of
     // this element. We use different events depending on whether or not we have detected that this
     // is a touch-capable device.
-    addEvent(ownerDocument, eventNames.move, this.handleDrag)
-    addEvent(ownerDocument, eventNames.stop, this.handleDragStop)
+    //addEvent(ownerDocument, eventNames.move, this.handleDrag)
+    //addEvent(ownerDocument, eventNames.stop, this.handleDragStop)
   }
 
-  handleDrag = (e: React.PointerEvent) => {
+  handleDrag = (e: PointerEvent) => {
     if (!this.state.dragging) {
       return false
     }
@@ -288,7 +329,7 @@ export default class Draggable extends React.Component<
     this.setState({ ...newState, lastX: x, lastY: y })
   }
 
-  handleDragStop = (e: React.PointerEvent) => {
+  handleDragStop = (e: PointerEvent) => {
     if (!this.state.dragging) {
       return
     }
@@ -351,16 +392,6 @@ export default class Draggable extends React.Component<
     }
   }
 
-  onPointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "pen" || !e.isPrimary) return
-    this.handleDragStart(e)
-  }
-
-  onPointerCancel = (e: React.PointerEvent) => {
-    // Handle cancel events to make sure we clean up.
-    this.handleDragCancel()
-  }
-
   onRef = (ref: HTMLDivElement) => {
     this.ref = ref
   }
@@ -395,12 +426,7 @@ export default class Draggable extends React.Component<
     })
 
     return (
-      <div
-        ref={this.onRef}
-        className={className}
-        style={style}
-        onPointerCancel={this.onPointerCancel}
-        onPointerDown={this.onPointerDown}>
+      <div ref={this.onRef} className={className} style={style}>
         {this.props.children}
       </div>
     )
