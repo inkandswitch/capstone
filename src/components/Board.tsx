@@ -371,9 +371,9 @@ class Board extends React.Component<Props, State> {
     this.props.change(doc => {
       doc.strokes.push({
         settings: stroke.settings,
-        path:
-          "M " +
-          stroke.points.map(point => `${point.X} ${point.Y}`).join(" L "),
+        path: stroke.points
+          .map(point => `${point.x}/${point.y}/${point.pressure}`)
+          .join("|"),
       })
       return doc
     })

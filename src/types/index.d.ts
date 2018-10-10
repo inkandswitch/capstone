@@ -7,6 +7,10 @@ declare global {
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
   }
 
+  interface PointerEvent {
+    getCoalescedEvents: () => PointerEvent[]
+  }
+
   interface VisualViewport extends EventTarget {
     width: number
     height: number
