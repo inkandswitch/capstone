@@ -85,7 +85,7 @@ export interface StrokeSettings {
 }
 
 export const StrokeWidth = (pressure: number, maxWidth: number) => {
-  return Math.max(1, maxWidth * Math.pow(pressure, 3))
+  return Math.max(1, maxWidth * Math.pow(pressure, 4))
 }
 
 const StrokeSettings: { [st: number]: StrokeSettings } = {
@@ -94,16 +94,16 @@ const StrokeSettings: { [st: number]: StrokeSettings } = {
     strokeStyle: "black",
     lineCap: "round",
     lineJoin: "round",
-    maxLineWith: 20,
-    lineWidth: 20,
+    maxLineWith: 16,
+    lineWidth: 16,
   },
   [StrokeType.erase]: {
     globalCompositeOperation: "source-over",
     strokeStyle: "white",
     lineCap: "round",
     lineJoin: "round",
-    maxLineWith: 30,
-    lineWidth: 30,
+    maxLineWith: 40,
+    lineWidth: 40,
   },
   [StrokeType.glyph]: {
     globalCompositeOperation: "source-over",
