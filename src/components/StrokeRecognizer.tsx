@@ -213,6 +213,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
     if (this.state.strokeType === strokeType) return
     this.inkStroke()
     this.reset()
+    this.setState({ strokeType })
   }
 
   center() {
