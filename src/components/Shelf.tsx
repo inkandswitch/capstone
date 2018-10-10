@@ -1,12 +1,9 @@
 import * as React from "react"
 import * as Reify from "../data/Reify"
-import { Glyph } from "../data/Glyph"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
-import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
-import * as Feedback from "./CommandFeedback"
 
 interface Model {
   selectedUrls: string[]
