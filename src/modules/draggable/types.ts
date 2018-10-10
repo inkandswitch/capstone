@@ -1,5 +1,5 @@
 export type DraggableEventHandler = (
-  e: React.PointerEvent,
+  e: PointerEvent,
   data: DraggableData,
 ) => void | false
 

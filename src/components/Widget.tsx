@@ -35,7 +35,7 @@ export function create<T, M extends Message = never>(
   const WidgetClass = class extends React.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
-    requestChanges: (ChangeFn: any) => void
+    requestChanges?: (ChangeFn: any) => void
 
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
@@ -63,7 +63,7 @@ export function create<T, M extends Message = never>(
         throw new Error("Cannot call change before the document has loaded.")
       }
 
-      this.requestChanges(cb)
+      this.requestChanges!(cb)
     }
 
     render() {

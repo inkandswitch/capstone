@@ -16,7 +16,7 @@ interface State {
 
 export default class Peers extends React.Component<Props, State> {
   state = { peers: {} }
-  presenceSubscription: Rx.Subscription
+  presenceSubscription?: Rx.Subscription
 
   componentDidMount() {
     // TODO: subscribe to peer activity

@@ -3,7 +3,6 @@ import * as $P from "../modules/$P"
 import * as Rx from "rxjs"
 import * as Glyph from "../data/Glyph"
 import * as Frame from "../logic/Frame"
-import Pen, { PenEvent } from "./Pen"
 import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
 import * as Feedback from "./CommandFeedback"
@@ -34,12 +33,6 @@ export interface GlyphEvent {
 export interface InkStrokeEvent {
   points: PenPoint[]
   settings: StrokeSettings
-}
-
-export function PenPoint(x: number, y: number, pressure: number = 0.5) {
-  this.x = x
-  this.y = y
-  this.pressure = pressure
 }
 
 export function penPointFrom(pointString: string): PenPoint | undefined {
@@ -135,9 +128,9 @@ interface State {
 export default class StrokeRecognizer extends React.Component<Props, State> {
   canvasElement?: HTMLCanvasElement | null
   ctx?: CanvasRenderingContext2D | null
-  isPenDown: boolean
+  isPenDown: boolean = false
   static strokeTypeSubect: Rx.Subject<StrokeType> = new Rx.Subject()
-  subscription: Rx.Subscription
+  subscription?: Rx.Subscription
 
   static defaultProps = {
     delay: 300,
@@ -158,9 +151,9 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
     return (
       <div style={style}>
-        <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
+        {/* <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
           {this.props.children}
-        </Pen>
+        </Pen> */}
         <Portal>
           <div>
             <canvas ref={this.canvasAdded} className={css.StrokeLayer} />

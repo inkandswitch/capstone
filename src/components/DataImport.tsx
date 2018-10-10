@@ -5,9 +5,9 @@ import { AnyEditDoc, ChangeFn } from "automerge/frontend"
 
 const importers: { [k: string]: Function } = {
   image: async (item: DataTransferItem) =>
-    this.addImage(await DataTransfer.extractAsDataURL(item)),
+    addImage(await DataTransfer.extractAsDataURL(item)),
   text: async (item: DataTransferItem) =>
-    this.addText(await DataTransfer.extractAsText(item)),
+    addText(await DataTransfer.extractAsText(item)),
 }
 
 export const importData = (data: DataTransfer): Promise<string>[] => {

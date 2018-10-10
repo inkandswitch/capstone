@@ -90,14 +90,6 @@ class Shelf extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
   }
 
-  onGlyph = (stroke: GlyphEvent) => {
-    switch (stroke.glyph) {
-      case Glyph.delete:
-        Feedback.Provider.add("Clear shelf contents", stroke.center)
-        this.props.emit({ type: "ClearShelf" })
-    }
-  }
-
   render() {
     const { selectedUrls } = this.props.doc
     const count = selectedUrls.length
@@ -105,13 +97,11 @@ class Shelf extends React.Component<Widget.Props<Model, WidgetMessage>> {
     if (count <= 0) return null
 
     return (
-      <StrokeRecognizer onGlyph={this.onGlyph}>
-        <div style={style.Shelf}>
-          {selectedUrls.map((url, idx) => (
-            <ShelfCard key={idx} url={url} index={idx} />
-          ))}
-        </div>
-      </StrokeRecognizer>
+      <div style={style.Shelf}>
+        {selectedUrls.map((url, idx) => (
+          <ShelfCard key={idx} url={url} index={idx} />
+        ))}
+      </div>
     )
   }
 }

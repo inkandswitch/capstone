@@ -74,10 +74,10 @@ export class DocumentActor<
   I extends FullyFormedMessage<any>,
   O extends Message = never
 > {
-  url: string
-  docId: string
-  doc: Doc<T>
-  change: (cfn: ChangeFn<T>) => void //(Doc<T>) => void
+  url!: string
+  docId!: string
+  doc!: Doc<T>
+  change!: (cfn: ChangeFn<T>) => void //(Doc<T>) => void
 
   receive(message: I) {
     const onDocumentReady = (doc: Doc<T>) => {

@@ -27,7 +27,7 @@ export default class Store {
     log("constructing")
 
     this._send = send
-    this.presence$ = new Rx.BehaviorSubject(null)
+    this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
   }
 
   handle(id: string): FrontendHandle {

@@ -12,10 +12,10 @@ interface Props {
 }
 
 export default class NetworkActivity extends React.Component<Props> {
-  subscription: Rx.Subscription
+  subscription?: Rx.Subscription
   id = Link.parse(this.props.url).id
-  upload: HTMLElement | null
-  download: HTMLElement | null
+  upload?: HTMLElement | null
+  download?: HTMLElement | null
 
   static reify() {
     return {}
