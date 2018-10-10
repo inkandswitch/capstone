@@ -10,6 +10,7 @@ import "./NetworkActivity"
 import "./SidecarUploader"
 import "./SidecarWorkspace"
 import "./Text"
+import "./Table"
 import "./Workspace"
 
 type State = {

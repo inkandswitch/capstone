@@ -78,7 +78,9 @@ export default class SidecarUploader extends React.Component<Props, State> {
 
   importData(data: DataTransfer) {
     DataTransfer.extractEntries(data).forEach(async entry => {
-      if (entry.type.startsWith("image/")) {
+      if (entry.type.startsWith("text/csv")) {
+        this.addTable(await entry.getAsText())
+      } else if (entry.type.startsWith("image/")) {
         this.addImage(await entry.getAsDataURL())
       } else if (entry.type.startsWith("text/")) {
         this.addText(await entry.getAsText())
@@ -96,6 +98,13 @@ export default class SidecarUploader extends React.Component<Props, State> {
   async addImage(src: string) {
     return this.addDoc("Image", doc => {
       doc.src = src
+      return doc
+    })
+  }
+
+  async addTable(content: string) {
+    return this.addDoc("Table", doc => {
+      doc.content = content // not sure about automerge/crdts here?
       return doc
     })
   }
