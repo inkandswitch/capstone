@@ -14,7 +14,10 @@ import * as UUID from "../data/UUID"
 import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, { StrokeSettings, InkStrokeEvent } from "./StrokeRecognizer"
+import StrokeRecognizer, {
+  StrokeSettings,
+  InkStrokeEvent,
+} from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -158,36 +161,35 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
-    console.log("render board")
     const { cards, topZ, strokes } = this.props.doc
     const { focusedCardId } = this.state
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer>
-          <div style={style.Board} ref={this.onRef}>
-            <TransitionGroup>
-              {Object.values(cards).map(card => {
-                if (!card) return null
+          <StrokeRecognizer onInkStroke={this.onInkStroke}>
+            <div style={style.Board} ref={this.onRef}>
+              <TransitionGroup>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
 
-                return (
-                  <CSSTransition
-                    key={card.id}
-                    classNames="Card"
-                    enter={false}
-                    timeout={{ exit: 1 }}>
-                    <DraggableCard
-                      card={card}
-                      onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}>
-                      <Content mode="embed" url={card.url} />
-                    </DraggableCard>
-                  </CSSTransition>
-                )
-              })}
-            </TransitionGroup>
-            <Ink strokes={strokes} />
-          </div>
+                  return (
+                    <CSSTransition
+                      key={card.id}
+                      classNames="Card"
+                      enter={false}
+                      timeout={{ exit: 1 }}>
+                      <DraggableCard
+                        card={card}
+                        onDragStart={this.onDragStart}
+                        onDragStop={this.onDragStop}>
+                        <Content mode="embed" url={card.url} />
+                      </DraggableCard>
+                    </CSSTransition>
+                  )
+                })}
+              </TransitionGroup>
+              <Ink strokes={strokes} />
+            </div>
           </StrokeRecognizer>
         )
       case "embed":

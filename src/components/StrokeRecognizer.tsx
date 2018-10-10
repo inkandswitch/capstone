@@ -144,7 +144,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
     return (
       <div style={style}>
-          {this.props.children}
+        {this.props.children}
         <Portal>
           <div>
             <canvas ref={this.canvasAdded} className={css.StrokeLayer} />
@@ -170,10 +170,11 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
   componentDidMount() {
     console.log("did mount")
-    this.pointerEventSubscription = GPS.Provider.events$ && 
-    GPS.Provider.events$
-    .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
-    .subscribe(this.onPenEvent)
+    this.pointerEventSubscription =
+      GPS.Provider.events$ &&
+      GPS.Provider.events$
+        .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
+        .subscribe(this.onPenEvent)
     this.subscription = StrokeRecognizer.strokeTypeSubect.subscribe(
       strokeType => {
         this.setState({ strokeType })
@@ -202,21 +203,22 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   onPanMove = (event: PointerEvent) => {
+    console.log("on pan move")
     const { x, y } = event
     if (!this.isPenDown) this.isPenDown = true
     const coalesced: PointerEvent[] = event.getCoalescedEvents()
-      if (!this.strokes[this.strokeId]) {
-        this.strokes[this.strokeId] = []
-      }
-      this.strokes[this.strokeId].push(
-        ...coalesced.map((value, i, a) => {
-          return {
-            x: value.x,
-            y: value.y,
-            pressure: value.pressure,
-          }
-        }),
-      )
+    if (!this.strokes[this.strokeId]) {
+      this.strokes[this.strokeId] = []
+    }
+    this.strokes[this.strokeId].push(
+      ...coalesced.map((value, i, a) => {
+        return {
+          x: value.x,
+          y: value.y,
+          pressure: value.pressure,
+        }
+      }),
+    )
 
     this.updateBounds(x, y)
     this.draw()
@@ -229,7 +231,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   inkStroke = () => {
-    if (!this.props.onInkStroke || !this.state.strokeType) {
+    if (!this.props.onInkStroke || this.state.strokeType == undefined) {
       return
     }
     this.props.onInkStroke(
@@ -339,7 +341,12 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   draw = Frame.throttle(() => {
-    if (!this.ctx || !this.strokes[this.strokeId] || !this.state.strokeType) return
+    if (
+      !this.ctx ||
+      !this.strokes[this.strokeId] ||
+      this.state.strokeType == undefined
+    )
+      return
 
     for (
       this.lastDrawnPoint;
