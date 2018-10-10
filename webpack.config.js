@@ -87,7 +87,7 @@ function app(name, overrides = {}) {
     },
 
     plugins: [
-      new CopyWebpackPlugin(["manifest.json", "index.html"], {
+      new CopyWebpackPlugin(["manifest.json", "index.html", "sandbox.html"], {
         context: `./src/apps/${name}`,
       }),
     ],
