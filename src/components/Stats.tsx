@@ -4,9 +4,9 @@ import * as Stats from "stats.js"
 interface Props {}
 
 export default class CapstoneStats extends React.Component<Props> {
-  ref: HTMLDivElement | undefined
-  rafHandle: number | undefined
-  stats: Stats[]
+  ref?: HTMLDivElement
+  rafHandle?: number
+  stats: Stats[] = []
 
   componentDidMount() {
     this.stats = [new Stats(), new Stats(), new Stats()]

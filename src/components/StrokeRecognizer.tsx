@@ -35,12 +35,6 @@ export interface InkStrokeEvent {
   settings: StrokeSettings
 }
 
-export function PenPoint(x: number, y: number, pressure: number = 0.5) {
-  this.x = x
-  this.y = y
-  this.pressure = pressure
-}
-
 export function penPointFrom(pointString: string): PenPoint | undefined {
   const arr = pointString.split("/")
   if (arr.length < 3) return
