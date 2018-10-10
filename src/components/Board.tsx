@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import { clamp, isEmpty, size } from "lodash"
+import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import { CardModel } from "./DraggableCard"
 import Card from "./Card"
@@ -12,20 +12,11 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
-import { Glyph } from "../data/Glyph"
-import VirtualKeyboard from "./VirtualKeyboard"
 import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
-import { CARD_WIDTH } from "./Card"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, {
-  StrokeSettings,
-  InkStrokeEvent,
-  GlyphEvent,
-} from "./StrokeRecognizer"
+import { StrokeSettings, InkStrokeEvent } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
-import * as Feedback from "./CommandFeedback"
-import * as cardCss from "./css/Card.css"
 
 const boardIcon = require("../assets/board_icon.svg")
 
@@ -40,11 +31,6 @@ export interface Model {
   cards: { [id: string]: CardModel | undefined }
   strokes: CanvasStroke[]
   topZ: number
-}
-
-interface CardMatch {
-  card: CardModel
-  center: Point
 }
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
@@ -191,6 +177,23 @@ class Board extends React.Component<Props, State> {
           </div>
         )
     }
+  }
+
+  onInkStroke = (strokes: InkStrokeEvent[]) => {
+    this.props.change(doc => {
+      const canvasStrokes: CanvasStroke[] = strokes.map(
+        (event: InkStrokeEvent) => {
+          return {
+            settings: event.settings,
+            path: event.points
+              .map(point => `${point.x}/${point.y}/${point.pressure}`)
+              .join("|"),
+          }
+        },
+      )
+      doc.strokes.push(...canvasStrokes)
+      return doc
+    })
   }
 }
 

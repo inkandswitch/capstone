@@ -1,5 +1,5 @@
 import * as React from "react"
-import { StrokeSettings } from "./StrokeRecognizer"
+import { StrokeSettings, StrokeWidth, penPointFrom } from "./StrokeRecognizer"
 
 export interface CanvasStroke {
   settings: StrokeSettings
@@ -23,27 +23,53 @@ export default class Ink extends React.Component<Props> {
 
   draw = () => {
     const { strokes } = this.props
-
-    this.strokesCanvasEl && (this.strokesCanvasEl.width = window.innerWidth)
-    this.strokesCanvasEl && (this.strokesCanvasEl.height = window.innerHeight)
+    this.strokesCanvasEl && this.prepareCanvas(this.strokesCanvasEl)
 
     const ctx = this.getDrawingContext()
 
     if (!ctx || strokes.length == 0) return
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
     strokes.forEach(stroke => this.drawStroke(stroke))
   }
 
   drawStroke(stroke: CanvasStroke) {
     const ctx = this.getDrawingContext()
     if (!ctx || stroke.path.length == 0) return
+    let strokeSettings = stroke.settings
 
-    const path = new Path2D(stroke.path)
+    const pointStrings = stroke.path.split("|").filter(v => {
+      return v.indexOf("/") >= 0
+    })
 
-    Object.assign(ctx, stroke.settings)
+    if (pointStrings.length === 0) return
+    let from = penPointFrom(pointStrings[0])
+    if (!from) return
 
-    ctx.stroke(path)
+    let pathString = ""
+    if (pointStrings.length === 1) {
+      pathString = `M ${from.x} ${from.y} C`
+      const path = new Path2D(pathString)
+      strokeSettings.lineWidth = StrokeWidth(
+        from.pressure,
+        strokeSettings.maxLineWith,
+      )
+      Object.assign(ctx, stroke)
+      ctx.stroke(path)
+    } else {
+      pointStrings.forEach((pointString, index) => {
+        let to = penPointFrom(pointString)
+        if (!to || !from) return
+        pathString = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
+        const path = new Path2D(pathString)
+        strokeSettings.lineWidth = StrokeWidth(
+          to.pressure,
+          strokeSettings.maxLineWith,
+        )
+        Object.assign(ctx, strokeSettings)
+        ctx.stroke(path)
+        from = to
+      })
+    }
   }
 
   prepareCanvas(canvas: HTMLCanvasElement) {
