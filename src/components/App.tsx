@@ -3,6 +3,7 @@ import { Doc, EditDoc } from "automerge/frontend"
 
 import Root from "./Root"
 import Content from "./Content"
+import Stats from "./Stats"
 
 import "./Board"
 import "./Image"
@@ -95,6 +96,7 @@ export default class App extends React.Component<Props, State> {
     return (
       <Root store={Content.store}>
         <div style={style.App}>
+          <Stats />
           <Content mode="fullscreen" url={url} />
           <Feedback.Renderer />
         </div>
