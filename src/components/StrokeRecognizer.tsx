@@ -3,11 +3,11 @@ import * as $P from "../modules/$P"
 import * as Rx from "rxjs"
 import * as Glyph from "../data/Glyph"
 import * as Frame from "../logic/Frame"
-import Pen, { PenEvent } from "./Pen"
 import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
 import * as Feedback from "./CommandFeedback"
 import { Portal } from "react-portal"
+import Pen, { PenEvent } from "./Pen"
 const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {

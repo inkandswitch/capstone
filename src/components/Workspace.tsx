@@ -7,6 +7,7 @@ import Content, {
   DocumentActor,
   FullyFormedMessage,
   DocumentCreated,
+  ReceiveDocuments,
 } from "./Content"
 import Clipboard from "./Clipboard"
 import Touch, { TouchEvent } from "./Touch"
@@ -20,11 +21,15 @@ export interface Model {
   shelfUrl: string
 }
 
-type WidgetMessage = DocumentCreated | AddToShelf
+type WidgetMessage = DocumentCreated | AddToShelf | ReceiveDocuments
 type InMessage = FullyFormedMessage<
-  DocumentCreated | AddToShelf | ShelfContentsRequested
+  DocumentCreated | AddToShelf | ShelfContentsRequested | ReceiveDocuments
 >
-type OutMessage = DocumentCreated | AddToShelf | SendShelfContents
+type OutMessage =
+  | DocumentCreated
+  | AddToShelf
+  | SendShelfContents
+  | ReceiveDocuments
 
 class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -43,6 +48,14 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
           type: "SendShelfContents",
           body: { recipientUrl: message.from, ...body },
           to: this.doc.shelfUrl,
+        })
+        break
+      }
+      case "ReceiveDocuments": {
+        this.emit({
+          type: "ReceiveDocuments",
+          body: message.body,
+          to: this.doc.rootUrl,
         })
         break
       }
@@ -85,12 +98,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     return navStack[navStack.length - 1]
   }
 
-  onPinchEnd = (event: TouchEvent) => {
-    // Prevent popping the last item off the navStack on pinch end.
-    if (event.scale > 1 || this.props.doc.navStack.length < 2) return
-    this.pop()
-  }
-
   onCopy = (e: ClipboardEvent) => {
     // If an element other than body has focus (e.g. a text card input),
     // don't interfere with normal behavior.
@@ -127,7 +134,8 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   importData = (dataTransfer: DataTransfer) => {
     const urlPromises = DataImport.importData(dataTransfer)
     Promise.all(urlPromises).then(urls => {
-      this.props.emit({ type: "AddToShelf", body: { urls } })
+      this.props.emit({ type: "ReceiveDocuments", body: { urls } })
+      // this.props.emit({ type: "AddToShelf", body: { urls } })
     })
   }
 
@@ -135,25 +143,23 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const { shelfUrl } = this.props.doc
     const currentUrl = this.peek()
     return (
-      <Touch onPinchEnd={this.onPinchEnd}>
-        <div
-          className="Workspace"
-          style={style.Workspace}
-          onDragOver={this.onDragOver}
-          onDrop={this.onDrop}>
-          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-          <Content
-            key={currentUrl}
-            mode={this.props.mode}
-            url={currentUrl}
-            onNavigate={this.push}
-          />
-          <Content mode="embed" url={shelfUrl} />
-          <div style={style.Peers}>
-            <Peers onTapPeer={this.onTapPeer} />
-          </div>
+      <div
+        className="Workspace"
+        style={style.Workspace}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}>
+        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+        <Content
+          key={currentUrl}
+          mode={this.props.mode}
+          url={currentUrl}
+          onNavigate={this.push}
+        />
+        <Content mode="embed" url={shelfUrl} />
+        <div style={style.Peers}>
+          <Peers onTapPeer={this.onTapPeer} />
         </div>
-      </Touch>
+      </div>
     )
   }
 }
