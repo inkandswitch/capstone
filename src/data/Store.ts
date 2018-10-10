@@ -5,6 +5,7 @@ import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
 import { FrontendHandle } from "../modules/hypermerge/frontend"
+import StoreComs from "./StoreComs"
 
 const log = Debug("store:frontend")
 
@@ -18,15 +19,14 @@ function isId(id: string) {
 
 export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
-export default class Store {
-  _send: (msg: Msg.FrontendToBackend) => void
+export default class Store extends StoreComs<Msg.FrontendToBackend> {
   index: { [id: string]: FrontendHandle } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
 
-  constructor(send: (msg: Msg.FrontendToBackend) => void) {
+  constructor() {
+    super()
     log("constructing")
 
-    this._send = send
     this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
   }
 
@@ -43,7 +43,11 @@ export default class Store {
 
     const docId = keys.publicKey
 
-    this.sendToBackend({ type: "Create", docId, keys })
+    this.send({
+      type: "Create",
+      docId,
+      keys,
+    })
 
     const handle = this.makeHandle(docId)
     handle.setActorId(docId)
@@ -52,7 +56,10 @@ export default class Store {
   }
 
   setIdentity(identityUrl: string) {
-    this.sendToBackend({ type: "SetIdentity", identityUrl })
+    this.send({
+      type: "SetIdentity",
+      identityUrl,
+    })
   }
 
   makeHandle(docId: string): FrontendHandle {
@@ -61,10 +68,14 @@ export default class Store {
     this.index[docId] = handle
 
     handle.on("requests", changes => {
-      this.sendToBackend({ type: "ChangeRequest", docId, changes })
+      this.send({
+        type: "ChangeRequest",
+        docId,
+        changes,
+      })
     })
 
-    this.sendToBackend({ type: "Open", docId })
+    this.send({ type: "Open", docId })
 
     // TODO:
     // port.onDisconnect.addListener(() => {
@@ -87,11 +98,6 @@ export default class Store {
 
   presence(): Rx.Observable<Msg.Presence | null> {
     return this.presence$
-  }
-
-  sendToBackend = (msg: Msg.FrontendToBackend) => {
-    log("frontend -> backend", msg)
-    this._send(msg)
   }
 
   onMessage(msg: Msg.BackendToFrontend) {

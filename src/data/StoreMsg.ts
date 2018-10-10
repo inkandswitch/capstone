@@ -1,3 +1,7 @@
+export interface Ready {
+  type: "Ready"
+}
+
 export interface Create {
   type: "Create"
   docId: string
@@ -73,6 +77,7 @@ export type FrontendToBackend =
   | SetIdentity
 
 export type BackendToFrontend =
+  | Ready
   | Patch
   | Presence
   | UploadActivity

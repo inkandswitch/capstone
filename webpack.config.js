@@ -14,7 +14,7 @@ const shared = {
   resolve: {
     alias: {
       "utp-native": "utp",
-      debug: "chrome-debug",
+      debug: path.resolve("./src/modules/debug"),
       dgram: "chrome-dgram",
       net: "chrome-net",
       "util-deprecate": path.resolve("./stubs/util-deprecate.js"),

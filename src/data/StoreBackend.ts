@@ -4,22 +4,22 @@ import * as Prefetch from "../data/Prefetch"
 import * as Peek from "./Peek"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
+import StoreComs from "./StoreComs"
 
 const log = Debug("store:backend")
 
-export default class StoreBackend {
+export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
   presenceTick?: any
-  _send: (msg: Msg.BackendToFrontend) => void
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
   pendingChanges: { [docId: string]: any } = {}
   //debugLogs: { [docId: string]: any } = {}
   //  prefetcher: Prefetch.Prefetcher
 
-  constructor(hm: Hypermerge, send: (msg: Msg.BackendToFrontend) => void) {
+  constructor(hm: Hypermerge) {
+    super()
     log("constructing")
     this.hypermerge = hm
-    this._send = send
     ;(global as any).hm = this.hypermerge
     ;(global as any).sm = this
     Peek.enable()
@@ -76,7 +76,7 @@ export default class StoreBackend {
         })
       }
 
-      this.sendToFrontend(message)
+      this.send(message)
     }, 5000)
   }
 
@@ -121,7 +121,7 @@ export default class StoreBackend {
         handle.on("patch", (patch: any) => {
           const actorId = handle.actorId
 
-          this.sendToFrontend({ type: "Patch", docId, actorId, patch })
+          this.send({ type: "Patch", docId, actorId, patch })
         })
 
         break
@@ -143,7 +143,7 @@ export default class StoreBackend {
           const feed = hm._feed(actorId)
 
           const ondownload = (seq: number) => {
-            this.sendToFrontend({
+            this.send({
               type: "Download",
               actorId,
               seq,
@@ -151,7 +151,7 @@ export default class StoreBackend {
           }
 
           const onupload = (seq: number) => {
-            this.sendToFrontend({
+            this.send({
               type: "Upload",
               actorId,
               seq,
@@ -186,11 +186,6 @@ export default class StoreBackend {
         break
       }
     }
-  }
-
-  sendToFrontend(msg: Msg.BackendToFrontend) {
-    log("backend -> frontend", msg)
-    this._send(msg)
   }
 }
 

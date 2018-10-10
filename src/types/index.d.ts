@@ -1,6 +1,8 @@
 import Content from "../components/Content"
 
 declare global {
+  const webview: HTMLWebViewElement & HTMLIFrameElement
+
   interface Window {
     Content: typeof Content
     visualViewport: VisualViewport

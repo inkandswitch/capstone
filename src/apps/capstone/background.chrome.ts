@@ -37,23 +37,21 @@ chrome.app.runtime.onLaunched.addListener(() => {
 })
 
 const hm = new Hypermerge({ storage: racf })
+const store = new StoreBackend(hm, msg => {
+  webview.contentWindow!.postMessage(msg, "*")
+})
 
-chrome.runtime.onConnect.addListener(port => {
-  const store = new StoreBackend(hm, msg => {
-    port.postMessage(msg)
-  })
+window.addEventListener("message", event => {
+  console.log("message", event)
+  store.onMessage(event.data)
+})
 
-  port.onMessage.addListener(msg => {
-    hm.ready.then(() => {
-      store.onMessage(msg)
-    })
-  })
+hm.ready.then(hm => {
+  store.sendToFrontend({ type: "Ready" })
 
-  hm.ready.then(hm => {
-    swarm(hm, {
-      id: hm.core.archiver.changes.id,
-      url: "wss://discovery-cloud.herokuapp.com",
-      // url: "ws://localhost:8080",
-    })
+  swarm(hm, {
+    id: hm.core.archiver.changes.id,
+    url: "wss://discovery-cloud.herokuapp.com",
+    // url: "ws://localhost:8080",
   })
 })
