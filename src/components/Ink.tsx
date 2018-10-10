@@ -1,5 +1,6 @@
 import * as React from "react"
-import { StrokeSettings, StrokeWidth } from "./StrokeRecognizer"
+import { StrokeSettings, StrokeWidth, penPointFrom } from "./StrokeRecognizer"
+import { start } from "repl"
 
 export interface CanvasStroke {
   settings: StrokeSettings
@@ -29,38 +30,47 @@ export default class Ink extends React.Component<Props> {
 
     if (!ctx || strokes.length == 0) return
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
     strokes.forEach(stroke => this.drawStroke(stroke))
   }
 
   drawStroke(stroke: CanvasStroke) {
     const ctx = this.getDrawingContext()
     if (!ctx || stroke.path.length == 0) return
+    let strokeSettings = stroke.settings
 
-    const points = stroke.path.split("/").filter(v => {
-      return v.indexOf("#") >= 0
+    const pointStrings = stroke.path.split("|").filter(v => {
+      return v.indexOf("/") >= 0
     })
-    if (points.length < 1) return
-    let lastPoint = points[0]
-    points.forEach((point, index) => {
-      if (index == 0) return
-      const lastProps = lastPoint.split("#")
-      if (lastProps.length != 3) return
 
-      const theseProps = point.split("#")
-      if (theseProps.length != 3) return
+    if (pointStrings.length === 0) return
+    let from = penPointFrom(pointStrings[0])
+    if (!from) return
 
-      const pathString = `M ${lastProps[0]} ${lastProps[1]} L ${
-        theseProps[0]
-      } ${theseProps[1]}`
+    let pathString = ""
+    if (pointStrings.length === 1) {
+      pathString = `M ${from.x} ${from.y} C`
       const path = new Path2D(pathString)
-      let s = stroke.settings
-      const pressure = parseFloat(theseProps[2])
-      s.lineWidth = StrokeWidth(pressure, s.maxLineWith)
-      Object.assign(ctx, s)
+      strokeSettings.lineWidth = StrokeWidth(
+        from.pressure,
+        strokeSettings.maxLineWith,
+      )
+      Object.assign(ctx, stroke)
       ctx.stroke(path)
-      lastPoint = point
-    })
+    } else {
+      pointStrings.forEach((pointString, index) => {
+        let to = penPointFrom(pointString)
+        if (!to || !from) return
+        pathString = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
+        const path = new Path2D(pathString)
+        strokeSettings.lineWidth = StrokeWidth(
+          to.pressure,
+          strokeSettings.maxLineWith,
+        )
+        Object.assign(ctx, stroke)
+        ctx.stroke(path)
+        from = to
+      })
+    }
   }
 
   prepareCanvas(canvas: HTMLCanvasElement) {

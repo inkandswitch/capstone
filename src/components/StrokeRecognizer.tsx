@@ -41,6 +41,16 @@ export function PenPoint(x: number, y: number, pressure: number = 0.5) {
   this.pressure = pressure
 }
 
+export function penPointFrom(pointString: string): PenPoint | undefined {
+  const arr = pointString[0].split("/")
+  if (arr.length < 3) return
+  return {
+    x: parseFloat(arr[0]),
+    y: parseFloat(arr[1]),
+    pressure: parseFloat(arr[2]),
+  }
+}
+
 export interface Props {
   onGlyph?: (stroke: GlyphEvent) => void
   onInkStroke?: (stroke: InkStrokeEvent) => void
@@ -204,12 +214,13 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
           }
         }),
       )
+      this.points.push({
+        x,
+        y,
+        pressure: srcEvent.pressure,
+      })
     }
-    this.points.push({
-      x,
-      y,
-      pressure: (event.srcEvent as PointerEvent).pressure,
-    })
+
     this.updateBounds(x, y)
     this.draw()
   }
@@ -261,7 +272,6 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
     )
 
     if (result.Score > 0 && result.Score < maxScore) {
-      //this.flashDebugMessage(`I'm a ${result.Name}`)
       const glyph = Glyph.fromTemplateName(result.Name)
       this.props.onGlyph({
         glyph: glyph,
@@ -274,7 +284,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
     }
   }
 
-  recognize = this._recognize //debounce(this._recognize, this.props.delay)
+  recognize = this._recognize
 
   center() {
     const b = this.bounds
