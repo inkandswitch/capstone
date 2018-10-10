@@ -37,9 +37,11 @@ chrome.app.runtime.onLaunched.addListener(() => {
 })
 
 const hm = new Hypermerge({ storage: racf })
-const store = new StoreBackend(hm, msg => {
+const store = new StoreBackend(hm)
+
+store.send = msg => {
   webview.contentWindow!.postMessage(msg, "*")
-})
+}
 
 window.addEventListener("message", event => {
   console.log("message", event)
@@ -47,7 +49,7 @@ window.addEventListener("message", event => {
 })
 
 hm.ready.then(hm => {
-  store.sendToFrontend({ type: "Ready" })
+  store.send({ type: "Ready" })
 
   swarm(hm, {
     id: hm.core.archiver.changes.id,
