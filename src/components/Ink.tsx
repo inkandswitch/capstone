@@ -1,6 +1,5 @@
 import * as React from "react"
 import { StrokeSettings, StrokeWidth, penPointFrom } from "./StrokeRecognizer"
-import { start } from "repl"
 
 export interface CanvasStroke {
   settings: StrokeSettings

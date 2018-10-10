@@ -214,11 +214,6 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
           }
         }),
       )
-      this.points.push({
-        x,
-        y,
-        pressure: srcEvent.pressure,
-      })
     }
 
     this.updateBounds(x, y)
