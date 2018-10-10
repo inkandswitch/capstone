@@ -16,7 +16,6 @@ import Peers from "./Peers"
 
 export interface Model {
   navStack: string[]
-  identityUrl: string
   rootUrl: string
   shelfUrl: string
 }
@@ -66,7 +65,6 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
 class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
-      identityUrl: Reify.string(doc.identityUrl),
       navStack: Reify.array(doc.navStack),
       rootUrl: Reify.string(doc.rootUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
