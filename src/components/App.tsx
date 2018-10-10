@@ -17,7 +17,6 @@ import "./PeerStatus"
 import "./Peer"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
-import * as Identity from "./Identity"
 
 type State = {
   url?: string
@@ -28,21 +27,17 @@ type Props = {}
 export default class App extends React.Component<Props, State> {
   async initWorkspace() {
     const shelfUrlPromise = Content.create("Shelf")
-    const identityUrlPromise = Content.create("Identity")
     const rootBoardUrlPromise = Content.create("Board")
 
     const shelfUrl = await shelfUrlPromise
-    const identityUrl = await identityUrlPromise
     const rootBoardUrl = await rootBoardUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
-    Content.store.setIdentity(identityUrl)
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
       change((workspace: EditDoc<Workspace.Model>) => {
         if (!workspace.identityUrl) {
-          workspace.identityUrl = identityUrl
           workspace.shelfUrl = shelfUrl
           workspace.rootUrl = rootBoardUrl
           workspace.navStack = [rootBoardUrl]
@@ -51,18 +46,6 @@ export default class App extends React.Component<Props, State> {
 
       this.setState({ url: workspaceUrl })
       chrome.storage.local.set({ workspaceUrl })
-    })
-
-    Content.send({
-      to: rootBoardUrl,
-      type: "ReceiveDocuments",
-      body: { urls: [identityUrl] },
-    })
-
-    Content.once<Identity.Model>(identityUrl, async (change: Function) => {
-      change((identity: any) => {
-        identity.mailboxUrl = shelfUrl
-      })
     })
   }
 
@@ -77,7 +60,6 @@ export default class App extends React.Component<Props, State> {
           val.workspaceUrl,
           (workspace: Doc<Workspace.Model>) => {
             Content.workspaceUrl = val.workspaceUrl
-            Content.store.setIdentity(workspace.identityUrl)
             this.setState({ url: val.workspaceUrl })
           },
         )
