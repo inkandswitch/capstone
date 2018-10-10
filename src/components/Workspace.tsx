@@ -2,6 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as DataImport from "./DataImport"
+import * as GPS from "./GPS"
 import { AnyDoc } from "automerge/frontend"
 import Content, {
   DocumentActor,
@@ -10,7 +11,6 @@ import Content, {
   ReceiveDocuments,
 } from "./Content"
 import Clipboard from "./Clipboard"
-import Touch, { TouchEvent } from "./Touch"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
 
@@ -148,6 +148,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
         style={style.Workspace}
         onDragOver={this.onDragOver}
         onDrop={this.onDrop}>
+        <GPS.InputHandler />
         <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
         <Content
           key={currentUrl}
