@@ -5,14 +5,7 @@ import { filter } from "rxjs/operators"
 
 import * as GPS from "../../components/GPS" // TODO: organization
 
-import {
-  matchesSelectorAndParentsTo,
-  addEvent,
-  removeEvent,
-  addUserSelectStyles,
-  removeUserSelectStyles,
-  createCSSTransform,
-} from "./domFns"
+import { createCSSTransform } from "./domFns"
 import {
   createCoreData,
   getControlPosition,
@@ -21,18 +14,7 @@ import {
   createDraggableData,
   getBoundPosition,
 } from "./positionFns"
-import {
-  EventHandler,
-  ControlPosition,
-  DraggableEventHandler,
-  DraggableData,
-} from "./types"
-
-const eventNames = {
-  start: "pointerdown",
-  move: "pointermove",
-  stop: "pointerup",
-}
+import { ControlPosition, DraggableEventHandler, DraggableData } from "./types"
 
 interface DraggableBounds {
   left: number
@@ -139,60 +121,27 @@ export default class Draggable extends React.Component<
   componentWillUnmount() {
     // Prevents invariant if unmounted while dragging.
     this.setState({ dragging: false })
-
-    // Remove any leftover event handlers. Remove both touch and mouse handlers in case
-    // some browser quirk caused a touch event to fire during a mouse move, or vice versa.
-    const thisNode = this.ref
-    if (thisNode) {
-      const { ownerDocument } = thisNode
-      if (this.props.enableUserSelectHack) {
-        removeUserSelectStyles(ownerDocument)
-      }
-    }
-
     if (this.subscription) {
       this.subscription.unsubscribe()
     }
   }
 
   onPointerEvent = (e: PointerEvent) => {
-    if (
-      e.type === "pointerdown" &&
-      this.ref &&
-      this.ref.contains(e.target as Node)
-    ) {
-      this.onPointerDown(e)
+    if (!this.ref) return
+    if (e.type === "pointerdown" && this.ref.contains(e.target as Node)) {
+      this.handleDragStart(e)
     } else if (this.state.dragging) {
       if (e.type === "pointermove") {
         this.handleDrag(e)
       } else if (e.type === "pointerup") {
         this.handleDragStop(e)
       } else if (e.type === "pointercancel") {
-        this.onPointerCancel(e)
+        this.handleDragCancel()
       }
     }
   }
 
-  onPointerDown = (e: PointerEvent) => {
-    if (e.pointerType === "pen" || !e.isPrimary) return
-    this.handleDragStart(e)
-  }
-
-  onPointerCancel = (e: PointerEvent) => {
-    // Handle cancel events to make sure we clean up.
-    this.handleDragCancel()
-  }
-
   handleDragStart = (e: PointerEvent) => {
-    // Only accept left-clicks.
-    if (
-      !this.props.allowAnyClick &&
-      typeof e.button === "number" &&
-      e.button !== 0
-    ) {
-      return false
-    }
-
     if (!this.ref) {
       return false
     }
@@ -201,29 +150,6 @@ export default class Draggable extends React.Component<
     const thisNode = this.ref
     if (!thisNode || !thisNode.ownerDocument || !thisNode.ownerDocument.body) {
       throw new Error("<Draggable> not mounted on DragStart!")
-    }
-    const { ownerDocument } = thisNode
-
-    // Short circuit if handle or cancel prop was provided and selector doesn't match.
-    // TODO: not sure what's up with the typings here.
-    // TODO: may need to uncomment the ownerDocument.defaultView.Node thing.
-    //  (!(e.target instanceof ownerDocument.defaultView.Node)) ||
-    if (
-      this.props.disabled ||
-      (this.props.handle &&
-        !matchesSelectorAndParentsTo(
-          e.target as Node,
-          this.props.handle,
-          thisNode,
-        )) ||
-      (this.props.cancel &&
-        matchesSelectorAndParentsTo(
-          e.target as Node,
-          this.props.cancel,
-          thisNode,
-        ))
-    ) {
-      return
     }
 
     // Set touch identifier in component state if this is a touch event. This allows us to
@@ -243,12 +169,6 @@ export default class Draggable extends React.Component<
       return
     }
 
-    // Add a style to the body to disable user-select. This prevents text from
-    // being selected all over the page.
-    if (this.props.enableUserSelectHack) {
-      addUserSelectStyles(ownerDocument)
-    }
-
     // Initiate dragging. Set the current x and y as offsets
     // so we know how much we've moved during the drag. This allows us
     // to drag elements around even if they have been moved, without issue.
@@ -257,12 +177,6 @@ export default class Draggable extends React.Component<
       lastX: x,
       lastY: y,
     })
-
-    // Add events to the document directly so we catch when the user's mouse/touch moves outside of
-    // this element. We use different events depending on whether or not we have detected that this
-    // is a touch-capable device.
-    //addEvent(ownerDocument, eventNames.move, this.handleDrag)
-    //addEvent(ownerDocument, eventNames.stop, this.handleDragStop)
   }
 
   handleDrag = (e: PointerEvent) => {
@@ -371,25 +285,12 @@ export default class Draggable extends React.Component<
 
   // Clean up drag state and remove listeners.
   endDrag = () => {
-    const thisNode = this.ref
-    if (thisNode) {
-      // Remove user-select hack
-      if (this.props.enableUserSelectHack) {
-        removeUserSelectStyles(thisNode.ownerDocument)
-      }
-    }
-
     // Reset the el.
     this.setState({
       dragging: false,
       lastX: NaN,
       lastY: NaN,
     })
-
-    if (this.ref) {
-      removeEvent(this.ref.ownerDocument, eventNames.move, this.handleDrag)
-      removeEvent(this.ref.ownerDocument, eventNames.stop, this.handleDragStop)
-    }
   }
 
   onRef = (ref: HTMLDivElement) => {
