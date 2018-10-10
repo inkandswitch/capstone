@@ -2,7 +2,7 @@ import * as React from "react"
 import * as Rx from "rxjs"
 
 class ProviderSingleton {
-  events$: Rx.Observable<PointerEvent>
+  events$: Rx.Observable<PointerEvent> | undefined
 }
 
 export const Provider = new ProviderSingleton()
