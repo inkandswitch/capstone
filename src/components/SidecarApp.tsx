@@ -1,6 +1,5 @@
 import * as React from "react"
 
-import Store from "../data/Store"
 import * as Link from "../data/Link"
 import Root from "./Root"
 import Content from "./Content"
@@ -11,12 +10,8 @@ import "./NetworkActivity"
 import "./SidecarUploader"
 import "./SidecarWorkspace"
 import "./Text"
+import "./Table"
 import "./Workspace"
-
-// Used for debugging from the console:
-window.Content = Content
-
-Content.store = new Store()
 
 type State = {
   workspaceUrl?: string

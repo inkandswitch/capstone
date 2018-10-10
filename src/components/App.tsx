@@ -1,14 +1,15 @@
 import * as React from "react"
 import { Doc, EditDoc } from "automerge/frontend"
 
-import Store from "../data/Store"
 import Root from "./Root"
 import Content from "./Content"
+import Stats from "./Stats"
 
 import "./Board"
 import "./Image"
 import "./NetworkActivity"
 import "./Text"
+import "./Table"
 import "./Workspace"
 import "./Shelf"
 import "./Identity"
@@ -17,15 +18,6 @@ import "./Peer"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import * as Identity from "./Identity"
-
-// Used for debugging from the console:
-window.Content = Content
-
-Content.store = new Store()
-
-Content.store.presence().subscribe(presenceInfo => {
-  console.log(presenceInfo)
-})
 
 type State = {
   url?: string
@@ -105,6 +97,7 @@ export default class App extends React.Component<Props, State> {
     return (
       <Root store={Content.store}>
         <div style={style.App}>
+          <Stats />
           <Content mode="fullscreen" url={url} />
           <Feedback.Renderer />
         </div>

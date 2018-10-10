@@ -32,22 +32,22 @@ URL into given form, and hit Enter.
 
 To use the sidecar:
 
-* Drag files from your desktop into the space with a "+" to add files to your
+- Drag files from your desktop into the space with a "+" to add files to your
   archive.
 
 To use the tablet app:
 
-* In a document, three-finger-swipe from the top of the screen to open the
+- In a document, three-finger-swipe from the top of the screen to open the
   archive
-* In board or archive, double-tap to navigate into a doc
-* In board, stylus inks by default
-* In board or archive, hold Ctrl to gesture with stylus
-* In archive, gesture a rectangle to create a new board
-* In board, stylus-double-tap to create a new text card
-* In archive or board, gesture an up carrot to copy an item to your shelf
-* In board, gesture a down carrot to place item(s) from your shelf
-* In archive, board, or shelf, gesture an X to remove an item
-* In a document, pinch-zoom-out to navigate back
+- In board or archive, double-tap to navigate into a doc
+- In board, stylus inks by default
+- In board or archive, hold Ctrl to gesture with stylus
+- In archive, gesture a rectangle to create a new board
+- In board, stylus-double-tap to create a new text card
+- In archive or board, gesture an up carrot to copy an item to your shelf
+- In board, gesture a down carrot to place item(s) from your shelf
+- In archive, board, or shelf, gesture an X to remove an item
+- In a document, pinch-zoom-out to navigate back
 
 To send your identity to another user, navigate to your identity card, press
 Ctrl-C, and send the URL copied to your clipboard to the other user out of band.
@@ -57,12 +57,12 @@ They can then Ctrl-V in their archive to make your user card appear.
 
 `yarn start`: Start the build
 `yarn clean`: Delete `dist/*` for a clean build
-`yarn test`: Same as `yarn launch-tests`
+`yarn test`: Same as `yarn tests`
 `yarn repl`: Start a TypeScript REPL
 `yarn format`: Format all `src/*` code with prettier
-`yarn launch-capstone`: Open the "capstone" chrome app. Run `yarn start` first
-`yarn launch-sidecar`: Open the "sidecar" chrome app. Run `yarn start` first
-`yarn launch-tests`: Open the "tests" chrome app. Run `yarn start` first
+`yarn capstone`: Open the "capstone" chrome app. Run `yarn start` first
+`yarn sidecar`: Open the "sidecar" chrome app. Run `yarn start` first
+`yarn tests`: Open the "tests" chrome app. Run `yarn start` first
 
 We're using [`prettier`](https://prettier.io/) for code formatting.
 It should be recommended in the extensions tab of VSCode, and there is
@@ -134,6 +134,33 @@ export default Counter extends Widget<Model> {
 Content.register("Counter", Counter) // Register the widget with Content, so other components can render it.
 ```
 
+## Pixelbook Notes
+
+- The linux container in ChromeOS (crostini) is inside a local LAN. Some ports are forwarded by default: `3000, 4200, 5000, 8000, 8008, 8080, 8085, 8888, 9005`
+
+## Debug Tools
+
+In the developer console for the backend process some debug tools are available
+type
+
+```
+  > peek()
+```
+
+To see the documents being track by the backend
+
+```
+  > peek(docid)
+```
+
+To get more info on a single doc
+
+```
+  > peek(docid,"p")
+```
+
+To get more info on peers and network activity
+
 ## Footnotes
 
 [<a name="footnote1">1</a>]: `mode` is intended to give the widget a general
@@ -148,20 +175,3 @@ interactive controls in this mode.
 
 `mode` is not explicitly saying anything about the _size_ of the widget, which
 will likely be provided via a separate prop.
-
-## Debug Tools
-
-In the developer console for the backend process some debug tools are available
-type
-```
-  > peek()
-```
-To see the documents being track by the backend
-```
-  > peek(docid)
-```
-To get more info on a single doc
-```
-  > peek(docid,"p")
-```
-To get more info on peers and network activity

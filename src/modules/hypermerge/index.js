@@ -2,8 +2,6 @@ const EventEmitter = require("events")
 const Backend = require("automerge/backend")
 const Frontend = require("automerge/frontend")
 const Multicore = require("./multicore")
-const discoverySwarm = require("discovery-swarm")
-const swarmDefaults = require("dat-swarm-defaults")
 const Debug = require("debug")
 const Base58 = require("bs58")
 const Haikunator = require("haikunator")
@@ -28,17 +26,18 @@ const METADATA = {
 const { FrontendHandle } = require("./frontend")
 const { BackendHandle } = require("./backend")
 
-function initHypermerge(ops, cb) {
-  let doc = new Hypermerge(ops)
-  doc.ready.then(cb)
-}
-
 class Hypermerge extends EventEmitter {
-  constructor({ identity, device, storage, defaultMetadata = {} }) {
+  constructor({
+    identity = null,
+    device = null,
+    storage,
+    defaultMetadata = {},
+  }) {
     super()
 
     this.defaultMetadata = defaultMetadata
 
+    this.swarm = null
     this.device = device
     this.identity = identity
     this.feeds = {}
@@ -58,7 +57,9 @@ class Hypermerge extends EventEmitter {
 
     this.ready = new Promise(resolve => {
       this.core.on("ready", () => {
-        this._initFeeds(this._feedKeys(), resolve)
+        this._initFeeds(this._feedKeys(), () => {
+          resolve(this)
+        })
       })
     })
   }
@@ -78,111 +79,6 @@ class Hypermerge extends EventEmitter {
   trackError(err) {
     console.log("Hypermerge Error", err)
     this.errs.push(err)
-  }
-
-  chromeJoinSwarm() {
-    const MDNS_PORT = 5307
-    const dgram = require("chrome-dgram")
-    const socket = dgram.createSocket("udp4")
-    const mdns = require("multicast-dns")
-
-    socket.setMulticastTTL(255)
-    socket.setMulticastLoopback(true)
-
-    socket.on("error", err => this.trackError(err))
-
-    chrome.system.network.getNetworkInterfaces(ifaces => {
-      socket.on("listening", () => {
-        for (let i = 0; i < ifaces.length; i++) {
-          if (ifaces[i].prefixLength == 24) {
-            socket.addMembership("224.0.0.251", ifaces[i].address)
-          }
-        }
-        const multicast = mdns({
-          socket,
-          bind: false,
-          port: MDNS_PORT,
-          multicast: false,
-        })
-        this.joinSwarm({
-          dht: false,
-          dns: { multicast },
-        })
-      })
-      socket.bind(MDNS_PORT)
-    })
-  }
-
-  joinSwarm(opts = {}) {
-    if (opts.chrome === true) {
-      return this.chromeJoinSwarm()
-    }
-
-    log("joinSwarm")
-
-    if (opts.port == null) opts.port = 0
-
-    let mergedOpts = Object.assign(
-      swarmDefaults(),
-      {
-        hash: false,
-        encrypt: true,
-        stream: opts => this.replicate(opts),
-      },
-      opts,
-    )
-
-    // need a better deeper copy
-    mergedOpts.dns = Object.assign(swarmDefaults().dns, opts.dns)
-
-    this.swarm = discoverySwarm(mergedOpts)
-
-    this.swarm.join(this.core.archiver.changes.discoveryKey)
-
-    Object.values(this.feeds).forEach(feed => {
-      this.swarm.join(feed.discoveryKey)
-    })
-
-    this.core.archiver.on("add", feed => {
-      this.swarm.join(feed.discoveryKey)
-    })
-
-    this.core.archiver.on("remove", feed => {
-      this.swarm.leave(feed.discoveryKey)
-    })
-
-    this.swarm.listen(opts.port)
-
-    this.swarm.once("error", err => {
-      log("joinSwarm.error", err)
-      this._swarmStats["error"] = err
-      this.swarm.listen(opts.port)
-    })
-
-    const signals = [
-      "handshaking",
-      "handshake-timeout",
-      "listening",
-      "connecting",
-      "connect-failed",
-      "connection",
-      "close",
-      "redundant-connection",
-      "peer",
-      "peer-rejected",
-      "drop",
-      "peer-banned",
-      "connection-closed",
-      "connect-failed",
-    ]
-    signals.forEach(signal => {
-      this._swarmStats[signal] = 0
-      this.swarm.on(signal, (arg1, arg2) => {
-        this._swarmStats[signal] += 1
-      })
-    })
-
-    return this
   }
 
   /**
@@ -223,7 +119,7 @@ class Hypermerge extends EventEmitter {
     const handles = this.handles[handle.id]
 
     if (!handles) {
-      throw new Error(`No handles found for docId: ${handle.id}.`)
+      return false
     }
 
     this.handles[handle.id] = handles.filter(h => h !== handle)

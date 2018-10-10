@@ -1,8 +1,9 @@
-process.hrtime = require("browser-process-hrtime")
 import StoreBackend from "../../data/StoreBackend"
-
-import { Hypermerge, initHypermerge } from "../../modules/hypermerge"
+import { Hypermerge } from "../../modules/hypermerge"
+import swarm from "../../modules/hypermerge/cloud-swarm"
 let racf = require("random-access-chrome-file")
+
+process.hrtime = require("browser-process-hrtime")
 
 let mainWindow: chrome.app.window.AppWindow
 
@@ -35,22 +36,24 @@ chrome.app.runtime.onLaunched.addListener(() => {
   )
 })
 
-let pBackend = new Promise(resolve => {
-  initHypermerge({ storage: racf }, (hm: Hypermerge) => {
-    const store = new StoreBackend(hm)
-    resolve(store)
-  })
-})
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  pBackend.then((store: StoreBackend) => {
-    store.onMessage(request)
-  })
-})
+const hm = new Hypermerge({ storage: racf })
 
 chrome.runtime.onConnect.addListener(port => {
-  port.onMessage.addListener((changes: any) => {
-    pBackend.then((store: StoreBackend) => store.applyChanges(changes, port))
+  const store = new StoreBackend(hm, msg => {
+    port.postMessage(msg)
   })
-  pBackend.then((store: StoreBackend) => store.onConnect(port))
+
+  port.onMessage.addListener(msg => {
+    hm.ready.then(() => {
+      store.onMessage(msg)
+    })
+  })
+
+  hm.ready.then(hm => {
+    swarm(hm, {
+      id: hm.core.archiver.changes.id,
+      url: "wss://discovery-cloud.herokuapp.com",
+      // url: "ws://localhost:8080",
+    })
+  })
 })
