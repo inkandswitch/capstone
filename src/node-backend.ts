@@ -9,6 +9,8 @@ import * as Peek from "./data/Peek"
 const hm = new Hypermerge({ storage: "./.data" })
 ;(global as any).hm = hm
 
+const backend = new StoreBackend(hm)
+
 hm.ready.then(() => {
   const sm = swarm(hm, {
     id: hm.core.archiver.changes.id,
@@ -29,7 +31,7 @@ server.on("listening", () => {
 
 server.on("connection", conn => {
   console.log("[Backend]: connection")
-  const backend = new StoreBackend(hm, (msg: Msg.BackendToFrontend) => {
+  backend.queue.subscribe((msg: Msg.BackendToFrontend) => {
     conn.send(JSON.stringify(msg))
   })
 
@@ -39,6 +41,7 @@ server.on("connection", conn => {
 
   conn.on("close", () => {
     backend.reset()
+    backend.queue.unsubscribe()
     console.error("frontend disconnected")
   })
 })

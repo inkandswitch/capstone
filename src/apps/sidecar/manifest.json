@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Sidecar",
-  "version": "1.0",
+  "version": "3.1",
   "permissions": [
     "background",
     "clipboardRead",
@@ -17,14 +17,28 @@
       "scripts": ["background.js"]
     }
   },
+  "webview": {
+    "partitions": [
+      {
+        "name": "sandbox",
+        "accessible_resources": ["sandbox.html", "main.js", "assets/*"]
+      }
+    ]
+  },
   "sockets": {
-    "tcp": { "connect": ["*"] },
+    "tcp": {
+      "connect": ["*"]
+    },
     "udp": {
       "send": "*",
       "bind": ["*"],
       "multicastMembership": ""
     },
-    "tcpServer": { "listen": ["*"] },
-    "udpServer": { "listen": ["*"] }
+    "tcpServer": {
+      "listen": ["*"]
+    },
+    "udpServer": {
+      "listen": ["*"]
+    }
   }
 }

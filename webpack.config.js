@@ -79,6 +79,7 @@ function app(name, overrides = {}) {
     entry: {
       main: `./src/apps/${name}/main.tsx`,
       background: `./src/apps/${name}/background.chrome.ts`,
+      entry: `./src/apps/${name}/entry.chrome.ts`,
     },
     output: {
       path: path.resolve(__dirname, "dist", name),

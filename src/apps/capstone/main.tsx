@@ -17,7 +17,6 @@ window.addEventListener("message", event => {
     const { source }: any = event
 
     Content.store.queue.subscribe(msg => {
-      console.log("source", source)
       source.postMessage(msg, "*")
     })
   }
