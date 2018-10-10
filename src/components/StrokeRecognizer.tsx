@@ -344,7 +344,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   draw = Frame.throttle(() => {
-    if (!this.ctx) return
+    if (!this.ctx || !this.strokes[this.strokeId]) return
 
     for (
       this.lastDrawnPoint;
