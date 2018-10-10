@@ -67,7 +67,7 @@ enum StrokeType {
 
 export interface StrokeSettings {
   readonly globalCompositeOperation: string
-  readonly strokeStyle: string
+  strokeStyle: string
   readonly lineCap: string
   readonly lineJoin: string
   readonly maxLineWith: number
@@ -192,19 +192,19 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   onPanMove = (event: PenEvent) => {
     const { x, y } = event.center
     if (!this.isPenDown) this.isPenDown = true
-    const srcEvent = event.srcEvent as PointerEvent
-    if (srcEvent) {
-      const coalesced: PointerEvent[] = srcEvent.getCoalescedEvents()
-      this.points.push(
-        ...coalesced.map((value, i, a) => {
-          return {
-            x: value.x,
-            y: value.y,
-            pressure: value.pressure,
-          }
-        }),
-      )
-    }
+    // const srcEvent = event.srcEvent as PointerEvent
+    // if (srcEvent) {
+    //   const coalesced: PointerEvent[] = srcEvent.getCoalescedEvents()
+    //   this.points.push(
+    //     ...coalesced.map((value, i, a) => {
+    //       return {
+    //         x: value.x,
+    //         y: value.y,
+    //         pressure: value.pressure,
+    //       }
+    //     }),
+    //   )
+    // }
     this.points.push({
       x,
       y,
