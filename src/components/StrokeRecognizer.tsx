@@ -8,6 +8,7 @@ import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
 import * as Feedback from "./CommandFeedback"
 import { Portal } from "react-portal"
+import { delay } from "lodash"
 const templates = require("../modules/$P/glyph-templates.json")
 
 interface Bounds {
@@ -231,6 +232,12 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
       this.recognize()
       this.reset()
     }
+    const lastStrokeID = this.strokeId
+    delay(() => {
+      if (!this.isPenDown && this.strokeId == lastStrokeID) {
+        this.inkStroke()
+      }
+    }, 2000)
   }
 
   inkStroke = () => {
@@ -245,12 +252,12 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
         }
       }),
     )
+    this.reset()
   }
 
   onStrokeTypeChange = (strokeType: StrokeType = StrokeType.default) => {
     if (this.state.strokeType === strokeType) return
     this.inkStroke()
-    this.reset()
     this.setState({ strokeType }, () => {
       StrokeRecognizer.strokeTypeSubect.next(strokeType)
     })
