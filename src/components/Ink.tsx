@@ -66,7 +66,7 @@ export default class Ink extends React.Component<Props> {
           to.pressure,
           strokeSettings.maxLineWith,
         )
-        Object.assign(ctx, stroke)
+        Object.assign(ctx, strokeSettings)
         ctx.stroke(path)
         from = to
       })

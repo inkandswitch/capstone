@@ -42,7 +42,7 @@ export function PenPoint(x: number, y: number, pressure: number = 0.5) {
 }
 
 export function penPointFrom(pointString: string): PenPoint | undefined {
-  const arr = pointString[0].split("/")
+  const arr = pointString.split("/")
   if (arr.length < 3) return
   return {
     x: parseFloat(arr[0]),
