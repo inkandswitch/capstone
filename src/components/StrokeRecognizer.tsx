@@ -169,7 +169,6 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    console.log("did mount")
     this.pointerEventSubscription =
       GPS.Provider.events$ &&
       GPS.Provider.events$
@@ -203,7 +202,6 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   onPanMove = (event: PointerEvent) => {
-    console.log("on pan move")
     const { x, y } = event
     if (!this.isPenDown) this.isPenDown = true
     const coalesced: PointerEvent[] = event.getCoalescedEvents()
