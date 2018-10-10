@@ -2,8 +2,8 @@ import * as React from "react"
 import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
-import Touch, { TouchEvent } from "./Touch"
 import { omit } from "lodash"
+import * as GPS from "./GPS"
 
 export interface CardModel {
   id: string
@@ -44,6 +44,7 @@ export default class DraggableCard extends React.Component<Props> {
 
     return (
       <Draggable
+        events$={GPS.Provider.events$}
         defaultPosition={{ x, y }}
         position={{ x, y }}
         onStart={this.start}

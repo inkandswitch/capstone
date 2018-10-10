@@ -3,8 +3,6 @@ import * as React from "react"
 import * as Rx from "rxjs"
 import { filter } from "rxjs/operators"
 
-import * as GPS from "../../components/GPS" // TODO: organization
-
 import { createCSSTransform } from "./domFns"
 import {
   createCoreData,
@@ -36,6 +34,7 @@ interface DraggableState {
 
 // TODO: what is the correct typing for children???
 interface DraggableProps {
+  events$: Rx.Observable<PointerEvent>
   allowAnyClick?: boolean
   cancel?: string
   disabled?: boolean
@@ -113,7 +112,7 @@ export default class Draggable extends React.Component<
   }
 
   componentDidMount() {
-    this.subscription = GPS.Provider.events$
+    this.subscription = this.props.events$
       .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
       .subscribe(this.onPointerEvent)
   }
