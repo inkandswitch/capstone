@@ -1,5 +1,4 @@
 import * as React from "react"
-import { delay } from "lodash"
 import { EventEmitter } from "events"
 
 interface FeedbackRendererState {
