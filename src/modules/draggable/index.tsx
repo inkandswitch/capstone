@@ -34,7 +34,7 @@ interface DraggableState {
 
 // TODO: what is the correct typing for children???
 interface DraggableProps {
-  events$: Rx.Observable<PointerEvent>
+  events$?: Rx.Observable<PointerEvent>
   allowAnyClick?: boolean
   cancel?: string
   disabled?: boolean
@@ -58,7 +58,7 @@ export default class Draggable extends React.Component<
   DraggableState
 > {
   private ref: HTMLDivElement | undefined
-  private subscription: Rx.Subscription
+  private subscription: Rx.Subscription | undefined
 
   // TODO: not sure why these as are needed.
   static defaultProps = {
@@ -112,6 +112,7 @@ export default class Draggable extends React.Component<
   }
 
   componentDidMount() {
+    if (!this.props.events$) return
     this.subscription = this.props.events$
       .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
       .subscribe(this.onPointerEvent)
