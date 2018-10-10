@@ -14,7 +14,7 @@ import * as UUID from "../data/UUID"
 import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
-import { StrokeSettings, InkStrokeEvent } from "./StrokeRecognizer"
+import StrokeRecognizer, { StrokeSettings, InkStrokeEvent } from "./StrokeRecognizer"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -158,11 +158,13 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
+    console.log("render board")
     const { cards, topZ, strokes } = this.props.doc
     const { focusedCardId } = this.state
     switch (this.props.mode) {
       case "fullscreen":
         return (
+          <StrokeRecognizer>
           <div style={style.Board} ref={this.onRef}>
             <TransitionGroup>
               {Object.values(cards).map(card => {
@@ -186,6 +188,7 @@ class Board extends React.Component<Props, State> {
             </TransitionGroup>
             <Ink strokes={strokes} />
           </div>
+          </StrokeRecognizer>
         )
       case "embed":
       case "preview":

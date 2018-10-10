@@ -9,6 +9,7 @@ export const Provider = new ProviderSingleton()
 
 export class InputHandler extends React.Component {
   componentDidMount() {
+    console.log("GPS did mount")
     Provider.events$ = Rx.merge(
       Rx.fromEvent<PointerEvent>(document.body, "pointerdown"),
       Rx.fromEvent<PointerEvent>(document.body, "pointermove"),
