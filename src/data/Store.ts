@@ -5,7 +5,7 @@ import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
 import { FrontendHandle } from "../modules/hypermerge/frontend"
-import StoreComs from "./StoreComs"
+import Queue from "./Queue"
 
 const log = Debug("store:frontend")
 
@@ -19,12 +19,12 @@ function isId(id: string) {
 
 export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
-export default class Store extends StoreComs<Msg.FrontendToBackend> {
+export default class Store {
+  queue = new Queue<Msg.FrontendToBackend>()
   index: { [id: string]: FrontendHandle } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
 
   constructor() {
-    super()
     log("constructing")
 
     this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
@@ -43,7 +43,7 @@ export default class Store extends StoreComs<Msg.FrontendToBackend> {
 
     const docId = keys.publicKey
 
-    this.send({
+    this.sendToBackend({
       type: "Create",
       docId,
       keys,
@@ -56,7 +56,7 @@ export default class Store extends StoreComs<Msg.FrontendToBackend> {
   }
 
   setIdentity(identityUrl: string) {
-    this.send({
+    this.sendToBackend({
       type: "SetIdentity",
       identityUrl,
     })
@@ -68,14 +68,14 @@ export default class Store extends StoreComs<Msg.FrontendToBackend> {
     this.index[docId] = handle
 
     handle.on("requests", changes => {
-      this.send({
+      this.sendToBackend({
         type: "ChangeRequest",
         docId,
         changes,
       })
     })
 
-    this.send({ type: "Open", docId })
+    this.sendToBackend({ type: "Open", docId })
 
     // TODO:
     // port.onDisconnect.addListener(() => {
@@ -98,6 +98,10 @@ export default class Store extends StoreComs<Msg.FrontendToBackend> {
 
   presence(): Rx.Observable<Msg.Presence | null> {
     return this.presence$
+  }
+
+  sendToBackend(msg: Msg.FrontendToBackend) {
+    this.queue.push(msg)
   }
 
   onMessage(msg: Msg.BackendToFrontend) {

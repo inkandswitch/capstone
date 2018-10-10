@@ -5,7 +5,7 @@ let racf = require("random-access-chrome-file")
 
 process.hrtime = require("browser-process-hrtime")
 
-let mainWindow: chrome.app.window.AppWindow
+let mainWindow: chrome.app.window.AppWindow | undefined
 
 chrome.app.runtime.onLaunched.addListener(() => {
   chrome.app.window.create(
@@ -32,6 +32,10 @@ chrome.app.runtime.onLaunched.addListener(() => {
         }
       })
       win.show(true) // Passing focused: true
+      ;(window as any).win = win
+      store.queue.subscribe(msg => {
+        win.contentWindow.webview.contentWindow!.postMessage(msg, "*")
+      })
     },
   )
 })
@@ -39,17 +43,13 @@ chrome.app.runtime.onLaunched.addListener(() => {
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
 
-store.send = msg => {
-  webview.contentWindow!.postMessage(msg, "*")
-}
-
 window.addEventListener("message", event => {
   console.log("message", event)
   store.onMessage(event.data)
 })
 
 hm.ready.then(hm => {
-  store.send({ type: "Ready" })
+  store.sendToFrontend({ type: "Ready" })
 
   swarm(hm, {
     id: hm.core.archiver.changes.id,

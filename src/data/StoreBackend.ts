@@ -4,11 +4,12 @@ import * as Prefetch from "../data/Prefetch"
 import * as Peek from "./Peek"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
-import StoreComs from "./StoreComs"
+import Queue from "./Queue"
 
 const log = Debug("store:backend")
 
-export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
+export default class StoreBackend {
+  queue = new Queue<Msg.BackendToFrontend>()
   presenceTick?: any
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
@@ -17,7 +18,6 @@ export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
   //  prefetcher: Prefetch.Prefetcher
 
   constructor(hm: Hypermerge) {
-    super()
     log("constructing")
     this.hypermerge = hm
     ;(global as any).hm = this.hypermerge
@@ -76,7 +76,7 @@ export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
         })
       }
 
-      this.send(message)
+      this.sendToFrontend(message)
     }, 5000)
   }
 
@@ -92,6 +92,10 @@ export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
     })
 
     this.docHandles = {}
+  }
+
+  sendToFrontend(msg: Msg.BackendToFrontend) {
+    this.queue.push(msg)
   }
 
   onMessage = (msg: Msg.FrontendToBackend) => {
@@ -121,7 +125,7 @@ export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
         handle.on("patch", (patch: any) => {
           const actorId = handle.actorId
 
-          this.send({ type: "Patch", docId, actorId, patch })
+          this.sendToFrontend({ type: "Patch", docId, actorId, patch })
         })
 
         break
@@ -143,7 +147,7 @@ export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
           const feed = hm._feed(actorId)
 
           const ondownload = (seq: number) => {
-            this.send({
+            this.sendToFrontend({
               type: "Download",
               actorId,
               seq,
@@ -151,7 +155,7 @@ export default class StoreBackend extends StoreComs<Msg.BackendToFrontend> {
           }
 
           const onupload = (seq: number) => {
-            this.send({
+            this.sendToFrontend({
               type: "Upload",
               actorId,
               seq,

@@ -16,9 +16,10 @@ window.addEventListener("message", event => {
   if (msg.type === "Ready") {
     const { source }: any = event
 
-    Content.store.send = msg => {
-      source.postMessage(msg)
-    }
+    Content.store.queue.subscribe(msg => {
+      console.log("source", source)
+      source.postMessage(msg, "*")
+    })
   }
 
   Content.store.onMessage(event.data)
