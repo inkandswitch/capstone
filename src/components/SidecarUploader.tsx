@@ -6,6 +6,7 @@ import * as DataTransfer from "../logic/DataTransfer"
 import Content from "./Content"
 import { AnyDoc, AnyEditDoc, ChangeFn } from "automerge/frontend"
 import Clipboard from "./Clipboard"
+import * as DataImport from "./DataImport"
 
 interface Model {
   selectedUrls: Array<string>
@@ -76,51 +77,13 @@ export default class SidecarUploader extends React.Component<Props, State> {
     this.importData(event.clipboardData)
   }
 
-  importData(data: DataTransfer) {
-    DataTransfer.extractEntries(data).forEach(async entry => {
-      if (entry.type.startsWith("text/csv")) {
-        this.addTable(await entry.getAsText())
-      } else if (entry.type.startsWith("image/")) {
-        this.addImage(await entry.getAsDataURL())
-      } else if (entry.type.startsWith("text/")) {
-        this.addText(await entry.getAsText())
-      }
-    })
-  }
-
-  async addText(content: string) {
-    return this.addDoc("Text", doc => {
-      doc.content = content.split("")
-      return doc
-    })
-  }
-
-  async addImage(src: string) {
-    return this.addDoc("Image", doc => {
-      doc.src = src
-      return doc
-    })
-  }
-
-  async addTable(content: string) {
-    return this.addDoc("Table", doc => {
-      doc.content = content // not sure about automerge/crdts here?
-      return doc
-    })
-  }
-
-  async addDoc(type: string, changeFn: ChangeFn<unknown>) {
-    const url = await Content.create(type)
-
-    const onOpen = (doc: AnyEditDoc) => {
-      change(changeFn)
-    }
-
-    const change = Content.open(url, once(onOpen))
-
-    this.props.change(doc => {
-      doc.selectedUrls.push(url)
-      return doc
+  importData(dataTransfer: DataTransfer) {
+    const urlPromises = DataImport.importData(dataTransfer)
+    Promise.all(urlPromises).then(urls => {
+      this.props.change(doc => {
+        doc.selectedUrls = doc.selectedUrls.concat(urls)
+        return doc
+      })
     })
   }
 }
