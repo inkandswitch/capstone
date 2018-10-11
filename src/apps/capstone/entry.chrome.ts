@@ -5,6 +5,7 @@ let racf = require("random-access-chrome-file")
 
 process.hrtime = require("browser-process-hrtime")
 const webview = window.webview
+const DebugPane = document.getElementById("DebugPane")!
 
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
@@ -14,7 +15,17 @@ store.queue.subscribe(msg => {
 })
 
 window.addEventListener("message", event => {
+  if (event.data.type === "ToggleDebug") {
+    toggleDebug()
+  }
+
   store.onMessage(event.data)
+})
+
+window.addEventListener("keyup", event => {
+  if (event.code === "ShiftRight") {
+    toggleDebug()
+  }
 })
 
 hm.ready.then(hm => {
@@ -27,5 +38,11 @@ hm.ready.then(hm => {
   })
 })
 
-const webviewDOM = document.getElementById('webview')
+const webviewDOM = document.getElementById("webview")
 webviewDOM!.addEventListener("loadstop", () => webviewDOM!.focus())
+
+function toggleDebug() {
+  console.log("Toggling debug pane")
+  DebugPane.style.display =
+    DebugPane.style.display === "block" ? "none" : "block"
+}

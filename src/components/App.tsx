@@ -17,6 +17,7 @@ import "./PeerStatus"
 import "./Peer"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
+import GlobalKeyboard from "./GlobalKeyboard"
 
 type State = {
   url?: string
@@ -79,11 +80,18 @@ export default class App extends React.Component<Props, State> {
       <Root store={Content.store}>
         <div style={style.App}>
           <Stats />
+          <GlobalKeyboard onKeyDown={this.onKeyDown} />
           <Content mode="fullscreen" url={url} />
           <Feedback.Renderer />
         </div>
       </Root>
     )
+  }
+
+  onKeyDown = (event: KeyboardEvent) => {
+    if (event.code === "ShiftRight") {
+      Content.store.sendToBackend({ type: "ToggleDebug" })
+    }
   }
 }
 

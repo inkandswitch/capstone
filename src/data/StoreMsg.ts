@@ -69,12 +69,17 @@ export interface DownloadActivity {
   seq: number
 }
 
+export interface ToggleDebug {
+  type: "ToggleDebug"
+}
+
 export type FrontendToBackend =
   | Create
   | Open
   | ChangeRequest
   | RequestActivity
   | SetIdentity
+  | ToggleDebug
 
 export type BackendToFrontend =
   | Ready
