@@ -11,13 +11,9 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
-import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, {
-  StrokeSettings,
-  InkStrokeEvent,
-} from "./StrokeRecognizer"
+import Ink, { StrokeSettings, InkStrokeEvent } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -166,7 +162,7 @@ class Board extends React.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer onInkStroke={this.onInkStroke}>
+          <Ink onInkStroke={this.onInkStroke} strokes={strokes}>
             <div style={style.Board} ref={this.onRef}>
               <TransitionGroup>
                 {Object.values(cards).map(card => {
@@ -188,9 +184,9 @@ class Board extends React.Component<Props, State> {
                   )
                 })}
               </TransitionGroup>
-              <Ink strokes={strokes} />
+              {/* <Ink strokes={strokes} /> */}
             </div>
-          </StrokeRecognizer>
+          </Ink>
         )
       case "embed":
       case "preview":
