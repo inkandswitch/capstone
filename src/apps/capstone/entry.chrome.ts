@@ -25,4 +25,4 @@ hm.ready.then(hm => {
     url: "wss://discovery-cloud.herokuapp.com",
     // url: "ws://localhost:8080",
   })
-
+})
