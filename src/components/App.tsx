@@ -1,14 +1,15 @@
 import * as React from "react"
 import { Doc, EditDoc } from "automerge/frontend"
 
-import Store from "../data/Store"
 import Root from "./Root"
 import Content from "./Content"
+import Stats from "./Stats"
 
 import "./Board"
 import "./Image"
 import "./NetworkActivity"
 import "./Text"
+import "./Table"
 import "./Workspace"
 import "./Shelf"
 import "./Identity"
@@ -17,16 +18,7 @@ import "./Peer"
 import "./HTML"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
-import * as Identity from "./Identity"
-
-// Used for debugging from the console:
-window.Content = Content
-
-Content.store = new Store()
-
-Content.store.presence().subscribe(presenceInfo => {
-  console.log(presenceInfo)
-})
+import GlobalKeyboard from "./GlobalKeyboard"
 
 type State = {
   url?: string
@@ -37,33 +29,17 @@ type Props = {}
 export default class App extends React.Component<Props, State> {
   async initWorkspace() {
     const shelfUrlPromise = Content.create("Shelf")
-    const identityUrlPromise = Content.create("Identity")
     const rootBoardUrlPromise = Content.create("Board")
 
     const shelfUrl = await shelfUrlPromise
-    const identityUrl = await identityUrlPromise
     const rootBoardUrl = await rootBoardUrlPromise
     const workspaceUrl = await Content.create("Workspace")
     Content.workspaceUrl = workspaceUrl
-    Content.store.setIdentity(identityUrl)
-
-    Content.store.clipper().subscribe(async ({ request, sender }) => {
-      const htmlUrl = await Content.create("HTML")
-
-      Content.once(htmlUrl, async (change: Function) => {
-        change((doc: any) => {
-          doc.html = request.html
-        })
-
-        Content.send({ type: "AddToShelf", body: { url: htmlUrl } })
-      })
-    })
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
       change((workspace: EditDoc<Workspace.Model>) => {
         if (!workspace.identityUrl) {
-          workspace.identityUrl = identityUrl
           workspace.shelfUrl = shelfUrl
           workspace.rootUrl = rootBoardUrl
           workspace.navStack = [rootBoardUrl]
@@ -71,38 +47,40 @@ export default class App extends React.Component<Props, State> {
       })
 
       this.setState({ url: workspaceUrl })
-      chrome.storage.local.set({ workspaceUrl })
-    })
-
-    Content.send({
-      to: rootBoardUrl,
-      type: "ReceiveDocuments",
-      body: { urls: [identityUrl] },
-    })
-
-    Content.once<Identity.Model>(identityUrl, async (change: Function) => {
-      change((identity: any) => {
-        identity.mailboxUrl = shelfUrl
-      })
+      localStorage.workspaceUrl = workspaceUrl
     })
   }
 
   constructor(props: Props) {
     super(props)
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl"], val => {
-      if (val.workspaceUrl == undefined) {
-        this.initWorkspace()
-      } else {
-        Content.open<Workspace.Model>(
-          val.workspaceUrl,
-          (workspace: Doc<Workspace.Model>) => {
-            Content.workspaceUrl = val.workspaceUrl
-            Content.store.setIdentity(workspace.identityUrl)
-            this.setState({ url: val.workspaceUrl })
-          },
-        )
-      }
+    const { workspaceUrl } = localStorage
+    if (workspaceUrl == undefined) {
+      this.initWorkspace()
+    } else {
+      Content.open<Workspace.Model>(
+        workspaceUrl,
+        (workspace: Doc<Workspace.Model>) => {
+          Content.workspaceUrl = workspaceUrl
+          this.setState({ url: workspaceUrl })
+        },
+      )
+    }
+
+    // subscribe to the web clipper for messages about new content
+    console.log("alright")
+    Content.store.clipper().subscribe(async (message = {}) => {
+      const { html = {} } = message
+
+      const htmlUrl = await Content.create("HTML")
+
+      Content.once(htmlUrl, async (change: Function) => {
+        change((doc: any) => {
+          doc.html = html
+        })
+
+        Content.send({ type: "ReceiveDocuments", body: { urls: [htmlUrl] } })
+      })
     })
 
     this.state = { url: undefined }
@@ -118,11 +96,19 @@ export default class App extends React.Component<Props, State> {
     return (
       <Root store={Content.store}>
         <div style={style.App}>
+          <Stats />
+          <GlobalKeyboard onKeyDown={this.onKeyDown} />
           <Content mode="fullscreen" url={url} />
           <Feedback.Renderer />
         </div>
       </Root>
     )
+  }
+
+  onKeyDown = (event: KeyboardEvent) => {
+    if (event.code === "ShiftRight") {
+      Content.store.sendToBackend({ type: "ToggleDebug" })
+    }
   }
 }
 

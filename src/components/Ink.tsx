@@ -1,49 +1,238 @@
 import * as React from "react"
-import { StrokeSettings } from "./StrokeRecognizer"
+import * as Rx from "rxjs"
+import * as Frame from "../logic/Frame"
+import classnames from "classnames"
+import * as css from "./css/Ink.css"
+import { Portal } from "react-portal"
+import * as GPS from "../logic/GPS"
+import * as RxOps from "rxjs/operators"
 
-export interface CanvasStroke {
+interface Bounds {
+  readonly top: number
+  readonly right: number
+  readonly bottom: number
+  readonly left: number
+}
+
+export interface PenPoint {
+  x: number
+  y: number
+  pressure: number
+}
+
+export interface InkStroke {
+  points: PenPoint[]
   settings: StrokeSettings
-  path: string
 }
 
 export interface Props {
-  strokes: CanvasStroke[]
+  strokes: InkStroke[]
+  onInkStroke?: (strokes: InkStroke[]) => void
+  style?: {}
 }
 
-export default class Ink extends React.Component<Props> {
-  strokesCanvasEl?: HTMLCanvasElement
+const EMPTY_BOUNDS: Bounds = {
+  top: Infinity,
+  right: -Infinity,
+  bottom: -Infinity,
+  left: Infinity,
+}
+
+enum StrokeType {
+  ink,
+  erase,
+  default = ink,
+}
+
+export interface StrokeSettings {
+  readonly globalCompositeOperation: string
+  readonly strokeStyle: string
+  readonly lineCap: string
+  readonly lineJoin: string
+  readonly maxLineWith: number
+  lineWidth: number
+}
+
+export const StrokeWidth = (pressure: number, maxWidth: number) => {
+  return Math.max(1, maxWidth * Math.pow(pressure, 4))
+}
+
+const StrokeSettings: { [st: number]: StrokeSettings } = {
+  [StrokeType.ink]: {
+    globalCompositeOperation: "source-over",
+    strokeStyle: "black",
+    lineCap: "round",
+    lineJoin: "round",
+    maxLineWith: 16,
+    lineWidth: 16,
+  },
+  [StrokeType.erase]: {
+    globalCompositeOperation: "source-over",
+    strokeStyle: "white",
+    lineCap: "round",
+    lineJoin: "round",
+    maxLineWith: 40,
+    lineWidth: 40,
+  },
+}
+
+interface State {
+  strokeType?: StrokeType
+}
+
+export default class Ink extends React.Component<Props, State> {
+  canvasElement?: HTMLCanvasElement | null
+  ctx?: CanvasRenderingContext2D | null
+  pointerEventSubscription?: Rx.Subscription
+
+  strokes: InkStroke[] = []
+  strokeId = 0
+  lastDrawnPoint = 0
+  shouldRedrawDryInk = true
+  bounds: Bounds = EMPTY_BOUNDS
+
+  state = { strokeType: undefined }
 
   componentDidMount() {
-    requestAnimationFrame(this.draw)
+    requestAnimationFrame(this.drawDry)
+    this.pointerEventSubscription = GPS.stream()
+      .pipe(
+        RxOps.map(GPS.onlyPen),
+        RxOps.filter(GPS.ifNotEmpty),
+        RxOps.map(GPS.toAnyPointer),
+      )
+      .subscribe(this.onPenEvent)
+  }
+
+  componentWillUnmount() {
+    this.pointerEventSubscription && this.pointerEventSubscription.unsubscribe()
   }
 
   componentDidUpdate() {
-    requestAnimationFrame(this.draw)
+    requestAnimationFrame(this.drawDry)
   }
 
-  draw = () => {
-    const { strokes } = this.props
+  render() {
+    const { strokeType } = this.state
+    const style = this.props.style || {}
 
-    this.strokesCanvasEl && (this.strokesCanvasEl.width = window.innerWidth)
-    this.strokesCanvasEl && (this.strokesCanvasEl.height = window.innerHeight)
-
-    const ctx = this.getDrawingContext()
-
-    if (!ctx || strokes.length == 0) return
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
-    strokes.forEach(stroke => this.drawStroke(stroke))
+    return (
+      <div style={style}>
+        <Portal>
+          <div>
+            <canvas ref={this.canvasAdded} className={css.InkLayer} />
+            <div className={css.Options}>
+              <Option
+                label="Ink"
+                value={StrokeType.ink}
+                selected={strokeType === StrokeType.ink}
+                onChange={this.onStrokeTypeChange}
+              />
+              <Option
+                label="Erase"
+                value={StrokeType.erase}
+                selected={strokeType === StrokeType.erase}
+                onChange={this.onStrokeTypeChange}
+              />
+            </div>
+          </div>
+        </Portal>
+      </div>
+    )
   }
 
-  drawStroke(stroke: CanvasStroke) {
-    const ctx = this.getDrawingContext()
-    if (!ctx || stroke.path.length == 0) return
+  onPenEvent = (event: PointerEvent) => {
+    if (this.state.strokeType === undefined) return
+    if (event.type == "pointerdown") {
+      this.onPanStart(event)
+    } else if (event.type == "pointerup" || event.type == "pointercancel") {
+      this.onPanEnd(event)
+    } else if (event.type == "pointermove") {
+      this.onPanMove(event)
+    }
+  }
 
-    const path = new Path2D(stroke.path)
+  onPanStart = (event: PointerEvent) => {
+    this.onPanMove(event)
+  }
 
-    Object.assign(ctx, stroke.settings)
+  onPanMove = (event: PointerEvent) => {
+    const { x, y } = event
+    const coalesced: PointerEvent[] = event.getCoalescedEvents()
+    if (!this.strokes[this.strokeId]) {
+      this.strokes[this.strokeId] = {
+        points: [],
+        settings: StrokeSettings[this.state.strokeType!],
+      }
+    }
+    this.strokes[this.strokeId].points.push(
+      ...coalesced.map((value, i, a) => {
+        return {
+          x: value.x,
+          y: value.y,
+          pressure: value.pressure,
+        }
+      }),
+    )
 
-    ctx.stroke(path)
+    this.updateBounds(x, y)
+    this.drawWet()
+  }
+
+  onPanEnd = (event: PointerEvent) => {
+    this.strokeId += 1
+    this.lastDrawnPoint = 0
+  }
+
+  inkStroke = () => {
+    if (!this.props.onInkStroke || this.state.strokeType == undefined) {
+      return
+    }
+    this.shouldRedrawDryInk = true
+    this.props.onInkStroke(this.strokes)
+  }
+
+  onStrokeTypeChange = (strokeType?: StrokeType) => {
+    if (this.state.strokeType === strokeType) return
+    if (strokeType == undefined) {
+      this.shouldRedrawDryInk = true
+      this.inkStroke()
+    }
+    this.setState({ strokeType })
+  }
+
+  center() {
+    const b = this.bounds
+    return {
+      x: (b.left + b.right) / 2,
+      y: (b.top + b.bottom) / 2,
+    }
+  }
+
+  updateBounds(x: number, y: number) {
+    const b = this.bounds
+    this.bounds = {
+      top: Math.min(b.top, y),
+      right: Math.max(b.right, x),
+      bottom: Math.max(b.bottom, y),
+      left: Math.min(b.left, x),
+    }
+  }
+
+  reset() {
+    this.strokes = []
+    this.strokeId = 0
+    this.lastDrawnPoint = 0
+    this.bounds = EMPTY_BOUNDS
+    if (this.ctx && this.canvasElement) {
+      this.ctx.clearRect(
+        0,
+        0,
+        this.canvasElement.width,
+        this.canvasElement.height,
+      )
+      this.ctx.beginPath()
+    }
   }
 
   prepareCanvas(canvas: HTMLCanvasElement) {
@@ -53,30 +242,128 @@ export default class Ink extends React.Component<Props> {
     var rect = canvas.getBoundingClientRect()
     // Give the canvas pixel dimensions of their CSS
     // size * the device pixel ratio.
-    canvas.width = rect.width * dpr
-    canvas.height = rect.height * dpr
+    canvas.width = window.innerWidth * dpr
+    canvas.height = window.innerHeight * dpr
     var ctx = canvas.getContext("2d")
     // Scale all drawing operations by the dpr, so you
     // don't have to worry about the difference.
-    ctx && ctx.scale(dpr, dpr)
+    if (ctx) {
+      ctx.translate(0.5, 0.5)
+      ctx.scale(dpr, dpr)
+    }
     return ctx
   }
 
-  getDrawingContext(): CanvasRenderingContext2D | null | undefined {
-    return this.strokesCanvasEl && this.strokesCanvasEl.getContext("2d")
+  canvasAdded = (canvas: HTMLCanvasElement | null) => {
+    this.canvasElement = canvas
+    if (canvas) {
+      this.ctx = this.prepareCanvas(canvas)
+    }
   }
 
-  render() {
-    return (
-      <canvas
-        className="InkLayer"
-        ref={(el: HTMLCanvasElement) => {
-          if (el) {
-            this.prepareCanvas(el)
-          }
-          this.strokesCanvasEl = el
-        }}
-      />
+  drawWet = Frame.throttle(() => {
+    if (
+      !this.ctx ||
+      !this.strokes[this.strokeId] ||
+      this.state.strokeType == undefined
     )
+      return
+
+    for (
+      this.lastDrawnPoint;
+      this.lastDrawnPoint < this.strokes[this.strokeId].points.length;
+      this.lastDrawnPoint++
+    ) {
+      let point = this.strokes[this.strokeId].points[this.lastDrawnPoint]
+      let settings = StrokeSettings[this.state.strokeType!]
+      settings.lineWidth = StrokeWidth(point.pressure, settings.maxLineWith)
+      Object.assign(this.ctx, settings)
+      if (this.lastDrawnPoint === 0) {
+        continue
+      }
+      const twoPoints = [
+        this.strokes[this.strokeId].points[this.lastDrawnPoint - 1],
+        point,
+      ]
+      const pathString =
+        "M " + twoPoints.map(point => `${point.x} ${point.y}`).join(" L ")
+      const path = new Path2D(pathString)
+      this.ctx.stroke(path)
+    }
+  })
+
+  drawDry = Frame.throttle(() => {
+    if (!this.canvasElement || !this.shouldRedrawDryInk) return
+    this.reset()
+    const { strokes } = this.props
+    this.prepareCanvas(this.canvasElement)
+    const ctx = this.canvasElement.getContext("2d")
+    if (!ctx || strokes.length == 0) return
+    strokes.forEach(stroke => this.drawDryStroke(stroke))
+    this.shouldRedrawDryInk = false
+  })
+
+  drawDryStroke(stroke: InkStroke) {
+    const ctx = this.canvasElement && this.canvasElement.getContext("2d")
+    if (!ctx || stroke.points.length == 0) return
+    let strokeSettings = stroke.settings
+
+    let from = stroke.points[0]
+    if (!from) return
+
+    let pathString = ""
+    if (stroke.points.length === 1) {
+      pathString = `M ${from.x} ${from.y} C`
+      const path = new Path2D(pathString)
+      strokeSettings.lineWidth = StrokeWidth(
+        from.pressure,
+        strokeSettings.maxLineWith,
+      )
+      Object.assign(ctx, stroke)
+      ctx.stroke(path)
+    } else {
+      stroke.points.forEach((to, index) => {
+        if (!to || !from) return
+        pathString = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
+        const path = new Path2D(pathString)
+        strokeSettings.lineWidth = StrokeWidth(
+          to.pressure,
+          strokeSettings.maxLineWith,
+        )
+        Object.assign(ctx, strokeSettings)
+        ctx.stroke(path)
+        from = to
+      })
+    }
+  }
+}
+
+interface OptionProps<T> {
+  label: React.ReactNode
+  value: T
+  selected: boolean
+  onChange: (value?: T) => void
+}
+
+class Option<T> extends React.Component<OptionProps<T>> {
+  render() {
+    const { label, value, selected, onChange } = this.props
+
+    return (
+      <div
+        className={css.Option}
+        onPointerDown={() => onChange(value)}
+        onPointerUp={() => onChange()}
+        onContextMenu={this.onContextMenu}>
+        <div
+          className={classnames(css.OptionButton, { [css.current]: selected })}
+        />
+        {label}
+      </div>
+    )
+  }
+
+  onContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault()
   }
 }

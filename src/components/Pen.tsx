@@ -14,7 +14,7 @@ interface Props {
 
 export default class Pen extends Handler<Props> {
   ref: HTMLDivElement | undefined
-  hammer: HammerManager
+  hammer?: HammerManager
   shouldPreventPenScroll = false
   isPenActive = false
 
@@ -64,7 +64,7 @@ export default class Pen extends Handler<Props> {
   }
 
   componentWillUnmount() {
-    this.hammer.destroy()
+    this.hammer && this.hammer.destroy()
     if (this.shouldPreventPenScroll) this.removePreventPenScrollListeners()
   }
 

@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,
     "outDir": "./dist/",
-    "noImplicitAny": true,
-    "strictNullChecks": true,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
     "module": "commonjs",
     "target": "es2015",
     "lib": ["es2017", "es6", "dom", "dom.iterable", "scripthost"],
@@ -11,5 +12,6 @@
     "allowJs": true,
     "sourceMap": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

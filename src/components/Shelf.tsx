@@ -1,12 +1,9 @@
 import * as React from "react"
 import * as Reify from "../data/Reify"
-import { Glyph } from "../data/Glyph"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
-import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import { DocumentActor, Message, FullyFormedMessage } from "./Content"
-import * as Feedback from "./CommandFeedback"
 
 interface Model {
   selectedUrls: string[]
@@ -90,14 +87,6 @@ class Shelf extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
   }
 
-  onGlyph = (stroke: GlyphEvent) => {
-    switch (stroke.glyph) {
-      case Glyph.delete:
-        Feedback.Provider.add("Clear shelf contents", stroke.center)
-        this.props.emit({ type: "ClearShelf" })
-    }
-  }
-
   render() {
     const { selectedUrls } = this.props.doc
     const count = selectedUrls.length
@@ -105,13 +94,11 @@ class Shelf extends React.Component<Widget.Props<Model, WidgetMessage>> {
     if (count <= 0) return null
 
     return (
-      <StrokeRecognizer onGlyph={this.onGlyph}>
-        <div style={style.Shelf}>
-          {selectedUrls.map((url, idx) => (
-            <ShelfCard key={idx} url={url} index={idx} />
-          ))}
-        </div>
-      </StrokeRecognizer>
+      <div style={style.Shelf}>
+        {selectedUrls.map((url, idx) => (
+          <ShelfCard key={idx} url={url} index={idx} />
+        ))}
+      </div>
     )
   }
 }

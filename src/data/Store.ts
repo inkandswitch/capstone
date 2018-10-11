@@ -1,54 +1,56 @@
 import { Doc, ChangeFn } from "automerge/frontend"
-import * as Automerge from "automerge/frontend"
+import * as Debug from "debug"
 import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
+import * as Msg from "./StoreMsg"
 import { FrontendHandle } from "../modules/hypermerge/frontend"
+import Queue from "./Queue"
+
+const log = Debug("store:frontend")
 
 function isId(id: string) {
   return id.length >= 32 && id.length <= 44
-}
-
-type CommandMessage = "Create" | "Open" | "Replace"
-
-interface UploadActivity {
-  type: "Upload"
-  actorId: string
-  seq: number
-}
-
-interface DownloadActivity {
-  type: "Download"
-  actorId: string
-  seq: number
 }
 
 ;(window as any).peek = () => {
   console.log("please use peek() on the backend console")
 }
 
-export type Activity = UploadActivity | DownloadActivity
+export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
 export default class Store {
+  queue = new Queue<Msg.FrontendToBackend>()
   index: { [id: string]: FrontendHandle } = {}
-  presenceSubject: Rx.BehaviorSubject<any>
+  presence$: Rx.BehaviorSubject<Msg.Presence | null>
+  clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
+
+  constructor() {
+    log("constructing")
+
+    this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
+    this.clipper$ = new Rx.BehaviorSubject<Msg.Clipper | null>(null)
+  }
 
   handle(id: string): FrontendHandle {
     return this.index[id] || this.makeHandle(id)
   }
 
   create(setup: ChangeFn<any>): string {
-    const command = "Create"
-
     const buffers = keyPair()
     const keys = {
       publicKey: Base58.encode(buffers.publicKey),
       secretKey: Base58.encode(buffers.secretKey),
     }
-    const args = { keys }
+
     const docId = keys.publicKey
 
-    chrome.runtime.sendMessage({ command, args })
+    this.sendToBackend({
+      type: "Create",
+      docId,
+      keys,
+    })
+
     const handle = this.makeHandle(docId)
     handle.setActorId(docId)
     handle.change(setup)
@@ -56,58 +58,81 @@ export default class Store {
   }
 
   setIdentity(identityUrl: string) {
-    const command = "SetIdentity"
-    const args = { identityUrl }
-    chrome.runtime.sendMessage({ command, args })
+    this.sendToBackend({
+      type: "SetIdentity",
+      identityUrl,
+    })
   }
 
-  makeHandle(id: string): FrontendHandle {
-    let port = chrome.runtime.connect({ name: `${id}/changes` })
-    let handle = new FrontendHandle(id)
+  makeHandle(docId: string): FrontendHandle {
+    const handle = new FrontendHandle(docId)
 
-    port.onMessage.addListener(({ actorId, patch }) => {
-      handle.setActorId(actorId)
-      handle.patch(patch)
+    this.index[docId] = handle
+
+    handle.on("requests", changes => {
+      this.sendToBackend({
+        type: "ChangeRequest",
+        docId,
+        changes,
+      })
     })
 
-    handle.on("requests", requests => {
-      port.postMessage(requests)
-    })
+    this.sendToBackend({ type: "Open", docId })
 
-    port.onDisconnect.addListener(() => {
-      console.log("Port disconnect handle", id)
-      handle.release()
-      delete this.index[id]
-    })
-
-    this.index[id] = handle
+    // TODO:
+    // port.onDisconnect.addListener(() => {
+    //   console.log("Port disconnect handle", docId)
+    //   handle.release()
+    //   delete this.index[docId]
+    // })
 
     return handle
   }
 
   clipper(): Rx.Observable<any> {
-    return new Rx.Observable(obs => {
-      const port = chrome.runtime.connect({ name: "clipper" })
-      port.onMessage.addListener(msg => obs.next(msg))
-      port.onDisconnect.addListener(() => obs.complete())
-    })
+    return this.clipper$
   }
 
   activity(id: string): Rx.Observable<Activity> {
     return new Rx.Observable(obs => {
-      const port = chrome.runtime.connect({ name: `${id}/activity` })
-      port.onMessage.addListener(msg => obs.next(msg))
-      port.onDisconnect.addListener(() => obs.complete())
+      // TODO:
+      // const port = chrome.runtime.connect({ name: `${id}/activity` })
+      // port.onMessage.addListener(msg => obs.next(msg))
+      // port.onDisconnect.addListener(() => obs.complete())
     })
   }
 
-  presence(): Rx.BehaviorSubject<any> {
-    if (!this.presenceSubject) {
-      this.presenceSubject = new Rx.BehaviorSubject(null)
-      const port = chrome.runtime.connect({ name: `*/presence` })
-      port.onMessage.addListener(msg => this.presenceSubject.next(msg))
-      port.onDisconnect.addListener(() => this.presenceSubject.complete())
+  presence(): Rx.Observable<Msg.Presence | null> {
+    return this.presence$
+  }
+
+  sendToBackend(msg: Msg.FrontendToBackend) {
+    this.queue.push(msg)
+  }
+
+  onMessage(msg: Msg.BackendToFrontend) {
+    log("frontend <- backend", msg)
+    switch (msg.type) {
+      case "Patch": {
+        const handle = this.handle(msg.docId)
+        handle.setActorId(msg.actorId)
+        handle.patch(msg.patch)
+        break
+      }
+
+      case "Clipper":
+        this.clipper$.next(msg)
+        break
+
+      case "Presence":
+        this.presence$.next(msg)
+        break
+
+      case "Upload":
+        break
+
+      case "Download":
+        break
     }
-    return this.presenceSubject
   }
 }

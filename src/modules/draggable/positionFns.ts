@@ -95,7 +95,7 @@ export function canDragY(draggable: Draggable): boolean {
 
 // Get {x, y} positions from event.
 export function getControlPosition(
-  e: React.PointerEvent,
+  e: PointerEvent,
   draggable: Draggable,
   node: HTMLDivElement,
 ): ControlPosition {

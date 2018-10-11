@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+body {
+  touch-action: none;
+}
+
 .CodeMirror {
   /* Set height, width, borders, and global font properties here */
   font-family: Roboto, Arial, Helvetica, sans-serif;
@@ -20,20 +24,6 @@
 .CodeMirror .CodeMirror-scroll {
   touch-action: none;
   max-height: 500px;
-}
-
-.InkLayer {
-  position: fixed;
-  padding: 0;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 1;
-  pointer-events: none;
-  z-index: 0;
 }
 
 .CommandFeedback {

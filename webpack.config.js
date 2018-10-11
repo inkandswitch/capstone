@@ -1,9 +1,11 @@
 const path = require("path")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin")
 const glob = require("glob")
 const env = process.env.NODE_ENV
 
 const shared = {
+  context: __dirname,
   mode: "development",
   devtool: "inline-source-map",
 
@@ -14,21 +16,27 @@ const shared = {
   resolve: {
     alias: {
       "utp-native": "utp",
-      debug: "chrome-debug",
+      debug: path.resolve("./src/modules/debug"),
       dgram: "chrome-dgram",
       net: "chrome-net",
       "util-deprecate": path.resolve("./stubs/util-deprecate.js"),
       "bittorrent-dht": path.resolve("./stubs/bittorrent-dht.js"),
       "random-access-file": path.resolve("./stubs/blank.js"),
     },
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [".web.ts", ".tsx", ".ts", ".js"],
   },
 
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: {
+          loader: "ts-loader",
+          options: {
+            transpileOnly: true,
+            experimentalWatchApi: true,
+          },
+        },
         exclude: /node_modules/,
       },
       {
@@ -79,6 +87,7 @@ function app(name, overrides = {}) {
     entry: {
       main: `./src/apps/${name}/main.tsx`,
       background: `./src/apps/${name}/background.chrome.ts`,
+      entry: `./src/apps/${name}/entry.chrome.ts`,
     },
     output: {
       path: path.resolve(__dirname, "dist", name),
@@ -86,9 +95,10 @@ function app(name, overrides = {}) {
     },
 
     plugins: [
-      new CopyWebpackPlugin(["manifest.json", "index.html"], {
+      new CopyWebpackPlugin(["manifest.json", "index.html", "sandbox.html"], {
         context: `./src/apps/${name}`,
       }),
+      new ForkTsCheckerWebpackPlugin(),
     ],
     ...overrides,
   }

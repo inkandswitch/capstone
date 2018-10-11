@@ -4,8 +4,6 @@ import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import Content, { DocumentActor } from "./Content"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
-import { Glyph } from "../data/Glyph"
-import StrokeRecognizer, { GlyphEvent } from "./StrokeRecognizer"
 import * as Widget from "./Widget"
 import IdentityBadge from "./IdentityBadge"
 
@@ -85,19 +83,6 @@ export class Identity extends React.Component<Props, State> {
     if (this.state.isEditing) event.stopPropagation()
   }
 
-  onBadgeGlyph = (stroke: GlyphEvent) => {
-    switch (stroke.glyph) {
-      case Glyph.paste:
-        this.props.emit({
-          type: "ShelfContentsRequested",
-          body: { intent: "avatar" },
-        })
-        break
-      case Glyph.edit:
-        this.setState({ isEditing: true })
-    }
-  }
-
   onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target
 
@@ -124,14 +109,12 @@ export class Identity extends React.Component<Props, State> {
     return (
       <div style={style.Identity} onPointerDown={this.onPointerDown}>
         <div style={style.Profile} onPointerDown={this.onBadgePointerDown}>
-          <StrokeRecognizer onGlyph={this.onBadgeGlyph}>
-            <IdentityBadge
-              name={name}
-              avatarUrl={avatarUrl}
-              isEditing={isEditing}
-              onChange={this.onChange}
-            />
-          </StrokeRecognizer>
+          <IdentityBadge
+            name={name}
+            avatarUrl={avatarUrl}
+            isEditing={isEditing}
+            onChange={this.onChange}
+          />
           <div style={style.PeerStatus}>
             <Content mode="embed" type="PeerStatus" url={this.props.url} />
           </div>

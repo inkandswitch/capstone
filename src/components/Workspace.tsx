@@ -2,29 +2,33 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as DataImport from "./DataImport"
+import GPSInput from "./GPSInput"
 import { AnyDoc } from "automerge/frontend"
 import Content, {
   DocumentActor,
   FullyFormedMessage,
   DocumentCreated,
+  ReceiveDocuments,
 } from "./Content"
 import Clipboard from "./Clipboard"
-import Touch, { TouchEvent } from "./Touch"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
 
 export interface Model {
   navStack: string[]
-  identityUrl: string
   rootUrl: string
   shelfUrl: string
 }
 
-type WidgetMessage = DocumentCreated | AddToShelf
+type WidgetMessage = DocumentCreated | AddToShelf | ReceiveDocuments
 type InMessage = FullyFormedMessage<
-  DocumentCreated | AddToShelf | ShelfContentsRequested
+  DocumentCreated | AddToShelf | ShelfContentsRequested | ReceiveDocuments
 >
-type OutMessage = DocumentCreated | AddToShelf | SendShelfContents
+type OutMessage =
+  | DocumentCreated
+  | AddToShelf
+  | SendShelfContents
+  | ReceiveDocuments
 
 class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -46,6 +50,14 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
         })
         break
       }
+      case "ReceiveDocuments": {
+        this.emit({
+          type: "ReceiveDocuments",
+          body: message.body,
+          to: this.doc.rootUrl,
+        })
+        break
+      }
     }
   }
 }
@@ -53,7 +65,6 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
 class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   static reify(doc: AnyDoc): Model {
     return {
-      identityUrl: Reify.string(doc.identityUrl),
       navStack: Reify.array(doc.navStack),
       rootUrl: Reify.string(doc.rootUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
@@ -83,12 +94,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   peek = () => {
     const { navStack } = this.props.doc
     return navStack[navStack.length - 1]
-  }
-
-  onPinchEnd = (event: TouchEvent) => {
-    // Prevent popping the last item off the navStack on pinch end.
-    if (event.scale > 1 || this.props.doc.navStack.length < 2) return
-    this.pop()
   }
 
   onCopy = (e: ClipboardEvent) => {
@@ -127,7 +132,8 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   importData = (dataTransfer: DataTransfer) => {
     const urlPromises = DataImport.importData(dataTransfer)
     Promise.all(urlPromises).then(urls => {
-      this.props.emit({ type: "AddToShelf", body: { urls } })
+      this.props.emit({ type: "ReceiveDocuments", body: { urls } })
+      // this.props.emit({ type: "AddToShelf", body: { urls } })
     })
   }
 
@@ -135,25 +141,24 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const { shelfUrl } = this.props.doc
     const currentUrl = this.peek()
     return (
-      <Touch onPinchEnd={this.onPinchEnd}>
-        <div
-          className="Workspace"
-          style={style.Workspace}
-          onDragOver={this.onDragOver}
-          onDrop={this.onDrop}>
-          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-          <Content
-            key={currentUrl}
-            mode={this.props.mode}
-            url={currentUrl}
-            onNavigate={this.push}
-          />
-          <Content mode="embed" url={shelfUrl} />
-          <div style={style.Peers}>
-            <Peers onTapPeer={this.onTapPeer} />
-          </div>
+      <div
+        className="Workspace"
+        style={style.Workspace}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}>
+        <GPSInput />
+        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+        <Content
+          key={currentUrl}
+          mode={this.props.mode}
+          url={currentUrl}
+          onNavigate={this.push}
+        />
+        <Content mode="embed" url={shelfUrl} />
+        <div style={style.Peers}>
+          <Peers onTapPeer={this.onTapPeer} />
         </div>
-      </Touch>
+      </div>
     )
   }
 }

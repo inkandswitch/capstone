@@ -2,29 +2,53 @@ import * as DataTransfer from "../logic/DataTransfer"
 import { once, isUndefined, first } from "lodash"
 import Content from "./Content"
 import { AnyEditDoc, ChangeFn } from "automerge/frontend"
+import { isMatch } from "micromatch"
 
-const importers: { [k: string]: Function } = {
-  image: async (item: DataTransferItem) =>
-    this.addImage(await DataTransfer.extractAsDataURL(item)),
-  text: async (item: DataTransferItem) =>
-    this.addText(await DataTransfer.extractAsText(item)),
-}
+type ImporterWithGlob = [string, Function]
+
+const importers: ImporterWithGlob[] = [
+  [
+    "image/*",
+    async (item: DataTransferItem) =>
+      addImage(await DataTransfer.extractAsDataURL(item)),
+  ],
+  [
+    "text/csv",
+    async (item: DataTransferItem) =>
+      addTable(await DataTransfer.extractAsText(item)),
+  ],
+  [
+    "text/*",
+    async (item: DataTransferItem) =>
+      addText(await DataTransfer.extractAsText(item)),
+  ],
+]
 
 export const importData = (data: DataTransfer): Promise<string>[] => {
   return DataTransfer.extractEntries(data)
-    .filter(entry => {
-      const typePrefix = first(entry.type.split("/"))
-      return typePrefix && typePrefix in importers
-    })
     .map(entry => {
-      const typePrefix: string = first(entry.type.split("/"))!
-      return importers[typePrefix](entry.item)
+      // Find first matching importer from array of importers, supporting globbing
+      const importerTypeIdx = importers.findIndex(([importerGlob, _]) =>
+        isMatch(entry.type, importerGlob),
+      )
+
+      return importerTypeIdx >= 0
+        ? importers[importerTypeIdx][1](entry.item)
+        : undefined
     })
+    .filter(_ => _ !== undefined)
 }
 
 export const addText = async (content: string) => {
   return addDoc("Text", doc => {
     doc.content = content.split("")
+    return doc
+  })
+}
+
+export const addTable = async (content: string) => {
+  return addDoc("Table", doc => {
+    doc.content = content
     return doc
   })
 }
