@@ -11,27 +11,18 @@ import Content, {
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
-import Ink from "./Ink"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
-import StrokeRecognizer, {
-  StrokeSettings,
-  InkStrokeEvent,
-} from "./StrokeRecognizer"
+import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
 
 const BOARD_PADDING = 15
 
-export interface CanvasStroke {
-  settings: StrokeSettings
-  path: string
-}
-
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
-  strokes: CanvasStroke[]
+  strokes: InkStroke[]
   topZ: number
 }
 
@@ -166,31 +157,29 @@ class Board extends React.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <StrokeRecognizer onInkStroke={this.onInkStroke}>
-            <div style={style.Board} ref={this.onRef}>
-              <TransitionGroup>
-                {Object.values(cards).map(card => {
-                  if (!card) return null
+          <div style={style.Board} ref={this.onRef}>
+            <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
+            <TransitionGroup>
+              {Object.values(cards).map(card => {
+                if (!card) return null
 
-                  return (
-                    <CSSTransition
-                      key={card.id}
-                      classNames="Card"
-                      enter={false}
-                      timeout={{ exit: 1 }}>
-                      <DraggableCard
-                        card={card}
-                        onDragStart={this.onDragStart}
-                        onDragStop={this.onDragStop}>
-                        <Content mode="embed" url={card.url} />
-                      </DraggableCard>
-                    </CSSTransition>
-                  )
-                })}
-              </TransitionGroup>
-              <Ink strokes={strokes} />
-            </div>
-          </StrokeRecognizer>
+                return (
+                  <CSSTransition
+                    key={card.id}
+                    classNames="Card"
+                    enter={false}
+                    timeout={{ exit: 1 }}>
+                    <DraggableCard
+                      card={card}
+                      onDragStart={this.onDragStart}
+                      onDragStop={this.onDragStop}>
+                      <Content mode="embed" url={card.url} />
+                    </DraggableCard>
+                  </CSSTransition>
+                )
+              })}
+            </TransitionGroup>
+          </div>
         )
       case "embed":
       case "preview":
@@ -208,19 +197,9 @@ class Board extends React.Component<Props, State> {
     }
   }
 
-  onInkStroke = (strokes: InkStrokeEvent[]) => {
+  onInkStroke = (strokes: InkStroke[]) => {
     this.props.change(doc => {
-      const canvasStrokes: CanvasStroke[] = strokes.map(
-        (event: InkStrokeEvent) => {
-          return {
-            settings: event.settings,
-            path: event.points
-              .map(point => `${point.x}/${point.y}/${point.pressure}`)
-              .join("|"),
-          }
-        },
-      )
-      doc.strokes.push(...canvasStrokes)
+      doc.strokes.push(...strokes)
       return doc
     })
   }
