@@ -24,6 +24,7 @@ export interface Props {
 export default class DraggableCard extends React.Component<Props> {
   events$ = GPS.stream().pipe(
     RxOps.map(GPS.onlyPen),
+    RxOps.filter(GPS.ifNotInking),
     RxOps.filter(GPS.ifNotEmpty),
     RxOps.map(GPS.toAnyPointer),
   )

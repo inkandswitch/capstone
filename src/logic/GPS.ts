@@ -3,6 +3,11 @@ import * as RxOps from "rxjs/operators"
 import { pickBy } from "lodash"
 import * as GPS from "../logic/GPS"
 
+export enum InteractionMode {
+  default,
+  inking,
+}
+
 export type PointerSnapshot = { [pointerId: string]: PointerEvent }
 export type Pointer = {
   pointerId: number
@@ -15,6 +20,7 @@ export type Pointer = {
 
 // TODO: clean this up.
 let events$ = new Rx.Observable<PointerSnapshot>()
+let interactionMode = InteractionMode.default
 
 // Connect a stream of PointerEvents to the GPS.
 export function connectInput(input$: Rx.Observable<PointerEvent>) {
@@ -30,6 +36,11 @@ export function connectInput(input$: Rx.Observable<PointerEvent>) {
       return snapshot
     }, {}),
   )
+}
+
+export function setInteractionMode(mode: InteractionMode) {
+  if (interactionMode == mode) return
+  interactionMode = mode
 }
 
 // Expose a stream of PointerSnapshots
@@ -54,6 +65,9 @@ export const toPointers = (s: PointerSnapshot) => Object.values(s)
 
 // Get an arbitrary pointer from the snapshot.
 export const toAnyPointer = (s: PointerSnapshot) => toPointers(s)[0]
+
+export const ifNotInking = (s: PointerSnapshot) =>
+  interactionMode != InteractionMode.inking
 
 // Filter the snapshot so only pointers on a target remain.
 export const onlyOnTarget = (target: HTMLElement) => (
