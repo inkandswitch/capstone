@@ -2,17 +2,22 @@
 # yarn lockfile v1
 
 
-"@types/chrome-apps@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@types/chrome-apps/-/chrome-apps-0.0.1.tgz#08e8f91507c21b7b686d1b57459d38e498a74dc9"
-  integrity sha512-+lzuQjSnS+KzgAMP4ub2sQZDi9KEKqcbiIT3aUAW5wr0cJZVLCFUjZreZ0cEvmVu7RrRXW4DhVeEAgwkBW0xDw==
+"@types/braces@*":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@types/braces/-/braces-2.3.0.tgz#d00ec0a76562b2acb6f29330be33a093e33ed25c"
+  integrity sha512-A3MV5EsLHgShHoJ/XES/fQAnwNISKLrFuH9eNBZY5OkTQB7JPIwbRoExvRpDsNABvkMojnKqKWS8x0m2rLYi+A==
+
+"@types/chrome-apps@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@types/chrome-apps/-/chrome-apps-0.0.5.tgz#84e9d4a899164703de912fbd1c2972326fc67938"
+  integrity sha512-Cfyd7ZI8zGLeeOg8FK8n6rUY0OJHHv6Www3EN5FKyEkztO5M2hebLxlR1bQQdh1fO926Xr6F61Pu1sGN2pv8yw==
   dependencies:
     "@types/filesystem" "*"
 
-"@types/chrome@^0.0.71":
-  version "0.0.71"
-  resolved "https://registry.yarnpkg.com/@types/chrome/-/chrome-0.0.71.tgz#db895511053befa58decf31d11054b41de15fbee"
-  integrity sha512-+b0KQd8jdqJ+xnItS7UYGYPIERl4k3+jSk8M+wiItKyKNs35pZW0OnCPtwE1qYrClARCuX3EYRms5vQseXV/iA==
+"@types/chrome@^0.0.74":
+  version "0.0.74"
+  resolved "https://registry.yarnpkg.com/@types/chrome/-/chrome-0.0.74.tgz#f69827c48fcf7fecc90c96089807661749a5a5e3"
+  integrity sha512-hzosS5CkQcIKCgxcsV2AzbJ36KNxG/Db2YEN/erEu7Boprg+KpMDLBQqKFmSo+JkQMGqRcicUyqCowJpuT+C6A==
   dependencies:
     "@types/filesystem" "*"
 
@@ -62,6 +67,13 @@
   version "4.14.116"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.116.tgz#5ccf215653e3e8c786a58390751033a9adca0eb9"
   integrity sha512-lRnAtKnxMXcYYXqOiotTmJd74uawNWuPnsnPrrO7HiFuE3npE2iQhfABatbYDyxTNqZNuXzcKGhw37R7RjBFLg==
+
+"@types/micromatch@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@types/micromatch/-/micromatch-3.1.0.tgz#514c8a3d24b2680a9b838eeb80e6d7d724545433"
+  integrity sha512-06uA9V7v68RTOzA3ky1Oi0HmCPa+YJ050vM+sTECwkxnHUQnO17TAcNCGX400QT6bldUiPb7ux5oKy0j8ccEDw==
+  dependencies:
+    "@types/braces" "*"
 
 "@types/node@*":
   version "10.9.4"
@@ -553,7 +565,7 @@ awesome-typescript-loader@^5.2.0:
     source-map-support "^0.5.3"
     webpack-log "^1.2.0"
 
-babel-code-frame@^6.26.0:
+babel-code-frame@^6.22.0, babel-code-frame@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-code-frame/-/babel-code-frame-6.26.0.tgz#63fd43f7dc1e3bb7ce35947db8fe369a3f58c74b"
   integrity sha1-Y/1D99weO7fONZR9uP42mj9Yx0s=
@@ -949,7 +961,7 @@ chokidar@1.6.0:
   optionalDependencies:
     fsevents "^1.0.0"
 
-chokidar@^2.0.2:
+chokidar@^2.0.2, chokidar@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-2.0.4.tgz#356ff4e2b0e8e43e322d18a372460bbcf3accd26"
   integrity sha512-z9n7yt9rOvIJrMhvDtDictKrkFHeihkNl6uWMmZlmL6tJtX9Cs+87oK+teBx+JIgzvbX3yZHT3eF8vpbDxHJXQ==
@@ -2034,6 +2046,22 @@ for-own@^0.1.4:
   dependencies:
     for-in "^1.0.1"
 
+fork-ts-checker-webpack-plugin@^0.4.10:
+  version "0.4.10"
+  resolved "https://registry.yarnpkg.com/fork-ts-checker-webpack-plugin/-/fork-ts-checker-webpack-plugin-0.4.10.tgz#e96f87ea599af4501c1a69f44ecfb3163bbf30b9"
+  integrity sha512-8llkIUAM9o64ou6bhcCzKoyPd78GKSIuErmiyNX5tE7+RhdW8meCkVdXPP67diKYwvp7KjR1t7UvZckAHzN3pg==
+  dependencies:
+    babel-code-frame "^6.22.0"
+    chalk "^2.4.1"
+    chokidar "^2.0.4"
+    lodash.endswith "^4.2.1"
+    lodash.isfunction "^3.0.8"
+    lodash.isstring "^4.0.1"
+    lodash.startswith "^4.2.1"
+    minimatch "^3.0.4"
+    resolve "^1.5.0"
+    tapable "^1.0.0"
+
 forwarded@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
@@ -3005,6 +3033,26 @@ lodash.defaults@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/lodash.defaults/-/lodash.defaults-4.2.0.tgz#d09178716ffea4dde9e5fb7b37f6f0802274580c"
   integrity sha1-0JF4cW/+pN3p5ft7N/bwgCJ0WAw=
+
+lodash.endswith@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/lodash.endswith/-/lodash.endswith-4.2.1.tgz#fed59ac1738ed3e236edd7064ec456448b37bc09"
+  integrity sha1-/tWawXOO0+I27dcGTsRWRIs3vAk=
+
+lodash.isfunction@^3.0.8:
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/lodash.isfunction/-/lodash.isfunction-3.0.9.tgz#06de25df4db327ac931981d1bdb067e5af68d051"
+  integrity sha512-AirXNj15uRIMMPihnkInB4i3NHeb4iBtNg9WRWuK2o31S+ePwwNmDPaTL3o7dTJ+VXNZim7rFs4rxN4YU1oUJw==
+
+lodash.isstring@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz#d527dfb5456eca7cc9bb95d5daeaf88ba54a5451"
+  integrity sha1-1SfftUVuynzJu5XV2ur4i6VKVFE=
+
+lodash.startswith@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/lodash.startswith/-/lodash.startswith-4.2.1.tgz#c598c4adce188a27e53145731cdc6c0e7177600c"
+  integrity sha1-xZjErc4YiiflMUVzHNxsDnF3YAw=
 
 lodash@^4.17.10, lodash@^4.17.5:
   version "4.17.10"
@@ -4426,6 +4474,13 @@ resolve-url@^0.2.1:
   resolved "https://registry.yarnpkg.com/resolve-url/-/resolve-url-0.2.1.tgz#2c637fe77c893afd2a663fe21aa9080068e2052a"
   integrity sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
 
+resolve@^1.5.0:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.8.1.tgz#82f1ec19a423ac1fbd080b0bab06ba36e84a7a26"
+  integrity sha512-AicPrAC7Qu1JxPCZ9ZgCZlY35QgFnNqc+0LtbRNxnVw4TXvjQ72wnuL9JQcEBgXkI9JM8MsT9kaQoHcpCRJOYA==
+  dependencies:
+    path-parse "^1.0.5"
+
 resolve@~1.7.1:
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.7.1.tgz#aadd656374fd298aee895bc026b8297418677fd3"
@@ -4867,11 +4922,6 @@ statuses@~1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.4.0.tgz#bb73d446da2796106efcc1b601a253d6c46bd087"
   integrity sha512-zhSCtt8v2NDrRlPQpCNtw/heZLtfUDqxBM1udqikb/Hbk52LK4nQSwr10u77iopCW5LsyHpuXS0GnEc48mLeew==
-
-stats.js@^0.17.0:
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/stats.js/-/stats.js-0.17.0.tgz#b1c3dc46d94498b578b7fd3985b81ace7131cc7d"
-  integrity sha1-scPcRtlEmLV4t/05hbgaznExzH0=
 
 stream-browserify@^2.0.1:
   version "2.0.1"

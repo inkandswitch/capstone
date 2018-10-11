@@ -1,14 +1,11 @@
 import * as React from "react"
-import * as $P from "../modules/$P"
 import * as Rx from "rxjs"
-import * as Glyph from "../data/Glyph"
 import * as Frame from "../logic/Frame"
 import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
-import * as Feedback from "./CommandFeedback"
 import { Portal } from "react-portal"
-import Pen, { PenEvent } from "./Pen"
-const templates = require("../modules/$P/glyph-templates.json")
+import * as GPS from "./GPS"
+import { filter } from "rxjs/operators"
 
 interface Bounds {
   readonly top: number
@@ -21,13 +18,6 @@ export interface PenPoint {
   x: number
   y: number
   pressure: number
-}
-
-export interface GlyphEvent {
-  glyph: Glyph.Glyph
-  name: string
-  bounds: Bounds
-  center: { x: number; y: number }
 }
 
 export interface InkStrokeEvent {
@@ -46,7 +36,6 @@ export function penPointFrom(pointString: string): PenPoint | undefined {
 }
 
 export interface Props {
-  onGlyph?: (stroke: GlyphEvent) => void
   onInkStroke?: (strokes: InkStrokeEvent[]) => void
   delay?: number
   maxScore?: number
@@ -65,7 +54,6 @@ const EMPTY_BOUNDS: Bounds = {
 enum StrokeType {
   ink,
   erase,
-  glyph,
   default = ink,
 }
 
@@ -99,51 +87,29 @@ const StrokeSettings: { [st: number]: StrokeSettings } = {
     maxLineWith: 40,
     lineWidth: 40,
   },
-  [StrokeType.glyph]: {
-    globalCompositeOperation: "source-over",
-    strokeStyle: "SkyBlue",
-    lineCap: "round",
-    lineJoin: "round",
-    maxLineWith: 4,
-    lineWidth: 4,
-  },
 }
 
-const $P_RECOGNIZER = new $P.Recognizer()
-
-// Initializer recognizer with default gestures.
-;(function initializeRecognizer() {
-  for (const name in templates) {
-    const mappedPoints = templates[name].map((point: any) => {
-      return new $P.Point(point.x, point.y, point.id)
-    })
-    $P_RECOGNIZER.AddGesture(name, mappedPoints)
-  }
-})()
-
 interface State {
-  strokeType: StrokeType
+  strokeType?: StrokeType
 }
 
 export default class StrokeRecognizer extends React.Component<Props, State> {
   canvasElement?: HTMLCanvasElement | null
   ctx?: CanvasRenderingContext2D | null
   isPenDown: boolean = false
-  static strokeTypeSubect: Rx.Subject<StrokeType> = new Rx.Subject()
-  subscription?: Rx.Subscription
+  pointerEventSubscription?: Rx.Subscription
 
   static defaultProps = {
     delay: 300,
     maxScore: 6,
   }
 
-  recognizer: $P.Recognizer = $P_RECOGNIZER
   strokes: PenPoint[][] = []
   strokeId = 0
   lastDrawnPoint = 0
   bounds: Bounds = EMPTY_BOUNDS
 
-  state = { strokeType: StrokeType.default }
+  state = { strokeType: undefined }
 
   render() {
     const { strokeType } = this.state
@@ -151,17 +117,15 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
 
     return (
       <div style={style}>
-        <Pen onPanMove={this.onPanMove} onPanEnd={this.onPanEnd}>
-          {this.props.children}
-        </Pen>
+        {this.props.children}
         <Portal>
           <div>
             <canvas ref={this.canvasAdded} className={css.StrokeLayer} />
             <div className={css.Options}>
               <Option
-                label="Glyph"
-                value={StrokeType.glyph}
-                selected={strokeType === StrokeType.glyph}
+                label="Ink"
+                value={StrokeType.ink}
+                selected={strokeType === StrokeType.ink}
                 onChange={this.onStrokeTypeChange}
               />
               <Option
@@ -178,104 +142,79 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    this.subscription = StrokeRecognizer.strokeTypeSubect.subscribe(
-      strokeType => {
-        this.setState({ strokeType })
-      },
-    )
+    this.pointerEventSubscription =
+      GPS.Provider.events$ &&
+      GPS.Provider.events$
+        .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
+        .subscribe(this.onPenEvent)
   }
 
   componentWillUnmount() {
-    this.subscription && this.subscription.unsubscribe()
+    this.pointerEventSubscription && this.pointerEventSubscription.unsubscribe()
   }
 
-  onPanStart = (event: PenEvent) => {
+  onPenEvent = (event: PointerEvent) => {
+    if (this.state.strokeType === undefined) return
+    if (event.type == "pointerdown") {
+      this.onPanStart(event)
+    } else if (event.type == "pointerup" || event.type == "pointercancel") {
+      this.onPanEnd(event)
+    } else if (event.type == "pointermove") {
+      this.onPanMove(event)
+    }
+  }
+
+  onPanStart = (event: PointerEvent) => {
     this.onPanMove(event)
   }
 
-  onPanMove = (event: PenEvent) => {
-    const { x, y } = event.center
+  onPanMove = (event: PointerEvent) => {
+    const { x, y } = event
     if (!this.isPenDown) this.isPenDown = true
-    const srcEvent = event.srcEvent as PointerEvent
-    if (srcEvent) {
-      const coalesced: PointerEvent[] = srcEvent.getCoalescedEvents()
-      if (!this.strokes[this.strokeId]) {
-        this.strokes[this.strokeId] = []
-      }
-      this.strokes[this.strokeId].push(
-        ...coalesced.map((value, i, a) => {
-          return {
-            x: value.x,
-            y: value.y,
-            pressure: value.pressure,
-          }
-        }),
-      )
+    const coalesced: PointerEvent[] = event.getCoalescedEvents()
+    if (!this.strokes[this.strokeId]) {
+      this.strokes[this.strokeId] = []
     }
+    this.strokes[this.strokeId].push(
+      ...coalesced.map((value, i, a) => {
+        return {
+          x: value.x,
+          y: value.y,
+          pressure: value.pressure,
+        }
+      }),
+    )
 
     this.updateBounds(x, y)
     this.draw()
   }
 
-  onPanEnd = (event: PenEvent) => {
+  onPanEnd = (event: PointerEvent) => {
     if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 0
-    if (this.state.strokeType == StrokeType.glyph) {
-      this.recognize()
-      this.reset()
-    }
   }
 
   inkStroke = () => {
-    if (!this.props.onInkStroke || this.state.strokeType === StrokeType.glyph) {
+    if (!this.props.onInkStroke || this.state.strokeType == undefined) {
       return
     }
     this.props.onInkStroke(
       this.strokes.map((points, i, a) => {
         return {
           points: points,
-          settings: StrokeSettings[this.state.strokeType],
+          settings: StrokeSettings[this.state.strokeType!],
         }
       }),
     )
   }
 
-  onStrokeTypeChange = (strokeType: StrokeType = StrokeType.default) => {
+  onStrokeTypeChange = (strokeType?: StrokeType) => {
     if (this.state.strokeType === strokeType) return
     this.inkStroke()
     this.reset()
-    this.setState({ strokeType }, () => {
-      StrokeRecognizer.strokeTypeSubect.next(strokeType)
-    })
+    this.setState({ strokeType })
   }
-
-  _recognize = () => {
-    if (this.isPenDown) return
-    if (!this.props.onGlyph) return
-
-    const { maxScore = 0, only } = this.props
-    const result = this.recognizer.Recognize(
-      this.strokes[0].map(penPoint => {
-        return new $P.Point(penPoint.x, penPoint.y, 0)
-      }),
-      only,
-    )
-
-    if (result.Score > 0 && result.Score < maxScore) {
-      const glyph = Glyph.fromTemplateName(result.Name)
-      this.props.onGlyph({
-        glyph: glyph,
-        name: result.Name,
-        bounds: this.bounds,
-        center: this.center(),
-      })
-    } else {
-      Feedback.Provider.add("Unrecognized glyph", this.center())
-    }
-  }
-
-  recognize = this._recognize
 
   center() {
     const b = this.bounds
@@ -338,7 +277,12 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   draw = Frame.throttle(() => {
-    if (!this.ctx || !this.strokes[this.strokeId]) return
+    if (
+      !this.ctx ||
+      !this.strokes[this.strokeId] ||
+      this.state.strokeType == undefined
+    )
+      return
 
     for (
       this.lastDrawnPoint;
@@ -346,7 +290,7 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
       this.lastDrawnPoint++
     ) {
       let point = this.strokes[this.strokeId][this.lastDrawnPoint]
-      let settings = StrokeSettings[this.state.strokeType]
+      let settings = StrokeSettings[this.state.strokeType!]
       settings.lineWidth = StrokeWidth(point.pressure, settings.maxLineWith)
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {

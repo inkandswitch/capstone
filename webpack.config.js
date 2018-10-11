@@ -1,9 +1,11 @@
 const path = require("path")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin")
 const glob = require("glob")
 const env = process.env.NODE_ENV
 
 const shared = {
+  context: __dirname,
   mode: "development",
   devtool: "inline-source-map",
 
@@ -28,7 +30,13 @@ const shared = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: {
+          loader: "ts-loader",
+          options: {
+            transpileOnly: true,
+            experimentalWatchApi: true,
+          },
+        },
         exclude: /node_modules/,
       },
       {
@@ -90,6 +98,7 @@ function app(name, overrides = {}) {
       new CopyWebpackPlugin(["manifest.json", "index.html", "sandbox.html"], {
         context: `./src/apps/${name}`,
       }),
+      new ForkTsCheckerWebpackPlugin(),
     ],
     ...overrides,
   }
