@@ -162,31 +162,29 @@ class Board extends React.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <Ink onInkStroke={this.onInkStroke} strokes={strokes}>
-            <div style={style.Board} ref={this.onRef}>
-              <TransitionGroup>
-                {Object.values(cards).map(card => {
-                  if (!card) return null
+          <div style={style.Board} ref={this.onRef}>
+            <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
+            <TransitionGroup>
+              {Object.values(cards).map(card => {
+                if (!card) return null
 
-                  return (
-                    <CSSTransition
-                      key={card.id}
-                      classNames="Card"
-                      enter={false}
-                      timeout={{ exit: 1 }}>
-                      <DraggableCard
-                        card={card}
-                        onDragStart={this.onDragStart}
-                        onDragStop={this.onDragStop}>
-                        <Content mode="embed" url={card.url} />
-                      </DraggableCard>
-                    </CSSTransition>
-                  )
-                })}
-              </TransitionGroup>
-              {/* <Ink strokes={strokes} /> */}
-            </div>
-          </Ink>
+                return (
+                  <CSSTransition
+                    key={card.id}
+                    classNames="Card"
+                    enter={false}
+                    timeout={{ exit: 1 }}>
+                    <DraggableCard
+                      card={card}
+                      onDragStart={this.onDragStart}
+                      onDragStop={this.onDragStop}>
+                      <Content mode="embed" url={card.url} />
+                    </DraggableCard>
+                  </CSSTransition>
+                )
+              })}
+            </TransitionGroup>
+          </div>
         )
       case "embed":
       case "preview":

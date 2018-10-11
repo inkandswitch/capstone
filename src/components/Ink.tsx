@@ -44,7 +44,6 @@ export interface Props {
   strokes: CanvasStroke[]
   onInkStroke?: (strokes: InkStrokeEvent[]) => void
   style?: {}
-  children: JSX.Element
 }
 
 const EMPTY_BOUNDS: Bounds = {
@@ -133,7 +132,6 @@ export default class Ink extends React.Component<Props, State> {
 
     return (
       <div style={style}>
-        {this.props.children}
         <Portal>
           <div>
             <canvas ref={this.canvasAdded} className={css.InkLayer} />
