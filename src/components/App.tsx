@@ -68,7 +68,6 @@ export default class App extends React.Component<Props, State> {
     }
 
     // subscribe to the web clipper for messages about new content
-    console.log("alright")
     Content.store.clipper().subscribe(async (message = {}) => {
       const { html = {} } = message
 
