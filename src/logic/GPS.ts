@@ -20,7 +20,6 @@ let events$ = new Rx.Observable<PointerSnapshot>()
 export function connectInput(input$: Rx.Observable<PointerEvent>) {
   events$ = input$.pipe(
     RxOps.scan((previousSnapshot: GPS.PointerSnapshot, event: PointerEvent) => {
-      // Ugh
       // Remove any pointers from the previous snapshot for which the most recent
       // event is pointerup or pointercancel.
       const snapshot = pickBy(
@@ -30,7 +29,6 @@ export function connectInput(input$: Rx.Observable<PointerEvent>) {
       snapshot[event.pointerId] = event
       return snapshot
     }, {}),
-    RxOps.tap(console.log),
   )
 }
 
