@@ -46,7 +46,9 @@ hm.ready.then(hm => {
   let handle = new FrontendHandle()
   handle.setActorId(docId)
 
-  const store = new StoreBackend(hm, msg => {
+  const store = new StoreBackend(hm)
+
+  store.queue.subscribe(msg => {
     if (msg.type == "Patch") {
       handle.patch(msg.patch)
     } else {

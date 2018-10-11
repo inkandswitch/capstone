@@ -1,3 +1,7 @@
+export interface Ready {
+  type: "Ready"
+}
+
 export interface Create {
   type: "Create"
   docId: string
@@ -65,14 +69,20 @@ export interface DownloadActivity {
   seq: number
 }
 
+export interface ToggleDebug {
+  type: "ToggleDebug"
+}
+
 export type FrontendToBackend =
   | Create
   | Open
   | ChangeRequest
   | RequestActivity
   | SetIdentity
+  | ToggleDebug
 
 export type BackendToFrontend =
+  | Ready
   | Patch
   | Presence
   | UploadActivity

@@ -7,14 +7,21 @@ import Store from "../../data/Store"
 // Used for debugging from the console:
 window.Content = Content
 
-const port = chrome.runtime.connect()
+Content.store = new Store()
 
-Content.store = new Store(msg => {
-  port.postMessage(msg)
-})
+window.addEventListener("message", event => {
+  if (typeof event.data === "string") return // setImmediate uses postMessage
+  const msg = event.data
 
-port.onMessage.addListener(msg => {
-  Content.store.onMessage(msg)
+  if (msg.type === "Ready") {
+    const { source }: any = event
+
+    Content.store.queue.subscribe(msg => {
+      source.postMessage(msg, "*")
+    })
+  }
+
+  Content.store.onMessage(event.data)
 })
 
 ReactDOM.render(<SidecarApp />, document.body)

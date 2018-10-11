@@ -4,8 +4,8 @@ import * as Frame from "../logic/Frame"
 import classnames from "classnames"
 import * as css from "./css/Ink.css"
 import { Portal } from "react-portal"
-import * as GPS from "./GPS"
-import { filter } from "rxjs/operators"
+import * as GPS from "../logic/GPS"
+import * as RxOps from "rxjs/operators"
 
 interface Bounds {
   readonly top: number
@@ -23,16 +23,6 @@ export interface PenPoint {
 export interface InkStroke {
   points: PenPoint[]
   settings: StrokeSettings
-}
-
-export function penPointFrom(pointString: string): PenPoint | undefined {
-  const arr = pointString.split("/")
-  if (arr.length < 3) return
-  return {
-    x: parseFloat(arr[0]),
-    y: parseFloat(arr[1]),
-    pressure: parseFloat(arr[2]),
-  }
 }
 
 export interface Props {
@@ -105,11 +95,13 @@ export default class Ink extends React.Component<Props, State> {
 
   componentDidMount() {
     requestAnimationFrame(this.drawDry)
-    this.pointerEventSubscription =
-      GPS.Provider.events$ &&
-      GPS.Provider.events$
-        .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
-        .subscribe(this.onPenEvent)
+    this.pointerEventSubscription = GPS.stream()
+      .pipe(
+        RxOps.map(GPS.onlyPen),
+        RxOps.filter(GPS.ifNotEmpty),
+        RxOps.map(GPS.toAnyPointer),
+      )
+      .subscribe(this.onPenEvent)
   }
 
   componentWillUnmount() {

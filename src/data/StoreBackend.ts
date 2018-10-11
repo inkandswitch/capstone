@@ -4,22 +4,22 @@ import * as Prefetch from "../data/Prefetch"
 import * as Peek from "./Peek"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
+import Queue from "./Queue"
 
 const log = Debug("store:backend")
 
 export default class StoreBackend {
+  queue = new Queue<Msg.BackendToFrontend>()
   presenceTick?: any
-  _send: (msg: Msg.BackendToFrontend) => void
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
   pendingChanges: { [docId: string]: any } = {}
   //debugLogs: { [docId: string]: any } = {}
   //  prefetcher: Prefetch.Prefetcher
 
-  constructor(hm: Hypermerge, send: (msg: Msg.BackendToFrontend) => void) {
+  constructor(hm: Hypermerge) {
     log("constructing")
     this.hypermerge = hm
-    this._send = send
     ;(global as any).hm = this.hypermerge
     ;(global as any).sm = this
     Peek.enable()
@@ -92,6 +92,10 @@ export default class StoreBackend {
     })
 
     this.docHandles = {}
+  }
+
+  sendToFrontend(msg: Msg.BackendToFrontend) {
+    this.queue.push(msg)
   }
 
   onMessage = (msg: Msg.FrontendToBackend) => {
@@ -186,11 +190,6 @@ export default class StoreBackend {
         break
       }
     }
-  }
-
-  sendToFrontend(msg: Msg.BackendToFrontend) {
-    log("backend -> frontend", msg)
-    this._send(msg)
   }
 }
 

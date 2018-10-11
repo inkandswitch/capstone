@@ -16,7 +16,7 @@ const shared = {
   resolve: {
     alias: {
       "utp-native": "utp",
-      debug: "chrome-debug",
+      debug: path.resolve("./src/modules/debug"),
       dgram: "chrome-dgram",
       net: "chrome-net",
       "util-deprecate": path.resolve("./stubs/util-deprecate.js"),
@@ -87,6 +87,7 @@ function app(name, overrides = {}) {
     entry: {
       main: `./src/apps/${name}/main.tsx`,
       background: `./src/apps/${name}/background.chrome.ts`,
+      entry: `./src/apps/${name}/entry.chrome.ts`,
     },
     output: {
       path: path.resolve(__dirname, "dist", name),
@@ -94,7 +95,7 @@ function app(name, overrides = {}) {
     },
 
     plugins: [
-      new CopyWebpackPlugin(["manifest.json", "index.html"], {
+      new CopyWebpackPlugin(["manifest.json", "index.html", "sandbox.html"], {
         context: `./src/apps/${name}`,
       }),
       new ForkTsCheckerWebpackPlugin(),
