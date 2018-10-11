@@ -45,26 +45,25 @@ export default class App extends React.Component<Props, State> {
       })
 
       this.setState({ url: workspaceUrl })
-      chrome.storage.local.set({ workspaceUrl })
+      localStorage.workspaceUrl = workspaceUrl
     })
   }
 
   constructor(props: Props) {
     super(props)
     // initialize the workspace at startup (since we have no persistence)
-    chrome.storage.local.get(["workspaceUrl"], val => {
-      if (val.workspaceUrl == undefined) {
-        this.initWorkspace()
-      } else {
-        Content.open<Workspace.Model>(
-          val.workspaceUrl,
-          (workspace: Doc<Workspace.Model>) => {
-            Content.workspaceUrl = val.workspaceUrl
-            this.setState({ url: val.workspaceUrl })
-          },
-        )
-      }
-    })
+    const { workspaceUrl } = localStorage
+    if (workspaceUrl == undefined) {
+      this.initWorkspace()
+    } else {
+      Content.open<Workspace.Model>(
+        workspaceUrl,
+        (workspace: Doc<Workspace.Model>) => {
+          Content.workspaceUrl = workspaceUrl
+          this.setState({ url: workspaceUrl })
+        },
+      )
+    }
 
     this.state = { url: undefined }
   }
