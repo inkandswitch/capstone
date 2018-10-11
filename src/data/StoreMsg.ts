@@ -41,7 +41,8 @@ export interface Patch {
 
 export interface Clipper {
   type: "Clipper"
-  html: string
+  contentType: string
+  content: string
 }
 
 export interface Presence {

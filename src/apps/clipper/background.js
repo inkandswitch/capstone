@@ -8,3 +8,28 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     file: "content.js",
   })
 })
+
+var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
+
+chrome.contextMenus.onClicked.addListener(itemData => {
+  console.log(itemData)
+  if (itemData.selectionText) {
+    chrome.runtime.sendMessage(
+      capstoneExtensionId,
+      { contentType: "Text", content: itemData.selectionText },
+      response => {
+        console.log("Capstone appears to have received the Text.")
+      },
+    )
+  }
+  if (itemData.mediaType === "image") {
+    console.log("image not quite supported yet")
+    // XXX todo
+  }
+})
+
+chrome.contextMenus.create({
+  id: "capstone-clipper",
+  title: "Send to Capstone",
+  contexts: ["selection", "image"], // ContextType
+})

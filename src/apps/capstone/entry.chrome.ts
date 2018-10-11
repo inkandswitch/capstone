@@ -54,7 +54,7 @@ chrome.runtime.onMessageExternal.addListener(
 
     console.log("Received message from external extension", request, sender)
 
-    store.sendToFrontend({ type: "Clipper", html: request.html })
+    store.sendToFrontend({ type: "Clipper", ...request })
 
     sendResponse({ contentReceived: "success" })
   },

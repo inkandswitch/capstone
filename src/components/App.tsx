@@ -69,17 +69,50 @@ export default class App extends React.Component<Props, State> {
 
     // subscribe to the web clipper for messages about new content
     Content.store.clipper().subscribe(async (message = {}) => {
-      const { html = {} } = message
+      const { contentType, content } = message
 
-      const htmlUrl = await Content.create("HTML")
+      switch (contentType) {
+        case "HTML":
+          const htmlUrl = await Content.create("HTML")
 
-      Content.once(htmlUrl, async (change: Function) => {
-        change((doc: any) => {
-          doc.html = html
-        })
+          Content.once(htmlUrl, async (change: Function) => {
+            change((doc: any) => {
+              doc.html = content
+            })
 
-        Content.send({ type: "ReceiveDocuments", body: { urls: [htmlUrl] } })
-      })
+            Content.send({
+              type: "ReceiveDocuments",
+              body: { urls: [htmlUrl] },
+            })
+          })
+          break
+        case "Text":
+          const textUrl = await Content.create("Text")
+          Content.once(textUrl, async (change: Function) => {
+            change((doc: any) => {
+              doc.content = content.split("")
+            })
+
+            Content.send({
+              type: "ReceiveDocuments",
+              body: { urls: [textUrl] },
+            })
+          })
+          break
+        case "Image":
+          const imageUrl = await Content.create("Image")
+          Content.once(imageUrl, async (change: Function) => {
+            change((doc: any) => {
+              doc.src = content
+            })
+
+            Content.send({
+              type: "ReceiveDocuments",
+              body: { urls: [imageUrl] },
+            })
+          })
+          break
+      }
     })
 
     this.state = { url: undefined }
