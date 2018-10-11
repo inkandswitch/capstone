@@ -1,9 +1,6 @@
 import classNames from "classnames"
 import * as React from "react"
 import * as Rx from "rxjs"
-import * as RxOps from "rxjs/operators"
-
-import * as GPS from "../../logic/GPS"
 import { createCSSTransform } from "./domFns"
 import {
   createCoreData,
@@ -127,7 +124,6 @@ export default class Draggable extends React.Component<
 
   onPointerEvent = (e: PointerEvent) => {
     if (!this.ref) return
-    console.log("ONPOINTEREVENT", e)
     if (e.type === "pointerdown" && this.ref.contains(e.target as Node)) {
       this.handleDragStart(e)
     } else if (this.state.dragging) {
