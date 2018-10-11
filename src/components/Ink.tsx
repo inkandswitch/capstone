@@ -216,8 +216,10 @@ export default class Ink extends React.Component<Props, State> {
 
   onStrokeTypeChange = (strokeType?: StrokeType) => {
     if (this.state.strokeType === strokeType) return
-    this.shouldRedrawDryInk = true
-    this.inkStroke()
+    if (strokeType == undefined) {
+      this.shouldRedrawDryInk = true
+      this.inkStroke()
+    }
     this.setState({ strokeType })
   }
 
