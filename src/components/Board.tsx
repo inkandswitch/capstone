@@ -13,21 +13,16 @@ import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
-import Ink, { StrokeSettings, InkStrokeEvent } from "./Ink"
+import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
 
 const BOARD_PADDING = 15
 
-export interface CanvasStroke {
-  settings: StrokeSettings
-  path: string
-}
-
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
-  strokes: CanvasStroke[]
+  strokes: InkStroke[]
   topZ: number
 }
 
@@ -202,21 +197,9 @@ class Board extends React.Component<Props, State> {
     }
   }
 
-  onInkStroke = (strokes: InkStrokeEvent[]) => {
+  onInkStroke = (strokes: InkStroke[]) => {
     this.props.change(doc => {
-      const canvasStrokes: CanvasStroke[] = strokes.map(
-        (event: InkStrokeEvent) => {
-          return {
-            settings: event.settings,
-            path: event.points
-              .map(point => `${point.x}/${point.y}/${point.pressure}`)
-              .join("|"),
-          }
-        },
-      )
-      if (canvasStrokes) {
-        doc.strokes.push(...canvasStrokes)
-      }
+      doc.strokes.push(...strokes)
       return doc
     })
   }

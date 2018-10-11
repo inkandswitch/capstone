@@ -20,12 +20,7 @@ export interface PenPoint {
   pressure: number
 }
 
-export interface CanvasStroke {
-  settings: StrokeSettings
-  path: string
-}
-
-export interface InkStrokeEvent {
+export interface InkStroke {
   points: PenPoint[]
   settings: StrokeSettings
 }
@@ -41,8 +36,8 @@ export function penPointFrom(pointString: string): PenPoint | undefined {
 }
 
 export interface Props {
-  strokes: CanvasStroke[]
-  onInkStroke?: (strokes: InkStrokeEvent[]) => void
+  strokes: InkStroke[]
+  onInkStroke?: (strokes: InkStroke[]) => void
   style?: {}
 }
 
@@ -323,21 +318,16 @@ export default class Ink extends React.Component<Props, State> {
     this.shouldRedrawDryInk = false
   }
 
-  drawDryStroke(stroke: CanvasStroke) {
+  drawDryStroke(stroke: InkStroke) {
     const ctx = this.canvasElement && this.canvasElement.getContext("2d")
-    if (!ctx || stroke.path.length == 0) return
+    if (!ctx || stroke.points.length == 0) return
     let strokeSettings = stroke.settings
 
-    const pointStrings = stroke.path.split("|").filter(v => {
-      return v.indexOf("/") >= 0
-    })
-
-    if (pointStrings.length === 0) return
-    let from = penPointFrom(pointStrings[0])
+    let from = stroke.points[0]
     if (!from) return
 
     let pathString = ""
-    if (pointStrings.length === 1) {
+    if (stroke.points.length === 1) {
       pathString = `M ${from.x} ${from.y} C`
       const path = new Path2D(pathString)
       strokeSettings.lineWidth = StrokeWidth(
@@ -347,8 +337,7 @@ export default class Ink extends React.Component<Props, State> {
       Object.assign(ctx, stroke)
       ctx.stroke(path)
     } else {
-      pointStrings.forEach((pointString, index) => {
-        let to = penPointFrom(pointString)
+      stroke.points.forEach((to, index) => {
         if (!to || !from) return
         pathString = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
         const path = new Path2D(pathString)
