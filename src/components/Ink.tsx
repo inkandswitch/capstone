@@ -195,8 +195,11 @@ export default class Ink extends React.Component<Props, State> {
   onStrokeTypeChange = (strokeType?: StrokeType) => {
     if (this.state.strokeType === strokeType) return
     if (strokeType == undefined) {
+      GPS.setInteractionMode(GPS.InteractionMode.default)
       this.shouldRedrawDryInk = true
       this.inkStroke()
+    } else {
+      GPS.setInteractionMode(GPS.InteractionMode.inking)
     }
     this.setState({ strokeType })
   }
