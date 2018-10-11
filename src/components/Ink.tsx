@@ -93,10 +93,9 @@ interface State {
 export default class Ink extends React.Component<Props, State> {
   canvasElement?: HTMLCanvasElement | null
   ctx?: CanvasRenderingContext2D | null
-  isPenDown: boolean = false
   pointerEventSubscription?: Rx.Subscription
 
-  strokes: PenPoint[][] = []
+  strokes: InkStroke[] = []
   strokeId = 0
   lastDrawnPoint = 0
   shouldRedrawDryInk = true
@@ -167,12 +166,14 @@ export default class Ink extends React.Component<Props, State> {
 
   onPanMove = (event: PointerEvent) => {
     const { x, y } = event
-    if (!this.isPenDown) this.isPenDown = true
     const coalesced: PointerEvent[] = event.getCoalescedEvents()
     if (!this.strokes[this.strokeId]) {
-      this.strokes[this.strokeId] = []
+      this.strokes[this.strokeId] = {
+        points: [],
+        settings: StrokeSettings[this.state.strokeType!],
+      }
     }
-    this.strokes[this.strokeId].push(
+    this.strokes[this.strokeId].points.push(
       ...coalesced.map((value, i, a) => {
         return {
           x: value.x,
@@ -187,7 +188,6 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onPanEnd = (event: PointerEvent) => {
-    if (this.isPenDown) this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 0
   }
@@ -197,14 +197,14 @@ export default class Ink extends React.Component<Props, State> {
       return
     }
     this.shouldRedrawDryInk = true
-    this.props.onInkStroke(
-      this.strokes.map((points, i, a) => {
-        return {
-          points: points,
-          settings: StrokeSettings[this.state.strokeType!],
-        }
-      }),
-    )
+    this.props.onInkStroke(this.strokes)
+    //   this.strokes.map((points, i, a) => {
+    //     return {
+    //       points: points,
+    //       settings: StrokeSettings[this.state.strokeType!],
+    //     }
+    //   }),
+    // )
   }
 
   onStrokeTypeChange = (strokeType?: StrokeType) => {
@@ -286,10 +286,10 @@ export default class Ink extends React.Component<Props, State> {
 
     for (
       this.lastDrawnPoint;
-      this.lastDrawnPoint < this.strokes[this.strokeId].length;
+      this.lastDrawnPoint < this.strokes[this.strokeId].points.length;
       this.lastDrawnPoint++
     ) {
-      let point = this.strokes[this.strokeId][this.lastDrawnPoint]
+      let point = this.strokes[this.strokeId].points[this.lastDrawnPoint]
       let settings = StrokeSettings[this.state.strokeType!]
       settings.lineWidth = StrokeWidth(point.pressure, settings.maxLineWith)
       Object.assign(this.ctx, settings)
@@ -297,7 +297,7 @@ export default class Ink extends React.Component<Props, State> {
         continue
       }
       const twoPoints = [
-        this.strokes[this.strokeId][this.lastDrawnPoint - 1],
+        this.strokes[this.strokeId].points[this.lastDrawnPoint - 1],
         point,
       ]
       const pathString =
@@ -307,7 +307,7 @@ export default class Ink extends React.Component<Props, State> {
     }
   })
 
-  drawDry = () => {
+  drawDry = Frame.throttle(() => {
     if (!this.canvasElement || !this.shouldRedrawDryInk) return
     this.reset()
     const { strokes } = this.props
@@ -316,7 +316,7 @@ export default class Ink extends React.Component<Props, State> {
     if (!ctx || strokes.length == 0) return
     strokes.forEach(stroke => this.drawDryStroke(stroke))
     this.shouldRedrawDryInk = false
-  }
+  })
 
   drawDryStroke(stroke: InkStroke) {
     const ctx = this.canvasElement && this.canvasElement.getContext("2d")
