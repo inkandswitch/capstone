@@ -1,6 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Capstone",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnyeZHc6KHaMD9OsW2DRJslpxpZ1jKVY3WNGGpRw764rFjMnkTRatnxa5wHt7agV7yYij9aVtRv+PmEHCZ5+f3qqxho6LbM6mPLzPeSNNoAp//n1DYtnj2+E092YhI1PkCi9UVTk+Ro+m7z38f7YNRxWAXKv9qLcL0mNsK9jo2T1QXtD+wXZvAMwQeORcnA84q5LLCOdPEYiogWJwxqd0PlT0suTogoZYNJqBYD7Mw8DRVsRt2kjWdD8kiMuQw0z1nJtvezApure/NcJfhMhBdbzuaxflBVc7XFZ6Oz8C6MmRQZBPJ3xiyHrAS8toDoxgnhH+bWQPFnf4cFBTEOfqmQIDAQAB",
   "version": "3.1",
   "permissions": [
     "background",
