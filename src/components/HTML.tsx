@@ -41,6 +41,7 @@ const style = {
   Fullscreen: {},
   Embed: {
     zoom: 0.25,
+    height: "1500px",
   },
 }
 
