@@ -12,6 +12,7 @@ import "./SidecarWorkspace"
 import "./Text"
 import "./Table"
 import "./Workspace"
+import GlobalKeyboard from "./GlobalKeyboard"
 
 type State = {
   workspaceUrl?: string
@@ -24,19 +25,24 @@ export default class SidecarApp extends React.Component<{}, State> {
     super(props, ctx)
     this.state = { mode: "loading" }
 
-    chrome.storage.local.get(["workspaceUrl"], ({ workspaceUrl }) => {
-      if (workspaceUrl == null) {
-        this.setState({ mode: "setup" })
-      } else {
-        this.setState({ mode: "ready", workspaceUrl })
+    const { workspaceUrl } = localStorage
+    if (workspaceUrl == null) {
+      this.state = { mode: "setup" }
+    } else {
+      this.state = {
+        mode: "ready",
+        workspaceUrl,
       }
-    })
+    }
   }
 
   render() {
     return (
       <Root store={Content.store}>
-        <div style={style.App}>{this.renderContent()}</div>
+        <div style={style.App}>
+          <GlobalKeyboard onKeyDown={this.onKeyDown} />
+          {this.renderContent()}
+        </div>
       </Root>
     )
   }
@@ -83,11 +89,21 @@ export default class SidecarApp extends React.Component<{}, State> {
 
     try {
       Link.parse(workspaceUrl)
-      chrome.storage.local.set({ workspaceUrl }, () => {
-        this.setState({ workspaceUrl, mode: "ready" })
+      localStorage.workspaceUrl = workspaceUrl
+      this.setState({
+        workspaceUrl,
+        mode: "ready",
       })
     } catch (e) {
       this.setState({ error: e.message })
+    }
+  }
+
+  onKeyDown = (event: KeyboardEvent) => {
+    if (event.code === "ShiftRight") {
+      Content.store.sendToBackend({
+        type: "ToggleDebug",
+      })
     }
   }
 }

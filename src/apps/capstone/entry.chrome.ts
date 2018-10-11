@@ -4,7 +4,8 @@ import swarm from "../../modules/hypermerge/cloud-swarm"
 let racf = require("random-access-chrome-file")
 
 process.hrtime = require("browser-process-hrtime")
-const webview = window.webview
+
+const webview = document.getElementById("webview")! as HTMLIFrameElement
 const DebugPane = document.getElementById("DebugPane")!
 
 const hm = new Hypermerge({ storage: racf })
@@ -22,7 +23,7 @@ window.addEventListener("message", event => {
   store.onMessage(event.data)
 })
 
-window.addEventListener("keyup", event => {
+window.addEventListener("keydown", event => {
   if (event.code === "ShiftRight") {
     toggleDebug()
   }
@@ -38,8 +39,7 @@ hm.ready.then(hm => {
   })
 })
 
-const webviewDOM = document.getElementById("webview")
-webviewDOM!.addEventListener("loadstop", () => webviewDOM!.focus())
+webview.addEventListener("loadstop", () => webview.focus())
 
 function toggleDebug() {
   console.log("Toggling debug pane")
