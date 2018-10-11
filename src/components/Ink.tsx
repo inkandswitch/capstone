@@ -136,7 +136,7 @@ export default class Ink extends React.Component<Props, State> {
         {this.props.children}
         <Portal>
           <div>
-            <canvas ref={this.canvasAdded} className={css.StrokeLayer} />
+            <canvas ref={this.canvasAdded} className={css.InkLayer} />
             <div className={css.Options}>
               <Option
                 label="Ink"
@@ -314,11 +314,11 @@ export default class Ink extends React.Component<Props, State> {
 
   drawDry = () => {
     if (!this.canvasElement || !this.shouldRedrawDryInk) return
+    this.reset()
     const { strokes } = this.props
     this.prepareCanvas(this.canvasElement)
     const ctx = this.canvasElement.getContext("2d")
     if (!ctx || strokes.length == 0) return
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     strokes.forEach(stroke => this.drawDryStroke(stroke))
     this.shouldRedrawDryInk = false
   }

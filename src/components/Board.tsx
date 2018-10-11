@@ -216,7 +216,9 @@ class Board extends React.Component<Props, State> {
           }
         },
       )
-      doc.strokes.push(...canvasStrokes)
+      if (canvasStrokes) {
+        doc.strokes.push(...canvasStrokes)
+      }
       return doc
     })
   }
