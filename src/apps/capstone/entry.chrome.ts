@@ -28,4 +28,4 @@ hm.ready.then(hm => {
 })
 
 const webviewDOM = document.getElementById('webview')
-webviewDOM.addEventListener("loadstop", () => webviewDOM.focus())
+webviewDOM!.addEventListener("loadstop", () => webviewDOM!.focus())

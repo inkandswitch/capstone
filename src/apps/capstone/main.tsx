@@ -19,9 +19,10 @@ window.addEventListener("message", event => {
     Content.store.queue.subscribe(msg => {
       source.postMessage(msg, "*")
     })
+
+    ReactDOM.render(<App />, document.body)
   }
 
   Content.store.onMessage(event.data)
 })
 
-setTimeout(() => ReactDOM.render(<App />, document.body), 1000)
