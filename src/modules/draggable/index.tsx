@@ -1,8 +1,6 @@
 import classNames from "classnames"
 import * as React from "react"
 import * as Rx from "rxjs"
-import { filter } from "rxjs/operators"
-
 import { createCSSTransform } from "./domFns"
 import {
   createCoreData,
@@ -112,10 +110,8 @@ export default class Draggable extends React.Component<
   }
 
   componentDidMount() {
-    if (!this.props.events$) return
-    this.subscription = this.props.events$
-      .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
-      .subscribe(this.onPointerEvent)
+    if (!this.props.events$ || !this.ref) return
+    this.subscription = this.props.events$.subscribe(this.onPointerEvent)
   }
 
   componentWillUnmount() {

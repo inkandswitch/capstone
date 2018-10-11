@@ -3,7 +3,8 @@ import Draggable from "../modules/draggable/index"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
-import * as GPS from "./GPS"
+import * as GPS from "../logic/GPS"
+import * as RxOps from "rxjs/operators"
 
 export interface CardModel {
   id: string
@@ -21,6 +22,12 @@ export interface Props {
 }
 
 export default class DraggableCard extends React.Component<Props> {
+  events$ = GPS.stream().pipe(
+    RxOps.map(GPS.onlyPen),
+    RxOps.filter(GPS.ifNotEmpty),
+    RxOps.map(GPS.toAnyPointer),
+  )
+
   start = () => {
     this.props.onDragStart(this.props.card.id)
   }
@@ -44,7 +51,7 @@ export default class DraggableCard extends React.Component<Props> {
 
     return (
       <Draggable
-        events$={GPS.Provider.events$}
+        events$={this.events$}
         defaultPosition={{ x, y }}
         position={{ x, y }}
         onStart={this.start}
