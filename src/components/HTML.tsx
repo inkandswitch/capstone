@@ -18,8 +18,30 @@ class HTML extends React.Component<Props> {
 
   render() {
     const { html } = this.props.doc
-    return <div dangerouslySetInnerHTML={{ __html: html as string }} />
+    switch (this.props.mode) {
+      case "fullscreen":
+        return (
+          <div
+            style={style.Fullscreen}
+            dangerouslySetInnerHTML={{ __html: html as string }}
+          />
+        )
+      case "embed":
+        return (
+          <div
+            style={style.Embed}
+            dangerouslySetInnerHTML={{ __html: html as string }}
+          />
+        )
+    }
   }
+}
+
+const style = {
+  Fullscreen: {},
+  Embed: {
+    zoom: 0.25,
+  },
 }
 
 export default Widget.create("HTML", HTML, HTML.reify)
