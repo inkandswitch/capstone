@@ -2,7 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as DataImport from "./DataImport"
-import * as GPS from "./GPS"
+import GPSInput from "./GPSInput"
 import { AnyDoc } from "automerge/frontend"
 import Content, {
   DocumentActor,
@@ -146,7 +146,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
         style={style.Workspace}
         onDragOver={this.onDragOver}
         onDrop={this.onDrop}>
-        <GPS.InputHandler />
+        <GPSInput />
         <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
         <Content
           key={currentUrl}

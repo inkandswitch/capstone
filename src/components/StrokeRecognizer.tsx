@@ -1,10 +1,11 @@
 import * as React from "react"
 import * as Rx from "rxjs"
+import * as RxOps from "rxjs/operators"
 import * as Frame from "../logic/Frame"
 import classnames from "classnames"
 import * as css from "./css/StrokeRecognizer.css"
 import { Portal } from "react-portal"
-import * as GPS from "./GPS"
+import * as GPS from "../logic/GPS"
 import { filter } from "rxjs/operators"
 
 interface Bounds {
@@ -142,11 +143,13 @@ export default class StrokeRecognizer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    this.pointerEventSubscription =
-      GPS.Provider.events$ &&
-      GPS.Provider.events$
-        .pipe(filter(e => e.pointerType === "pen" || e.shiftKey))
-        .subscribe(this.onPenEvent)
+    this.pointerEventSubscription = GPS.stream()
+      .pipe(
+        RxOps.map(GPS.onlyPen),
+        RxOps.filter(GPS.ifNotEmpty),
+        RxOps.map(GPS.toAnyPointer),
+      )
+      .subscribe(this.onPenEvent)
   }
 
   componentWillUnmount() {
