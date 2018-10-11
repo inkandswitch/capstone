@@ -26,3 +26,6 @@ hm.ready.then(hm => {
     // url: "ws://localhost:8080",
   })
 })
+
+const webviewDOM = document.getElementById('webview')
+webviewDOM.addEventListener("loadstop", () => webviewDOM.focus())
