@@ -2,7 +2,6 @@ import Content from "../components/Content"
 
 declare global {
   interface Window {
-    webview: HTMLWebViewElement & HTMLIFrameElement
     Content: typeof Content
     visualViewport: VisualViewport
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
