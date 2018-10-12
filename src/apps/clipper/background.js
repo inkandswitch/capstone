@@ -26,6 +26,7 @@ chrome.contextMenus.onClicked.addListener(itemData => {
     const tmpImage = new Image()
     const canvas = document.createElement("canvas")
 
+    tmpImage.crossOrigin = "anonymous"
     tmpImage.src = itemData.srcUrl
 
     tmpImage.onload = function() {

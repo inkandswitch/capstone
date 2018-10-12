@@ -2,7 +2,7 @@
   "name": "Capstone Clipper",
   "description": "Send the contents of the active to Capstone.",
   "version": "1.0",
-  "permissions": ["activeTab", "contextMenus"],
+  "permissions": ["activeTab", "contextMenus", "*://*/*"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
