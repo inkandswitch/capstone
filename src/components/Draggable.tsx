@@ -106,7 +106,6 @@ export default class Draggable extends React.Component<
   }
 
   render() {
-    // If this is controlled, we don't want to move it - unless it's dragging.
     const { position } = this.state
     const style = {
       zIndex: this.props.z,

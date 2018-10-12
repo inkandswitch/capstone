@@ -15,7 +15,7 @@ export type OnStartHandler = (x: number, y: number) => void
 export type OnDragHandler = (x: number, y: number) => void
 export type OnStopHandler = (x: number, y: number) => void
 
-export const pointerEventToDragInput = (e: PointerEvent) => ({
+export const pointerEventToDragInput = (e: PointerEvent): DragInput => ({
   x: e.clientX,
   y: e.clientY,
 })
@@ -63,7 +63,7 @@ export class Dragger {
     this.onStop && this.onStop(this.position.x, this.position.y)
   }
 
-  getDragPoint(e: DragInput) {
+  private getDragPoint(e: DragInput) {
     const offsetParent = this.node.offsetParent || this.node.ownerDocument.body
     const offsetParentIsBody = offsetParent === offsetParent.ownerDocument.body
     const offsetBoundingRect = offsetParentIsBody
