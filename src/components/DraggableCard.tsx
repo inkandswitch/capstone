@@ -1,10 +1,8 @@
 import * as React from "react"
-import Draggable from "../modules/draggable/index"
+import Draggable from "./Draggable"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
-import * as GPS from "../logic/GPS"
-import * as RxOps from "rxjs/operators"
 
 export interface CardModel {
   id: string
@@ -22,20 +20,12 @@ export interface Props {
 }
 
 export default class DraggableCard extends React.Component<Props> {
-  events$ = GPS.stream().pipe(
-    RxOps.map(GPS.onlyPen),
-    RxOps.filter(GPS.ifNotInking),
-    RxOps.filter(GPS.ifNotEmpty),
-    RxOps.map(GPS.toAnyPointer),
-  )
-
   start = () => {
     this.props.onDragStart(this.props.card.id)
   }
 
-  stop = (e: PointerEvent, data: DraggableData) => {
-    this.props.onDragStop &&
-      this.props.onDragStop(data.x, data.y, this.props.card.id)
+  stop = (x: number, y: number) => {
+    this.props.onDragStop && this.props.onDragStop(x, y, this.props.card.id)
   }
 
   cancel = (data: DraggableData) => {
@@ -52,14 +42,10 @@ export default class DraggableCard extends React.Component<Props> {
 
     return (
       <Draggable
-        events$={this.events$}
-        defaultPosition={{ x, y }}
         position={{ x, y }}
         onStart={this.start}
         onStop={this.stop}
-        onCancel={this.cancel}
-        z={z}
-        enableUserSelectHack={false}>
+        z={z}>
         <Card
           cardId={this.props.card.id}
           {...omit(rest, ["onDoubleTap", "onDragStop"])}>
