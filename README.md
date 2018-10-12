@@ -55,14 +55,16 @@ They can then Ctrl-V in their archive to make your user card appear.
 
 ## Dev tools
 
-`yarn start`: Start the build
-`yarn clean`: Delete `dist/*` for a clean build
-`yarn test`: Same as `yarn tests`
-`yarn repl`: Start a TypeScript REPL
-`yarn format`: Format all `src/*` code with prettier
-`yarn capstone`: Open the "capstone" chrome app. Run `yarn start` first
-`yarn sidecar`: Open the "sidecar" chrome app. Run `yarn start` first
-`yarn tests`: Open the "tests" chrome app. Run `yarn start` first
+- `yarn start`: Start the development build
+- `yarn build`: Run `yarn install` and then build once in production mode
+- `yarn build --env.only=capstone`: Run the build for only the capstone app. Also works with `yarn start`
+- `yarn clean`: Delete `dist/*` for a clean build
+- `yarn test`: Same as `yarn tests`
+- `yarn repl`: Start a TypeScript REPL
+- `yarn format`: Format all `src/*` code with prettier
+- `yarn capstone`: Open the "capstone" chrome app. Run `yarn start` first
+- `yarn sidecar`: Open the "sidecar" chrome app. Run `yarn start` first
+- `yarn tests`: Open the "tests" chrome app. Run `yarn start` first
 
 We're using [`prettier`](https://prettier.io/) for code formatting.
 It should be recommended in the extensions tab of VSCode, and there is
