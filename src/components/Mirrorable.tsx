@@ -2,7 +2,6 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import * as GPS from "../logic/GPS"
 import * as Rx from "rxjs"
-import * as RxOps from "rxjs/operators"
 
 export interface Props {
   cardId: string
@@ -17,20 +16,19 @@ export default class Mirrorable extends React.Component<Props> {
     this.ref = ReactDOM.findDOMNode(this) as Element
     if (!this.ref) return
 
-    this.subscription = GPS.stream()
-      .pipe(
-        RxOps.filter(s => {
-          const hasTouch = GPS.ifNotEmpty(GPS.onlyTouch(s))
-          const hasPenOnTarget = GPS.ifNotEmpty(
-            GPS.onlyOnTarget(this.ref as HTMLElement)(GPS.onlyPen(s)),
-          )
-          return hasTouch && hasPenOnTarget
-        }),
-        RxOps.map(GPS.onlyPen),
-        RxOps.map(GPS.onlyOnTarget(this.ref as HTMLElement)),
-        RxOps.map(GPS.toAnyPointer),
+    // TODO: use operators
+    this.subscription = GPS.stream().subscribe(s => {
+      // TODO (I think): touch *not* on this target
+      const hasTouch = true //GPS.ifNotEmpty(GPS.onlyTouch(s))
+      if (!hasTouch) return
+
+      const penOnTarget = GPS.toAnyPointer(
+        GPS.onlyOnTarget(this.ref as HTMLElement)(GPS.onlyPen(s)),
       )
-      .subscribe(this.onPen)
+      if (!penOnTarget) return
+
+      this.onPen(penOnTarget)
+    })
   }
 
   componentWillUnmount() {
