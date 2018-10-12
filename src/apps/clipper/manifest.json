@@ -11,5 +11,15 @@
     "default_title": "Clip to Capstone",
     "default_popup": "popup.html"
   },
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "windows": "Ctrl+Shift+Space",
+        "mac": "Command+Shift+Space",
+        "chromeos": "Ctrl+Shift+Space",
+        "linux": "Ctrl+Shift+Space"
+      }
+    }
+  },
   "manifest_version": 2
 }
