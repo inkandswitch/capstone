@@ -126,9 +126,10 @@ module.exports = (env = {}) =>
       entry: {
         content: ["./src/apps/clipper/content.js"],
         background: "./src/apps/clipper/background.js",
+        popup: "./src/apps/clipper/popup.js",
       },
       plugins: [
-        new CopyWebpackPlugin(["manifest.json"], {
+        new CopyWebpackPlugin(["manifest.json", "popup.html"], {
           context: `./src/apps/clipper`,
         }),
       ],

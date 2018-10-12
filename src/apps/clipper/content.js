@@ -1,6 +1,5 @@
 import freezeDry from "freeze-dry"
 
-// The ID of the extension we want to talk to.
 var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
 
 freezeDry(document, { addMetadata: true }).then(html => {
