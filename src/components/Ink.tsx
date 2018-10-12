@@ -67,7 +67,7 @@ const StrokeSettings: { [st: number]: StrokeSettings } = {
     lineWidth: 16,
   },
   [StrokeType.erase]: {
-    globalCompositeOperation: "source-over",
+    globalCompositeOperation: "destination-out",
     strokeStyle: "white",
     lineCap: "round",
     lineJoin: "round",
