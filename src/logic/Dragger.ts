@@ -5,14 +5,14 @@ export interface DragInput {
 
 export interface DraggerOptions {
   onStart?: OnStartHandler
-  onDrag?: OnDragHandler
+  onDrag?: OnMoveHandler
   onStop?: OnStopHandler
   node: HTMLElement
   position: Point
 }
 
 export type OnStartHandler = (x: number, y: number) => void
-export type OnDragHandler = (x: number, y: number) => void
+export type OnMoveHandler = (x: number, y: number) => void
 export type OnStopHandler = (x: number, y: number) => void
 
 export const pointerEventToDragInput = (e: PointerEvent): DragInput => ({
@@ -24,7 +24,7 @@ export class Dragger {
   private position: Point
   private previousDragPoint?: Point
   private onStart?: OnStartHandler
-  private onDrag?: OnDragHandler
+  private onDrag?: OnMoveHandler
   private onStop?: OnStopHandler
   private node: HTMLElement
 

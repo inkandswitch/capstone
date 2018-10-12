@@ -9,6 +9,8 @@ export interface CardModel {
   x: number
   y: number
   z: number
+  width: number
+  height: number
   url: string
 }
 
@@ -16,6 +18,7 @@ export interface Props {
   card: CardModel
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
+  onResizeStop?: (scaleFactor: number, id: string) => void
   onDoubleTap?: (url: string) => void
 }
 
@@ -24,31 +27,46 @@ export default class DraggableCard extends React.Component<Props> {
     this.props.onDragStart(this.props.card.id)
   }
 
-  stop = (x: number, y: number) => {
+  dragStop = (x: number, y: number) => {
     this.props.onDragStop && this.props.onDragStop(x, y, this.props.card.id)
+  }
+
+  resizeStop = (scaleFactor: number) => {
+    this.props.onResizeStop &&
+      this.props.onResizeStop(scaleFactor, this.props.card.id)
   }
 
   cancel = (data: DraggableData) => {
     this.props.onDragStop &&
       this.props.onDragStop(data.x, data.y, this.props.card.id)
+    this.props.onResizeStop &&
+      this.props.onResizeStop(
+        1.0, //TODO
+        this.props.card.id,
+      )
   }
 
   render() {
     const {
-      card: { x, y, z },
+      card: { x, y, width, height, z },
       children,
       ...rest
     } = this.props
 
+    console.log(`render draggable card with width ${width}`)
+
     return (
       <Draggable
         position={{ x, y }}
+        size={{ width, height }}
         onStart={this.start}
-        onStop={this.stop}
+        onDragStop={this.dragStop}
+        onResizeStop={this.resizeStop}
         z={z}>
         <Card
           cardId={this.props.card.id}
-          {...omit(rest, ["onDoubleTap", "onDragStop"])}>
+          style={{ width: width, height: height }}
+          {...omit(rest, ["onDoubleTap", "onDragStop", "onResizeStop"])}>
           {children}
         </Card>
       </Draggable>

@@ -42,6 +42,8 @@ export interface CreateCard extends Message {
       id: string
       x: number
       y: number
+      width: number
+      height: number
     }
   }
 }
@@ -105,6 +107,8 @@ function addCard(
     z: board.topZ++,
     x: position.x,
     y: position.y,
+    width: 500,
+    height: 300,
     url,
   }
   board.cards[card.id] = card
@@ -151,6 +155,21 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onResizeStop = (scaleFactor: number, id: string) => {
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[id] = {
+          ...card,
+          width: card.width * scaleFactor,
+          height: card.height * scaleFactor,
+        }
+      }
+      return doc
+    })
+  }
+
   render() {
     const { cards, topZ, strokes } = this.props.doc
     const { focusedCardId } = this.state
@@ -172,7 +191,8 @@ class Board extends React.Component<Props, State> {
                     <DraggableCard
                       card={card}
                       onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}>
+                      onDragStop={this.onDragStop}
+                      onResizeStop={this.onResizeStop}>
                       <Content mode="embed" url={card.url} />
                     </DraggableCard>
                   </CSSTransition>

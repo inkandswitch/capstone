@@ -1,5 +1,4 @@
 .Card {
-  width: 398px; /* XXX: should probably not be a constant, eventually */
   font-size: 11px;
   line-height: 1.4;
   background-color: white;
