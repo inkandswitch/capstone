@@ -17,7 +17,7 @@ interface Bounds {
 export interface PenPoint {
   x: number
   y: number
-  pressure: number
+  width: number
 }
 
 export interface InkStroke {
@@ -49,17 +49,16 @@ export interface StrokeSettings {
   readonly strokeStyle: string
   readonly lineCap: string
   readonly lineJoin: string
-  readonly minLineWith: number
-  readonly maxLineWith: number
   lineWidth: number
 }
 
-export const StrokeWidth = (
-  pressure: number,
-  minWidth: number,
-  maxWidth: number,
-) => {
-  return Math.max(minWidth, maxWidth * Math.pow(pressure, 12))
+const StrokeMappings: { [st: number]: (pressure: number) => number } = {
+  [StrokeType.ink]: pressure => {
+    return Math.max(1.5, 16 * Math.pow(pressure, 12))
+  },
+  [StrokeType.erase]: pressure => {
+    return Math.max(16, 120 * Math.pow(pressure, 3))
+  },
 }
 
 const StrokeSettings: { [st: number]: StrokeSettings } = {
@@ -68,8 +67,6 @@ const StrokeSettings: { [st: number]: StrokeSettings } = {
     strokeStyle: "black",
     lineCap: "round",
     lineJoin: "round",
-    minLineWith: 1.5,
-    maxLineWith: 16,
     lineWidth: 1.5,
   },
   [StrokeType.erase]: {
@@ -77,8 +74,6 @@ const StrokeSettings: { [st: number]: StrokeSettings } = {
     strokeStyle: "white",
     lineCap: "round",
     lineJoin: "round",
-    minLineWith: 8,
-    maxLineWith: 40,
     lineWidth: 8,
   },
 }
@@ -126,14 +121,6 @@ export default class Ink extends React.Component<Props, State> {
   render() {
     const { strokeType } = this.state
     const style = this.props.style || {}
-    const eraserWidth =
-      this.state.eraserPosition &&
-      StrokeWidth(
-        (this.state.eraserPosition! as PenPoint).pressure,
-        StrokeSettings[StrokeType.erase].minLineWith,
-        StrokeSettings[StrokeType.erase].maxLineWith,
-      )
-
     return (
       <div style={style}>
         <Portal>
@@ -144,8 +131,8 @@ export default class Ink extends React.Component<Props, State> {
                 style={{
                   left: (this.state.eraserPosition! as PenPoint).x,
                   top: (this.state.eraserPosition! as PenPoint).y,
-                  width: eraserWidth,
-                  height: eraserWidth,
+                  width: (this.state.eraserPosition! as PenPoint).width,
+                  height: (this.state.eraserPosition! as PenPoint).width,
                 }}
               />
             ) : null}
@@ -199,15 +186,16 @@ export default class Ink extends React.Component<Props, State> {
         return {
           x: value.x,
           y: value.y,
-          pressure: value.pressure,
+          width: StrokeMappings[this.state.strokeType!](value.pressure),
         }
       }),
     )
+
     if (this.state.strokeType == StrokeType.erase) {
       const eraserPosition = {
         x: event.x,
         y: event.y,
-        pressure: event.pressure,
+        width: StrokeMappings[this.state.strokeType!](event.pressure),
       }
       this.setState({ eraserPosition })
     }
@@ -320,11 +308,7 @@ export default class Ink extends React.Component<Props, State> {
     ) {
       let point = this.strokes[this.strokeId].points[this.lastDrawnPoint]
       let settings = StrokeSettings[this.state.strokeType!]
-      settings.lineWidth = StrokeWidth(
-        point.pressure,
-        settings.minLineWith,
-        settings.maxLineWith,
-      )
+      settings.lineWidth = point.width
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {
         continue
@@ -363,11 +347,7 @@ export default class Ink extends React.Component<Props, State> {
     if (stroke.points.length === 1) {
       pathString = `M ${from.x} ${from.y} C`
       const path = new Path2D(pathString)
-      strokeSettings.lineWidth = StrokeWidth(
-        from.pressure,
-        strokeSettings.minLineWith,
-        strokeSettings.maxLineWith,
-      )
+      strokeSettings.lineWidth = from.width
       Object.assign(ctx, stroke)
       ctx.stroke(path)
     } else {
@@ -375,11 +355,7 @@ export default class Ink extends React.Component<Props, State> {
         if (!to || !from) return
         pathString = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
         const path = new Path2D(pathString)
-        strokeSettings.lineWidth = StrokeWidth(
-          to.pressure,
-          strokeSettings.minLineWith,
-          strokeSettings.maxLineWith,
-        )
+        strokeSettings.lineWidth = to.width
         Object.assign(ctx, strokeSettings)
         ctx.stroke(path)
         from = to
