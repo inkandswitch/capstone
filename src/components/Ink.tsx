@@ -54,7 +54,7 @@ export interface StrokeSettings {
 }
 
 export const StrokeWidth = (pressure: number, maxWidth: number) => {
-  return Math.max(1.5, maxWidth * Math.pow(pressure, 5))
+  return Math.max(1.5, maxWidth * Math.pow(pressure, 12))
 }
 
 const StrokeSettings: { [st: number]: StrokeSettings } = {
