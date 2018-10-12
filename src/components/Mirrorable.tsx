@@ -9,21 +9,22 @@ export interface Props {
 }
 
 export default class Mirrorable extends React.Component<Props> {
-  ref?: Element
+  node?: Element
   subscription?: Rx.Subscription
 
   componentDidMount() {
-    this.ref = ReactDOM.findDOMNode(this) as Element
-    if (!this.ref) return
+    // TODO: handle case where node is string
+    this.node = ReactDOM.findDOMNode(this) as Element
+    if (!this.node) return
 
     // TODO: use operators
     this.subscription = GPS.stream().subscribe(s => {
       // TODO (I think): touch *not* on this target
-      const hasTouch = true //GPS.ifNotEmpty(GPS.onlyTouch(s))
+      const hasTouch = GPS.ifNotEmpty(GPS.onlyTouch(s))
       if (!hasTouch) return
 
       const penOnTarget = GPS.toAnyPointer(
-        GPS.onlyOnTarget(this.ref as HTMLElement)(GPS.onlyPen(s)),
+        GPS.onlyOnTarget(this.node!)(GPS.onlyPen(s)),
       )
       if (!penOnTarget) return
 

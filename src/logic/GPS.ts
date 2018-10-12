@@ -70,6 +70,8 @@ export const ifNotInking = (s: PointerSnapshot) =>
   interactionMode != InteractionMode.inking
 
 // Filter the snapshot so only pointers on a target remain.
-export const onlyOnTarget = (target: HTMLElement) => (
-  snapshot: PointerSnapshot,
-) => pickBy(snapshot, e => target.contains(e.target as Node))
+export const onlyOnTarget = (target: Node) => (snapshot: PointerSnapshot) =>
+  pickBy(snapshot, e => target.contains(e.target as Node))
+
+export const onlyOffTarget = (target: Node) => (s: PointerSnapshot) =>
+  pickBy(s, e => !target.contains(e.target as Node))
