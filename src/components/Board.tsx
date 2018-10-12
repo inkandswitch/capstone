@@ -2,6 +2,7 @@ import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
+import Mirrorable from "./Mirrorable"
 import DraggableCard, { CardModel } from "./DraggableCard"
 import Content, {
   DocumentActor,
@@ -151,6 +152,21 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onMirror = (id: string) => {
+    if (!this.props.doc.cards[id]) return
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (!card) return doc
+      card.z = doc.topZ++
+      const mirror = Object.assign({}, card, {
+        id: UUID.create(),
+        z: card.z - 1,
+      })
+      doc.cards[mirror.id] = mirror
+      return doc
+    })
+  }
+
   render() {
     const { cards, topZ, strokes } = this.props.doc
     const { focusedCardId } = this.state
@@ -169,12 +185,14 @@ class Board extends React.Component<Props, State> {
                     classNames="Card"
                     enter={false}
                     timeout={{ exit: 1 }}>
-                    <DraggableCard
-                      card={card}
-                      onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}>
-                      <Content mode="embed" url={card.url} />
-                    </DraggableCard>
+                    <Mirrorable cardId={card.id} onMirror={this.onMirror}>
+                      <DraggableCard
+                        card={card}
+                        onDragStart={this.onDragStart}
+                        onDragStop={this.onDragStop}>
+                        <Content mode="embed" url={card.url} />
+                      </DraggableCard>
+                    </Mirrorable>
                   </CSSTransition>
                 )
               })}
