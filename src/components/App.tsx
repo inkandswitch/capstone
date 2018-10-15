@@ -28,12 +28,10 @@ type Props = {}
 
 export default class App extends React.Component<Props, State> {
   async initWorkspace() {
-    const shelfUrlPromise = Content.create("Shelf")
-    const rootBoardUrlPromise = Content.create("Board")
-
-    const shelfUrl = await shelfUrlPromise
-    const rootBoardUrl = await rootBoardUrlPromise
+    const shelfUrl = await Content.create("Shelf")
+    const rootBoardUrl = await Content.create("Board")
     const workspaceUrl = await Content.create("Workspace")
+
     Content.workspaceUrl = workspaceUrl
 
     // Initialize the workspace
@@ -42,7 +40,7 @@ export default class App extends React.Component<Props, State> {
         if (!workspace.identityUrl) {
           workspace.shelfUrl = shelfUrl
           workspace.rootUrl = rootBoardUrl
-          workspace.navStack = [rootBoardUrl]
+          workspace.navStack = []
         }
       })
 
