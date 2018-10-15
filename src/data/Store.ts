@@ -89,7 +89,7 @@ export default class Store {
     return handle
   }
 
-  clipper(): Rx.Observable<any> {
+  clipper(): Rx.Observable<Msg.Clipper | null> {
     return this.clipper$
   }
 

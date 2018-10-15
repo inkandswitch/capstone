@@ -66,13 +66,25 @@ export default class SidecarApp extends React.Component<{}, State> {
       case "ready":
         if (!workspaceUrl) return null
         return (
-          <Content
-            mode="fullscreen"
-            type="SidecarWorkspace"
-            url={workspaceUrl}
-          />
+          <div>
+            <Content
+              mode="fullscreen"
+              type="SidecarWorkspace"
+              url={workspaceUrl}
+            />
+            <button onClick={this.onResetWorkspaceUrl}>
+              Reset Workspace URL
+            </button>
+          </div>
         )
     }
+  }
+
+  onResetWorkspaceUrl = () => {
+    this.setState({
+      mode: "setup",
+      workspaceUrl: undefined,
+    })
   }
 
   onUrlChange = (event: any) => {
