@@ -4,7 +4,7 @@ import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
-import { FrontendHandle } from "../modules/hypermerge/frontend"
+import { FrontendHandle } from "../modules/picomerge/frontend"
 import Queue from "./Queue"
 
 const log = Debug("store:frontend")
@@ -21,7 +21,7 @@ export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
 export default class Store {
   queue = new Queue<Msg.FrontendToBackend>()
-  index: { [id: string]: FrontendHandle } = {}
+  index: { [id: string]: FrontendHandle<any> } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
 
@@ -32,11 +32,11 @@ export default class Store {
     this.clipper$ = new Rx.BehaviorSubject<Msg.Clipper | null>(null)
   }
 
-  handle(id: string): FrontendHandle {
+  handle(id: string): FrontendHandle<any> {
     return this.index[id] || this.makeHandle(id)
   }
 
-  create(setup: ChangeFn<any>): FrontendHandle {
+  create(setup: ChangeFn<any>): FrontendHandle<any> {
     const buffers = keyPair()
     const keys = {
       publicKey: Base58.encode(buffers.publicKey),
@@ -51,8 +51,7 @@ export default class Store {
       keys,
     })
 
-    const handle = this.makeHandle(docId)
-    handle.setActorId(docId)
+    const handle = this.makeHandle(docId, docId)
     handle.change(setup)
     return handle
   }
@@ -64,10 +63,17 @@ export default class Store {
     })
   }
 
-  makeHandle(docId: string): FrontendHandle {
-    const handle = new FrontendHandle(docId)
+  makeHandle(docId: string, actorId?: string): FrontendHandle<any> {
+    const handle = new FrontendHandle<any>(docId, actorId)
 
     this.index[docId] = handle
+
+    handle.on("needsActorId", () => {
+      this.sendToBackend({
+        type: "ActorIdRequest",
+        docId,
+      })
+    })
 
     handle.on("requests", changes => {
       this.sendToBackend({
@@ -113,9 +119,13 @@ export default class Store {
   onMessage(msg: Msg.BackendToFrontend) {
     log("frontend <- backend", msg)
     switch (msg.type) {
-      case "Patch": {
+      case "DocReady": {
         const handle = this.handle(msg.docId)
-        handle.setActorId(msg.actorId)
+        handle.init(msg.actorId, msg.patch)
+        break
+      }
+      case "ApplyPatch": {
+        const handle = this.handle(msg.docId)
         handle.patch(msg.patch)
         break
       }

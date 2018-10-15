@@ -4,7 +4,7 @@ import * as Frontend from "automerge/frontend"
 import Queue from "../../data/Queue"
 import * as Debug from "debug"
 
-const log = Debug("picomerge:front")
+const log = Debug("hypermerge:front")
 
 export type Patch = Patch
 
@@ -54,10 +54,9 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   init = (actorId?: string, patch?: Patch) => {
-    log("init actorId=", actorId, " patch=", !!patch)
+    log("init actorId=", actorId, " patch=", !!patch, " mode=", this.mode)
 
-    if (this.mode != "pending")
-      throw new Error("init called when already ready")
+    if (this.mode !== "pending") return
 
     if (actorId) this.setActorId(actorId) // must set before patch
 

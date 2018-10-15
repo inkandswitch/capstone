@@ -49,7 +49,7 @@ hm.ready.then(hm => {
   const store = new StoreBackend(hm)
 
   store.queue.subscribe(msg => {
-    if (msg.type == "Patch") {
+    if (msg.type === "ApplyPatch") {
       handle.patch(msg.patch)
     } else {
       log("Uhandled message", msg)

@@ -54,7 +54,7 @@
     "@types/react-portal": "^4.0.1",
     "@types/react-transition-group": "^2.0.14",
     "@types/stats.js": "^0.17.0",
-    "automerge": "^0.9.0",
+    "automerge": "^0.9.1",
     "browser-process-hrtime": "^0.1.2",
     "bs58": "^4.0.1",
     "chrome-debug": "orionz/debug",

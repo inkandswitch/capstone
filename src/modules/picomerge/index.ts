@@ -9,7 +9,7 @@
 // 8. does not allocate a hypercore for a document unless you intend to write to it (read only mode)
 // 9. exports almost the same interface as hypermerge
 
-export const EXT = "picomerge"
+export const EXT = "hypermerge"
 
 type FeedFn = (f: Feed<Change>) => void
 
@@ -35,7 +35,7 @@ const HypercoreProtocol: Function = require("hypercore-protocol")
 const ram: Function = require("random-access-memory")
 const raf: Function = require("random-access-file")
 
-const log = Debug("picomerge")
+const log = Debug("hypermerge")
 
 export interface Keys {
   publicKey: Buffer
@@ -49,7 +49,7 @@ export interface FeedData {
 }
 
 export interface Options {
-  path: string
+  path?: string
   storage?: Function
 }
 
@@ -58,7 +58,7 @@ export interface LedgerData {
   actorIds: string[]
 }
 
-export class Picomerge {
+export class Hypermerge {
   path?: string
   storage: Function
   ready: Promise<undefined>
@@ -257,6 +257,13 @@ export class Picomerge {
   //  feeds(doc: BackendHandle) : Feed[] {
   //    return this.actorIds(doc).map(actor => this.feeds.get(dkString))
   //  }
+
+  feed(actorId : string) : Feed<Change> {
+    const publicKey = Base58.decode(actorId)
+    const dk = discoveryKey(publicKey)
+    const dkString = Base58.encode(dk)
+    return this.feeds.get(dkString)!
+  }
 
   peers(doc: BackendHandle): Peer[] {
     return ([] as Peer[]).concat(

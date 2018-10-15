@@ -1,6 +1,6 @@
 import StoreBackend from "../../data/StoreBackend"
-import { Hypermerge } from "../../modules/hypermerge"
-import swarm from "../../modules/hypermerge/cloud-swarm"
+import { Hypermerge } from "../../modules/picomerge"
+import CloudClient from "../../modules/discovery-cloud/Client"
 let racf = require("random-access-chrome-file")
 
 process.hrtime = require("browser-process-hrtime")
@@ -32,15 +32,14 @@ window.addEventListener("keydown", event => {
 webview.addEventListener("loadstop", () => {
   webview.focus()
 
-  hm.ready.then(hm => {
-    store.sendToFrontend({ type: "Ready" })
+  hm.joinSwarm(new CloudClient({
+    url: "wss://discovery-cloud.herokuapp.com",
+    // url: "ws://localhost:8080",
+    id: hm.id,
+    stream: hm.stream,
+  }))
 
-    swarm(hm, {
-      id: hm.core.archiver.changes.id,
-      url: "wss://discovery-cloud.herokuapp.com",
-      // url: "ws://localhost:8080",
-    })
-  })
+  store.sendToFrontend({ type: "Ready" })
 })
 
 function toggleDebug() {

@@ -1,6 +1,7 @@
 import * as Debug from "debug"
-import { Hypermerge } from "../modules/hypermerge"
-import * as Prefetch from "../data/Prefetch"
+import { Change, Patch } from "automerge/backend"
+import { BackendHandle } from "../modules/picomerge/backend"
+import { Hypermerge } from "../modules/picomerge"
 import * as Peek from "./Peek"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
@@ -10,12 +11,10 @@ const log = Debug("store:backend")
 
 export default class StoreBackend {
   queue = new Queue<Msg.BackendToFrontend>()
-  presenceTick?: any
+  //presenceTick?: any
   hypermerge: Hypermerge
-  docHandles: { [docId: string]: any } = {}
-  pendingChanges: { [docId: string]: any } = {}
-  //debugLogs: { [docId: string]: any } = {}
-  //  prefetcher: Prefetch.Prefetcher
+  docHandles: { [docId: string]: BackendHandle } = {}
+  changeQ: { [docId: string]: Queue<Change[]> } = {}
 
   constructor(hm: Hypermerge) {
     log("constructing")
@@ -25,8 +24,10 @@ export default class StoreBackend {
     Peek.enable()
   }
 
-  applyChanges = (docId: string, changes: any) => {
-    const handle = this.docHandles[docId]
+  applyChanges = (docId: string, changes: Change[]) => {
+    this.changeQ[docId] = this.changeQ[docId] || new Queue()
+    this.changeQ[docId]!.push(changes)
+/*
     if (handle) {
       handle.applyChanges(changes)
     } else {
@@ -34,15 +35,17 @@ export default class StoreBackend {
         changes,
       ])
     }
+*/
   }
 
+/*
   startPresence() {
     const hm = this.hypermerge
 
     this.presenceTick = setInterval(() => {
       let message: Msg.Presence = {
         type: "Presence",
-        errs: hm.errs.map(e => e.toString()),
+//        errs: hm.errs.map(e => e.toString()),
         docs: {},
         peers: {},
       }
@@ -83,9 +86,10 @@ export default class StoreBackend {
   stopPresence() {
     if (this.presenceTick != null) clearInterval(this.presenceTick)
   }
+*/
 
   reset() {
-    this.stopPresence()
+//    this.stopPresence()
 
     Object.values(this.docHandles).forEach(handle => {
       handle.release()
@@ -108,24 +112,27 @@ export default class StoreBackend {
         if (this.docHandles[docId])
           throw new Error("Frontend opened a doc twice")
 
-        const handle = this.hypermerge.openHandle(docId)
+        const handle = this.hypermerge.openDocument(docId)
         this.docHandles[docId] = handle
-        // IMPORTANT: the handle must be cached in `this.docHandles` before setting the onChange
-        // callback. The `onChange` callback is invoked as soon as it is set, in the same tick.
-        // This can cause infinite loops if the handlesCache isn't set.
-        // setImmediate(() => handle.onChange(this.prefetcher.onDocumentUpdate))
 
-        if (this.pendingChanges[docId]) {
-          this.pendingChanges[docId].forEach((change: any) =>
-            handle.applyChanges(change),
-          )
-          this.pendingChanges[docId] = []
-        }
+        this.changeQ[docId] = this.changeQ[docId] || new Queue()
+        this.changeQ[docId].subscribe(changes => handle.applyLocalChanges(changes))
 
-        handle.on("patch", (patch: any) => {
+        handle.on("actorId", actorId => {
+          this.sendToFrontend({ type: "SetActorId", docId, actorId })
+        })
+
+        handle.on("ready", (actorId,patch) => {
+          this.sendToFrontend({ type: "DocReady", docId, actorId, patch })
+        })
+
+        handle.on("localpatch", patch => {
+          // dont send - uselss re-render
+        })
+
+        handle.on("patch", patch => {
           const actorId = handle.actorId
-
-          this.sendToFrontend({ type: "Patch", docId, actorId, patch })
+          this.sendToFrontend({ type: "ApplyPatch", docId, patch })
         })
 
         break
@@ -133,18 +140,28 @@ export default class StoreBackend {
 
       case "ChangeRequest": {
         const { docId, changes } = msg
-        this.applyChanges(docId, changes)
+        const handle = this.docHandles[docId]
+        handle.applyLocalChanges(changes)
+        break
+      }
+
+      case "ActorIdRequest": {
+        const { docId } = msg
+        const handle = this.docHandles[docId]
+        handle.initActor()
         break
       }
 
       case "RequestActivity": {
         const { docId } = msg
 
-        const hm = this.hypermerge
-        const actorIds: string[] = hm.docIndex[docId] || []
+        const handle = this.hypermerge.openDocument(docId)
+        this.docHandles[docId] = handle
+
+        const actorIds = handle.actorIds()
 
         actorIds.forEach(actorId => {
-          const feed = hm._feed(actorId)
+          const feed = this.hypermerge.feed(actorId)
 
           const ondownload = (seq: number) => {
             this.sendToFrontend({
@@ -180,13 +197,13 @@ export default class StoreBackend {
           publicKey: Base58.decode(keys.publicKey),
           secretKey: Base58.decode(keys.secretKey),
         }
-        this.hypermerge.create(keyPair)
+        this.hypermerge.createDocument(keyPair)
         break
       }
 
       case "SetIdentity": {
-        const { identityUrl } = msg
-        this.hypermerge.setIdentity(identityUrl)
+//        const { identityUrl } = msg
+//        this.hypermerge.setIdentity(identityUrl)
         break
       }
     }

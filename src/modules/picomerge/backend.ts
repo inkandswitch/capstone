@@ -3,27 +3,27 @@ import * as Backend from "automerge/backend"
 import { Change, Patch, BackDoc } from "automerge/backend"
 import { Peer } from "./hypercore"
 import Queue from "../../data/Queue"
-import { EXT, Picomerge } from "."
+import { EXT, Hypermerge } from "."
 import * as Debug from "debug"
 
-const log = Debug("picomerge:back")
+const log = Debug("hypermerge:back")
 
 interface BackWrapper {
   back: BackDoc
 }
 
 export class BackendHandle extends EventEmitter {
-  picomerge: Picomerge
+  hypermerge: Hypermerge
   docId: string
   back?: BackWrapper
   actorId?: string
   backQ: Queue<(handle: BackWrapper) => void> = new Queue()
   wantsActor: boolean = false
 
-  constructor(core: Picomerge, docId: string, back?: BackDoc) {
+  constructor(core: Hypermerge, docId: string, back?: BackDoc) {
     super()
 
-    this.picomerge = core
+    this.hypermerge = core
     this.docId = docId
 
     if (back) {
@@ -56,18 +56,18 @@ export class BackendHandle extends EventEmitter {
         let [back, patch] = Backend.applyLocalChange(handle.back, change)
         handle.back = back
         this.emit("localpatch", patch)
-        this.picomerge.writeChange(this, this.actorId!, change)
+        this.hypermerge.writeChange(this, this.actorId!, change)
       })
     })
   }
 
   actorIds = (): string[] => {
-    return this.picomerge.docMetadata.get(this.docId) || []
+    return this.hypermerge.docMetadata.get(this.docId) || []
   }
 
   release = () => {
     this.removeAllListeners()
-    this.picomerge.releaseHandle(this)
+    this.hypermerge.releaseHandle(this)
   }
 
   initActor = () => {
@@ -76,7 +76,7 @@ export class BackendHandle extends EventEmitter {
       // if we're all setup and dont have an actor - request one
       if (!this.actorId) {
         log("get actorId now")
-        this.actorId = this.picomerge.initActorFeed(this)
+        this.actorId = this.hypermerge.initActorFeed(this)
         this.emit("actorId", this.actorId)
       }
     } else {
@@ -91,7 +91,7 @@ export class BackendHandle extends EventEmitter {
     const handle = { back }
     this.actorId = actorId
     if (this.wantsActor && !actorId) {
-      this.actorId = this.picomerge.initActorFeed(this)
+      this.actorId = this.hypermerge.initActorFeed(this)
     }
     this.back = handle
     this.backQ.subscribe(f => f(handle))
@@ -100,7 +100,7 @@ export class BackendHandle extends EventEmitter {
 
   broadcast(message: any) {
     log("boardcast", message)
-    this.picomerge.peers(this).forEach(peer => this.message(peer, message))
+    this.hypermerge.peers(this).forEach(peer => this.message(peer, message))
   }
 
   message(peer: Peer, message: any) {
@@ -121,14 +121,14 @@ export class BackendHandle extends EventEmitter {
 
   /*
   message(message) {
-    if (this.picomerge.readyIndex[this.docId]) {
-      this.picomerge.message(this.docId, message)
+    if (this.hypermerge.readyIndex[this.docId]) {
+      this.hypermerge.message(this.docId, message)
     }
   }
 
   connections() {
     let peers = this.actorIds().map(
-      actorId => this.picomerge._trackedFeed(actorId).peers,
+      actorId => this.hypermerge._trackedFeed(actorId).peers,
     )
     return peers.reduce((acc, val) => acc.concat(val), [])
   }

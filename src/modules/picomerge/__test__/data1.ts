@@ -1,15 +1,15 @@
 import * as crypto from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
-import { Picomerge } from ".."
+import { Hypermerge } from ".."
 import { Patch, FrontendHandle } from "../frontend"
 import CloudClient from "../../discovery-cloud/Client"
 
 import * as Debug from "debug"
-const log = Debug("picomerge:test")
+const log = Debug("hypermerge:test")
 
 const docId = process.argv[2]
 
-const t = new Picomerge({ path: "data1" })
+const t = new Hypermerge({ path: "./.data1" })
 const client = new CloudClient({
   url: "wss://discovery-cloud.herokuapp.com",
   id: t.id,

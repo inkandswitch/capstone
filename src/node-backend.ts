@@ -1,22 +1,23 @@
 import * as ws from "ws"
 
-import { Hypermerge } from "./modules/hypermerge"
-import swarm from "./modules/hypermerge/cloud-swarm"
+import { Hypermerge } from "./modules/picomerge"
 import * as Msg from "./data/StoreMsg"
 import StoreBackend from "./data/StoreBackend"
+import CloudClient from "./modules/discovery-cloud/Client"
 import * as Peek from "./data/Peek"
 
-const hm = new Hypermerge({ storage: "./.data" })
+const hm = new Hypermerge({ path: "./.data" })
 ;(global as any).hm = hm
 
 const backend = new StoreBackend(hm)
 
 hm.ready.then(() => {
-  const sm = swarm(hm, {
-    id: hm.core.archiver.changes.id,
+  hm.joinSwarm(new CloudClient({
+    //url: "wss://discovery-cloud.herokuapp.com",
     url: "ws://localhost:8080",
-  })
-  ;(global as any).sm = sm
+    id: hm.id,
+    stream: hm.stream,
+  }))
   Peek.enable()
 })
 
