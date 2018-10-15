@@ -29,8 +29,8 @@ const style = {
     objectFit: "cover" as "cover",
     pointerEvents: "none" as "none",
     display: "block",
-    maxHeight: "100%",
-    maxWidth: "100%",
+    height: "100%",
+    width: "100%",
   },
 }
 
