@@ -17,7 +17,7 @@ interface Bounds {
 export interface PenPoint {
   x: number
   y: number
-  width: number
+  strokeWidth: number
 }
 
 export interface InkStroke {
@@ -128,8 +128,8 @@ export default class Ink extends React.Component<Props, State> {
                 style={{
                   left: eraserPosition.x,
                   top: eraserPosition.y,
-                  width: eraserPosition.width,
-                  height: eraserPosition.width,
+                  width: eraserPosition.strokeWidth,
+                  height: eraserPosition.strokeWidth,
                 }}
               />
             ) : null}
@@ -186,7 +186,7 @@ export default class Ink extends React.Component<Props, State> {
         return {
           x: value.x,
           y: value.y,
-          width: StrokeMappings[strokeType](value.pressure),
+          strokeWidth: StrokeMappings[strokeType](value.pressure),
         }
       }),
     )
@@ -195,7 +195,7 @@ export default class Ink extends React.Component<Props, State> {
       const eraserPosition = {
         x: event.x,
         y: event.y,
-        width: StrokeMappings[strokeType](event.pressure),
+        strokeWidth: StrokeMappings[strokeType](event.pressure),
       }
       this.setState({ eraserPosition })
     }
@@ -304,7 +304,7 @@ export default class Ink extends React.Component<Props, State> {
     ) {
       let point = this.strokes[this.strokeId].points[this.lastDrawnPoint]
       let settings = StrokeSettings[this.state.strokeType]
-      settings.lineWidth = point.width
+      settings.lineWidth = point.strokeWidth
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {
         continue
@@ -343,7 +343,7 @@ export default class Ink extends React.Component<Props, State> {
     if (stroke.points.length === 1) {
       pathString = `M ${from.x} ${from.y} C`
       const path = new Path2D(pathString)
-      strokeSettings.lineWidth = from.width
+      strokeSettings.lineWidth = from.strokeWidth
       Object.assign(ctx, stroke)
       ctx.stroke(path)
     } else {
@@ -351,7 +351,7 @@ export default class Ink extends React.Component<Props, State> {
         if (!to || !from) return
         pathString = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
         const path = new Path2D(pathString)
-        strokeSettings.lineWidth = to.width
+        strokeSettings.lineWidth = to.strokeWidth
         Object.assign(ctx, strokeSettings)
         ctx.stroke(path)
         from = to
