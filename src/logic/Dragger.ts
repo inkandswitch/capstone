@@ -1,4 +1,4 @@
-import * as Draggable from "../components/Draggable"
+import * as DOM from "./DOM"
 
 export interface DraggerOptions {
   onStart?: OnStartHandler
@@ -29,7 +29,7 @@ export class Dragger {
   }
 
   start(e: Point) {
-    this.previousDragPoint = Draggable.getDragPoint(e, this.node)
+    this.previousDragPoint = DOM.getDragPoint(e, this.node)
     this.onStart && this.onStart(this.position.x, this.position.y)
   }
 
@@ -37,7 +37,7 @@ export class Dragger {
     if (!this.previousDragPoint)
       throw new Error("Must call start() before drag()")
 
-    const dragPoint = Draggable.getDragPoint(e, this.node)
+    const dragPoint = DOM.getDragPoint(e, this.node)
     const delta = {
       x: dragPoint.x - this.previousDragPoint.x,
       y: dragPoint.y - this.previousDragPoint.y,

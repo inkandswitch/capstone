@@ -1,5 +1,5 @@
 import { min } from "rxjs/operators"
-import * as Draggable from "../components/Draggable"
+import * as DOM from "./DOM"
 
 export interface ResizerOptions {
   onStart?: OnStartHandler
@@ -33,7 +33,7 @@ export class Resizer {
   }
 
   start(e: Point) {
-    const dragPoint = Draggable.getDragPoint(e, this.node)
+    const dragPoint = DOM.getDragPoint(e, this.node)
     this.dragStartPoint = dragPoint
     this.previousDragPoint = dragPoint
     this.onStart && this.onStart(this.size.width, this.size.height)
@@ -42,7 +42,7 @@ export class Resizer {
   resize(e: Point) {
     if (!this.dragStartPoint) throw new Error("Must call start() before drag()")
 
-    const dragPoint = Draggable.getDragPoint(e, this.node)
+    const dragPoint = DOM.getDragPoint(e, this.node)
     const delta = {
       x: dragPoint.x - this.dragStartPoint.x,
       y: dragPoint.y - this.dragStartPoint.y,

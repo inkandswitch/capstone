@@ -3,6 +3,7 @@ import * as React from "react"
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
 import * as GPS from "../logic/GPS"
+import * as DOM from "../logic/DOM"
 import * as Dragger from "../logic/Dragger"
 import * as Resizer from "../logic/Resizer"
 
@@ -32,20 +33,6 @@ export const pointerEventToPoint = (e: PointerEvent): Point => ({
   x: e.clientX,
   y: e.clientY,
 })
-
-export const getDragPoint = (e: Point, node: HTMLElement) => {
-  const offsetParent = node.offsetParent || node.ownerDocument.body
-  const offsetParentIsBody = offsetParent === offsetParent.ownerDocument.body
-  const offsetBoundingRect = offsetParentIsBody
-    ? { top: 0, left: 0 }
-    : offsetParent.getBoundingClientRect()
-
-  const offsetPosition = {
-    x: e.x + offsetParent.scrollLeft - offsetBoundingRect.left,
-    y: e.y + offsetParent.scrollTop - offsetBoundingRect.top,
-  }
-  return offsetPosition
-}
 
 export default class Draggable extends React.Component<
   DraggableProps,
@@ -153,7 +140,7 @@ export default class Draggable extends React.Component<
     if (!this.ref || !this.dragger || !this.resizer) return
     if (e.type === "pointerdown" && this.ref.contains(e.target as Node)) {
       const point = pointerEventToPoint(e)
-      const localPoint = this.getLocalPoint(getDragPoint(e, this.ref))
+      const localPoint = this.getLocalPoint(point, this.ref)
       if (localPoint && this.shouldTriggerResize(localPoint)) {
         this.resizer.start(point)
       } else {
@@ -177,11 +164,12 @@ export default class Draggable extends React.Component<
     }
   }
 
-  getLocalPoint = (e: Point): Point | undefined => {
+  getLocalPoint = (e: Point, node: HTMLElement): Point | undefined => {
     if (!this.state) return
+    const rect = node.getBoundingClientRect()
     return {
-      x: e.x - this.state.position.x,
-      y: e.y - this.state.position.y,
+      x: e.x - rect.left,
+      y: e.y - rect.top,
     }
   }
 

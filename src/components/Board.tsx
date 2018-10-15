@@ -18,8 +18,6 @@ import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
 
-const BOARD_PADDING = 15
-
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
   strokes: InkStroke[]
@@ -231,7 +229,6 @@ const style = {
   Board: {
     width: "100%",
     height: "100%",
-    padding: BOARD_PADDING,
     position: "absolute" as "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
