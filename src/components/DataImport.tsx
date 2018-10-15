@@ -42,26 +42,23 @@ export const importData = (data: DataTransfer): Promise<string>[] => {
 export const addText = async (content: string) => {
   return addDoc("Text", doc => {
     doc.content = content.split("")
-    return doc
   })
 }
 
 export const addTable = async (content: string) => {
   return addDoc("Table", doc => {
     doc.content = content
-    return doc
   })
 }
 
-export const addImage = async (src: string) => {
+export const addImage = (src: string) => {
   return addDoc("Image", doc => {
     doc.src = src
-    return doc
   })
 }
 
 export const addDoc = async (type: string, changeFn: ChangeFn<unknown>) => {
-  const url = await Content.create(type)
+  const url = Content.create(type)
 
   const onOpen = (doc: AnyEditDoc) => {
     change(changeFn)

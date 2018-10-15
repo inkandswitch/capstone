@@ -27,15 +27,15 @@ type State = {
 type Props = {}
 
 export default class App extends React.Component<Props, State> {
-  async initWorkspace() {
-    const shelfUrl = await Content.create("Shelf")
-    const rootBoardUrl = await Content.create("Board")
-    const workspaceUrl = await Content.create("Workspace")
+  initWorkspace() {
+    const shelfUrl = Content.create("Shelf")
+    const rootBoardUrl = Content.create("Board")
+    const workspaceUrl = Content.create("Workspace")
 
     Content.workspaceUrl = workspaceUrl
 
     // Initialize the workspace
-    Content.once<Workspace.Model>(workspaceUrl, async (change: Function) => {
+    Content.once<Workspace.Model>(workspaceUrl, (change: Function) => {
       change((workspace: EditDoc<Workspace.Model>) => {
         if (!workspace.identityUrl) {
           workspace.shelfUrl = shelfUrl
@@ -66,14 +66,14 @@ export default class App extends React.Component<Props, State> {
     }
 
     // subscribe to the web clipper for messages about new content
-    Content.store.clipper().subscribe(async (message = {}) => {
+    Content.store.clipper().subscribe((message = {}) => {
       const { contentType, content } = message
 
       switch (contentType) {
         case "HTML":
-          const htmlUrl = await Content.create("HTML")
+          const htmlUrl = Content.create("HTML")
 
-          Content.once(htmlUrl, async (change: Function) => {
+          Content.once(htmlUrl, (change: Function) => {
             change((doc: any) => {
               doc.html = content
             })
@@ -84,9 +84,10 @@ export default class App extends React.Component<Props, State> {
             })
           })
           break
+
         case "Text":
-          const textUrl = await Content.create("Text")
-          Content.once(textUrl, async (change: Function) => {
+          const textUrl = Content.create("Text")
+          Content.once(textUrl, (change: Function) => {
             change((doc: any) => {
               doc.content = content.split("")
             })
@@ -97,9 +98,10 @@ export default class App extends React.Component<Props, State> {
             })
           })
           break
+
         case "Image":
-          const imageUrl = await Content.create("Image")
-          Content.once(imageUrl, async (change: Function) => {
+          const imageUrl = Content.create("Image")
+          Content.once(imageUrl, (change: Function) => {
             change((doc: any) => {
               doc.src = content
             })
