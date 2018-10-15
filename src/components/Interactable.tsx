@@ -139,8 +139,8 @@ export default class Interactable extends React.Component<
     if (!this.ref || !this.dragger || !this.resizer) return
     if (e.type === "pointerdown" && this.ref.contains(e.target as Node)) {
       const point = pointerEventToPoint(e)
-      const localPoint = this.getLocalPoint(point, this.ref)
-      if (localPoint && this.shouldTriggerResize(localPoint)) {
+      const rect = this.ref.getBoundingClientRect()
+      if (this.shouldTriggerResize(point, rect)) {
         this.resizer.start(point)
       } else {
         this.dragger.start(point)
@@ -163,21 +163,16 @@ export default class Interactable extends React.Component<
     }
   }
 
-  getLocalPoint = (e: Point, node: HTMLElement): Point | undefined => {
-    if (!this.state) return
-    const rect = node.getBoundingClientRect()
-    return {
-      x: e.x - rect.left,
-      y: e.y - rect.top,
+  shouldTriggerResize = (point: Point, rect: ClientRect | DOMRect) => {
+    const localPoint = {
+      x: point.x - rect.left,
+      y: point.y - rect.top,
     }
-  }
-
-  shouldTriggerResize = (point: Point) => {
     return (
-      point.x <= this.props.size.width &&
-      point.x >= this.props.size.width - RESIZE_TARGET_SIZE.width &&
-      point.y <= this.props.size.height &&
-      point.y >= this.props.size.height - RESIZE_TARGET_SIZE.height
+      localPoint.x <= rect.width &&
+      localPoint.x >= rect.width - RESIZE_TARGET_SIZE.width &&
+      localPoint.y <= rect.height &&
+      localPoint.y >= rect.height - RESIZE_TARGET_SIZE.height
     )
   }
 
