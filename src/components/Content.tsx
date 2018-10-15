@@ -129,6 +129,7 @@ export default class Content extends React.Component<Props & unknown> {
 
   static store: Store
   static workspaceUrl: string
+  static rootBoardUrl: string
 
   /// Registry:
 
