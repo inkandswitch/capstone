@@ -1,4 +1,3 @@
-
 import * as crypto from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import { Picomerge } from ".."
@@ -7,11 +6,11 @@ import CloudClient from "../../discovery-cloud/Client"
 
 const docId = process.argv[2]
 
-const t = new Picomerge({path:"data1"})
+const t = new Picomerge({ path: "data1" })
 const client = new CloudClient({
   url: "wss://discovery-cloud.herokuapp.com",
   id: t.id,
-  stream: t.stream
+  stream: t.stream,
 })
 
 t.joinSwarm(client)
@@ -26,11 +25,13 @@ interface Foo {
   counter2: number
 }
 
-const front : FrontendHandle<Foo> = docId ? t.openDocumentFrontend(docId) : t.createDocumentFrontend(crypto.keyPair())
+const front: FrontendHandle<Foo> = docId
+  ? t.openDocumentFrontend(docId)
+  : t.createDocumentFrontend(crypto.keyPair())
 
 let i = 1
-front.on("doc",doc => {
-  console.log("DOC",doc)
+front.on("doc", doc => {
+  console.log("DOC", doc)
 })
 if (!docId) {
   front.change(doc => {
@@ -44,4 +45,3 @@ setInterval(() => {
     doc.counter1 += 1
   })
 }, 1000)
-

@@ -1,6 +1,6 @@
 import { EventEmitter } from "events"
-import * as Backend from 'automerge/backend'
-import { Change, Patch, BackDoc } from 'automerge/backend'
+import * as Backend from "automerge/backend"
+import { Change, Patch, BackDoc } from "automerge/backend"
 import Queue from "../../data/Queue"
 import { Picomerge } from "."
 import * as Debug from "debug"
@@ -16,7 +16,7 @@ export class BackendHandle extends EventEmitter {
   docId: string
   back?: BackWrapper
   actorId?: string
-  backQ: Queue<(handle:BackWrapper) => void> = new Queue()
+  backQ: Queue<(handle: BackWrapper) => void> = new Queue()
 
   constructor(core: Picomerge, docId: string, back?: BackDoc) {
     super()
@@ -40,18 +40,18 @@ export class BackendHandle extends EventEmitter {
     })
   }
 
-  applyRemoteChanges = (changes: Change[]) : void => {
-    this.backQ.push((handle) => {
-      let [ back, patch ] = Backend.applyChanges(handle.back, changes)
+  applyRemoteChanges = (changes: Change[]): void => {
+    this.backQ.push(handle => {
+      let [back, patch] = Backend.applyChanges(handle.back, changes)
       handle.back = back
       this.emit("patch", patch)
     })
   }
 
-  applyLocalChanges = (changes: Change[]) : void => {
-    this.backQ.push((handle) => {
+  applyLocalChanges = (changes: Change[]): void => {
+    this.backQ.push(handle => {
       changes.forEach(change => {
-        let [ back, patch ] = Backend.applyLocalChange(handle.back, change)
+        let [back, patch] = Backend.applyLocalChange(handle.back, change)
         handle.back = back
         this.emit("localpatch", patch)
         this.core.writeChange(this, this.actorId!, change)
@@ -59,7 +59,7 @@ export class BackendHandle extends EventEmitter {
     })
   }
 
-  actorIds() : string[] {
+  actorIds(): string[] {
     return this.core.docMetadata.get(this.docId) || []
   }
 
@@ -77,7 +77,7 @@ export class BackendHandle extends EventEmitter {
     this.emit("ready", actorId, patch)
   }
 
-/*
+  /*
   message(message) {
     if (this.core.readyIndex[this.docId]) {
       this.core.message(this.docId, message)

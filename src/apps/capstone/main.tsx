@@ -25,4 +25,3 @@ window.addEventListener("message", event => {
 
   Content.store.onMessage(event.data)
 })
-

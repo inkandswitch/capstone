@@ -1,11 +1,9 @@
-
 let express = require("express")
 let app = express()
 let WebSocket = require("ws")
 let expressWs = require("express-ws")(app)
 let crypto = require("crypto")
 let log = require("debug")("discovery-cloud:server")
-
 
 function mergeUniq(base = [], add = [], remove = []) {
   return base
@@ -67,7 +65,7 @@ class DiscoveryCloudServer {
       if (ws2.readyState === WebSocket.OPEN) {
         ws2.send(data)
       } else {
-//        log("target socket closed - end of line")
+        //        log("target socket closed - end of line")
         ws1.close()
       }
     })
@@ -76,7 +74,7 @@ class DiscoveryCloudServer {
       if (ws1.readyState === WebSocket.OPEN) {
         ws1.send(data)
       } else {
-//        log("target socket closed - end of line")
+        //        log("target socket closed - end of line")
         ws2.close()
       }
     })
@@ -93,7 +91,7 @@ class DiscoveryCloudServer {
 
   listen() {
     app.use(function(req, res, next) {
-//      log("middleware", req.url)
+      //      log("middleware", req.url)
       return next()
     })
 
