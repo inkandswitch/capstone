@@ -53,8 +53,6 @@ export default class DraggableCard extends React.Component<Props> {
       ...rest
     } = this.props
 
-    console.log(`render draggable card with width ${width}`)
-
     return (
       <Draggable
         position={{ x, y }}

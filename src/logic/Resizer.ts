@@ -1,9 +1,5 @@
 import { min } from "rxjs/operators"
-
-export interface ResizeInput {
-  x: number
-  y: number
-}
+import * as Draggable from "../components/Draggable"
 
 export interface ResizerOptions {
   onStart?: OnStartHandler
@@ -16,11 +12,6 @@ export interface ResizerOptions {
 export type OnStartHandler = (width: number, height: number) => void
 export type OnMoveHandler = (scaleFactor: number) => void
 export type OnStopHandler = (scaleFactor: number) => void
-
-export const pointerEventToResizeInput = (e: PointerEvent): ResizeInput => ({
-  x: e.clientX,
-  y: e.clientY,
-})
 
 export class Resizer {
   private size: Size
@@ -41,28 +32,25 @@ export class Resizer {
     this.scaleFactor = 1.0
   }
 
-  start(e: ResizeInput) {
-    const dragPoint = this.getDragPoint(e)
+  start(e: Point) {
+    const dragPoint = Draggable.getDragPoint(e, this.node)
     this.dragStartPoint = dragPoint
     this.previousDragPoint = dragPoint
     this.onStart && this.onStart(this.size.width, this.size.height)
   }
 
-  resize(e: ResizeInput) {
+  resize(e: Point) {
     if (!this.dragStartPoint) throw new Error("Must call start() before drag()")
 
-    const dragPoint = this.getDragPoint(e)
+    const dragPoint = Draggable.getDragPoint(e, this.node)
     const delta = {
       x: dragPoint.x - this.dragStartPoint.x,
       y: dragPoint.y - this.dragStartPoint.y,
     }
-    console.log(`size: ${this.size.width}`)
-    console.log(`delta: ${delta.x}`)
     const newSize = {
       width: this.size.width + delta.x,
       height: this.size.height + delta.y,
     }
-    console.log(`newSize: ${newSize.width}`)
     this.scaleFactor = Math.max(
       newSize.width / this.size.width,
       newSize.height / this.size.height,
@@ -74,19 +62,5 @@ export class Resizer {
   stop() {
     this.previousDragPoint = undefined
     this.onStop && this.onStop(this.scaleFactor)
-  }
-
-  private getDragPoint(e: ResizeInput) {
-    const offsetParent = this.node.offsetParent || this.node.ownerDocument.body
-    const offsetParentIsBody = offsetParent === offsetParent.ownerDocument.body
-    const offsetBoundingRect = offsetParentIsBody
-      ? { top: 0, left: 0 }
-      : offsetParent.getBoundingClientRect()
-
-    const offsetPosition = {
-      x: e.x + offsetParent.scrollLeft - offsetBoundingRect.left,
-      y: e.y + offsetParent.scrollTop - offsetBoundingRect.top,
-    }
-    return offsetPosition
   }
 }

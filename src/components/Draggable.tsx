@@ -23,8 +23,26 @@ interface DraggableState {
   isDragging: boolean
   isResizing: boolean
   position: Point
-  size: Size
   scaleFactor: number
+}
+
+export const pointerEventToPoint = (e: PointerEvent): Point => ({
+  x: e.clientX,
+  y: e.clientY,
+})
+
+export const getDragPoint = (e: Point, node: HTMLElement) => {
+  const offsetParent = node.offsetParent || node.ownerDocument.body
+  const offsetParentIsBody = offsetParent === offsetParent.ownerDocument.body
+  const offsetBoundingRect = offsetParentIsBody
+    ? { top: 0, left: 0 }
+    : offsetParent.getBoundingClientRect()
+
+  const offsetPosition = {
+    x: e.x + offsetParent.scrollLeft - offsetBoundingRect.left,
+    y: e.y + offsetParent.scrollTop - offsetBoundingRect.top,
+  }
+  return offsetPosition
 }
 
 export default class Draggable extends React.Component<
@@ -44,7 +62,6 @@ export default class Draggable extends React.Component<
       isDragging: false,
       isResizing: false,
       position: props.position,
-      size: props.size,
       scaleFactor: 1.0,
     }
   }
@@ -64,6 +81,7 @@ export default class Draggable extends React.Component<
         nextProps.size.width !== this.props.size.width ||
         nextProps.size.height !== this.props.size.height)
     ) {
+      this.setState({ scaleFactor: 1.0, isResizing: false })
       // TODO: handle this case
     }
   }
@@ -134,17 +152,16 @@ export default class Draggable extends React.Component<
     if (!this.ref || !this.dragger || !this.resizer) return
     if (e.type === "pointerdown" && this.ref.contains(e.target as Node)) {
       if (shouldDrag) {
-        this.dragger.start(Dragger.pointerEventToDragInput(e))
+        this.dragger.start(pointerEventToPoint(e))
       } else {
-        console.log("starting resize")
-        this.resizer.start(Resizer.pointerEventToResizeInput(e))
+        this.resizer.start(pointerEventToPoint(e))
       }
     } else if (this.state.isDragging || this.state.isResizing) {
       if (e.type === "pointermove") {
         if (this.state.isDragging) {
-          this.dragger.drag(Dragger.pointerEventToDragInput(e))
+          this.dragger.drag(pointerEventToPoint(e))
         } else if (this.state.isResizing) {
-          this.resizer.resize(Resizer.pointerEventToResizeInput(e))
+          this.resizer.resize(pointerEventToPoint(e))
         }
       } else if (e.type === "pointerup" || e.type === "pointercancel") {
         if (this.state.isDragging) {
@@ -162,13 +179,14 @@ export default class Draggable extends React.Component<
 
   render() {
     const { position, scaleFactor, isResizing } = this.state
-    console.log(`render with scale factor ${scaleFactor}`)
-    const scale = isResizing ? scaleFactor : 1.0
+    let transform = `translate(${position.x}px,${position.y}px)`
+    if (isResizing && scaleFactor != 1.0) {
+      transform = `scale(${scaleFactor},${scaleFactor}) ` + transform
+    }
+
     const style = {
       zIndex: this.props.z,
-      transform: `scale(${scale},${scale}) translate(${position.x}px,${
-        position.y
-      }px)`,
+      transform: transform,
       position: "absolute" as "absolute",
       willChange: "transform",
     }
@@ -176,8 +194,7 @@ export default class Draggable extends React.Component<
     // Compute merged class names. Mark with class while dragging.
     const { defaultClassName, defaultClassNameDragging } = this.props
     const className = classNames(defaultClassName, {
-      [defaultClassNameDragging || ""]:
-        this.state.isDragging || this.state.isResizing,
+      [defaultClassNameDragging || ""]: this.state.isDragging,
     })
 
     return (

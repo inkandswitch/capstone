@@ -1,7 +1,4 @@
-export interface DragInput {
-  x: number
-  y: number
-}
+import * as Draggable from "../components/Draggable"
 
 export interface DraggerOptions {
   onStart?: OnStartHandler
@@ -14,11 +11,6 @@ export interface DraggerOptions {
 export type OnStartHandler = (x: number, y: number) => void
 export type OnMoveHandler = (x: number, y: number) => void
 export type OnStopHandler = (x: number, y: number) => void
-
-export const pointerEventToDragInput = (e: PointerEvent): DragInput => ({
-  x: e.clientX,
-  y: e.clientY,
-})
 
 export class Dragger {
   private position: Point
@@ -36,16 +28,16 @@ export class Dragger {
     this.position = options.position
   }
 
-  start(e: DragInput) {
-    this.previousDragPoint = this.getDragPoint(e)
+  start(e: Point) {
+    this.previousDragPoint = Draggable.getDragPoint(e, this.node)
     this.onStart && this.onStart(this.position.x, this.position.y)
   }
 
-  drag(e: DragInput) {
+  drag(e: Point) {
     if (!this.previousDragPoint)
       throw new Error("Must call start() before drag()")
 
-    const dragPoint = this.getDragPoint(e)
+    const dragPoint = Draggable.getDragPoint(e, this.node)
     const delta = {
       x: dragPoint.x - this.previousDragPoint.x,
       y: dragPoint.y - this.previousDragPoint.y,
@@ -61,19 +53,5 @@ export class Dragger {
   stop() {
     this.previousDragPoint = undefined
     this.onStop && this.onStop(this.position.x, this.position.y)
-  }
-
-  private getDragPoint(e: DragInput) {
-    const offsetParent = this.node.offsetParent || this.node.ownerDocument.body
-    const offsetParentIsBody = offsetParent === offsetParent.ownerDocument.body
-    const offsetBoundingRect = offsetParentIsBody
-      ? { top: 0, left: 0 }
-      : offsetParent.getBoundingClientRect()
-
-    const offsetPosition = {
-      x: e.x + offsetParent.scrollLeft - offsetBoundingRect.left,
-      y: e.y + offsetParent.scrollTop - offsetBoundingRect.top,
-    }
-    return offsetPosition
   }
 }
