@@ -34,9 +34,7 @@ Debug.formatters.b = Base58.encode
 const HypercoreProtocol: Function = require("hypercore-protocol")
 const ram: Function = require("random-access-memory")
 const raf: Function = require("random-access-file")
-const swarm: Function = require("discovery-swarm")
-const swarmDefaults: any = require("dat-swarm-defaults")
-const toBuffer: Function = require("to-buffer")
+
 const log = Debug("picomerge")
 
 export interface Keys {
