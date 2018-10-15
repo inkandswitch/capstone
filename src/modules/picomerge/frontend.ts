@@ -4,47 +4,64 @@ import * as Frontend from "automerge/frontend"
 import Queue from "../../data/Queue"
 import * as Debug from "debug"
 
-const log = Debug("picomerge:back")
+const log = Debug("picomerge:front")
 
 export type Patch = Patch;
 
-type Mode = "r" | "w"
+type Mode = "pending" | "read" | "write"
 
 export class FrontendHandle<T> extends EventEmitter {
   docId: string
-  mode: Mode
   actorId?: string
   changeQ: Queue<ChangeFn<T>> = new Queue()
   front: Doc<T>
+  mode: Mode = "pending"
+  back?: any // place to put the backend if need be - not needed here int he code so didnt want to import
 
-  constructor(docId: string, mode: Mode) {
+  constructor(docId: string, actorId?: string) {
     super()
 
-    this.front = Frontend.init({ deferActorId: true }) as Doc<T>
-    this.docId = docId
-    this.mode = mode
+    if (actorId) {
+      this.front = Frontend.init(actorId) as Doc<T>
+      this.docId = docId
+      this.enableWrites()
+    } else {
+      this.front = Frontend.init({ deferActorId: true }) as Doc<T>
+      this.docId = docId
+    }
   }
 
   change = (fn: ChangeFn<T>) => {
-    if (this.mode === "r") throw new Error("write error on doc " + this.docId)
+    if (!this.actorId) this.emit("needsActorId")
     this.changeQ.push(fn)
   }
 
-  release() {
+  release = () => {
     this.removeAllListeners()
   }
 
-  init = (actorId?: string, patch?: Patch) => {
+  setActorId = (actorId: string) => {
     this.actorId = actorId
+    this.front = Frontend.setActorId(this.front, actorId)
 
-    if (actorId) {
-      this.front = Frontend.setActorId(this.front, actorId)
-    }
+    if (this.mode === "read") this.enableWrites() // has to be after the queue
+  }
 
-    if (patch) {
-      this.front = Frontend.applyPatch(this.front, patch)
-    }
+  init = (actorId?: string, patch?: Patch) => {
+    log("init actorId=", actorId, " patch=", !!patch)
 
+    if (this.mode != "pending") throw new Error("init called when already ready")
+
+    if (actorId) this.setActorId(actorId) // must set before patch
+
+    if (patch) this.patch(patch) // first patch!
+
+    if (actorId) this.enableWrites() // must enable after patch
+
+  }
+
+  private enableWrites() {
+    this.mode = "write"
     this.changeQ.subscribe(fn => {
       const doc = Frontend.change(this.front, fn)
       const requests = Frontend.getRequests(doc)
@@ -55,13 +72,13 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   patch = (patch: Patch) => {
-    log("PATCH")
+    log("patch")
     this.front = Frontend.applyPatch(this.front, patch)
     this.emit("doc", this.front)
   }
 
   localPatch = (patch: Patch) => {
-    log("LOCAL PATCH")
+    log("local patch")
     this.front = Frontend.applyPatch(this.front, patch)
     this.emit("localdoc", this.front)
   }

@@ -14,7 +14,6 @@
 const EXT = "picomerge"
 
 type FeedFn = (f:Feed<Change>) => void
-type Mode = "r" | "w"
 
 interface Swarm {
   join(dk: Buffer) : void
@@ -100,14 +99,14 @@ export class Picomerge {
     })
   }
 
-  createDocumentPair<T> ( keys : Keys ) : [ BackendHandle, FrontendHandle<T> ] {
+  createDocumentFrontend<T> ( keys : Keys ) : FrontendHandle<T> {
     const back = this.createDocument(keys)
-    const front = new FrontendHandle<T>(back.docId, "w")
-    front.init(back.docId)
+    const front = new FrontendHandle<T>(back.docId, back.docId)
+    front.back = back
     front.on("requests", back.applyLocalChanges)
     back.on("patch", front.patch)
     back.on("localpatch", front.localPatch)
-    return [ back, front ]
+    return front
   }
 
   createDocument ( keys : Keys ) : BackendHandle {
@@ -134,25 +133,27 @@ export class Picomerge {
     })
   }
 
-  openDocument (docId : string, mode: Mode) : BackendHandle {
+  openDocument (docId : string) : BackendHandle {
     let doc = this.docs.get(docId) || new BackendHandle(this, docId)
     if (!this.docs.has(docId)) {
       this.docs.set(docId,doc)
       this.addMetadata(docId, docId)
-      this.loadDocument(doc, mode)
+      this.loadDocument(doc)
       this.join(docId)
     }
     return doc
   }
 
-  openDocumentPair<T> ( docId: string, mode: Mode) : [ BackendHandle, FrontendHandle<T> ] {
-    const back = this.openDocument(docId, mode)
-    const front = new FrontendHandle<T>(back.docId, mode)
+  openDocumentFrontend<T> (docId: string) : FrontendHandle<T> {
+    const back = this.openDocument(docId)
+    const front = new FrontendHandle<T>(back.docId)
+    front.back = back
+    front.once("needActorId", () => {})
     front.on("requests", back.applyLocalChanges)
     back.on("ready", front.init)
     back.on("patch", front.patch)
     back.on("localpatch", front.localPatch)
-    return [ back, front ]
+    return front
   }
 
   joinSwarm( swarm: Swarm ) {
@@ -195,11 +196,11 @@ export class Picomerge {
     })
   }
 
-  private loadDocument (doc : BackendHandle, mode: Mode) {
+  private loadDocument (doc : BackendHandle) {
     return this.ready.then(() => this.allFeedData(doc).then(feedData => {
       const writer = feedData.filter(f => f.writable).map(f => f.actorId).shift()
       const changes = ([] as Change[]).concat(...feedData.map(f => f.changes))
-      doc.init(changes, mode === "w" ? writer || this.initActorFeed(doc) : undefined)
+      doc.init(changes, writer || this.initActorFeed(doc))
     }))
   }
 

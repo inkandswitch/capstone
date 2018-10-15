@@ -26,13 +26,8 @@ interface Foo {
   counter2: number
 }
 
-function init() : [any, FrontendHandle<Foo>] {
-  if (docId) {
-    return t.openDocumentPair(docId, "w")
-  }
-  return t.createDocumentPair(crypto.keyPair())
-}
-const [ back, front ] = init()
+const front : FrontendHandle<Foo> = docId ? t.openDocumentFrontend(docId) : t.createDocumentFrontend(crypto.keyPair())
+
 
 let i = 1
 front.on("doc",doc => {
