@@ -94,10 +94,7 @@ export default class Ink extends React.Component<Props, State> {
   shouldRedrawDryInk = true
   bounds: Bounds = EMPTY_BOUNDS
 
-  state = {
-    strokeType: undefined,
-    eraserPosition: undefined,
-  }
+  state: State = {}
 
   componentDidMount() {
     requestAnimationFrame(this.drawDry)
@@ -119,20 +116,20 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   render() {
-    const { strokeType } = this.state
+    const { strokeType, eraserPosition } = this.state
     const style = this.props.style || {}
     return (
       <div style={style}>
         <Portal>
           <div>
-            {this.state.eraserPosition != undefined ? (
+            {eraserPosition != undefined ? (
               <div
                 className={css.Eraser}
                 style={{
-                  left: (this.state.eraserPosition! as PenPoint).x,
-                  top: (this.state.eraserPosition! as PenPoint).y,
-                  width: (this.state.eraserPosition! as PenPoint).width,
-                  height: (this.state.eraserPosition! as PenPoint).width,
+                  left: eraserPosition.x,
+                  top: eraserPosition.y,
+                  width: eraserPosition.width,
+                  height: eraserPosition.width,
                 }}
               />
             ) : null}
@@ -174,11 +171,14 @@ export default class Ink extends React.Component<Props, State> {
 
   onPanMove = (event: PointerEvent) => {
     const { x, y } = event
+    const { strokeType } = this.state
+    if (!strokeType) return
+
     const coalesced: PointerEvent[] = event.getCoalescedEvents()
     if (!this.strokes[this.strokeId]) {
       this.strokes[this.strokeId] = {
         points: [],
-        settings: StrokeSettings[this.state.strokeType!],
+        settings: StrokeSettings[strokeType],
       }
     }
     this.strokes[this.strokeId].points.push(
@@ -186,16 +186,16 @@ export default class Ink extends React.Component<Props, State> {
         return {
           x: value.x,
           y: value.y,
-          width: StrokeMappings[this.state.strokeType!](value.pressure),
+          width: StrokeMappings[strokeType](value.pressure),
         }
       }),
     )
 
-    if (this.state.strokeType == StrokeType.erase) {
+    if (strokeType == StrokeType.erase) {
       const eraserPosition = {
         x: event.x,
         y: event.y,
-        width: StrokeMappings[this.state.strokeType!](event.pressure),
+        width: StrokeMappings[strokeType](event.pressure),
       }
       this.setState({ eraserPosition })
     }
@@ -307,7 +307,7 @@ export default class Ink extends React.Component<Props, State> {
       this.lastDrawnPoint++
     ) {
       let point = this.strokes[this.strokeId].points[this.lastDrawnPoint]
-      let settings = StrokeSettings[this.state.strokeType!]
+      let settings = StrokeSettings[this.state.strokeType]
       settings.lineWidth = point.width
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {
