@@ -38,7 +38,8 @@ export class Resizer {
   }
 
   resize(e: Point) {
-    if (!this.dragStartPoint) throw new Error("Must call start() before drag()")
+    if (!this.dragStartPoint)
+      throw new Error("Must call start() before resize()")
 
     const dragPoint = DOM.getOffsetFromParent(e, this.node)
     const delta = {
