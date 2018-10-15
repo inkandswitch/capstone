@@ -39,8 +39,8 @@ const EMPTY_BOUNDS: Bounds = {
 }
 
 enum StrokeType {
-  ink,
-  erase,
+  ink = "ink",
+  erase = "erase",
   default = ink,
 }
 
@@ -52,7 +52,7 @@ export interface StrokeSettings {
   lineWidth: number
 }
 
-const StrokeMappings: { [st: number]: (pressure: number) => number } = {
+const StrokeMappings: { [st: string]: (pressure: number) => number } = {
   [StrokeType.ink]: pressure => {
     return Math.max(1.5, 16 * Math.pow(pressure, 12))
   },
@@ -61,7 +61,7 @@ const StrokeMappings: { [st: number]: (pressure: number) => number } = {
   },
 }
 
-const StrokeSettings: { [st: number]: StrokeSettings } = {
+const StrokeSettings: { [st: string]: StrokeSettings } = {
   [StrokeType.ink]: {
     globalCompositeOperation: "source-over",
     strokeStyle: "black",
@@ -155,7 +155,7 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onPenEvent = (event: PointerEvent) => {
-    if (this.state.strokeType === undefined) return
+    if (!this.state.strokeType) return
     if (event.type == "pointerdown") {
       this.onPanStart(event)
     } else if (event.type == "pointerup" || event.type == "pointercancel") {
@@ -213,7 +213,7 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   inkStroke = () => {
-    if (!this.props.onInkStroke || this.state.strokeType == undefined) {
+    if (!this.props.onInkStroke || !this.state.strokeType) {
       return
     }
     this.shouldRedrawDryInk = true
@@ -222,7 +222,7 @@ export default class Ink extends React.Component<Props, State> {
 
   onStrokeTypeChange = (strokeType?: StrokeType) => {
     if (this.state.strokeType === strokeType) return
-    if (strokeType == undefined) {
+    if (!strokeType) {
       GPS.setInteractionMode(GPS.InteractionMode.default)
       this.setState({ eraserPosition: undefined })
       this.shouldRedrawDryInk = true
@@ -294,11 +294,7 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   drawWet = Frame.throttle(() => {
-    if (
-      !this.ctx ||
-      !this.strokes[this.strokeId] ||
-      this.state.strokeType == undefined
-    )
+    if (!this.ctx || !this.strokes[this.strokeId] || !this.state.strokeType)
       return
 
     for (
