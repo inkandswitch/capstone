@@ -1,8 +1,9 @@
 import { EventEmitter } from "events"
 import * as Backend from "automerge/backend"
 import { Change, Patch, BackDoc } from "automerge/backend"
+import { Peer } from "./hypercore"
 import Queue from "../../data/Queue"
-import { Picomerge } from "."
+import { EXT, Picomerge } from "."
 import * as Debug from "debug"
 
 const log = Debug("picomerge:back")
@@ -12,16 +13,17 @@ interface BackWrapper {
 }
 
 export class BackendHandle extends EventEmitter {
-  core: Picomerge
+  picomerge: Picomerge
   docId: string
   back?: BackWrapper
   actorId?: string
   backQ: Queue<(handle: BackWrapper) => void> = new Queue()
+  wantsActor: boolean = false
 
   constructor(core: Picomerge, docId: string, back?: BackDoc) {
     super()
 
-    this.core = core
+    this.picomerge = core
     this.docId = docId
 
     if (back) {
@@ -54,39 +56,79 @@ export class BackendHandle extends EventEmitter {
         let [back, patch] = Backend.applyLocalChange(handle.back, change)
         handle.back = back
         this.emit("localpatch", patch)
-        this.core.writeChange(this, this.actorId!, change)
+        this.picomerge.writeChange(this, this.actorId!, change)
       })
     })
   }
 
-  actorIds(): string[] {
-    return this.core.docMetadata.get(this.docId) || []
+  actorIds = (): string[] => {
+    return this.picomerge.docMetadata.get(this.docId) || []
   }
 
-  release() {
+  release = () => {
     this.removeAllListeners()
-    this.core.releaseHandle(this)
+    this.picomerge.releaseHandle(this)
   }
 
-  init(changes: Change[], actorId?: string) {
+  initActor = () => {
+    log("initActor")
+    if (this.back) {
+      // if we're all setup and dont have an actor - request one
+      if (!this.actorId) {
+        log("get actorId now")
+        this.actorId = this.picomerge.initActorFeed(this)
+        this.emit("actorId", this.actorId)
+      }
+    } else {
+      // remember we want one for when init happens
+      log("get actorId later")
+      this.wantsActor = true
+    }
+  }
+
+  init = (changes: Change[], actorId?: string) => {
     const [back, patch] = Backend.applyChanges(Backend.init(), changes)
     const handle = { back }
     this.actorId = actorId
+    if (this.wantsActor && !actorId) {
+      this.actorId = this.picomerge.initActorFeed(this)
+    }
     this.back = handle
     this.backQ.subscribe(f => f(handle))
-    this.emit("ready", actorId, patch)
+    this.emit("ready", this.actorId, patch)
+  }
+
+  broadcast(message: any) {
+    log("boardcast", message)
+    this.picomerge.peers(this).forEach(peer => this.message(peer, message))
+  }
+
+  message(peer: Peer, message: any) {
+    peer.stream.extension(EXT, Buffer.from(JSON.stringify(message)))
+  }
+
+  messageMetadata(peer: Peer) {
+    this.message(peer, this.metadata())
+  }
+
+  broadcastMetadata() {
+    this.broadcast(this.actorIds())
+  }
+
+  metadata(): string[] {
+    return this.actorIds()
   }
 
   /*
   message(message) {
-    if (this.core.readyIndex[this.docId]) {
-      this.core.message(this.docId, message)
+    if (this.picomerge.readyIndex[this.docId]) {
+      this.picomerge.message(this.docId, message)
     }
   }
 
   connections() {
     let peers = this.actorIds().map(
-      actorId => this.core._trackedFeed(actorId).peers,
+      actorId => this.picomerge._trackedFeed(actorId).peers,
     )
     return peers.reduce((acc, val) => acc.concat(val), [])
   }

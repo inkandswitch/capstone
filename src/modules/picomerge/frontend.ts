@@ -24,6 +24,7 @@ export class FrontendHandle<T> extends EventEmitter {
     if (actorId) {
       this.front = Frontend.init(actorId) as Doc<T>
       this.docId = docId
+      this.actorId = actorId
       this.enableWrites()
     } else {
       this.front = Frontend.init({ deferActorId: true }) as Doc<T>
@@ -32,7 +33,11 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   change = (fn: ChangeFn<T>) => {
-    if (!this.actorId) this.emit("needsActorId")
+    log("change")
+    if (!this.actorId) {
+      log("change needsActorId")
+      this.emit("needsActorId")
+    }
     this.changeQ.push(fn)
   }
 
@@ -41,6 +46,7 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   setActorId = (actorId: string) => {
+    log("setActorId", actorId, this.mode)
     this.actorId = actorId
     this.front = Frontend.setActorId(this.front, actorId)
 
@@ -56,6 +62,8 @@ export class FrontendHandle<T> extends EventEmitter {
     if (actorId) this.setActorId(actorId) // must set before patch
 
     if (patch) this.patch(patch) // first patch!
+
+    this.mode = "read"
 
     if (actorId) this.enableWrites() // must enable after patch
   }

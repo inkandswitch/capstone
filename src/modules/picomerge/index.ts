@@ -9,7 +9,7 @@
 // 8. does not allocate a hypercore for a document unless you intend to write to it (read only mode)
 // 9. exports almost the same interface as hypermerge
 
-const EXT = "picomerge"
+export const EXT = "picomerge"
 
 type FeedFn = (f: Feed<Change>) => void
 
@@ -146,8 +146,9 @@ export class Picomerge {
     const back = this.openDocument(docId)
     const front = new FrontendHandle<T>(back.docId)
     front.back = back
-    front.once("needActorId", () => {})
+    front.once("needsActorId", back.initActor)
     front.on("requests", back.applyLocalChanges)
+    back.on("actorId", front.setActorId)
     back.on("ready", front.init)
     back.on("patch", front.patch)
     back.on("localpatch", front.localPatch)
@@ -165,11 +166,9 @@ export class Picomerge {
   }
 
   private feedData(doc: BackendHandle, actorId: string): Promise<FeedData> {
-    console.log("FEED DATA", actorId)
     return new Promise((resolve, reject) => {
       this.getFeed(doc, actorId, feed => {
         const writable = feed.writable
-        console.log("FEED", actorId, feed.length, feed.writable)
         if (feed.length > 0) {
           feed.getBatch(0, feed.length, (err, changes) => {
             if (err) {
@@ -206,7 +205,7 @@ export class Picomerge {
           .map(f => f.actorId)
           .shift()
         const changes = ([] as Change[]).concat(...feedData.map(f => f.changes))
-        doc.init(changes, writer || this.initActorFeed(doc))
+        doc.init(changes, writer)
       }),
     )
   }
@@ -241,11 +240,30 @@ export class Picomerge {
     }
   }
 
-  private initActorFeed(doc: BackendHandle): string {
+  initActorFeed(doc: BackendHandle): string {
+    log("initActorFeed", doc.docId)
     const keys = crypto.keyPair()
     const actorId = Base58.encode(keys.publicKey)
     this.initFeed(doc, keys)
     return actorId
+  }
+
+  sendToPeer(peer: Peer, data: any) {
+    peer.stream.extension(EXT, Buffer.from(JSON.stringify(data)))
+  }
+
+  actorIds(doc: BackendHandle): string[] {
+    return this.docMetadata.get(doc.docId) || []
+  }
+
+  //  feeds(doc: BackendHandle) : Feed[] {
+  //    return this.actorIds(doc).map(actor => this.feeds.get(dkString))
+  //  }
+
+  peers(doc: BackendHandle): Peer[] {
+    return ([] as Peer[]).concat(
+      ...this.actorIds(doc).map(actorId => [...this.feedPeers.get(actorId)!]),
+    )
   }
 
   private initFeed(doc: BackendHandle, keys: Keys): Queue<FeedFn> {
@@ -264,21 +282,24 @@ export class Picomerge {
     this.feedQs.set(dkString, q)
     this.feedPeers.set(actorId, peers)
     this.addMetadata(doc.docId, actorId)
+    log("init feed", actorId)
     feed.ready(() => {
+      doc.broadcastMetadata()
       this.join(actorId)
       feed.on("peer-remove", (peer: Peer) => {
         peers.delete(peer)
       })
       feed.on("peer-add", (peer: Peer) => {
         peer.stream.on("extension", (ext: string, buf: Buffer) => {
-          const msg: string[] = JSON.parse(buf.toString())
           if (ext === EXT) {
+            const msg: string[] = JSON.parse(buf.toString())
+            log("EXT", msg)
             // getFeed -> initFeed -> join()
             msg.forEach(actorId => this.getFeed(doc, actorId, _ => {}))
           }
         })
         peers.add(peer)
-        peer.stream.extension(EXT, Buffer.from(JSON.stringify(doc.actorIds())))
+        doc.messageMetadata(peer)
       })
 
       let remoteChanges: Change[] = []
@@ -303,7 +324,6 @@ export class Picomerge {
   }
 
   stream = (opts: any): any => {
-    log("stream", opts)
     const stream = HypercoreProtocol({
       live: true,
       id: this.ledger.id,
