@@ -26,6 +26,8 @@ interface DraggableState {
   scaleFactor: number
 }
 
+const RESIZE_TARGET_SIZE: Size = { width: 40, height: 40 }
+
 export const pointerEventToPoint = (e: PointerEvent): Point => ({
   x: e.clientX,
   y: e.clientY,
@@ -148,20 +150,22 @@ export default class Draggable extends React.Component<
   }
 
   onPointerEvent = (e: PointerEvent) => {
-    const shouldDrag = false
     if (!this.ref || !this.dragger || !this.resizer) return
     if (e.type === "pointerdown" && this.ref.contains(e.target as Node)) {
-      if (shouldDrag) {
-        this.dragger.start(pointerEventToPoint(e))
+      const point = pointerEventToPoint(e)
+      const localPoint = this.getLocalPoint(getDragPoint(e, this.ref))
+      if (localPoint && this.shouldTriggerResize(localPoint)) {
+        this.resizer.start(point)
       } else {
-        this.resizer.start(pointerEventToPoint(e))
+        this.dragger.start(point)
       }
     } else if (this.state.isDragging || this.state.isResizing) {
       if (e.type === "pointermove") {
+        const point = pointerEventToPoint(e)
         if (this.state.isDragging) {
-          this.dragger.drag(pointerEventToPoint(e))
+          this.dragger.drag(point)
         } else if (this.state.isResizing) {
-          this.resizer.resize(pointerEventToPoint(e))
+          this.resizer.resize(point)
         }
       } else if (e.type === "pointerup" || e.type === "pointercancel") {
         if (this.state.isDragging) {
@@ -173,6 +177,23 @@ export default class Draggable extends React.Component<
     }
   }
 
+  getLocalPoint = (e: Point): Point | undefined => {
+    if (!this.state) return
+    return {
+      x: e.x - this.state.position.x,
+      y: e.y - this.state.position.y,
+    }
+  }
+
+  shouldTriggerResize = (point: Point) => {
+    return (
+      point.x <= this.props.size.width &&
+      point.x >= this.props.size.width - RESIZE_TARGET_SIZE.width &&
+      point.y <= this.props.size.height &&
+      point.y >= this.props.size.height - RESIZE_TARGET_SIZE.height
+    )
+  }
+
   onRef = (ref: HTMLDivElement) => {
     this.ref = ref
   }
@@ -181,7 +202,7 @@ export default class Draggable extends React.Component<
     const { position, scaleFactor, isResizing } = this.state
     let transform = `translate(${position.x}px,${position.y}px)`
     if (isResizing && scaleFactor != 1.0) {
-      transform = `scale(${scaleFactor},${scaleFactor}) ` + transform
+      transform += ` scale(${scaleFactor},${scaleFactor})`
     }
 
     const style = {
