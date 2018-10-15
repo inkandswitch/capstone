@@ -133,13 +133,14 @@ export default class Content extends React.Component<Props & unknown> {
   /// Registry:
 
   // Creates an initialized document of the given type and returns its URL
-  static create<T>(type: string): Promise<string> {
+  static create<T>(type: string): string {
     const widget = this.find(type) as WidgetClass<T>
     const setup: any = (doc: any) => {
       Reify.reify(doc, widget.reify)
     }
-    let id = this.store.create(setup)
-    return Promise.resolve(Link.format({ type, id }))
+    const handle = this.store.create(setup)
+
+    return Link.format({ type, id: handle.docId })
   }
 
   // Opens an initialized document at the given URL
