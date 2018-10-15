@@ -78,22 +78,20 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   push = (url: string) => {
     this.props.change(doc => {
       doc.navStack.push(url)
-      return doc
     })
   }
 
   pop = () => {
-    // Don't pop the root url of the stack
-    if (this.props.doc.navStack.length === 1) return
+    if (this.props.doc.navStack.length === 0) return
+
     this.props.change(doc => {
       doc.navStack.pop()
-      return doc
     })
   }
 
   peek = () => {
-    const { navStack } = this.props.doc
-    return navStack[navStack.length - 1]
+    const { navStack, rootUrl } = this.props.doc
+    return navStack[navStack.length - 1] || rootUrl
   }
 
   onCopy = (e: ClipboardEvent) => {

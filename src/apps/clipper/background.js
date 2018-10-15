@@ -2,13 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Called when the user clicks on the browser action.
-chrome.browserAction.onClicked.addListener(function(tab) {
-  chrome.tabs.executeScript({
-    file: "content.js",
-  })
-})
-
 var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
 
 chrome.contextMenus.onClicked.addListener(itemData => {
@@ -23,8 +16,27 @@ chrome.contextMenus.onClicked.addListener(itemData => {
     )
   }
   if (itemData.mediaType === "image") {
-    console.log("image not quite supported yet")
-    // XXX todo
+    const tmpImage = new Image()
+    const canvas = document.createElement("canvas")
+
+    tmpImage.crossOrigin = "anonymous"
+    tmpImage.src = itemData.srcUrl
+
+    tmpImage.onload = function() {
+      canvas.width = tmpImage.width
+      canvas.height = tmpImage.height
+
+      context = canvas.getContext("2d")
+      context.drawImage(tmpImage, 0, 0)
+
+      chrome.runtime.sendMessage(
+        capstoneExtensionId,
+        { contentType: "Image", content: canvas.toDataURL() },
+        response => {
+          console.log("Capstone appears to have received the Text.")
+        },
+      )
+    }
   }
 })
 

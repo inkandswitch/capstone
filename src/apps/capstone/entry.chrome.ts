@@ -29,17 +29,19 @@ window.addEventListener("keydown", event => {
   }
 })
 
-hm.ready.then(hm => {
-  store.sendToFrontend({ type: "Ready" })
+webview.addEventListener("loadstop", () => {
+  webview.focus()
 
-  swarm(hm, {
-    id: hm.core.archiver.changes.id,
-    url: "wss://discovery-cloud.herokuapp.com",
-    // url: "ws://localhost:8080",
+  hm.ready.then(hm => {
+    store.sendToFrontend({ type: "Ready" })
+
+    swarm(hm, {
+      id: hm.core.archiver.changes.id,
+      url: "wss://discovery-cloud.herokuapp.com",
+      // url: "ws://localhost:8080",
+    })
   })
 })
-
-webview.addEventListener("loadstop", () => webview.focus())
 
 function toggleDebug() {
   console.log("Toggling debug pane")

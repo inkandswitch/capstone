@@ -36,7 +36,7 @@ export default class Store {
     return this.index[id] || this.makeHandle(id)
   }
 
-  create(setup: ChangeFn<any>): string {
+  create(setup: ChangeFn<any>): FrontendHandle {
     const buffers = keyPair()
     const keys = {
       publicKey: Base58.encode(buffers.publicKey),
@@ -54,7 +54,7 @@ export default class Store {
     const handle = this.makeHandle(docId)
     handle.setActorId(docId)
     handle.change(setup)
-    return docId
+    return handle
   }
 
   setIdentity(identityUrl: string) {

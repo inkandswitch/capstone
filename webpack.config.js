@@ -81,9 +81,14 @@ const shared = {
   },
 }
 
-function app(name, overrides = {}) {
+function app(env, name, overrides = {}) {
+  const mode = env.mode || "development"
+
+  if (env.only && env.only != name) return null
+
   return {
     ...shared,
+    mode,
     entry: {
       main: `./src/apps/${name}/main.tsx`,
       background: `./src/apps/${name}/background.chrome.ts`,
@@ -104,27 +109,29 @@ function app(name, overrides = {}) {
   }
 }
 
-module.exports = [
-  app("capstone"),
-  app("sidecar"),
-  app("tests", {
-    entry: {
-      main: [
-        "./src/apps/tests/main.js",
-        ...glob.sync("./src/**/__tests__/**/*.ts"),
+module.exports = (env = {}) =>
+  [
+    app(env, "capstone"),
+    app(env, "sidecar"),
+    app(env, "tests", {
+      entry: {
+        main: [
+          "./src/apps/tests/main.js",
+          ...glob.sync("./src/**/__tests__/**/*.ts"),
+        ],
+        background: "./src/apps/tests/background.chrome.ts",
+      },
+    }),
+    app(env, "clipper", {
+      entry: {
+        content: ["./src/apps/clipper/content.js"],
+        background: "./src/apps/clipper/background.js",
+        popup: "./src/apps/clipper/popup.js",
+      },
+      plugins: [
+        new CopyWebpackPlugin(["manifest.json", "popup.html"], {
+          context: `./src/apps/clipper`,
+        }),
       ],
-      background: "./src/apps/tests/background.chrome.ts",
-    },
-  }),
-  app("clipper", {
-    entry: {
-      content: ["./src/apps/clipper/content.js"],
-      background: "./src/apps/clipper/background.js",
-    },
-    plugins: [
-      new CopyWebpackPlugin(["manifest.json"], {
-        context: `./src/apps/clipper`,
-      }),
-    ],
-  }),
-]
+    }),
+  ].filter(x => x)
