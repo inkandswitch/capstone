@@ -9,6 +9,18 @@
   z-index: 100000000;
 }
 
+:local(.Eraser) {
+  position: fixed;
+  border-radius: 50%;
+  background-color: white;
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  opacity: 0.3;
+  transform: translateX(-50%) translateY(-50%);
+  z-index: 100000002;
+}
+
 :local(.Options) {
   position: fixed;
   bottom: 0;
