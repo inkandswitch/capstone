@@ -3,7 +3,7 @@ import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import ShelfCard from "./ShelfCard"
-import { DocumentActor, Message, FullyFormedMessage } from "./Content"
+import Content, { DocumentActor, Message, FullyFormedMessage } from "./Content"
 
 interface Model {
   selectedUrls: string[]
@@ -33,7 +33,7 @@ export interface ClearShelf extends Message {
   type: "ClearShelf"
 }
 
-type WidgetMessage = ClearShelf
+type WidgetMessage = ClearShelf | SendShelfContents
 type InboundMessage = FullyFormedMessage<
   WidgetMessage | AddToShelf | SendShelfContents
 >
@@ -87,19 +87,18 @@ class Shelf extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
   }
 
+  // FIXME: logic through react component - not cool
+  componentDidUpdate() {
+    if (!this.props.doc.selectedUrls.length) return
+
+    this.props.emit({
+      type: "SendShelfContents",
+      body: { recipientUrl: Content.rootBoardUrl },
+    })
+  }
+
   render() {
-    const { selectedUrls } = this.props.doc
-    const count = selectedUrls.length
-
-    if (count <= 0) return null
-
-    return (
-      <div style={style.Shelf}>
-        {selectedUrls.map((url, idx) => (
-          <ShelfCard key={idx} url={url} index={idx} />
-        ))}
-      </div>
-    )
+    return null
   }
 }
 

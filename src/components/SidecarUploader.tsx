@@ -79,6 +79,7 @@ export default class SidecarUploader extends React.Component<Props, State> {
 
   importData(dataTransfer: DataTransfer) {
     const urlPromises = DataImport.importData(dataTransfer)
+
     Promise.all(urlPromises).then(urls => {
       this.props.change(doc => {
         doc.selectedUrls = doc.selectedUrls.concat(urls)
@@ -93,7 +94,7 @@ Widget.create("SidecarUploader", SidecarUploader, SidecarUploader.reify)
 const style = {
   SidecarUploader: {
     position: "absolute" as "absolute",
-    top: 0,
+    top: 30,
     right: 0,
     bottom: 0,
     left: 0,
