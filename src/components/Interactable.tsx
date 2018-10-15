@@ -7,7 +7,7 @@ import * as DOM from "../logic/DOM"
 import * as Dragger from "../logic/Dragger"
 import * as Resizer from "../logic/Resizer"
 
-interface DraggableProps {
+interface InteractableProps {
   onStart?: () => void
   onDrag?: Dragger.OnMoveHandler
   onDragStop?: Dragger.OnStopHandler
@@ -20,7 +20,7 @@ interface DraggableProps {
   z: number
 }
 
-interface DraggableState {
+interface InteractableState {
   isDragging: boolean
   isResizing: boolean
   position: Point
@@ -34,9 +34,9 @@ export const pointerEventToPoint = (e: PointerEvent): Point => ({
   y: e.clientY,
 })
 
-export default class Draggable extends React.Component<
-  DraggableProps,
-  DraggableState
+export default class Interactable extends React.Component<
+  InteractableProps,
+  InteractableState
 > {
   private dragger?: Dragger.Dragger
   private resizer?: Resizer.Resizer
@@ -44,7 +44,7 @@ export default class Draggable extends React.Component<
   private subscription?: Rx.Subscription
   private pointerId?: number
 
-  constructor(props: DraggableProps) {
+  constructor(props: InteractableProps) {
     super(props)
 
     this.state = {
@@ -70,7 +70,6 @@ export default class Draggable extends React.Component<
         nextProps.size.width !== this.props.size.width ||
         nextProps.size.height !== this.props.size.height)
     ) {
-      this.setState({ scaleFactor: 1.0, isResizing: false })
       // TODO: handle this case
     }
   }

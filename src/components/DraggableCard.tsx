@@ -1,5 +1,5 @@
 import * as React from "react"
-import Draggable from "./Draggable"
+import Interactable from "./Interactable"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
@@ -54,7 +54,7 @@ export default class DraggableCard extends React.Component<Props> {
     } = this.props
 
     return (
-      <Draggable
+      <Interactable
         position={{ x, y }}
         size={{ width, height }}
         onStart={this.start}
@@ -67,7 +67,7 @@ export default class DraggableCard extends React.Component<Props> {
           {...omit(rest, ["onDoubleTap", "onDragStop", "onResizeStop"])}>
           {children}
         </Card>
-      </Draggable>
+      </Interactable>
     )
   }
 }
