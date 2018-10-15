@@ -1,4 +1,4 @@
-export const getDragPoint = (e: Point, node: HTMLElement) => {
+export const getOffsetFromParent = (e: Point, node: HTMLElement) => {
   const offsetParent = node.offsetParent || node.ownerDocument.body
   const offsetParentIsBody = offsetParent === offsetParent.ownerDocument.body
   const offsetBoundingRect = offsetParentIsBody

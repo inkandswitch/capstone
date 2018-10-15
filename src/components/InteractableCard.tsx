@@ -14,6 +14,10 @@ export interface CardModel {
   url: string
 }
 
+export interface State {
+  currentSize: Size
+}
+
 export interface Props {
   card: CardModel
   onDragStart: (id: string) => void
@@ -22,13 +26,29 @@ export interface Props {
   onDoubleTap?: (url: string) => void
 }
 
-export default class InteractableCard extends React.Component<Props> {
+export default class InteractableCard extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      currentSize: { width: props.card.width, height: props.card.height },
+    }
+  }
+
   start = () => {
     this.props.onDragStart(this.props.card.id)
   }
 
   dragStop = (x: number, y: number) => {
     this.props.onDragStop && this.props.onDragStop(x, y, this.props.card.id)
+  }
+
+  onResize = (scaleFactor: number) => {
+    const currentSize = {
+      width: this.props.card.width * scaleFactor,
+      height: this.props.card.height * scaleFactor,
+    }
+    this.setState({ currentSize })
   }
 
   resizeStop = (scaleFactor: number) => {
@@ -48,10 +68,12 @@ export default class InteractableCard extends React.Component<Props> {
 
   render() {
     const {
-      card: { x, y, width, height, z },
+      card: { x, y, z, width, height },
       children,
       ...rest
     } = this.props
+
+    const { currentSize } = this.state
 
     return (
       <Interactable
@@ -59,11 +81,12 @@ export default class InteractableCard extends React.Component<Props> {
         size={{ width, height }}
         onStart={this.start}
         onDragStop={this.dragStop}
+        onResize={this.onResize}
         onResizeStop={this.resizeStop}
         z={z}>
         <Card
           cardId={this.props.card.id}
-          style={{ width: width, height: height }}
+          style={{ width: currentSize.width, height: currentSize.height }}
           {...omit(rest, ["onDoubleTap", "onDragStop", "onResizeStop"])}>
           {children}
         </Card>

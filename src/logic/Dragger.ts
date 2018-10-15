@@ -29,7 +29,7 @@ export class Dragger {
   }
 
   start(e: Point) {
-    this.previousDragPoint = DOM.getDragPoint(e, this.node)
+    this.previousDragPoint = DOM.getOffsetFromParent(e, this.node)
     this.onStart && this.onStart(this.position.x, this.position.y)
   }
 
@@ -37,7 +37,7 @@ export class Dragger {
     if (!this.previousDragPoint)
       throw new Error("Must call start() before drag()")
 
-    const dragPoint = DOM.getDragPoint(e, this.node)
+    const dragPoint = DOM.getOffsetFromParent(e, this.node)
     const delta = {
       x: dragPoint.x - this.previousDragPoint.x,
       y: dragPoint.y - this.previousDragPoint.y,

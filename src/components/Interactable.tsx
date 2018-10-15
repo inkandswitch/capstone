@@ -186,11 +186,8 @@ export default class Interactable extends React.Component<
   }
 
   render() {
-    const { position, scaleFactor, isResizing } = this.state
+    const { position } = this.state
     let transform = `translate(${position.x}px,${position.y}px)`
-    if (isResizing && scaleFactor != 1.0) {
-      transform += ` scale(${scaleFactor},${scaleFactor})`
-    }
 
     const style = {
       zIndex: this.props.z,

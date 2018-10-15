@@ -9,7 +9,7 @@ export interface ResizerOptions {
   size: Size
 }
 
-export type OnStartHandler = (width: number, height: number) => void
+export type OnStartHandler = () => void
 export type OnMoveHandler = (scaleFactor: number) => void
 export type OnStopHandler = (scaleFactor: number) => void
 
@@ -17,7 +17,6 @@ export class Resizer {
   private size: Size
   private scaleFactor: number
   private dragStartPoint?: Point
-  private previousDragPoint?: Point
   private onStart?: OnStartHandler
   private onDrag?: OnMoveHandler
   private onStop?: OnStopHandler
@@ -33,34 +32,31 @@ export class Resizer {
   }
 
   start(e: Point) {
-    const dragPoint = DOM.getDragPoint(e, this.node)
+    const dragPoint = DOM.getOffsetFromParent(e, this.node)
     this.dragStartPoint = dragPoint
-    this.previousDragPoint = dragPoint
-    this.onStart && this.onStart(this.size.width, this.size.height)
+    this.onStart && this.onStart()
   }
 
   resize(e: Point) {
     if (!this.dragStartPoint) throw new Error("Must call start() before drag()")
 
-    const dragPoint = DOM.getDragPoint(e, this.node)
+    const dragPoint = DOM.getOffsetFromParent(e, this.node)
     const delta = {
       x: dragPoint.x - this.dragStartPoint.x,
       y: dragPoint.y - this.dragStartPoint.y,
     }
-    const newSize = {
+    const newNonAspectSize = {
       width: this.size.width + delta.x,
       height: this.size.height + delta.y,
     }
     this.scaleFactor = Math.max(
-      newSize.width / this.size.width,
-      newSize.height / this.size.height,
+      newNonAspectSize.width / this.size.width,
+      newNonAspectSize.height / this.size.height,
     )
-    this.previousDragPoint = dragPoint
     this.onDrag && this.onDrag(this.scaleFactor)
   }
 
   stop() {
-    this.previousDragPoint = undefined
     this.onStop && this.onStop(this.scaleFactor)
   }
 }
