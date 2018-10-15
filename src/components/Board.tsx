@@ -99,16 +99,18 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 function addCard(
   board: EditDoc<Model>,
   url: string,
-  position?: { x: number; y: number },
+  position?: Point,
+  size?: Size,
 ) {
   position = position || { x: 0, y: 0 }
+  size = size || { width: 500, height: 300 }
   const card = {
     id: UUID.create(),
     z: board.topZ++,
     x: position.x,
     y: position.y,
-    width: 500,
-    height: 300,
+    width: size.width,
+    height: size.height,
     url,
   }
   board.cards[card.id] = card
