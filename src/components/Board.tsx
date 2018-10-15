@@ -2,7 +2,7 @@ import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
-import DraggableCard, { CardModel } from "./DraggableCard"
+import InteractableCard, { CardModel } from "./InteractableCard"
 import Content, {
   DocumentActor,
   Message,
@@ -188,13 +188,13 @@ class Board extends React.Component<Props, State> {
                     classNames="Card"
                     enter={false}
                     timeout={{ exit: 1 }}>
-                    <DraggableCard
+                    <InteractableCard
                       card={card}
                       onDragStart={this.onDragStart}
                       onDragStop={this.onDragStop}
                       onResizeStop={this.onResizeStop}>
                       <Content mode="embed" url={card.url} />
-                    </DraggableCard>
+                    </InteractableCard>
                   </CSSTransition>
                 )
               })}

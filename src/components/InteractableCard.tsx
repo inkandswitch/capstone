@@ -22,7 +22,7 @@ export interface Props {
   onDoubleTap?: (url: string) => void
 }
 
-export default class DraggableCard extends React.Component<Props> {
+export default class InteractableCard extends React.Component<Props> {
   start = () => {
     this.props.onDragStart(this.props.card.id)
   }
