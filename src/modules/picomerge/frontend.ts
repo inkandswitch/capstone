@@ -26,11 +26,16 @@ export class FrontendHandle<T> extends EventEmitter {
       this.docId = docId
       this.actorId = actorId
       this.enableWrites()
-      this.emit("doc", this.front)
     } else {
       this.front = Frontend.init({ deferActorId: true }) as Doc<T>
       this.docId = docId
     }
+
+    this.on("newListener", (event, listener) => {
+      if (event === "doc" && this.mode != "pending") {
+        listener(this.front)
+      }
+    })
   }
 
   change = (fn: ChangeFn<T>) => {

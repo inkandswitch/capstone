@@ -7,7 +7,7 @@ import * as Msg from "./StoreMsg"
 import { FrontendHandle } from "../modules/picomerge/frontend"
 import Queue from "./Queue"
 
-const log = Debug("store:frontend")
+const log = Debug("store:front")
 
 function isId(id: string) {
   return id.length >= 32 && id.length <= 44
@@ -125,14 +125,15 @@ export default class Store {
   }
 
   onMessage(msg: Msg.BackendToFrontend) {
-    log("message from backend", msg.type)
     switch (msg.type) {
       case "DocReady": {
+        log("DocReady", msg.docId)
         const handle = this.handle(msg.docId)
         handle.init(msg.actorId, msg.patch)
         break
       }
       case "ApplyPatch": {
+        log("ApplyPatch", msg.docId)
         const handle = this.handle(msg.docId)
         handle.patch(msg.patch)
         break
