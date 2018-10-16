@@ -15,7 +15,11 @@ import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
+import * as Img from "./Image"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
+import * as Link from "../data/Link"
+import * as Utils from "../logic/Utils"
+import { resolve } from "path"
 
 const boardIcon = require("../assets/board_icon.svg")
 
@@ -57,7 +61,14 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       case "ReceiveDocuments": {
         const { urls } = message.body
         this.change(doc => {
-          urls.forEach((url: string) => addCard(doc, url))
+          urls.forEach(url => {
+            makeCard(doc, url).then(card => {
+              this.change(doc => {
+                doc.cards[card.id] = card
+                return doc
+              })
+            })
+          })
         })
         break
       }
@@ -84,36 +95,60 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       case "ShelfContents": {
         const { urls, placementPosition } = message.body
         this.change(doc => {
-          urls.forEach((url, index) =>
-            addCard(doc, url, Position.radial(index, placementPosition)),
-          )
-          return doc
+          urls.forEach((url, index) => {
+            makeCard(doc, url, Position.radial(index, placementPosition)).then(
+              card => {
+                this.change(doc => {
+                  doc.cards[card.id] = card
+                  return doc
+                })
+              },
+            )
+          })
         })
-        break
       }
     }
   }
 }
 
-function addCard(
+function makeCard(
   board: EditDoc<Model>,
   url: string,
   position?: Point,
-  size?: Size,
-) {
-  position = position || { x: 0, y: 0 }
-  size = size || { width: 500, height: 300 }
-  const card = {
-    id: UUID.create(),
-    z: board.topZ++,
-    x: position.x,
-    y: position.y,
-    width: size.width,
-    height: size.height,
-    url,
-  }
-  board.cards[card.id] = card
-  return board
+): Promise<CardModel> {
+  return new Promise((resolve, reject) => {
+    getInitialSize(url).then((size: Size) => {
+      position = position || { x: 0, y: 0 }
+      const card = {
+        id: UUID.create(),
+        z: board.topZ++,
+        x: position.x,
+        y: position.y,
+        width: size.width,
+        height: size.height,
+        url,
+      }
+      resolve(card)
+    })
+  })
+}
+
+function getInitialSize(url: string): Promise<Size> {
+  return new Promise((resolve, reject) => {
+    Content.open(url, (doc: AnyDoc) => {
+      const type = Link.parse(url).type
+      if (type === "Image") {
+        const srcString = doc.src as string
+        if (srcString) {
+          resolve(Utils.loadImageSize(srcString))
+        } else {
+          reject()
+        }
+      } else {
+        reject()
+      }
+    })
+  })
 }
 
 class Board extends React.Component<Props, State> {
