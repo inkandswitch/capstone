@@ -20,7 +20,7 @@ window.addEventListener("message", event => {
       source.postMessage(msg, "*")
     })
 
-    ReactDOM.render(<App />, document.body)
+    ReactDOM.render(<App />, document.getElementById("main"))
   }
 
   Content.store.onMessage(event.data)

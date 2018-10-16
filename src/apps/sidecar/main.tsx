@@ -24,4 +24,4 @@ window.addEventListener("message", event => {
   Content.store.onMessage(event.data)
 })
 
-ReactDOM.render(<SidecarApp />, document.body)
+ReactDOM.render(<SidecarApp />, document.getElementById("main"))
