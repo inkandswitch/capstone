@@ -39,13 +39,18 @@ chrome.runtime.onMessageExternal.addListener(
   (request, sender, sendResponse) => {
     console.log("Received message from external extension", request, sender)
 
+    const windows = chrome.app.window.getAll()
+    if (windows.length > 0) {
+      const win = windows[0].contentWindow // we only support a single app window
+      win.postMessage({ type: "Clipper", ...request }, "*")
+      sendResponse({ contentReceived: "success" })
+    }
+
     showMainWindow((win: chrome.app.AppWindow) => {
       //maybeFullscreen(win)
       window.addEventListener("message", event => {
-        ;(event.source as Window).postMessage(
-          { type: "Clipper", ...request },
-          "*",
-        )
+        const win = event.source as Window
+        win.postMessage({ type: "Clipper", ...request }, "*")
         sendResponse({ contentReceived: "success" })
       })
     })
