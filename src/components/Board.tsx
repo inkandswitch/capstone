@@ -2,7 +2,7 @@ import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
-import DraggableCard, { CardModel } from "./DraggableCard"
+import InteractableCard, { CardModel } from "./InteractableCard"
 import Content, {
   DocumentActor,
   Message,
@@ -17,8 +17,6 @@ import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 
 const boardIcon = require("../assets/board_icon.svg")
-
-const BOARD_PADDING = 15
 
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
@@ -42,6 +40,8 @@ export interface CreateCard extends Message {
       id: string
       x: number
       y: number
+      width: number
+      height: number
     }
   }
 }
@@ -97,14 +97,18 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 function addCard(
   board: EditDoc<Model>,
   url: string,
-  position?: { x: number; y: number },
+  position?: Point,
+  size?: Size,
 ) {
   position = position || { x: 0, y: 0 }
+  size = size || { width: 500, height: 300 }
   const card = {
     id: UUID.create(),
     z: board.topZ++,
     x: position.x,
     y: position.y,
+    width: size.width,
+    height: size.height,
     url,
   }
   board.cards[card.id] = card
@@ -151,6 +155,21 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onResizeStop = (scaleFactor: number, id: string) => {
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (card) {
+        // XXX: Remove once backend/store handles object immutability.
+        doc.cards[id] = {
+          ...card,
+          width: card.width * scaleFactor,
+          height: card.height * scaleFactor,
+        }
+      }
+      return doc
+    })
+  }
+
   render() {
     const { cards, topZ, strokes } = this.props.doc
     const { focusedCardId } = this.state
@@ -169,12 +188,13 @@ class Board extends React.Component<Props, State> {
                     classNames="Card"
                     enter={false}
                     timeout={{ exit: 1 }}>
-                    <DraggableCard
+                    <InteractableCard
                       card={card}
                       onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}>
+                      onDragStop={this.onDragStop}
+                      onResizeStop={this.onResizeStop}>
                       <Content mode="embed" url={card.url} />
-                    </DraggableCard>
+                    </InteractableCard>
                   </CSSTransition>
                 )
               })}
@@ -209,7 +229,6 @@ const style = {
   Board: {
     width: "100%",
     height: "100%",
-    padding: BOARD_PADDING,
     position: "absolute" as "absolute",
     zIndex: 0,
     backgroundColor: "#fff",
