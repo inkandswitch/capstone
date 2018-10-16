@@ -5,7 +5,7 @@ interface Props {
 }
 interface State {}
 
-export default class DebugPane extends React.Component<Props, State> {
+export default class ControlPannel extends React.Component<Props, State> {
   componentDidMount() {
   }
 
@@ -16,6 +16,6 @@ export default class DebugPane extends React.Component<Props, State> {
   }
 
   render() {
-    return <div> DebugPane </div>
+    return <div> ControlPannel </div>
   }
 }

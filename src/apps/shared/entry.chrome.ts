@@ -1,7 +1,7 @@
 import StoreBackend from "../../data/StoreBackend"
 import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"
-import DebugPane from "../../components/DebugPane"
+import ControlPannel from "../../components/ControlPannel"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
@@ -10,7 +10,7 @@ let racf = require("random-access-chrome-file")
 process.hrtime = require("browser-process-hrtime")
 
 const webview = document.getElementById("webview")! as HTMLIFrameElement
-const DebugPaneDom = document.getElementById("DebugPane")!
+const DebugPane = document.getElementById("DebugPane")!
 
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
@@ -51,21 +51,21 @@ webview.addEventListener("loadstop", () => {
 
   setDebugPannel()
 
-  const paneWidget = React.createElement(DebugPane, { hello: "world" }, null)
-  ReactDOM.render(paneWidget, DebugPaneDom)
+  const paneWidget = React.createElement(ControlPannel, { hello: "world" }, null)
+  ReactDOM.render(paneWidget, DebugPane)
 })
 
 function setDebugPannel() {
   chrome.storage.local.get("debugPannel", data => {
-    DebugPaneDom.style.display = data.debugPannel
+    DebugPane.style.display = data.debugPannel
   })
-  DebugPaneDom.style.display =
-    DebugPaneDom.style.display === "block" ? "none" : "block"
+  DebugPane.style.display =
+    DebugPane.style.display === "block" ? "none" : "block"
 }
 
 function toggleDebug() {
   console.log("Toggling debug pane")
-  const mode = DebugPaneDom.style.display === "block" ? "none" : "block"
+  const mode = DebugPane.style.display === "block" ? "none" : "block"
   chrome.storage.local.set({ debugPannel: mode })
   setDebugPannel()
 }
