@@ -19,9 +19,9 @@ window.addEventListener("message", event => {
     Content.store.sendQueue.subscribe(msg => {
       source.postMessage(msg, "*")
     })
-
-    ReactDOM.render(<App />, document.getElementById("main"))
   }
 
   Content.store.onMessage(event.data)
 })
+
+ReactDOM.render(<App />, document.getElementById("main"))
