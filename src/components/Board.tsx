@@ -155,15 +155,16 @@ class Board extends React.Component<Props, State> {
       return doc
     })
   }
-  onResizeStop = (scaleFactor: number, id: string) => {
+
+  onResizeStop = (newSize: Size, id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
       if (card) {
         // XXX: Remove once backend/store handles object immutability.
         doc.cards[id] = {
           ...card,
-          width: card.width * scaleFactor,
-          height: card.height * scaleFactor,
+          width: newSize.width,
+          height: newSize.height,
         }
       }
       return doc
@@ -186,8 +187,7 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
-    const { cards, topZ, strokes } = this.props.doc
-    const { focusedCardId } = this.state
+    const { cards, strokes } = this.props.doc
     switch (this.props.mode) {
       case "fullscreen":
         return (

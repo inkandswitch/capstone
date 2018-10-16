@@ -6,16 +6,18 @@ export interface ResizerOptions {
   onDrag?: OnMoveHandler
   onStop?: OnStopHandler
   node: HTMLElement
-  size: Size
+  originalSize: Size
+  preserveAspectRatio: boolean
 }
 
 export type OnStartHandler = () => void
-export type OnMoveHandler = (scaleFactor: number) => void
-export type OnStopHandler = (scaleFactor: number) => void
+export type OnMoveHandler = (newSize: Size) => void
+export type OnStopHandler = (newSize: Size) => void
 
 export class Resizer {
-  private size: Size
-  private scaleFactor: number
+  private originalSize: Size
+  private currentSize: Size
+  private preserveAspectRatio: boolean
   private dragStartPoint?: Point
   private onStart?: OnStartHandler
   private onDrag?: OnMoveHandler
@@ -27,8 +29,9 @@ export class Resizer {
     this.onDrag = options.onDrag
     this.onStop = options.onStop
     this.node = options.node
-    this.size = options.size
-    this.scaleFactor = 1.0
+    this.originalSize = options.originalSize
+    this.currentSize = options.originalSize
+    this.preserveAspectRatio = options.preserveAspectRatio
   }
 
   start(e: Point) {
@@ -46,18 +49,29 @@ export class Resizer {
       x: dragPoint.x - this.dragStartPoint.x,
       y: dragPoint.y - this.dragStartPoint.y,
     }
-    const newNonAspectSize = {
-      width: this.size.width + delta.x,
-      height: this.size.height + delta.y,
+
+    let newSize = {
+      width: this.originalSize.width + delta.x,
+      height: this.originalSize.height + delta.y,
     }
-    this.scaleFactor = Math.max(
-      newNonAspectSize.width / this.size.width,
-      newNonAspectSize.height / this.size.height,
-    )
-    this.onDrag && this.onDrag(this.scaleFactor)
+
+    if (this.preserveAspectRatio) {
+      const scaleFactor = Math.max(
+        newSize.width / this.originalSize.width,
+        newSize.height / this.originalSize.height,
+      )
+      newSize = {
+        width: this.originalSize.width * scaleFactor,
+        height: this.originalSize.height * scaleFactor,
+      }
+    }
+
+    this.currentSize = newSize
+    this.onDrag && this.onDrag(newSize)
   }
 
   stop() {
-    this.onStop && this.onStop(this.scaleFactor)
+    this.originalSize = this.currentSize
+    this.onStop && this.onStop(this.currentSize)
   }
 }

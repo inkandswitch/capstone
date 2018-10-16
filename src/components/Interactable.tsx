@@ -3,7 +3,6 @@ import * as React from "react"
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
 import * as GPS from "../logic/GPS"
-import * as DOM from "../logic/DOM"
 import * as Dragger from "../logic/Dragger"
 import * as Resizer from "../logic/Resizer"
 
@@ -16,7 +15,8 @@ interface InteractableProps {
   defaultClassName?: string
   defaultClassNameDragging?: string
   position: Point
-  size: Size
+  originalSize: Size
+  preserveAspectRatio: boolean
   z: number
 }
 
@@ -24,7 +24,7 @@ interface InteractableState {
   isDragging: boolean
   isResizing: boolean
   position: Point
-  scaleFactor: number
+  currentSize: Size
 }
 
 const RESIZE_TARGET_SIZE: Size = { width: 40, height: 40 }
@@ -51,7 +51,7 @@ export default class Interactable extends React.Component<
       isDragging: false,
       isResizing: false,
       position: props.position,
-      scaleFactor: 1.0,
+      currentSize: props.originalSize,
     }
   }
 
@@ -66,9 +66,9 @@ export default class Interactable extends React.Component<
       // TODO: handle this case
     } else if (
       nextProps.size &&
-      (!this.props.size ||
-        nextProps.size.width !== this.props.size.width ||
-        nextProps.size.height !== this.props.size.height)
+      (!this.props.originalSize ||
+        nextProps.originalSize.width !== this.props.originalSize.width ||
+        nextProps.originalSize.height !== this.props.originalSize.height)
     ) {
       // TODO: handle this case
     }
@@ -85,7 +85,8 @@ export default class Interactable extends React.Component<
     })
     this.resizer = new Resizer.Resizer({
       node: this.ref,
-      size: this.props.size,
+      originalSize: this.props.originalSize,
+      preserveAspectRatio: this.props.preserveAspectRatio,
       onStart: this.onResizeStart,
       onDrag: this.onResize,
       onStop: this.onResizeStop,
@@ -121,9 +122,9 @@ export default class Interactable extends React.Component<
     this.setState({ position: { x, y } })
   }
 
-  onResize = (scaleFactor: number) => {
-    this.props.onResize && this.props.onResize(scaleFactor)
-    this.setState({ scaleFactor })
+  onResize = (newSize: Size) => {
+    this.props.onResize && this.props.onResize(newSize)
+    this.setState({ currentSize: newSize })
   }
 
   onDragStop = (x: number, y: number) => {
@@ -131,9 +132,12 @@ export default class Interactable extends React.Component<
     this.setState({ isDragging: false })
   }
 
-  onResizeStop = (scaleFactor: number) => {
-    this.props.onResizeStop && this.props.onResizeStop(scaleFactor)
-    this.setState({ isResizing: false, scaleFactor: 1.0 })
+  onResizeStop = (newSize: Size) => {
+    this.props.onResizeStop && this.props.onResizeStop(newSize)
+    this.setState({ isResizing: false, currentSize: newSize })
+    if (this.resizer) {
+      this.resizer.originalSize = newSize
+    }
   }
 
   onPointerEvent = (e: PointerEvent) => {

@@ -3,6 +3,7 @@ import Interactable from "./Interactable"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
+import * as Link from "../data/Link"
 
 export interface CardModel {
   id: string
@@ -22,7 +23,7 @@ export interface Props {
   card: CardModel
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
-  onResizeStop?: (scaleFactor: number, id: string) => void
+  onResizeStop?: (newSize: Size, id: string) => void
   onDoubleTap?: (url: string) => void
 }
 
@@ -43,17 +44,13 @@ export default class InteractableCard extends React.Component<Props, State> {
     this.props.onDragStop && this.props.onDragStop(x, y, this.props.card.id)
   }
 
-  onResize = (scaleFactor: number) => {
-    const currentSize = {
-      width: this.props.card.width * scaleFactor,
-      height: this.props.card.height * scaleFactor,
-    }
-    this.setState({ currentSize })
+  onResize = (newSize: Size) => {
+    this.setState({ currentSize: newSize })
   }
 
-  resizeStop = (scaleFactor: number) => {
+  resizeStop = (newSize: Size) => {
     this.props.onResizeStop &&
-      this.props.onResizeStop(scaleFactor, this.props.card.id)
+      this.props.onResizeStop(newSize, this.props.card.id)
   }
 
   cancel = (data: DraggableData) => {
@@ -61,7 +58,7 @@ export default class InteractableCard extends React.Component<Props, State> {
       this.props.onDragStop(data.x, data.y, this.props.card.id)
     this.props.onResizeStop &&
       this.props.onResizeStop(
-        1.0, //TODO
+        { width: this.props.card.width, height: this.props.card.height },
         this.props.card.id,
       )
   }
@@ -74,11 +71,13 @@ export default class InteractableCard extends React.Component<Props, State> {
     } = this.props
 
     const { currentSize } = this.state
+    const type = Link.parse(this.props.card.url).type
 
     return (
       <Interactable
         position={{ x, y }}
-        size={{ width, height }}
+        originalSize={{ width, height }}
+        preserveAspectRatio={type === "Image"}
         onStart={this.start}
         onDragStop={this.dragStop}
         onResize={this.onResize}
