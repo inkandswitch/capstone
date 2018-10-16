@@ -103,7 +103,7 @@ export default class StoreBackend {
   }
 
   onMessage = (msg: Msg.FrontendToBackend) => {
-    log("backend <- frontend", msg)
+    log("message from frontend", msg)
 
     switch (msg.type) {
       case "Open": {

@@ -20,6 +20,9 @@ import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import GlobalKeyboard from "./GlobalKeyboard"
 
+import * as Debug from "debug"
+const log = Debug("component:app")
+
 type State = {
   url?: string
 }
@@ -125,7 +128,7 @@ export default class App extends React.Component<Props, State> {
 
   render() {
     const { url } = this.state
-    console.log("APP RENDER", url)
+    log("render", url)
     if (!url) {
       return null
     }

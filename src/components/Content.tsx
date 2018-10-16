@@ -4,6 +4,8 @@ import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"
+import * as Debug from "debug"
+const log = Debug("component:content")
 
 export interface WidgetProps<T> {
   url: string
@@ -140,6 +142,11 @@ export default class Content extends React.Component<Props & unknown> {
       Reify.reify(doc, widget.reify)
     }
     const handle = this.store.create(setup)
+    log("create", handle.docId)
+
+    handle.on("doc", (doc) => {
+      log("emit doc maybe lost", handle.docId, doc)
+    })
 
     return Link.format({ type, id: handle.docId })
   }
@@ -152,8 +159,10 @@ export default class Content extends React.Component<Props & unknown> {
   ): (cfn: ChangeFn<T>) => void {
     const { type, id } = Link.parse(url)
     const handle = this.store.handle(id)
-    setImmediate(() => {
-      handle.on("doc", callback)
+    log("open doc", id)
+    handle.on("doc", (doc) => {
+      log("emit doc", id, doc)
+      setImmediate(() => callback(doc))
     })
     return handle.change
   }

@@ -40,12 +40,23 @@ webview.addEventListener("loadstop", () => {
   }))
 
   store.sendToFrontend({ type: "Ready" })
+
+  setDebugPannel()
 })
+
+function setDebugPannel() {
+  chrome.storage.local.get("debugPannel", data => {
+    DebugPane.style.display = data.debugPannel
+  })
+  DebugPane.style.display =
+    DebugPane.style.display === "block" ? "none" : "block"
+}
 
 function toggleDebug() {
   console.log("Toggling debug pane")
-  DebugPane.style.display =
-    DebugPane.style.display === "block" ? "none" : "block"
+  const mode = DebugPane.style.display === "block" ? "none" : "block"
+  chrome.storage.local.set({debugPannel: mode})
+  setDebugPannel()
 }
 
 // Receive messages from the Clipper chrome extension to import content

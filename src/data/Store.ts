@@ -45,6 +45,7 @@ export default class Store {
 
     const docId = keys.publicKey
 
+    log("create", docId)
     this.sendToBackend({
       type: "Create",
       docId,
@@ -64,11 +65,17 @@ export default class Store {
   }
 
   makeHandle(docId: string, actorId?: string): FrontendHandle<any> {
+    log("makeHandle", docId, actorId)
     const handle = new FrontendHandle<any>(docId, actorId)
 
     this.index[docId] = handle
 
+//    handle.on("doc", (doc) => {
+//      log("DOC", doc)
+//    })
+
     handle.on("needsActorId", () => {
+      log("needsActorId", docId)
       this.sendToBackend({
         type: "ActorIdRequest",
         docId,
@@ -76,6 +83,7 @@ export default class Store {
     })
 
     handle.on("requests", changes => {
+      log("requests", docId, changes.length)
       this.sendToBackend({
         type: "ChangeRequest",
         docId,
@@ -117,7 +125,7 @@ export default class Store {
   }
 
   onMessage(msg: Msg.BackendToFrontend) {
-    log("frontend <- backend", msg)
+    log("message from backend", msg.type)
     switch (msg.type) {
       case "DocReady": {
         const handle = this.handle(msg.docId)
