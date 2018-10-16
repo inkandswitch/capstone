@@ -56,7 +56,6 @@ export default class App extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    // initialize the workspace at startup (since we have no persistence)
     const { workspaceUrl } = localStorage
     if (workspaceUrl == undefined) {
       this.initWorkspace()
