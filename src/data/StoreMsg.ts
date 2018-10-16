@@ -1,4 +1,4 @@
-import { Change, Patch } from "automerge/backend"
+import { Change, Patch } from "../modules/hypermerge"
 
 export interface Ready {
   type: "Ready"

@@ -27,7 +27,13 @@ import * as Backend from "automerge/backend"
 import { Change, Patch, BackDoc } from "automerge/backend"
 import { BackendHandle } from "./backend"
 import { FrontendHandle } from "./frontend"
+import { age } from "../utils"
 import * as Debug from "debug"
+
+export { BackendHandle } from "./backend"
+export { FrontendHandle } from "./frontend"
+export { Feed, Peer } from "./hypercore"
+export { Change, Patch } from "automerge/backend"
 
 Debug.formatters.b = Base58.encode
 
@@ -79,7 +85,7 @@ export class Hypermerge {
     this.id = this.ledger.id
     this.ready = new Promise((resolve, reject) => {
       this.ledger.ready(() => {
-        log("Ledger ready: size", this.ledger.length)
+        log("Ledger ready: size", this.ledger.length, age())
         if (this.ledger.length > 0) {
           this.ledger.getBatch(0, this.ledger.length, (err, data) => {
             data.forEach(d => {
@@ -107,7 +113,7 @@ export class Hypermerge {
 
   createDocument(keys: Keys): BackendHandle {
     const docId = Base58.encode(keys.publicKey)
-    log("Create", docId)
+    log("Create", docId, age())
     const dk = discoveryKey(keys.publicKey)
     const doc = new BackendHandle(this, docId, Backend.init())
 
@@ -196,16 +202,17 @@ export class Hypermerge {
   }
 
   private loadDocument(doc: BackendHandle) {
-    return this.ready.then(() =>
+    return this.ready.then(() => {
       this.allFeedData(doc).then(feedData => {
         const writer = feedData
           .filter(f => f.writable)
           .map(f => f.actorId)
           .shift()
         const changes = ([] as Change[]).concat(...feedData.map(f => f.changes))
+        log("loaded", changes.length, "changes for", doc.docId, age())
         doc.init(changes, writer)
-      }),
-    )
+      })
+    })
   }
 
   private join(actorId: string) {
@@ -239,7 +246,7 @@ export class Hypermerge {
   }
 
   initActorFeed(doc: BackendHandle): string {
-    log("initActorFeed", doc.docId)
+    log("initActorFeed", doc.docId, age())
     const keys = crypto.keyPair()
     const actorId = Base58.encode(keys.publicKey)
     this.initFeed(doc, keys)
@@ -287,7 +294,7 @@ export class Hypermerge {
     this.feedQs.set(dkString, q)
     this.feedPeers.set(actorId, peers)
     this.addMetadata(doc.docId, actorId)
-    log("init feed", actorId)
+    log("init feed", actorId, age())
     feed.ready(() => {
       doc.broadcastMetadata()
       this.join(actorId)
@@ -319,7 +326,7 @@ export class Hypermerge {
       this.feedQs.get(dkString)!.subscribe(f => f(feed))
 
       feed.on("close", () => {
-        log("closing feed", actorId)
+        log("closing feed", actorId, age())
         this.feeds.delete(dkString)
         this.feedQs.delete(dkString)
         this.feedPeers.delete(actorId)
@@ -339,7 +346,7 @@ export class Hypermerge {
     let add = (dk: Buffer) => {
       const feed = this.feeds.get(Base58.encode(dk))
       if (feed) {
-        log("replicate feed!", Base58.encode(dk))
+        log("replicate feed!", Base58.encode(dk), age())
         feed.replicate({
           stream,
           live: true,

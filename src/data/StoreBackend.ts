@@ -1,7 +1,6 @@
 import * as Debug from "debug"
-import { Change, Patch } from "automerge/backend"
-import { BackendHandle } from "../modules/hypermerge/backend"
-import { Hypermerge } from "../modules/hypermerge"
+import { Hypermerge, BackendHandle, Change, Patch} from "../modules/hypermerge"
+import { age } from "../modules/utils"
 import * as Peek from "./Peek"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
@@ -99,11 +98,12 @@ export default class StoreBackend {
   }
 
   sendToFrontend(msg: Msg.BackendToFrontend) {
+    log("send to frontend", msg, age())
     this.sendQueue.push(msg)
   }
 
   onMessage = (msg: Msg.FrontendToBackend) => {
-    log("message from frontend", msg)
+    log("message from frontend", msg, age())
 
     switch (msg.type) {
       case "Open": {
@@ -112,6 +112,7 @@ export default class StoreBackend {
         if (this.docHandles[docId])
           throw new Error("Frontend opened a doc twice")
 
+        log("open document", msg, age())
         const handle = this.hypermerge.openDocument(docId)
         this.docHandles[docId] = handle
 
@@ -119,10 +120,12 @@ export default class StoreBackend {
         this.changeQ[docId].subscribe(changes => handle.applyLocalChanges(changes))
 
         handle.on("actorId", actorId => {
+          log("doc on(actorId)", docId, age())
           this.sendToFrontend({ type: "SetActorId", docId, actorId })
         })
 
         handle.on("ready", (actorId,patch) => {
+          log("doc on(ready)", docId, age())
           this.sendToFrontend({ type: "DocReady", docId, actorId, patch })
         })
 

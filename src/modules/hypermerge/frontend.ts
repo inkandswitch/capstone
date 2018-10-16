@@ -3,6 +3,7 @@ import { Patch, Doc, ChangeFn } from "automerge/frontend"
 import * as Frontend from "automerge/frontend"
 import Queue from "../../data/Queue"
 import * as Debug from "debug"
+import { age } from "../utils"
 
 const log = Debug("hypermerge:front")
 
@@ -39,9 +40,7 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   change = (fn: ChangeFn<T>) => {
-    log("change", this.docId)
     if (!this.actorId) {
-      log("change needsActorId", this.docId)
       this.emit("needsActorId")
     }
     this.changeQ.push(fn)
@@ -52,7 +51,6 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   setActorId = (actorId: string) => {
-    log("setActorId", this.docId, actorId, this.mode)
     this.actorId = actorId
     this.front = Frontend.setActorId(this.front, actorId)
 
@@ -60,7 +58,7 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   init = (actorId?: string, patch?: Patch) => {
-    log("init docid=", this.docId, " actorId=", actorId, " patch=", !!patch, " mode=", this.mode)
+    log(`init docid=${this.docId} actorId=${actorId} patch=${!!patch} mode=${this.mode}`, age())
 
     if (this.mode !== "pending") return
 
@@ -79,7 +77,6 @@ export class FrontendHandle<T> extends EventEmitter {
       const doc = Frontend.change(this.front, fn)
       const requests = Frontend.getRequests(doc)
       this.front = doc
-      log("change complete", this.docId, this.front)
       this.emit("doc", this.front)
       this.emit("requests", requests)
     })
@@ -90,11 +87,9 @@ export class FrontendHandle<T> extends EventEmitter {
     if (patch.diffs.length > 0) {
       this.emit("doc", this.front)
     }
-    log("patch", this.docId, this.front)
   }
 
   localPatch = (patch: Patch) => {
-    log("local patch", this.docId)
     this.front = Frontend.applyPatch(this.front, patch)
     if (patch.diffs.length > 0) {
       this.emit("localdoc", this.front)

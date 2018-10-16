@@ -4,8 +4,9 @@ import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
-import { FrontendHandle } from "../modules/hypermerge/frontend"
+import { FrontendHandle } from "../modules/hypermerge"
 import Queue from "./Queue"
+import { age } from "../modules/utils"
 
 const log = Debug("store:front")
 
@@ -65,17 +66,12 @@ export default class Store {
   }
 
   makeHandle(docId: string, actorId?: string): FrontendHandle<any> {
-    log("makeHandle", docId, actorId)
+    log("makeHandle", docId, actorId, age())
     const handle = new FrontendHandle<any>(docId, actorId)
 
     this.index[docId] = handle
 
-//    handle.on("doc", (doc) => {
-//      log("DOC", doc)
-//    })
-
     handle.on("needsActorId", () => {
-      log("needsActorId", docId)
       this.sendToBackend({
         type: "ActorIdRequest",
         docId,
@@ -83,7 +79,6 @@ export default class Store {
     })
 
     handle.on("requests", changes => {
-      log("requests", docId, changes.length)
       this.sendToBackend({
         type: "ChangeRequest",
         docId,
@@ -121,19 +116,20 @@ export default class Store {
   }
 
   sendToBackend(msg: Msg.FrontendToBackend) {
+    log("sendToBackend", msg.type, age())
     this.sendQueue.push(msg)
   }
 
   onMessage(msg: Msg.BackendToFrontend) {
     switch (msg.type) {
       case "DocReady": {
-        log("DocReady", msg.docId)
+        log("DocReady", msg.docId, age())
         const handle = this.handle(msg.docId)
         handle.init(msg.actorId, msg.patch)
         break
       }
       case "ApplyPatch": {
-        log("ApplyPatch", msg.docId)
+        log("ApplyPatch", msg.docId, age())
         const handle = this.handle(msg.docId)
         handle.patch(msg.patch)
         break
