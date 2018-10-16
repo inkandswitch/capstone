@@ -16,6 +16,9 @@ store.sendQueue.subscribe(msg => {
 })
 
 window.addEventListener("message", event => {
+  if (event.data.type === "Clipper") {
+    setTimeout(() => store.sendToFrontend(event.data), 1000)
+  }
   if (event.data.type === "ToggleDebug") {
     toggleDebug()
   }
@@ -32,12 +35,14 @@ window.addEventListener("keydown", event => {
 webview.addEventListener("loadstop", () => {
   webview.focus()
 
-  hm.joinSwarm(new CloudClient({
-    url: "wss://discovery-cloud.herokuapp.com",
-    // url: "ws://localhost:8080",
-    id: hm.id,
-    stream: hm.stream,
-  }))
+  hm.joinSwarm(
+    new CloudClient({
+      url: "wss://discovery-cloud.herokuapp.com",
+      // url: "ws://localhost:8080",
+      id: hm.id,
+      stream: hm.stream,
+    }),
+  )
 
   store.sendToFrontend({ type: "Ready" })
 
@@ -55,19 +60,8 @@ function setDebugPannel() {
 function toggleDebug() {
   console.log("Toggling debug pane")
   const mode = DebugPane.style.display === "block" ? "none" : "block"
-  chrome.storage.local.set({debugPannel: mode})
+  chrome.storage.local.set({ debugPannel: mode })
   setDebugPannel()
 }
 
-// Receive messages from the Clipper chrome extension to import content
-chrome.runtime.onMessageExternal.addListener(
-  (request, sender, sendResponse) => {
-    if (sender.id == "blocklistedExtension") return
-
-    console.log("Received message from external extension", request, sender)
-
-    store.sendToFrontend({ type: "Clipper", ...request })
-
-    sendResponse({ contentReceived: "success" })
-  },
-)
+window.opener.postMessage({ loaded: true }, "*")
