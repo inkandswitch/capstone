@@ -135,9 +135,6 @@ export default class Interactable extends React.Component<
   onResizeStop = (newSize: Size) => {
     this.props.onResizeStop && this.props.onResizeStop(newSize)
     this.setState({ isResizing: false, currentSize: newSize })
-    if (this.resizer) {
-      this.resizer.originalSize = newSize
-    }
   }
 
   onPointerEvent = (e: PointerEvent) => {
