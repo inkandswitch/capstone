@@ -52,22 +52,45 @@ export default class SidecarREPL extends React.Component<Props, State> {
     this.setState({ currentCode: "" })
   }
 
-  render() {
-    console.log(this.props.doc)
+  onReset = () => {
+    this.props.change(doc => {
+      doc.commands = []
+      return doc
+    })
 
+    this.setState({ currentCode: "" })
+  }
+
+  render() {
     return (
       <div>
-        {(this.props.doc.commands || []).map(({ code, result }, i) => (
-          <div key={i}>
-            <pre>
-              [{i}] {code}:
-            </pre>
-            <pre>{result || "not executed"}</pre>
-          </div>
-        ))}
+        <button onClick={this.onReset}>Reset REPL</button>
 
-        <textarea onChange={this.onChange} value={this.state.currentCode} />
-        <button onClick={this.onEval}>eval</button>
+        <div>
+          {(this.props.doc.commands || []).map(({ code, result }, i) => (
+            <div key={i}>
+              <pre>
+                [{i}] {code}
+              </pre>
+              <pre>{result || "not executed"}</pre>
+              <hr />
+            </div>
+          ))}
+
+          <div>
+            <div>
+              <textarea
+                rows={10}
+                cols={80}
+                onChange={this.onChange}
+                value={this.state.currentCode}
+              />
+            </div>
+            <div>
+              <button onClick={this.onEval}>eval</button>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

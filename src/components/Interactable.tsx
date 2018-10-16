@@ -55,7 +55,7 @@ export default class Interactable extends React.Component<
     }
   }
 
-  componentWillReceiveProps(nextProps: any) {
+  componentWillReceiveProps(nextProps: InteractableProps) {
     // Set x/y if position has changed
     if (
       nextProps.position &&
@@ -63,8 +63,21 @@ export default class Interactable extends React.Component<
         nextProps.position.x !== this.props.position.x ||
         nextProps.position.y !== this.props.position.y)
     ) {
-      // TODO: handle this case
-    } else if (
+      this.setState({ position: nextProps.position }, () => {
+        if (!this.dragger || !this.ref) return
+
+        // reset dragger once position is updated
+        this.dragger = new Dragger.Dragger({
+          node: this.ref,
+          position: this.props.position,
+          onStart: this.onDragStart,
+          onDrag: this.onDrag,
+          onStop: this.onDragStop,
+        })
+      })
+    }
+
+    if (
       nextProps.size &&
       (!this.props.originalSize ||
         nextProps.originalSize.width !== this.props.originalSize.width ||

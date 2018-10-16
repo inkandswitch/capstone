@@ -2062,6 +2062,11 @@ flat-tree@^1.3.0, flat-tree@^1.6.0:
   resolved "https://registry.yarnpkg.com/flat-tree/-/flat-tree-1.6.0.tgz#fca30cddb9006fb656eb5ebc79aeb274e7fde9ed"
   integrity sha1-/KMM3bkAb7ZW6168ea6ydOf96e0=
 
+flatted@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/flatted/-/flatted-1.0.3.tgz#18dc8704f89e757d88d7048e9d77b316f91705c2"
+  integrity sha512-3JPwKDX4pKsnnuPtApEoD4HEy61R1gO6CN8XH5/wdA5i7TrhLKIB2lgHEb9ETGkigo9snd1iCSvvcjhFanyxvg==
+
 flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"

@@ -2,6 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
+import { stringify } from "flatted/esm"
 
 type Command = {
   code: string
@@ -52,11 +53,7 @@ class REPL extends React.Component<Props> {
           result = e
         }
 
-        if (typeof result === "object") {
-          doc.commands[i].result = JSON.stringify(result, null, 2) // TODO: better stringify (circular refs etc)
-        } else {
-          doc.commands[i].result = String(result)
-        }
+        doc.commands[i].result = stringify(result, null, 2)
       })
 
       return doc
