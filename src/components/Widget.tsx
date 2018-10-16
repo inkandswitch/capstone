@@ -1,5 +1,6 @@
 import * as React from "react"
 import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/frontend"
+import ErrorBoundary from "./ErrorBoundary"
 import Content, {
   WidgetProps,
   Message,
@@ -69,12 +70,14 @@ export function create<T, M extends Message = never>(
     render() {
       if (this.state.doc) {
         return (
-          <WrappedComponent
-            {...this.props}
-            doc={this.state.doc}
-            emit={this.emit}
-            change={this.change}
-          />
+          <ErrorBoundary>
+            <WrappedComponent
+              {...this.props}
+              doc={this.state.doc}
+              emit={this.emit}
+              change={this.change}
+            />
+          </ErrorBoundary>
         )
       } else {
         return this.loading()
