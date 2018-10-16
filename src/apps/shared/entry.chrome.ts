@@ -23,6 +23,8 @@ hm.joinSwarm(
 window.addEventListener("message", ({ data: msg }) => {
   if (typeof msg !== "object") return
 
+  console.log(msg)
+
   if (msg.type === "Clipper") {
     return store.sendToFrontend(msg)
   }
@@ -40,7 +42,13 @@ window.addEventListener("keydown", event => {
   }
 })
 
+let loadStopped = false
 webview.addEventListener("loadstop", () => {
+  if (loadStopped) {
+    return
+  }
+  loadStopped = true
+
   webview.focus()
 
   store.sendQueue.subscribe(msg => {
@@ -79,5 +87,3 @@ chrome.runtime.onMessageExternal.addListener(
     sendResponse({ contentReceived: "success" })
   },
 )
-
-window.opener.postMessage({ loaded: true }, "*")
