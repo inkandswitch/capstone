@@ -18,7 +18,7 @@ import Ink, { InkStroke } from "./Ink"
 import * as Img from "./Image"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Link from "../data/Link"
-import * as Utils from "../logic/Utils"
+import * as Utils from "../logic/SizeUtils"
 import { resolve } from "path"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -140,7 +140,9 @@ function getInitialSize(url: string): Promise<Size> {
       if (type === "Image") {
         const srcString = doc.src as string
         if (srcString) {
-          resolve(Utils.loadImageSize(srcString))
+          Utils.loadImageSize(srcString).then(size => {
+            resolve(Utils.resolvedCardSize(size))
+          })
         } else {
           reject()
         }
