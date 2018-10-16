@@ -2,6 +2,7 @@ import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
+import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
 import Content, {
   DocumentActor,
@@ -154,7 +155,6 @@ class Board extends React.Component<Props, State> {
       return doc
     })
   }
-
   onResizeStop = (scaleFactor: number, id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
@@ -166,6 +166,21 @@ class Board extends React.Component<Props, State> {
           height: card.height * scaleFactor,
         }
       }
+      return doc
+    })
+  }
+
+  onMirror = (id: string) => {
+    if (!this.props.doc.cards[id]) return
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (!card) return doc
+      card.z = doc.topZ++
+      const mirror = Object.assign({}, card, {
+        id: UUID.create(),
+        z: card.z - 1,
+      })
+      doc.cards[mirror.id] = mirror
       return doc
     })
   }
@@ -188,13 +203,15 @@ class Board extends React.Component<Props, State> {
                     classNames="Card"
                     enter={false}
                     timeout={{ exit: 1 }}>
-                    <InteractableCard
-                      card={card}
-                      onDragStart={this.onDragStart}
-                      onDragStop={this.onDragStop}
-                      onResizeStop={this.onResizeStop}>
-                      <Content mode="embed" url={card.url} />
-                    </InteractableCard>
+                    <Mirrorable cardId={card.id} onMirror={this.onMirror}>
+                      <InteractableCard
+                        card={card}
+                        onDragStart={this.onDragStart}
+                        onDragStop={this.onDragStop}
+                        onResizeStop={this.onResizeStop}>
+                        <Content mode="embed" url={card.url} />
+                      </InteractableCard>
+                    </Mirrorable>
                   </CSSTransition>
                 )
               })}

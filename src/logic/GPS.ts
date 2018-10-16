@@ -1,6 +1,6 @@
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
-import { pickBy } from "lodash"
+import { pickBy, map, forEach } from "lodash"
 import * as GPS from "../logic/GPS"
 
 export enum InteractionMode {
@@ -8,8 +8,9 @@ export enum InteractionMode {
   inking,
 }
 
-export type PointerSnapshot = { [pointerId: string]: PointerEvent }
+export type PointerSnapshot = { [pointerId: string]: Pointer }
 export type Pointer = {
+  canceled: boolean
   pointerId: number
   pointerType: string
   history: PointerEvent[]
@@ -26,13 +27,34 @@ let interactionMode = InteractionMode.default
 export function connectInput(input$: Rx.Observable<PointerEvent>) {
   events$ = input$.pipe(
     RxOps.scan((previousSnapshot: GPS.PointerSnapshot, event: PointerEvent) => {
-      // Remove any pointers from the previous snapshot for which the most recent
-      // event is pointerup or pointercancel.
-      const snapshot = pickBy(
-        previousSnapshot,
-        e => e.type !== "pointerup" && e.type !== "pointercancel",
-      )
-      snapshot[event.pointerId] = event
+      const notCanceled = pickBy(previousSnapshot, p => {
+        const mostRecent = p.history[p.history.length - 1]
+        if (p.pointerType === "touch") {
+          return !p.canceled && mostRecent.type !== "pointerup"
+        } else {
+          return (
+            mostRecent.type !== "pointercancel" &&
+            mostRecent.type !== "pointerup"
+          )
+        }
+      })
+      const snapshot = forEach(notCanceled, p => {
+        const mostRecent = p.history[p.history.length - 1]
+        p.canceled = mostRecent.type === "pointercancel"
+      })
+
+      const existingPointer = snapshot[event.pointerId]
+      if (existingPointer) {
+        existingPointer.history.push(event)
+      } else {
+        const pointer = {
+          pointerId: event.pointerId,
+          pointerType: event.pointerType,
+          canceled: false,
+          history: [event],
+        }
+        snapshot[event.pointerId] = pointer
+      }
       return snapshot
     }, {}),
   )
@@ -55,7 +77,12 @@ export const onlyTouch = (s: PointerSnapshot) =>
 
 // Filter the snapshot so only pen pointers remain.
 export const onlyPen = (s: PointerSnapshot) =>
-  pickBy(s, e => e.pointerType === "pen" || e.shiftKey)
+  pickBy(
+    s,
+    e => e.pointerType === "pen" || e.history[e.history.length - 1].shiftKey,
+  )
+
+export const onlyActive = (s: PointerSnapshot) => pickBy(s, p => !p.canceled)
 
 // True if there are pointers in the snapshot, False if empty.
 export const ifNotEmpty = (s: PointerSnapshot) => Object.keys(s).length > 0
@@ -66,10 +93,19 @@ export const toPointers = (s: PointerSnapshot) => Object.values(s)
 // Get an arbitrary pointer from the snapshot.
 export const toAnyPointer = (s: PointerSnapshot) => toPointers(s)[0]
 
+export const toMostRecentEvent = (p: Pointer) => p.history[p.history.length - 1]
+
 export const ifNotInking = (s: PointerSnapshot) =>
   interactionMode != InteractionMode.inking
 
 // Filter the snapshot so only pointers on a target remain.
-export const onlyOnTarget = (target: HTMLElement) => (
-  snapshot: PointerSnapshot,
-) => pickBy(snapshot, e => target.contains(e.target as Node))
+export const onlyOnTarget = (target: Node) => (snapshot: PointerSnapshot) =>
+  pickBy(snapshot, e =>
+    target.contains(e.history[e.history.length - 1].target as Node),
+  )
+
+export const onlyOffTarget = (target: Node) => (s: PointerSnapshot) =>
+  pickBy(
+    s,
+    e => !target.contains(e.history[e.history.length - 1].target as Node),
+  )

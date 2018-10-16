@@ -97,6 +97,7 @@ export default class Interactable extends React.Component<
         RxOps.filter(GPS.ifNotInking),
         RxOps.filter(GPS.ifNotEmpty),
         RxOps.map(GPS.toAnyPointer),
+        RxOps.map(GPS.toMostRecentEvent),
       )
       .subscribe(this.onPointerEvent)
   }
