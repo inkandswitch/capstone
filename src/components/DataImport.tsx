@@ -47,7 +47,26 @@ export const addText = async (content: string) => {
 
 export const addTable = async (content: string) => {
   return addDoc("Table", doc => {
+    const header = content.split("\n")[0].split(",")
+
+    // [ "col1", "col2", ... ]
+    doc.header = header
+
+    // [
+    //   { col1: val1, col2: val2 }
+    //   ...
+    // ]
     doc.content = content
+      .split("\n")
+      .slice(1)
+      .map(line =>
+        line
+          .split(",")
+          .reduce(
+            (memo, value, idx) => ({ ...memo, [header[idx]]: value }),
+            {},
+          ),
+      )
   })
 }
 
