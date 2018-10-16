@@ -15,7 +15,6 @@ import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
-import * as Img from "./Image"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Link from "../data/Link"
 import * as Utils from "../logic/SizeUtils"
@@ -139,14 +138,11 @@ function getInitialSize(url: string): Promise<Size> {
     Content.open(url, (doc: AnyDoc) => {
       const type = Link.parse(url).type
       if (type === "Image") {
-        const srcString = doc.src as string
-        if (srcString) {
-          Utils.loadImageSize(srcString).then(size => {
-            resolve(Utils.resolvedCardSize(size))
-          })
-        } else {
-          reject()
-        }
+        Utils.loadImageSize(doc.src as string).then(size => {
+          resolve(Utils.resolvedCardSize(size))
+        })
+      } else if (type === "Text") {
+        resolve(Utils.loadTextSize((doc.content as string[]).join("")))
       } else {
         reject()
       }

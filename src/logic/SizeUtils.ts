@@ -1,3 +1,5 @@
+import * as CalculateSize from "calculate-size"
+
 const DEFAULT_CARD_MAX_SIZE = { width: 400, height: 400 }
 
 export function loadImageSize(src: string): Promise<Size> {
@@ -11,6 +13,17 @@ export function loadImageSize(src: string): Promise<Size> {
     })
     img.src = src
   })
+}
+
+export function loadTextSize(text: string): Size {
+  let size = CalculateSize.default(text, {
+    fontSize: "12",
+    font: "Arial",
+    width: `${DEFAULT_CARD_MAX_SIZE.width - 20}`,
+  })
+  console.log(`text: ${text}`)
+  console.log(`size: ${size.height} /  ${size.width}`)
+  return { width: 300, height: 300 }
 }
 
 export function resolvedCardSize(originalSize: Size): Size {

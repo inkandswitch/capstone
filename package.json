@@ -57,6 +57,7 @@
     "automerge": "^0.9.0",
     "browser-process-hrtime": "^0.1.2",
     "bs58": "^4.0.1",
+    "calculate-size": "^1.1.1",
     "chrome-debug": "orionz/debug",
     "chrome-dgram": "github:inkandswitch/chrome-dgram",
     "chrome-net": "github:inkandswitch/chrome-net",
