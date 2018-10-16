@@ -62,10 +62,12 @@ export default class Draggable extends React.Component<
 
     this.subscription = GPS.stream()
       .pipe(
+        RxOps.map(GPS.onlyActive),
         RxOps.map(GPS.onlyPen),
         RxOps.filter(GPS.ifNotInking),
         RxOps.filter(GPS.ifNotEmpty),
         RxOps.map(GPS.toAnyPointer),
+        RxOps.map(GPS.toMostRecentEvent),
       )
       .subscribe(this.onPointerEvent)
   }

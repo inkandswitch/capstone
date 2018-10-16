@@ -100,6 +100,7 @@ export default class Ink extends React.Component<Props, State> {
         RxOps.map(GPS.onlyPen),
         RxOps.filter(GPS.ifNotEmpty),
         RxOps.map(GPS.toAnyPointer),
+        RxOps.map(GPS.toMostRecentEvent),
       )
       .subscribe(this.onPenEvent)
   }

@@ -28,7 +28,7 @@ export default class Mirrorable extends React.Component<Props> {
       )
       if (!penOnTarget) return
 
-      this.onPen(penOnTarget)
+      this.onPen(GPS.toMostRecentEvent(penOnTarget))
     })
   }
 
