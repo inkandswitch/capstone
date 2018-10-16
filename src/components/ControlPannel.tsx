@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import FullscreenToggle from "./FullscreenToggle"
 interface Props {
   hello: string
 }
@@ -16,6 +17,6 @@ export default class ControlPannel extends React.Component<Props, State> {
   }
 
   render() {
-    return <div> ControlPannel </div>
+    return <div> <FullscreenToggle /> </div>
   }
 }

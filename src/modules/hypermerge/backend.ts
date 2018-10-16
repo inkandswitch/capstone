@@ -5,7 +5,6 @@ import { Peer } from "./hypercore"
 import Queue from "../../data/Queue"
 import { EXT, Hypermerge } from "."
 import * as Debug from "debug"
-import { age } from "../utils"
 
 const log = Debug("hypermerge:back")
 
@@ -32,7 +31,6 @@ export class BackendHandle extends EventEmitter {
       this.back = handle
       this.actorId = docId
       this.backQ.subscribe(f => f(handle))
-      log("emit ready", this.docId, age())
       this.emit("ready", docId, undefined)
     }
 
@@ -73,27 +71,22 @@ export class BackendHandle extends EventEmitter {
   }
 
   initActor = () => {
-    log("initActor", this.docId, age())
+    log("initActor", this.docId)
     if (this.back) {
       // if we're all setup and dont have an actor - request one
       if (!this.actorId) {
-        log("get actorId now", this.docId, age())
         this.actorId = this.hypermerge.initActorFeed(this)
         this.emit("actorId", this.actorId)
       }
     } else {
       // remember we want one for when init happens
-      log("get actorId later", this.docId, age())
       this.wantsActor = true
     }
   }
 
   init = (changes: Change[], actorId?: string) => {
-    log("init", this.docId, age())
+    log("init", this.docId)
     const [back, patch] = Backend.applyChanges(Backend.init(), changes)
-    log("applied changes", this.docId, age(), JSON.stringify(changes).length)
-    const p2 = Backend.getPatch(back)
-    log("make patch?", this.docId, age(), JSON.stringify(patch).length)
     const handle = { back }
     this.actorId = actorId
     if (this.wantsActor && !actorId) {
@@ -101,12 +94,10 @@ export class BackendHandle extends EventEmitter {
     }
     this.back = handle
     this.backQ.subscribe(f => f(handle))
-    log("emit ready", this.docId, age())
     this.emit("ready", this.actorId, patch)
   }
 
   broadcast(message: any) {
-    log("boardcast", this.docId, message, age())
     this.hypermerge.peers(this).forEach(peer => this.message(peer, message))
   }
 

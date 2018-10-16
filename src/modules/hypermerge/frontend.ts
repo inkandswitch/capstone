@@ -3,7 +3,6 @@ import { Patch, Doc, ChangeFn } from "automerge/frontend"
 import * as Frontend from "automerge/frontend"
 import Queue from "../../data/Queue"
 import * as Debug from "debug"
-import { age } from "../utils"
 
 const log = Debug("hypermerge:front")
 
@@ -58,7 +57,7 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   init = (actorId?: string, patch?: Patch) => {
-    log(`init docid=${this.docId} actorId=${actorId} patch=${!!patch} mode=${this.mode}`, age())
+    log(`init docid=${this.docId} actorId=${actorId} patch=${!!patch} mode=${this.mode}`)
 
     if (this.mode !== "pending") return
 
