@@ -27,6 +27,8 @@ type State = {
 type Props = {}
 
 export default class App extends React.Component<Props, State> {
+  state: State = {}
+
   initWorkspace() {
     const shelfUrl = Content.create("Shelf")
     const rootBoardUrl = Content.create("Board")
@@ -50,8 +52,7 @@ export default class App extends React.Component<Props, State> {
     })
   }
 
-  constructor(props: Props) {
-    super(props)
+  componentDidMount() {
     // initialize the workspace at startup (since we have no persistence)
     const { workspaceUrl } = localStorage
     if (workspaceUrl == undefined) {
@@ -119,8 +120,6 @@ export default class App extends React.Component<Props, State> {
           break
       }
     })
-
-    this.state = { url: undefined }
   }
 
   render() {
