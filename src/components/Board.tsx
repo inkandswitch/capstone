@@ -16,6 +16,7 @@ import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
+import * as css from "./css/Board.css"
 
 const boardIcon = require("../assets/board_icon.svg")
 
@@ -191,7 +192,7 @@ class Board extends React.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <div style={style.Board} ref={this.onRef}>
+          <div className={css.Board} ref={this.onRef}>
             <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
             <TransitionGroup>
               {Object.values(cards).map(card => {
@@ -218,14 +219,15 @@ class Board extends React.Component<Props, State> {
             </TransitionGroup>
           </div>
         )
+
       case "embed":
       case "preview":
         return (
-          <div style={style.Preview.Board}>
-            <img style={style.Preview.Icon} src={boardIcon} />
-            <div style={style.Preview.TitleContainer}>
-              <div style={style.Preview.Title}>Board</div>
-              <div style={style.Preview.SubTitle}>
+          <div className={css.BoardPreview}>
+            <img className={css.Icon} src={boardIcon} />
+            <div className={css.TitleContainer}>
+              <div className={css.Title}>Board</div>
+              <div className={css.SubTitle}>
                 {isEmpty(cards) ? "No" : size(cards)} items
               </div>
             </div>
@@ -240,55 +242,6 @@ class Board extends React.Component<Props, State> {
       return doc
     })
   }
-}
-
-const style = {
-  Board: {
-    width: "100%",
-    height: "100%",
-    position: "absolute" as "absolute",
-    zIndex: 0,
-    backgroundColor: "#fff",
-    overflow: "hidden",
-  },
-  FocusBackgroundOverlay: {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    position: "absolute" as "absolute",
-    backgroundColor: "#000",
-    opacity: 0.15,
-  },
-
-  Preview: {
-    Board: {
-      display: "flex" as "flex",
-      flexDirection: "row" as "row",
-      justifyContent: "center",
-      padding: "50px 25px",
-      fontSize: 16,
-      backgroundColor: "#fff",
-    },
-    Icon: {
-      height: 50,
-      width: 50,
-    },
-    TitleContainer: {
-      display: "flex" as "flex",
-      flexDirection: "column" as "column",
-      justifyContent: "center",
-      margin: "0 15px",
-    },
-    Title: {
-      fontSize: 24,
-      fontWeight: 500,
-      lineHeight: "1.2em",
-    },
-    SubTitle: {
-      fontSize: "smaller",
-    },
-  },
 }
 
 export default Widget.create("Board", Board, Board.reify, BoardActor)
