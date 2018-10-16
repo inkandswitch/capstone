@@ -11,7 +11,7 @@ const DebugPane = document.getElementById("DebugPane")!
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
 
-store.queue.subscribe(msg => {
+store.sendQueue.subscribe(msg => {
   webview.contentWindow!.postMessage(msg, "*")
 })
 

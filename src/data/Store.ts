@@ -20,7 +20,7 @@ function isId(id: string) {
 export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
 export default class Store {
-  queue = new Queue<Msg.FrontendToBackend>()
+  sendQueue = new Queue<Msg.FrontendToBackend>()
   index: { [id: string]: FrontendHandle<any> } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
@@ -121,7 +121,7 @@ export default class Store {
   }
 
   sendToBackend(msg: Msg.FrontendToBackend) {
-    this.queue.push(msg)
+    this.sendQueue.push(msg)
   }
 
   onMessage(msg: Msg.BackendToFrontend) {

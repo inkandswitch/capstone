@@ -1,6 +1,7 @@
 import * as React from "react"
 import * as Rx from "rxjs"
 
+import * as Link from "../data/Link"
 import Content from "./Content"
 import Touch from "./Touch"
 
@@ -49,7 +50,7 @@ export default class Peers extends React.Component<Props, State> {
         {Object.entries(peers).map(([id, peer]) => (
           <Touch onTap={() => this.onTap(id)}>
             <div>
-              <Content mode="embed" type="Peer" url={id} />
+              <Content mode="embed" url={Link.setType(id, "Peer")} />
             </div>
           </Touch>
         ))}

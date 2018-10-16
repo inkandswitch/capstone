@@ -64,7 +64,6 @@ export type Mode = "fullscreen" | "embed" | "preview"
 export interface Props {
   url: string
   mode: Mode
-  type?: string
   isFocused?: boolean
   [k: string]: unknown
 }
@@ -214,7 +213,7 @@ export default class Content extends React.Component<Props & unknown> {
     // This prevents the app from crashing in that case.
     if (!this.props.url) return null
 
-    const type = this.props.type || Link.parse(this.props.url).type
+    const { type } = Link.parse(this.props.url)
     let Widget
     try {
       Widget = Content.find(type)

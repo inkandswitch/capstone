@@ -32,7 +32,7 @@ server.on("listening", () => {
 
 server.on("connection", conn => {
   console.log("[Backend]: connection")
-  backend.queue.subscribe((msg: Msg.BackendToFrontend) => {
+  backend.sendQueue.subscribe((msg: Msg.BackendToFrontend) => {
     conn.send(JSON.stringify(msg))
   })
 
@@ -42,7 +42,7 @@ server.on("connection", conn => {
 
   conn.on("close", () => {
     backend.reset()
-    backend.queue.unsubscribe()
+    backend.sendQueue.unsubscribe()
     console.error("frontend disconnected")
   })
 })

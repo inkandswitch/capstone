@@ -38,6 +38,11 @@ export const parse = (url: string): Link => {
   return { url, nonCrc, scheme, type, id, crc }
 }
 
+export const setType = (url: string, type: string) => {
+  const { id } = parse(url)
+  return format({ type, id })
+}
+
 export const parts = (url: string): Partial<Link> => {
   const [, /* url */ nonCrc, scheme, type, id, crc]: Array<string | undefined> =
     url.match(/^((\w+):\/\/(.+)\/(\w+))\/(\w{1,4})$/) || []

@@ -16,11 +16,11 @@ window.addEventListener("message", event => {
   if (msg.type === "Ready") {
     const { source }: any = event
 
-    Content.store.queue.subscribe(msg => {
+    Content.store.sendQueue.subscribe(msg => {
       source.postMessage(msg, "*")
     })
 
-    ReactDOM.render(<App />, document.body)
+    ReactDOM.render(<App />, document.getElementById("main"))
   }
 
   Content.store.onMessage(event.data)

@@ -6,6 +6,14 @@ body {
   touch-action: none;
 }
 
+#main {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
 .CodeMirror {
   /* Set height, width, borders, and global font properties here */
   font-family: Roboto, Arial, Helvetica, sans-serif;
