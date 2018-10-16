@@ -13,8 +13,16 @@ function isId(id: string) {
   return id.length >= 32 && id.length <= 44
 }
 
-;(window as any).peek = () => {
-  console.log("please use peek() on the backend console")
+interface Process {
+  browser: boolean
+}
+
+declare var process: Process
+
+if (process.browser) {
+  ;(window as any).peek = () => {
+    console.log("please use peek() on the backend console")
+  }
 }
 
 export type Activity = Msg.UploadActivity | Msg.DownloadActivity
