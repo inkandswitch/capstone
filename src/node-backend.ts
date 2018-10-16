@@ -1,6 +1,6 @@
 import * as ws from "ws"
 
-import { Hypermerge } from "./modules/picomerge"
+import { Hypermerge } from "./modules/hypermerge"
 import * as Msg from "./data/StoreMsg"
 import StoreBackend from "./data/StoreBackend"
 import CloudClient from "./modules/discovery-cloud/Client"

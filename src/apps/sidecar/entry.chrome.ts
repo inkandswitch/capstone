@@ -1,5 +1,5 @@
 import StoreBackend from "../../data/StoreBackend"
-import { Hypermerge } from "../../modules/picomerge"
+import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"
 let racf = require("random-access-chrome-file")
 
