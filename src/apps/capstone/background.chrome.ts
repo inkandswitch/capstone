@@ -1,5 +1,3 @@
-let clipperPort: chrome.runtime.Port
-
 const windowParams: chrome.app.CreateWindowOptions = {
   id: "main",
   frame: "chrome",
