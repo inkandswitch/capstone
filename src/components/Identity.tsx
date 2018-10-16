@@ -116,7 +116,10 @@ export class Identity extends React.Component<Props, State> {
             onChange={this.onChange}
           />
           <div style={style.PeerStatus}>
-            <Content mode="embed" type="PeerStatus" url={this.props.url} />
+            <Content
+              mode="embed"
+              url={Link.setType(this.props.url, "PeerStatus")}
+            />
           </div>
         </div>
       </div>
@@ -129,7 +132,10 @@ export class Identity extends React.Component<Props, State> {
       <div style={style.preview.Identity}>
         <IdentityBadge avatarUrl={avatarUrl} name={name} />
         <div style={style.PeerStatus}>
-          <Content mode="embed" type="PeerStatus" url={this.props.url} />
+          <Content
+            mode="embed"
+            url={Link.setType(this.props.url, "PeerStatus")}
+          />
         </div>
       </div>
     )

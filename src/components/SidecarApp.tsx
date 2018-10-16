@@ -69,8 +69,7 @@ export default class SidecarApp extends React.Component<{}, State> {
           <div>
             <Content
               mode="fullscreen"
-              type="SidecarWorkspace"
-              url={workspaceUrl}
+              url={Link.setType(workspaceUrl, "SidecarWorkspace")}
             />
             <button onClick={this.onResetWorkspaceUrl}>
               Reset Workspace URL
