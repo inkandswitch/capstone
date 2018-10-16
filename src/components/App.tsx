@@ -33,6 +33,7 @@ export default class App extends React.Component<Props, State> {
     const workspaceUrl = Content.create("Workspace")
 
     Content.workspaceUrl = workspaceUrl
+    Content.rootBoardUrl = rootBoardUrl
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, (change: Function) => {
@@ -60,13 +61,17 @@ export default class App extends React.Component<Props, State> {
         workspaceUrl,
         (workspace: Doc<Workspace.Model>) => {
           Content.workspaceUrl = workspaceUrl
+          Content.rootBoardUrl = workspace.rootUrl
+
           this.setState({ url: workspaceUrl })
         },
       )
     }
 
     // subscribe to the web clipper for messages about new content
-    Content.store.clipper().subscribe((message = {}) => {
+    Content.store.clipper().subscribe(message => {
+      if (!message) return
+
       const { contentType, content } = message
 
       switch (contentType) {
