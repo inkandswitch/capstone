@@ -1,5 +1,4 @@
 .Card {
-  width: 398px; /* XXX: should probably not be a constant, eventually */
   font-size: 11px;
   line-height: 1.4;
   background-color: white;
@@ -9,13 +8,4 @@
   display: grid;
   grid-template-rows: auto;
   grid-template-columns: auto;
-  position: absolute;
-  transition-property: transform opacity;
-  transition-timing-function: ease-in;
-  transition-duration: 100ms;
-}
-
-.Card-exit {
-  transform: scale(0);
-  opacity: 0.1;
 }

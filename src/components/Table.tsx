@@ -4,7 +4,8 @@ import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 
 export interface Model {
-  content: string
+  header: any[]
+  content: any[]
 }
 
 interface Props extends Widget.Props<Model> {}
@@ -12,22 +13,28 @@ interface Props extends Widget.Props<Model> {}
 class Table extends React.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
-      content: Reify.string(doc.content),
+      header: Reify.array(doc.header),
+      content: Reify.array(doc.content),
     }
   }
 
   render() {
-    const { content } = this.props.doc
-
-    const tabularData = content.split("\n").map(line => line.split(","))
+    const { content, header } = this.props.doc
 
     return (
       <table>
+        <thead>
+          <tr>
+            {header.map(key => (
+              <th key={key}>{key}</th>
+            ))}
+          </tr>
+        </thead>
         <tbody>
-          {tabularData.map((row, i) => (
+          {content.map((obj, i) => (
             <tr key={i}>
-              {row.map((field, j) => (
-                <td key={`${i}/${j}`}>{field}</td>
+              {header.map((key, j) => (
+                <td key={j}>{obj[key]}</td>
               ))}
             </tr>
           ))}
