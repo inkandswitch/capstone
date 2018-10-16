@@ -9,30 +9,31 @@ import "./Image"
 import "./NetworkActivity"
 import "./SidecarUploader"
 import "./SidecarWorkspace"
+import "./SidecarREPL"
 import "./Text"
 import "./Table"
 import "./Workspace"
 import GlobalKeyboard from "./GlobalKeyboard"
 
+type Tab = "workspace" | "repl"
+
 type State = {
   workspaceUrl?: string
   mode: "loading" | "setup" | "ready"
+  tab: Tab
   error?: string
 }
 
 export default class SidecarApp extends React.Component<{}, State> {
   constructor(props: {}, ctx: any) {
     super(props, ctx)
-    this.state = { mode: "loading" }
+    this.state = { mode: "loading", tab: "repl" }
 
     const { workspaceUrl } = localStorage
     if (workspaceUrl == null) {
-      this.state = { mode: "setup" }
+      this.state = { mode: "setup", tab: "repl" }
     } else {
-      this.state = {
-        mode: "ready",
-        workspaceUrl,
-      }
+      this.state = { mode: "ready", workspaceUrl, tab: "repl" }
     }
   }
 
@@ -48,7 +49,7 @@ export default class SidecarApp extends React.Component<{}, State> {
   }
 
   renderContent() {
-    const { mode, workspaceUrl, error } = this.state
+    const { mode, workspaceUrl, error, tab } = this.state
 
     switch (mode) {
       case "loading":
@@ -67,13 +68,27 @@ export default class SidecarApp extends React.Component<{}, State> {
         if (!workspaceUrl) return null
         return (
           <div>
-            <Content
-              mode="fullscreen"
-              url={Link.setType(workspaceUrl, "SidecarWorkspace")}
-            />
             <button onClick={this.onResetWorkspaceUrl}>
               Reset Workspace URL
             </button>
+            <button onClick={() => this.onSwitchTab("workspace")}>
+              Workspace
+            </button>
+            <button onClick={() => this.onSwitchTab("repl")}>REPL</button>
+
+            {tab === "workspace" && (
+              <Content
+                mode="fullscreen"
+                url={Link.setType(workspaceUrl, "SidecarWorkspace")}
+              />
+            )}
+
+            {tab === "repl" && (
+              <Content
+                mode="fullscreen"
+                url={Link.setType(workspaceUrl, "SidecarREPL")}
+              />
+            )}
           </div>
         )
     }
@@ -90,6 +105,10 @@ export default class SidecarApp extends React.Component<{}, State> {
     this.setState({
       workspaceUrl: event.target.value,
     })
+  }
+
+  onSwitchTab = (tab: Tab) => {
+    this.setState({ tab })
   }
 
   saveUrl = (event: any) => {

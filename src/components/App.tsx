@@ -16,6 +16,7 @@ import "./Identity"
 import "./PeerStatus"
 import "./Peer"
 import "./HTML"
+import "./REPL"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import GlobalKeyboard from "./GlobalKeyboard"
@@ -36,6 +37,7 @@ export default class App extends React.Component<Props, State> {
     const shelfUrl = Content.create("Shelf")
     const rootBoardUrl = Content.create("Board")
     const workspaceUrl = Content.create("Workspace")
+    const replUrl = Content.create("REPL")
 
     Content.workspaceUrl = workspaceUrl
     Content.rootBoardUrl = rootBoardUrl
@@ -137,6 +139,7 @@ export default class App extends React.Component<Props, State> {
           <Stats />
           <GlobalKeyboard onKeyDown={this.onKeyDown} />
           <Content mode="fullscreen" url={url} />
+          <Content mode="embed" type="REPL" url={url} />
           <Feedback.Renderer />
         </div>
       </Root>
