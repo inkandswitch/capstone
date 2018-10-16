@@ -47,7 +47,7 @@ chrome.runtime.onMessageExternal.addListener(
     }
 
     showMainWindow((win: chrome.app.AppWindow) => {
-      //maybeFullscreen(win)
+      maybeFullscreen(win)
       window.addEventListener("message", event => {
         const win = event.source as Window
         win.postMessage({ type: "Clipper", ...request }, "*")
