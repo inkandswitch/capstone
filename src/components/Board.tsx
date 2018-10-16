@@ -106,6 +106,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
             )
           })
         })
+        break
       }
     }
   }
