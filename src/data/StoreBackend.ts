@@ -9,7 +9,7 @@ import Queue from "./Queue"
 const log = Debug("store:backend")
 
 export default class StoreBackend {
-  queue = new Queue<Msg.BackendToFrontend>()
+  sendQueue = new Queue<Msg.BackendToFrontend>()
   presenceTick?: any
   hypermerge: Hypermerge
   docHandles: { [docId: string]: any } = {}
@@ -95,7 +95,7 @@ export default class StoreBackend {
   }
 
   sendToFrontend(msg: Msg.BackendToFrontend) {
-    this.queue.push(msg)
+    this.sendQueue.push(msg)
   }
 
   onMessage = (msg: Msg.FrontendToBackend) => {

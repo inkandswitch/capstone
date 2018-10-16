@@ -48,7 +48,7 @@ hm.ready.then(hm => {
 
   const store = new StoreBackend(hm)
 
-  store.queue.subscribe(msg => {
+  store.sendQueue.subscribe(msg => {
     if (msg.type == "Patch") {
       handle.patch(msg.patch)
     } else {
