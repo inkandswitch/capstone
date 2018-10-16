@@ -11,16 +11,14 @@ const DebugPane = document.getElementById("DebugPane")!
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
 
-hm.ready.then(() => {
-  hm.joinSwarm(
-    new CloudClient({
-      url: "wss://discovery-cloud.herokuapp.com",
-      // url: "ws://localhost:8080",
-      id: hm.id,
-      stream: hm.stream,
-    }),
-  )
-})
+hm.joinSwarm(
+  new CloudClient({
+    url: "wss://discovery-cloud.herokuapp.com",
+    // url: "ws://localhost:8080",
+    id: hm.id,
+    stream: hm.stream,
+  }),
+)
 
 window.addEventListener("message", event => {
   if (event.data.type === "ToggleDebug") {
