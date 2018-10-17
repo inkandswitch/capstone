@@ -1,4 +1,5 @@
 import * as DOM from "./DOM"
+import * as DragMetrics from "./DragMetrics"
 
 export interface DraggerOptions {
   onStart?: OnStartHandler
@@ -13,8 +14,8 @@ export type OnMoveHandler = (x: number, y: number) => void
 export type OnStopHandler = (x: number, y: number) => void
 
 export class Dragger {
-  private position: Point
-  private previousDragPoint?: Point
+  private measurements?: DragMetrics.Measurements
+  private origin: Point
   private onStart?: OnStartHandler
   private onDrag?: OnMoveHandler
   private onStop?: OnStopHandler
@@ -25,33 +26,40 @@ export class Dragger {
     this.onDrag = options.onDrag
     this.onStop = options.onStop
     this.node = options.node
-    this.position = options.position
+    this.origin = options.position
   }
 
   start(e: Point) {
-    this.previousDragPoint = DOM.getOffsetFromParent(e, this.node)
-    this.onStart && this.onStart(this.position.x, this.position.y)
+    const dragPosition = DOM.getOffsetFromParent(e, this.node)
+    this.measurements = DragMetrics.init(dragPosition)
+    this.onStart && this.onStart(this.origin.x, this.origin.y)
   }
 
   drag(e: Point) {
-    if (!this.previousDragPoint)
-      throw new Error("Must call start() before drag()")
+    if (!this.measurements) throw new Error("Must call start() before drag()")
 
     const dragPoint = DOM.getOffsetFromParent(e, this.node)
-    const delta = {
-      x: dragPoint.x - this.previousDragPoint.x,
-      y: dragPoint.y - this.previousDragPoint.y,
-    }
-    this.position = {
-      x: this.position.x + delta.x,
-      y: this.position.y + delta.y,
-    }
-    this.previousDragPoint = dragPoint
-    this.onDrag && this.onDrag(this.position.x, this.position.y)
+    this.measurements = DragMetrics.update(this.measurements, dragPoint)
+    const translation = this.translate(this.origin, this.measurements)
+    this.onDrag && this.onDrag(translation.x, translation.y)
   }
 
   stop() {
-    this.previousDragPoint = undefined
-    this.onStop && this.onStop(this.position.x, this.position.y)
+    if (!this.measurements) throw new Error("Must call star() before stop()")
+    this.origin = this.translate(this.origin, this.measurements)
+    this.measurements = undefined
+    this.onStop && this.onStop(this.origin.x, this.origin.y)
+  }
+
+  setPosition(e: Point) {
+    this.origin = e
+    this.measurements = undefined
+  }
+
+  private translate(origin: Point, measurements: DragMetrics.Measurements) {
+    return {
+      x: origin.x + measurements.delta.x,
+      y: origin.y + measurements.delta.y,
+    }
   }
 }

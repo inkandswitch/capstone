@@ -1,9 +1,11 @@
 import * as React from "react"
+import * as RxOps from "rxjs/operators"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
+import EdgeBoardCreator from "./EdgeBoardCreator"
 import Content, {
   DocumentActor,
   Message,
@@ -30,9 +32,7 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string) => void
 }
 
-interface State {
-  focusedCardId: string | null
-}
+interface State {}
 
 export interface CreateCard extends Message {
   type: "CreateCard"
@@ -47,6 +47,8 @@ export interface CreateCard extends Message {
     }
   }
 }
+
+const BOARD_CREATE_TARGET_SIZE = 20
 
 type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
 type InMessage = WidgetMessage | ShelfContents | ReceiveDocuments
@@ -119,7 +121,7 @@ function addCard(
 
 class Board extends React.Component<Props, State> {
   boardEl?: HTMLDivElement
-  state = { focusedCardId: null }
+  state: State = {}
 
   static reify(doc: AnyDoc): Model {
     return {
@@ -187,8 +189,16 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onCreateBoard = (position: Point) => {
+    const url = Content.create("Board")
+    this.props.change(doc => {
+      addCard(doc, url, position)
+      return doc
+    })
+  }
+
   render() {
-    const { cards, strokes } = this.props.doc
+    const { cards, strokes, topZ } = this.props.doc
     switch (this.props.mode) {
       case "fullscreen":
         return (
@@ -217,6 +227,10 @@ class Board extends React.Component<Props, State> {
                 )
               })}
             </TransitionGroup>
+            <EdgeBoardCreator
+              onBoardCreate={this.onCreateBoard}
+              zIndex={topZ + 1}
+            />
           </div>
         )
 

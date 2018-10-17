@@ -15,23 +15,29 @@ const webview = document.getElementById("webview")! as HTMLIFrameElement
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
 
-hm.ready.then(() => {
-  hm.joinSwarm(
-    new CloudClient({
-      url: "wss://discovery-cloud.herokuapp.com",
-      // url: "ws://localhost:8080",
-      id: hm.id,
-      stream: hm.stream,
-    }),
-  )
-})
+hm.joinSwarm(
+  new CloudClient({
+    url: "wss://discovery-cloud.herokuapp.com",
+    // url: "ws://localhost:8080",
+    id: hm.id,
+    stream: hm.stream,
+  }),
+)
 
-window.addEventListener("message", event => {
-  if (event.data.type === "ToggleDebug") {
+window.addEventListener("message", ({ data: msg }) => {
+  if (typeof msg !== "object") return
+
+  console.log(msg)
+
+  if (msg.type === "Clipper") {
+    return store.sendToFrontend(msg)
+  }
+
+  if (msg.type === "ToggleDebug") {
     toggleDebug()
   }
 
-  store.onMessage(event.data)
+  store.onMessage(msg)
 })
 
 window.addEventListener("keydown", event => {
@@ -40,7 +46,13 @@ window.addEventListener("keydown", event => {
   }
 })
 
+let loadStopped = false
 webview.addEventListener("loadstop", () => {
+  if (loadStopped) {
+    return
+  }
+  loadStopped = true
+
   webview.focus()
 
   store.sendQueue.subscribe(msg => {
