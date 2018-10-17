@@ -14,7 +14,7 @@ export type OnMoveHandler = (x: number, y: number) => void
 export type OnStopHandler = (x: number, y: number) => void
 
 export class Dragger {
-  private metrics?: DragMetrics.Metrics
+  private measurements?: DragMetrics.Measurements
   private origin: Point
   private onStart?: OnStartHandler
   private onDrag?: OnMoveHandler
@@ -31,34 +31,34 @@ export class Dragger {
 
   start(e: Point) {
     const dragPosition = DOM.getOffsetFromParent(e, this.node)
-    this.metrics = DragMetrics.init(dragPosition)
+    this.measurements = DragMetrics.init(dragPosition)
     this.onStart && this.onStart(this.origin.x, this.origin.y)
   }
 
   drag(e: Point) {
-    if (!this.metrics) throw new Error("Must call start() before drag()")
+    if (!this.measurements) throw new Error("Must call start() before drag()")
 
     const dragPoint = DOM.getOffsetFromParent(e, this.node)
-    this.metrics = DragMetrics.update(this.metrics, dragPoint)
+    this.measurements = DragMetrics.update(this.measurements, dragPoint)
     const translate = {
-      x: this.origin.x + this.metrics.delta.x,
-      y: this.origin.y + this.metrics.delta.y,
+      x: this.origin.x + this.measurements.delta.x,
+      y: this.origin.y + this.measurements.delta.y,
     }
     this.onDrag && this.onDrag(translate.x, translate.y)
   }
 
   setPosition(e: Point) {
     this.origin = e
-    this.metrics = undefined
+    this.measurements = undefined
   }
 
   stop() {
-    if (!this.metrics) throw new Error("Must call star() before stop()")
+    if (!this.measurements) throw new Error("Must call star() before stop()")
     this.origin = {
-      x: this.origin.x + this.metrics.delta.x,
-      y: this.origin.y + this.metrics.delta.y,
+      x: this.origin.x + this.measurements.delta.x,
+      y: this.origin.y + this.measurements.delta.y,
     }
-    this.metrics = undefined
+    this.measurements = undefined
     this.onStop && this.onStop(this.origin.x, this.origin.y)
   }
 }

@@ -9,7 +9,7 @@ interface Props {
 }
 
 interface State {
-  metrics?: DragMetrics.Metrics
+  measurements?: DragMetrics.Measurements
 }
 
 const MINIMUM_DISTANCE = 60
@@ -18,7 +18,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   leftEdge?: HTMLDivElement
   rightEdge?: HTMLDivElement
 
-  state = { metrics: undefined }
+  state = { measurements: undefined }
 
   componentDidMount() {
     GPS.stream()
@@ -34,28 +34,32 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   onPointerEvent = (e: PointerEvent) => {
     if (!this.leftEdge || !this.rightEdge) return
     const { x, y } = e
-    const metrics = this.state.metrics
+    const { measurements } = this.state
     if (
       e.type === "pointerdown" &&
       (this.leftEdge.contains(e.target as Node) ||
         this.rightEdge.contains(e.target as Node))
     ) {
-      this.setState({ metrics: DragMetrics.init({ x, y }) })
-    } else if (metrics !== undefined) {
+      this.setState({ measurements: DragMetrics.init({ x, y }) })
+    } else if (measurements !== undefined) {
       if (e.type === "pointermove") {
-        this.setState({ metrics: DragMetrics.update(metrics, { x, y }) })
+        this.setState({
+          measurements: DragMetrics.update(measurements, { x, y }),
+        })
       } else {
         if (this.shouldCreateBoard()) {
-          this.props.onBoardCreate(metrics.position)
-          this.setState({ metrics: undefined })
+          this.props.onBoardCreate(measurements.position)
+          this.setState({ measurements: undefined })
         }
       }
     }
   }
 
   shouldCreateBoard() {
-    const { metrics } = this.state
-    return metrics !== undefined && metrics.delta.x >= MINIMUM_DISTANCE
+    const { measurements } = this.state
+    return (
+      measurements !== undefined && measurements.delta.x >= MINIMUM_DISTANCE
+    )
   }
 
   onLeftEdge = (ref: HTMLDivElement) => {
@@ -67,13 +71,13 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   }
 
   render() {
-    const metrics = this.state.metrics
+    const { measurements } = this.state
     let dragMarker = null
-    if (metrics !== undefined) {
-      const activated = metrics.delta.x >= MINIMUM_DISTANCE
+    if (measurements !== undefined) {
+      const activated = measurements.delta.x >= MINIMUM_DISTANCE
       const style = {
-        top: metrics.position.y,
-        left: metrics.position.x,
+        top: measurements.position.y,
+        left: measurements.position.x,
         borderColor: activated ? "red" : "black",
       }
       dragMarker = <div className={css.Marker} style={style} />

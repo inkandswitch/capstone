@@ -23,7 +23,7 @@ export class Resizer {
   private onStart?: OnStartHandler
   private onDrag?: OnMoveHandler
   private onStop?: OnStopHandler
-  private metrics?: DragMetrics.Metrics
+  private measurements?: DragMetrics.Measurements
   private node: HTMLElement
 
   constructor(options: ResizerOptions) {
@@ -38,18 +38,18 @@ export class Resizer {
 
   start(e: Point) {
     const dragPoint = DOM.getOffsetFromParent(e, this.node)
-    this.metrics = DragMetrics.init(dragPoint)
+    this.measurements = DragMetrics.init(dragPoint)
     this.onStart && this.onStart()
   }
 
   resize(e: Point) {
-    if (!this.metrics) throw new Error("Must call start() before resize()")
+    if (!this.measurements) throw new Error("Must call start() before resize()")
 
     const dragPoint = DOM.getOffsetFromParent(e, this.node)
-    this.metrics = DragMetrics.update(this.metrics, dragPoint)
+    this.measurements = DragMetrics.update(this.measurements, dragPoint)
     let newSize = {
-      width: this.originalSize.width + this.metrics.delta.x,
-      height: this.originalSize.height + this.metrics.delta.y,
+      width: this.originalSize.width + this.measurements.delta.x,
+      height: this.originalSize.height + this.measurements.delta.y,
     }
 
     if (this.preserveAspectRatio) {
@@ -68,8 +68,8 @@ export class Resizer {
   }
 
   stop() {
-    if (!this.metrics) throw new Error("Must call start() before stop()")
-    this.metrics = undefined
+    if (!this.measurements) throw new Error("Must call start() before stop()")
+    this.measurements = undefined
     this.originalSize = this.currentSize
     this.onStop && this.onStop(this.currentSize)
   }

@@ -3,7 +3,7 @@ export interface Input {
   y: number
 }
 
-export interface Metrics {
+export interface Measurements {
   magnitude: number
   delta: Point
   position: Point
@@ -19,24 +19,24 @@ export const init = (e: Input = { x: 0, y: 0 }) => {
   }
 }
 
-export const update = (metrics: Metrics, input: Input) => {
+export const update = (measurements: Measurements, input: Input) => {
   const incrementalDelta = {
-    x: input.x - metrics.position.x,
-    y: input.y - metrics.position.y,
+    x: input.x - measurements.position.x,
+    y: input.y - measurements.position.y,
   }
   const position = {
-    x: metrics.position.x + incrementalDelta.x,
-    y: metrics.position.y + incrementalDelta.y,
+    x: measurements.position.x + incrementalDelta.x,
+    y: measurements.position.y + incrementalDelta.y,
   }
   const delta = {
-    x: metrics.position.x - metrics.startPosition.x,
-    y: metrics.position.y - metrics.startPosition.y,
+    x: measurements.position.x - measurements.startPosition.x,
+    y: measurements.position.y - measurements.startPosition.y,
   }
   const magnitude = Math.sqrt(delta.x ** 2 + delta.y ** 2)
   return {
     magnitude,
     position,
     delta,
-    startPosition: metrics.startPosition,
+    startPosition: measurements.startPosition,
   }
 }
