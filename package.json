@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack --watch",
+    "dev": "yarn --ignore-engines && webpack",
     "build": "yarn --ignore-engines && webpack --env.mode=production",
     "test": "yarn tests",
     "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache node -r ts-node/register",

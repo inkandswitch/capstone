@@ -56,8 +56,9 @@ They can then Ctrl-V in their archive to make your user card appear.
 ## Dev tools
 
 - `yarn start`: Start the development build
+- `yarn dev`: Run `yarn install` and then build once in development mode
 - `yarn build`: Run `yarn install` and then build once in production mode
-- `yarn build --env.only=capstone`: Run the build for only the capstone app. Also works with `yarn start`
+- `yarn build --env.only=capstone`: Run the build for only the capstone app. Also works with `yarn start` and `yarn dev`
 - `yarn clean`: Delete `dist/*` for a clean build
 - `yarn test`: Same as `yarn tests`
 - `yarn repl`: Start a TypeScript REPL
