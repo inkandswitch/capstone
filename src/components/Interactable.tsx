@@ -76,15 +76,6 @@ export default class Interactable extends React.Component<
         })
       })
     }
-
-    if (
-      nextProps.size &&
-      (!this.props.originalSize ||
-        nextProps.originalSize.width !== this.props.originalSize.width ||
-        nextProps.originalSize.height !== this.props.originalSize.height)
-    ) {
-      // TODO: handle this case
-    }
   }
 
   componentDidMount() {

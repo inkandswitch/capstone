@@ -31,7 +31,7 @@ export default class SidecarREPL extends React.Component<Props, State> {
     currentCode: "",
   }
 
-  onChange = e => {
+  onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = e.target
     this.setState({ currentCode: value })
   }

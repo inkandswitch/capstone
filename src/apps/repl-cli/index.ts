@@ -1,11 +1,14 @@
 const raf = require("random-access-file")
 import * as Link from "../../data/Link"
 import * as Peek from "../../data/Peek"
+import * as repl from "repl"
 import CloudClient from "../../modules/discovery-cloud/Client"
 import Content from "../../components/Content"
 import Store from "../../data/Store"
 import StoreBackend from "../../data/StoreBackend"
+import { FrontendHandle } from "../../modules/hypermerge/frontend"
 import { Hypermerge } from "../../modules/hypermerge"
+import { last, once } from "lodash"
 import { parse } from "flatted"
 
 const workspaceUrl = process.argv[2]
@@ -39,6 +42,38 @@ hm.joinSwarm(
   }),
 )
 
+const startRepl = (handle: FrontendHandle<any>) => {
+  repl.start({
+    prompt: ">>> ",
+    eval: (cmd: string, context: any, filename: string, callback: Function) => {
+      const singleCallback = once((err, res) => callback(err, res))
+
+      if (!cmd || !cmd.length) {
+        callback()
+      }
+
+      handle.change((doc: any) => {
+        doc.commands.push({ code: cmd })
+        return doc
+      })
+
+      setTimeout(() => {
+        handle.on("doc", doc => {
+          const lastCmd = last(doc.commands)
+          if (!lastCmd) return
+
+          const { result } = lastCmd as { result: string }
+          if (!result) return
+
+          const parsed = parse(result)
+
+          singleCallback(parsed.error, parsed.result)
+        })
+      }, 1)
+    },
+  })
+}
+
 hm.ready.then(hm => {
   storeBackend.sendToFrontend({ type: "Ready" })
 
@@ -49,34 +84,13 @@ hm.ready.then(hm => {
   const { id } = Link.parse(workspaceUrl)
   const handle = Content.store.handle(id)
 
-  handle.on("doc", doc => {
-    doc.commands.forEach(
-      ({ code, result }: { code: string; result: string }) => {
-        console.log(`$ ${code}`)
-
-        const parsed = parse(result)
-
-        if (parsed.error) {
-          console.log(`ERR: ${parsed.error}`)
-        } else {
-          console.log(`> ${parsed.result}`)
-        }
-      },
-    )
+  handle.change((doc: any) => {
+    doc.commands = []
+    return doc
   })
 
-  // TODO: read + print + loop
-  setTimeout(() => {
-    console.log("=== eval ===")
+  console.log(`Welcome to Capstone CLI [${id}]`)
 
-    handle.change((doc: any) => {
-      // if (!doc.commands) {
-      // doc.commands = []
-      // }
-
-      // doc.commands.push({ code: "3 + 2" })
-
-      return doc
-    })
-  }, 4000)
+  setTimeout(() => startRepl(handle), 10)
 })
+
