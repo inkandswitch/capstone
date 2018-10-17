@@ -7,7 +7,7 @@ import { ControlProps, ControlState } from "../apps/shared/command"
 import FullscreenToggle from "./FullscreenToggle"
 import WorkspaceMgr from "./WorkspaceMgr"
 
-export default class ControlPannel extends React.Component<ControlProps> {
+export default class ControlPanel extends React.Component<ControlProps> {
   render() {
     return (
       <div>

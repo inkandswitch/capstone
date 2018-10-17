@@ -3,7 +3,7 @@ import * as ReactDOM from "react-dom"
 import * as Link from "../../data/Link"
 import StoreBackend from "../../data/StoreBackend"
 
-import ControlPannel from "../../components/ControlPannel"
+import ControlPanel from "../../components/ControlPanel"
 
 export interface ControlState {
   workspaceUrl: string
@@ -23,18 +23,18 @@ export interface ControlProps {
 
 const DebugPane = document.getElementById("DebugPane")!
 
-export function setupControlPannel(store: StoreBackend) {
+export function setupControlPanel(store: StoreBackend) {
   // why is this so terrible??
 
   let oldWorkspace: string | null = null
 
   function saveState(state: ControlState): void {
-    chrome.storage.local.set({ controlPannelState: state })
+    chrome.storage.local.set({ controlPanelState: state })
     if (state.workspaceUrl !== oldWorkspace) {
       store.sendToFrontend({ type: "SetWorkspace", url: state.workspaceUrl })
     }
 
-    ReactDOM.render(<ControlPannel state={state} tools={tools} />, DebugPane)
+    ReactDOM.render(<ControlPanel state={state} tools={tools} />, DebugPane)
     oldWorkspace = state.workspaceUrl
   }
 
@@ -61,11 +61,11 @@ export function setupControlPannel(store: StoreBackend) {
 
   const tools = { saveState, newWorkspace, setWorkspace }
 
-  chrome.storage.local.get("controlPannelState", result => {
-    let { controlPannelState } = result
-    let state = controlPannelState || { workspaceUrl: "", history: [] }
+  chrome.storage.local.get("controlPanelState", result => {
+    let { controlPanelState } = result
+    let state = controlPanelState || { workspaceUrl: "", history: [] }
 
-    console.log("controlPannelState", state)
+    console.log("controlPanelState", state)
 
     if (state.workspaceUrl === "") {
       newWorkspace(state)
@@ -75,9 +75,9 @@ export function setupControlPannel(store: StoreBackend) {
   })
 }
 
-export function setDebugPannel() {
-  chrome.storage.local.get("debugPannel", data => {
-    DebugPane.style.display = data.debugPannel
+export function setDebugPanel() {
+  chrome.storage.local.get("debugPanel", data => {
+    DebugPane.style.display = data.debugPanel
   })
   DebugPane.style.display =
     DebugPane.style.display === "block" ? "none" : "block"
@@ -86,6 +86,6 @@ export function setDebugPannel() {
 export function toggleDebug() {
   console.log("Toggling debug pane")
   const mode = DebugPane.style.display === "block" ? "none" : "block"
-  chrome.storage.local.set({ debugPannel: mode })
-  setDebugPannel()
+  chrome.storage.local.set({ debugPanel: mode })
+  setDebugPanel()
 }

@@ -1,7 +1,7 @@
 import StoreBackend from "../../data/StoreBackend"
 import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"
-import { setupControlPannel, toggleDebug, setDebugPannel } from "./command"
+import { setupControlPanel, toggleDebug, setDebugPanel } from "./command"
 import * as Link from "../../data/Link"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
@@ -49,9 +49,9 @@ webview.addEventListener("loadstop", () => {
 
   store.sendToFrontend({ type: "Ready" })
 
-  setDebugPannel()
+  setDebugPanel()
 
-  setupControlPannel(store)
+  setupControlPanel(store)
 })
 
 // Receive messages from the Clipper chrome extension to import content
