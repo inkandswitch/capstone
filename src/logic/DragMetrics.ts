@@ -28,7 +28,7 @@ export const update = (measurements: Measurements, input: Input) => {
     x: position.x - measurements.startPosition.x,
     y: position.y - measurements.startPosition.y,
   }
-  const magnitude = Math.sqrt(delta.x ** 2 + delta.y ** 2)
+  const magnitude = Math.hypot(delta.x, delta.y)
   return {
     magnitude,
     position,
