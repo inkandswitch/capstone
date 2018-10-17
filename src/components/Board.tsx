@@ -1,5 +1,4 @@
 import * as React from "react"
-import * as RxOps from "rxjs/operators"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
@@ -133,10 +132,6 @@ class Board extends React.Component<Props, State> {
 
   onRef = (ref: HTMLDivElement) => {
     this.boardEl = ref
-  }
-
-  onPinchCardEnd = (id: string) => {
-    console.log(`did pinch in on card ${id}`)
   }
 
   onDragStart = (id: string) => {

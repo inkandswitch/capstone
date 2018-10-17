@@ -17,12 +17,6 @@ export type Pointer = {
   history: PointerEvent[]
 }
 
-export type PinchEvent = {
-  distance: number
-  eventType: "pinchin" | "pinchout" | "pinchend"
-  pointerEvents: PointerEvent[]
-}
-
 // Pointer stream
 // ==============
 
