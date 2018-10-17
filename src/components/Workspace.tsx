@@ -16,6 +16,8 @@ import Peers from "./Peers"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as Rx from "rxjs"
+import * as Link from "../data/Link"
+import { last } from "lodash"
 
 export interface Model {
   navStack: string[]
@@ -54,10 +56,13 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
         break
       }
       case "ReceiveDocuments": {
+        const boardsOnStack = this.doc.navStack.filter(
+          url => Link.parse(url).type == "Board",
+        )
         this.emit({
           type: "ReceiveDocuments",
           body: message.body,
-          to: this.doc.rootUrl,
+          to: last(boardsOnStack) || this.doc.rootUrl,
         })
         break
       }
