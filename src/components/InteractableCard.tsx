@@ -5,9 +5,7 @@ import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
 import * as Link from "../data/Link"
-import * as GPS from "../logic/GPS"
-import * as RxOps from "rxjs/operators"
-import * as Rx from "rxjs"
+import Navigatable from "./Navigatable"
 
 export interface CardModel {
   id: string
@@ -21,7 +19,6 @@ export interface CardModel {
 
 export interface State {
   currentSize: Size
-  pinchStartDistance?: number
 }
 
 export interface Props {
@@ -35,52 +32,12 @@ export interface Props {
 
 export default class InteractableCard extends React.Component<Props, State> {
   node?: Element
-  private subscription?: Rx.Subscription
 
   constructor(props: Props) {
     super(props)
 
     this.state = {
       currentSize: { width: props.card.width, height: props.card.height },
-    }
-  }
-
-  componentDidMount() {
-    this.node = ReactDOM.findDOMNode(this) as Element
-    if (!this.node) return
-
-    this.subscription = GPS.stream()
-      .pipe(
-        RxOps.map(GPS.onlyTouch),
-        RxOps.filter(GPS.ifTwoFingerPinch),
-        RxOps.map(GPS.toPinchEvent),
-      )
-      .subscribe(this.onPinch)
-  }
-
-  componentWillUnmount() {
-    this.subscription && this.subscription.unsubscribe()
-  }
-
-  onPinch = (pinchEvent?: GPS.PinchEvent) => {
-    if (!pinchEvent || !this.state || !this.node) return
-    if (!this.state.pinchStartDistance && pinchEvent.eventType != "pinchend") {
-      for (const pointerEvent of pinchEvent.pointerEvents) {
-        if (!this.node.contains(pointerEvent.target as Node)) return
-      }
-      // pinch began
-      this.setState({ pinchStartDistance: pinchEvent.distance })
-    } else if (
-      this.state.pinchStartDistance &&
-      pinchEvent.eventType == "pinchend"
-    ) {
-      // pinch ended
-      if (this.state.pinchStartDistance > pinchEvent.distance) {
-        // pinch out
-      } else if (this.state.pinchStartDistance < pinchEvent.distance) {
-        this.props.onPinchInEnd && this.props.onPinchInEnd(this.props.card.url)
-      }
-      this.setState({ pinchStartDistance: undefined })
     }
   }
 
@@ -111,6 +68,10 @@ export default class InteractableCard extends React.Component<Props, State> {
       )
   }
 
+  onPinchInEnd = () => {
+    this.props.onPinchInEnd && this.props.onPinchInEnd(this.props.card.url)
+  }
+
   render() {
     const {
       card: { x, y, z, width, height },
@@ -122,27 +83,29 @@ export default class InteractableCard extends React.Component<Props, State> {
     const type = Link.parse(this.props.card.url).type
 
     return (
-      <Interactable
-        position={{ x, y }}
-        originalSize={{ width, height }}
-        preserveAspectRatio={type === "Image"}
-        onStart={this.start}
-        onDragStop={this.dragStop}
-        onResize={this.onResize}
-        onResizeStop={this.resizeStop}
-        z={z}>
-        <Card
-          cardId={this.props.card.id}
-          style={{ width: currentSize.width, height: currentSize.height }}
-          {...omit(rest, [
-            "onDoubleTap",
-            "onDragStop",
-            "onResizeStop",
-            "onPinchInEnd",
-          ])}>
-          {children}
-        </Card>
-      </Interactable>
+      <Navigatable onPinchInEnd={this.onPinchInEnd}>
+        <Interactable
+          position={{ x, y }}
+          originalSize={{ width, height }}
+          preserveAspectRatio={type === "Image"}
+          onStart={this.start}
+          onDragStop={this.dragStop}
+          onResize={this.onResize}
+          onResizeStop={this.resizeStop}
+          z={z}>
+          <Card
+            cardId={this.props.card.id}
+            style={{ width: currentSize.width, height: currentSize.height }}
+            {...omit(rest, [
+              "onDoubleTap",
+              "onDragStop",
+              "onResizeStop",
+              "onPinchInEnd",
+            ])}>
+            {children}
+          </Card>
+        </Interactable>
+      </Navigatable>
     )
   }
 }
