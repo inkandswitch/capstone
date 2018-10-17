@@ -18,8 +18,10 @@ const MINIMUM_DISTANCE = 60
 export default class EdgeBoardCreator extends React.Component<Props, State> {
   leftEdge?: HTMLDivElement
   rightEdge?: HTMLDivElement
+  rightEdgeMaxX?: number
+  triggeredEdge?: HTMLDivElement
 
-  state: State = { measurements: undefined }
+  state: State = {}
 
   componentDidMount() {
     GPS.stream()
@@ -36,12 +38,14 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
     if (!this.leftEdge || !this.rightEdge) return
     const { x, y } = e
     const { measurements } = this.state
-    if (
-      e.type === "pointerdown" &&
-      (this.leftEdge.contains(e.target as Node) ||
-        this.rightEdge.contains(e.target as Node))
-    ) {
-      this.setState({ measurements: DragMetrics.init({ x, y }) })
+    if (e.type === "pointerdown") {
+      if (this.leftEdge.contains(e.target as Node)) {
+        this.triggeredEdge = this.leftEdge
+        this.setState({ measurements: DragMetrics.init({ x, y }) })
+      } else if (this.rightEdge.contains(e.target as Node)) {
+        this.triggeredEdge = this.rightEdge
+        this.setState({ measurements: DragMetrics.init({ x, y }) })
+      }
     } else if (measurements !== undefined) {
       if (e.type === "pointermove") {
         this.setState({
@@ -51,16 +55,25 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
         if (this.shouldCreateBoard()) {
           this.props.onBoardCreate(measurements.position)
         }
+        this.triggeredEdge = undefined
         this.setState({ measurements: undefined })
       }
     }
   }
 
-  shouldCreateBoard() {
+  getAbsoluteOffsetFromEdge() {
     const { measurements } = this.state
-    return (
-      measurements !== undefined && measurements.position.x >= MINIMUM_DISTANCE
-    )
+    if (!measurements || !this.triggeredEdge) return 0
+    if (this.triggeredEdge == this.leftEdge) {
+      return measurements.position.x
+    } else if (this.triggeredEdge == this.rightEdge && this.rightEdgeMaxX) {
+      return this.rightEdgeMaxX - measurements.position.x
+    }
+    return 0
+  }
+
+  shouldCreateBoard() {
+    return this.getAbsoluteOffsetFromEdge() >= MINIMUM_DISTANCE
   }
 
   onLeftEdge = (ref: HTMLDivElement) => {
@@ -69,6 +82,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
 
   onRightEdge = (ref: HTMLDivElement) => {
     this.rightEdge = ref
+    this.rightEdgeMaxX = ref.getBoundingClientRect().right
   }
 
   render() {
@@ -77,11 +91,12 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
     let dragMarker = null
     if (measurements) {
       const { position } = measurements
-      const thresholdMet = position.x >= MINIMUM_DISTANCE
+      const thresholdMet = this.shouldCreateBoard()
+      const offsetFromEdge = this.getAbsoluteOffsetFromEdge()
       const style = {
         transform: `translate(${position.x}px,${position.y}px)`,
         borderColor: thresholdMet ? "red" : "black",
-        opacity: Math.min(position.x / MINIMUM_DISTANCE, 1.0),
+        opacity: Math.min(offsetFromEdge / MINIMUM_DISTANCE, 1.0),
         zIndex,
       }
       dragMarker = <div className={css.Marker} style={style} />
