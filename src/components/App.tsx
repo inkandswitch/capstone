@@ -4,6 +4,7 @@ import { Doc, EditDoc } from "automerge/frontend"
 import Root from "./Root"
 import Content from "./Content"
 import Stats from "./Stats"
+import * as Link from "../data/Link"
 
 import "./Board"
 import "./Image"
@@ -37,7 +38,6 @@ export default class App extends React.Component<Props, State> {
     const shelfUrl = Content.create("Shelf")
     const rootBoardUrl = Content.create("Board")
     const workspaceUrl = Content.create("Workspace")
-    const replUrl = Content.create("REPL")
 
     Content.workspaceUrl = workspaceUrl
     Content.rootBoardUrl = rootBoardUrl
@@ -49,6 +49,7 @@ export default class App extends React.Component<Props, State> {
           workspace.shelfUrl = shelfUrl
           workspace.rootUrl = rootBoardUrl
           workspace.navStack = []
+          workspace.comands = []
         }
       })
 
@@ -139,7 +140,7 @@ export default class App extends React.Component<Props, State> {
           <Stats />
           <GlobalKeyboard onKeyDown={this.onKeyDown} />
           <Content mode="fullscreen" url={url} />
-          <Content mode="embed" type="REPL" url={url} />
+          <Content mode="embed" url={Link.setType(url, "REPL")} />
           <Feedback.Renderer />
         </div>
       </Root>

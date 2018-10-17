@@ -2,7 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
-import { stringify } from "flatted/esm"
+import { stringify } from "flatted"
 
 type Command = {
   code: string
@@ -46,14 +46,15 @@ class REPL extends React.Component<Props> {
         if (command.result) return
 
         let result
+        let error
 
         try {
           result = eval(`(function() { return ${command.code}; })()`)
         } catch (e) {
-          result = e
+          error = e
         }
 
-        doc.commands[i].result = stringify(result, null, 2)
+        doc.commands[i].result = stringify({ result, error }, null, 2)
       })
 
       return doc
