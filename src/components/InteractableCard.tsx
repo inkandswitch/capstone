@@ -1,5 +1,4 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
 import Interactable from "./Interactable"
 import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"

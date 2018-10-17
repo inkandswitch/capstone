@@ -13,11 +13,9 @@ import Content, {
 import Clipboard from "./Clipboard"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
-import * as GPS from "../logic/GPS"
-import * as RxOps from "rxjs/operators"
-import * as Rx from "rxjs"
 import * as Link from "../data/Link"
 import { last } from "lodash"
+import Navigatable from "./Navigatable"
 
 export interface Model {
   navStack: string[]
@@ -71,9 +69,6 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
 }
 
 class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
-  private subscription?: Rx.Subscription
-  pinchStartDistance?: number
-
   static reify(doc: AnyDoc): Model {
     return {
       navStack: Reify.array(doc.navStack),
@@ -82,36 +77,8 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
   }
 
-  componentDidMount() {
-    this.subscription = GPS.stream()
-      .pipe(
-        RxOps.map(GPS.onlyTouch),
-        RxOps.filter(GPS.ifTwoFingerPinch),
-        RxOps.map(GPS.toPinchEvent),
-      )
-      .subscribe(this.onPinch)
-  }
-
-  componentWillUnmount() {
-    this.subscription && this.subscription.unsubscribe()
-  }
-
   get currentUrl() {
     return this.peek()
-  }
-
-  onPinch = (pinchEvent?: GPS.PinchEvent) => {
-    if (!pinchEvent) return
-    if (!this.pinchStartDistance && pinchEvent.eventType != "pinchend") {
-      this.pinchStartDistance = pinchEvent.distance
-    } else if (
-      this.pinchStartDistance &&
-      pinchEvent.eventType == "pinchend" &&
-      this.pinchStartDistance > pinchEvent.distance
-    ) {
-      this.pinchStartDistance = undefined
-      this.pop()
-    }
   }
 
   push = (url: string) => {
@@ -178,24 +145,26 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const { shelfUrl } = this.props.doc
     const currentUrl = this.peek()
     return (
-      <div
-        className="Workspace"
-        style={style.Workspace}
-        onDragOver={this.onDragOver}
-        onDrop={this.onDrop}>
-        <GPSInput />
-        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-        <Content
-          key={currentUrl}
-          mode={this.props.mode}
-          url={currentUrl}
-          onNavigate={this.push}
-        />
-        <Content mode="embed" url={shelfUrl} />
-        <div style={style.Peers}>
-          <Peers onTapPeer={this.onTapPeer} />
+      <Navigatable onPinchOutEnd={this.pop}>
+        <div
+          className="Workspace"
+          style={style.Workspace}
+          onDragOver={this.onDragOver}
+          onDrop={this.onDrop}>
+          <GPSInput />
+          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+          <Content
+            key={currentUrl}
+            mode={this.props.mode}
+            url={currentUrl}
+            onNavigate={this.push}
+          />
+          <Content mode="embed" url={shelfUrl} />
+          <div style={style.Peers}>
+            <Peers onTapPeer={this.onTapPeer} />
+          </div>
         </div>
-      </div>
+      </Navigatable>
     )
   }
 }
