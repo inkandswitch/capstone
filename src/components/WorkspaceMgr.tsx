@@ -59,7 +59,7 @@ export default class WorkspaceMgr extends React.Component<ControlProps, State> {
   delUrlFn = (index: number) => {
     return (event: any) => {
       this.props.state.history.splice(index,1)
-      this.props.tools.saveState(this.props.state))
+      this.props.tools.saveState(this.props.state)
     }
   }
   setUrlFn = (url: string) => {
@@ -97,7 +97,7 @@ export default class WorkspaceMgr extends React.Component<ControlProps, State> {
           {" "}
           Generate A New Workspace{" "}
         </button>
-        <div> Previous Boards </div>
+        <div> Previous Workspace </div>
         <ul>
           {" "}
           {this.props.state.history.map((url,index) => (
