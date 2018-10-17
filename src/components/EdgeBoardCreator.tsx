@@ -75,13 +75,13 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
     const { measurements } = this.state
     const { zIndex } = this.props
     let dragMarker = null
-    if (measurements !== undefined) {
-      const activated = measurements.position.x >= MINIMUM_DISTANCE
+    if (measurements) {
+      const { position } = measurements
+      const thresholdMet = position.x >= MINIMUM_DISTANCE
       const style = {
-        top: measurements.position.y,
-        left: measurements.position.x,
-        borderColor: activated ? "red" : "black",
-        opacity: Math.min(measurements.position.x / MINIMUM_DISTANCE, 1.0),
+        transform: `translate(${position.x}px,${position.y}px)`,
+        borderColor: thresholdMet ? "red" : "black",
+        opacity: Math.min(position.x / MINIMUM_DISTANCE, 1.0),
         zIndex,
       }
       dragMarker = <div className={css.Marker} style={style} />
