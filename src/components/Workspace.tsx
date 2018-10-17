@@ -13,6 +13,9 @@ import Content, {
 import Clipboard from "./Clipboard"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
+import * as GPS from "../logic/GPS"
+import * as RxOps from "rxjs/operators"
+import * as Rx from "rxjs"
 
 export interface Model {
   navStack: string[]
@@ -63,6 +66,9 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
 }
 
 class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
+  private subscription?: Rx.Subscription
+  pinchStartDistance?: number
+
   static reify(doc: AnyDoc): Model {
     return {
       navStack: Reify.array(doc.navStack),
@@ -71,8 +77,36 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
   }
 
+  componentDidMount() {
+    this.subscription = GPS.stream()
+      .pipe(
+        RxOps.map(GPS.onlyTouch),
+        RxOps.filter(GPS.ifTwoFingerPinch),
+        RxOps.map(GPS.toPinchEvent),
+      )
+      .subscribe(this.onPinch)
+  }
+
+  componentWillUnmount() {
+    this.subscription && this.subscription.unsubscribe()
+  }
+
   get currentUrl() {
     return this.peek()
+  }
+
+  onPinch = (pinchEvent?: GPS.PinchEvent) => {
+    if (!pinchEvent) return
+    if (!this.pinchStartDistance && pinchEvent.eventType != "pinchend") {
+      this.pinchStartDistance = pinchEvent.distance
+    } else if (
+      this.pinchStartDistance &&
+      pinchEvent.eventType == "pinchend" &&
+      this.pinchStartDistance > pinchEvent.distance
+    ) {
+      this.pinchStartDistance = undefined
+      this.pop()
+    }
   }
 
   push = (url: string) => {

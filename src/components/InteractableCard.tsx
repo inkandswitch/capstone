@@ -7,6 +7,7 @@ import { omit } from "lodash"
 import * as Link from "../data/Link"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
+import * as Rx from "rxjs"
 
 export interface CardModel {
   id: string
@@ -34,6 +35,7 @@ export interface Props {
 
 export default class InteractableCard extends React.Component<Props, State> {
   node?: Element
+  private subscription?: Rx.Subscription
 
   constructor(props: Props) {
     super(props)
@@ -47,13 +49,17 @@ export default class InteractableCard extends React.Component<Props, State> {
     this.node = ReactDOM.findDOMNode(this) as Element
     if (!this.node) return
 
-    GPS.stream()
+    this.subscription = GPS.stream()
       .pipe(
         RxOps.map(GPS.onlyTouch),
         RxOps.filter(GPS.ifTwoFingerPinch),
         RxOps.map(GPS.toPinchEvent),
       )
       .subscribe(this.onPinch)
+  }
+
+  componentWillUnmount() {
+    this.subscription && this.subscription.unsubscribe()
   }
 
   onPinch = (pinchEvent?: GPS.PinchEvent) => {
@@ -128,7 +134,12 @@ export default class InteractableCard extends React.Component<Props, State> {
         <Card
           cardId={this.props.card.id}
           style={{ width: currentSize.width, height: currentSize.height }}
-          {...omit(rest, ["onDoubleTap", "onDragStop", "onResizeStop"])}>
+          {...omit(rest, [
+            "onDoubleTap",
+            "onDragStop",
+            "onResizeStop",
+            "onPinchInEnd",
+          ])}>
           {children}
         </Card>
       </Interactable>
