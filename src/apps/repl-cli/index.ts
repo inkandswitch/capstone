@@ -9,7 +9,7 @@ import StoreBackend from "../../data/StoreBackend"
 import { FrontendHandle } from "../../modules/hypermerge/frontend"
 import { Hypermerge } from "../../modules/hypermerge"
 import { last, once } from "lodash"
-import { parse } from "flatted"
+import { parse } from "json-fn"
 
 const workspaceUrl = process.argv[2]
 
@@ -85,6 +85,7 @@ hm.ready.then(hm => {
   const handle = Content.store.handle(id)
 
   handle.change((doc: any) => {
+    // clean up previous commands - warning, this will clear up hooks as well
     doc.commands = []
     return doc
   })

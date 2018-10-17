@@ -152,7 +152,12 @@ class Board extends React.Component<Props, State> {
       if (card) {
         // XXX: Remove once backend/store handles object immutability.
         doc.cards[id] = { ...card, x: x, y: y }
+
+        if (window.hooks.onCardDragEnded) {
+          window.hooks.onCardDragEnded(doc.cards[id])
+        }
       }
+
       return doc
     })
   }

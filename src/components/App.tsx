@@ -31,6 +31,8 @@ type State = {
 
 type Props = {}
 
+window.hooks = {}
+
 export default class App extends React.Component<Props, State> {
   state: State = {}
 

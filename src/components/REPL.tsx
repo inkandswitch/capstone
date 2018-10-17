@@ -2,7 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
-import { stringify } from "flatted"
+import { stringify } from "json-fn"
 
 type Command = {
   code: string

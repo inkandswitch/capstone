@@ -3,8 +3,13 @@ import Content from "../components/Content"
 declare global {
   interface Window {
     Content: typeof Content
+    hooks: Hooks
     visualViewport: VisualViewport
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
+  }
+
+  interface Hooks {
+    onCardDragEnded?: Function
   }
 
   interface PointerEvent {
