@@ -40,11 +40,15 @@ export class Dragger {
 
     const dragPoint = DOM.getOffsetFromParent(e, this.node)
     this.measurements = DragMetrics.update(this.measurements, dragPoint)
-    const translate = {
-      x: this.origin.x + this.measurements.delta.x,
-      y: this.origin.y + this.measurements.delta.y,
-    }
-    this.onDrag && this.onDrag(translate.x, translate.y)
+    const translation = this.translate(this.origin, this.measurements)
+    this.onDrag && this.onDrag(translation.x, translation.y)
+  }
+
+  stop() {
+    if (!this.measurements) throw new Error("Must call star() before stop()")
+    this.origin = this.translate(this.origin, this.measurements)
+    this.measurements = undefined
+    this.onStop && this.onStop(this.origin.x, this.origin.y)
   }
 
   setPosition(e: Point) {
@@ -52,13 +56,10 @@ export class Dragger {
     this.measurements = undefined
   }
 
-  stop() {
-    if (!this.measurements) throw new Error("Must call star() before stop()")
-    this.origin = {
-      x: this.origin.x + this.measurements.delta.x,
-      y: this.origin.y + this.measurements.delta.y,
+  private translate(origin: Point, measurements: DragMetrics.Measurements) {
+    return {
+      x: origin.x + measurements.delta.x,
+      y: origin.y + measurements.delta.y,
     }
-    this.measurements = undefined
-    this.onStop && this.onStop(this.origin.x, this.origin.y)
   }
 }

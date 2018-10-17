@@ -1,4 +1,3 @@
-import { min } from "rxjs/operators"
 import * as DOM from "./DOM"
 import * as DragMetrics from "./DragMetrics"
 
