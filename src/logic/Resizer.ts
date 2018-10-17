@@ -19,7 +19,6 @@ export class Resizer {
   private originalSize: Size
   private currentSize: Size
   private preserveAspectRatio: boolean
-  private dragStartPoint?: Point
   private onStart?: OnStartHandler
   private onDrag?: OnMoveHandler
   private onStop?: OnStopHandler
