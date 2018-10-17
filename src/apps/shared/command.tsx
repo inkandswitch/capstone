@@ -8,6 +8,7 @@ import ControlPanel from "../../components/ControlPanel"
 export interface ControlState {
   workspaceUrl: string
   history: string[]
+  debug: string
 }
 
 export interface ControlTools {
@@ -27,11 +28,16 @@ export function setupControlPanel(store: StoreBackend) {
   // why is this so terrible??
 
   let oldWorkspace: string | null = null
+  let oldDebug: string | null = null
 
   function saveState(state: ControlState): void {
     chrome.storage.local.set({ controlPanelState: state })
     if (state.workspaceUrl !== oldWorkspace) {
       store.sendToFrontend({ type: "SetWorkspace", url: state.workspaceUrl })
+    }
+
+    if (state.debug !== oldDebug) {
+      chrome.storage.local.set({ debug: state.debug })
     }
 
     ReactDOM.render(<ControlPanel state={state} tools={tools} />, DebugPane)
@@ -63,9 +69,7 @@ export function setupControlPanel(store: StoreBackend) {
 
   chrome.storage.local.get("controlPanelState", result => {
     let { controlPanelState } = result
-    let state = controlPanelState || { workspaceUrl: "", history: [] }
-
-    console.log("controlPanelState", state)
+    let state = controlPanelState || { workspaceUrl: "", history: [], debug: "" }
 
     if (state.workspaceUrl === "") {
       newWorkspace(state)
@@ -84,7 +88,6 @@ export function setDebugPanel() {
 }
 
 export function toggleDebug() {
-  console.log("Toggling debug pane")
   const mode = DebugPane.style.display === "block" ? "none" : "block"
   chrome.storage.local.set({ debugPanel: mode })
   setDebugPanel()
