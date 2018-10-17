@@ -145,7 +145,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const { shelfUrl } = this.props.doc
     const currentUrl = this.peek()
     return (
-      <Navigatable onPinchOutEnd={this.pop}>
+      <Navigatable onPinchInEnd={this.pop}>
         <div
           className="Workspace"
           style={style.Workspace}

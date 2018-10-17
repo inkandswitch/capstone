@@ -82,7 +82,7 @@ export default class InteractableCard extends React.Component<Props, State> {
     const type = Link.parse(this.props.card.url).type
 
     return (
-      <Navigatable onPinchInEnd={this.onPinchInEnd}>
+      <Navigatable onPinchOutEnd={this.onPinchInEnd}>
         <Interactable
           position={{ x, y }}
           originalSize={{ width, height }}

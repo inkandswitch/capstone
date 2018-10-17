@@ -2,15 +2,24 @@ import * as React from "react"
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
 import * as GPS from "../logic/GPS"
+import { some } from "lodash"
 import * as ReactDOM from "react-dom"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
 interface NavigatableProps {
   onPinchInEnd?: () => void
   onPinchOutEnd?: () => void
+  onPinchMove?: (distance: number) => void
 }
 
-export default class Navigatable extends React.Component<NavigatableProps> {
+interface State {
+  pinch: PinchMetrics.Measurements
+}
+
+export default class Navigatable extends React.Component<
+  NavigatableProps,
+  State
+> {
   private node?: Element
   private subscription?: Rx.Subscription
   private pinchMetrics?: PinchMetrics.Measurements
@@ -22,6 +31,7 @@ export default class Navigatable extends React.Component<NavigatableProps> {
     this.subscription = GPS.stream()
       .pipe(
         RxOps.map(GPS.onlyTouch),
+        RxOps.map(GPS.onlyActive),
         RxOps.filter(GPS.ifExactlyTwo),
         RxOps.map(GPS.toMostRecentEvents),
       )
@@ -33,26 +43,35 @@ export default class Navigatable extends React.Component<NavigatableProps> {
   }
 
   onTwoFingers = (events: { [key: number]: PointerEvent }) => {
-    if (!this.pinchMetrics) {
-      this.pinchMetrics = PinchMetrics.init(Object.values(events))
+    if (!this.node) return
+
+    const eventList = Object.values(events)
+
+    if (
+      !this.pinchMetrics &&
+      this.node.contains(eventList[0].target as Node) &&
+      this.node.contains(eventList[1].target as Node)
+    ) {
+      this.pinchMetrics = PinchMetrics.init(eventList)
+    } else if (this.pinchMetrics) {
+      if (some(events, GPS.ifTerminalEvent)) {
+        const { distance, initialDistance } = this.pinchMetrics
+        if (distance > initialDistance) {
+          this.props.onPinchOutEnd && this.props.onPinchOutEnd()
+        } else if (distance < initialDistance) {
+          this.props.onPinchInEnd && this.props.onPinchInEnd()
+        }
+        this.pinchMetrics = undefined
+      } else {
+        // Update pinch metrics
+        this.pinchMetrics = PinchMetrics.update(this.pinchMetrics, eventList)
+        this.props.onPinchMove &&
+          this.props.onPinchMove(this.pinchMetrics.distance)
+      }
     }
-    // if (!!this.node) return
-    // if (!this.pinchStartDistance && pinchEvent.eventType != "pinchend") {
-    //   for (const pointerEvent of pinchEvent.pointerEvents) {
-    //     if (!this.node.contains(pointerEvent.target as Node)) return
-    //   }
-    //   this.pinchStartDistance = pinchEvent.distance
-    // } else if (this.pinchStartDistance && pinchEvent.eventType == "pinchend") {
-    //   if (this.pinchStartDistance > pinchEvent.distance) {
-    //     this.props.onPinchOutEnd && this.props.onPinchOutEnd()
-    //   } else if (this.pinchStartDistance < pinchEvent.distance) {
-    //     this.props.onPinchInEnd && this.props.onPinchInEnd()
-    //   }
-    //   this.pinchStartDistance = undefined
-    // }
   }
 
   render() {
-    return <div>{this.props.children}</div>
+    return this.props.children
   }
 }
