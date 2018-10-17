@@ -135,6 +135,10 @@ class Board extends React.Component<Props, State> {
     this.boardEl = ref
   }
 
+  onPinchCardEnd = (id: string) => {
+    console.log(`did pinch in on card ${id}`)
+  }
+
   onDragStart = (id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
@@ -217,6 +221,7 @@ class Board extends React.Component<Props, State> {
                     <Mirrorable cardId={card.id} onMirror={this.onMirror}>
                       <InteractableCard
                         card={card}
+                        onPinchInEnd={this.onPinchCardEnd}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
