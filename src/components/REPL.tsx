@@ -4,6 +4,9 @@ import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import { stringify } from "json-fn"
 
+import * as Debug from "debug"
+const log = Debug("component:repl")
+
 type Command = {
   code: string
   result?: string
@@ -33,16 +36,17 @@ class REPL extends React.Component<Props> {
   runREPL = () => {
     const commands = this.props.doc.commands || []
 
-    console.log("commands", commands)
-
     if (commands.every(({ result }) => result !== undefined)) {
       return
     }
+
+    log("commands", commands)
 
     this.props.change(doc => {
       const commands = doc.commands || []
 
       doc.commands.forEach((command, i) => {
+        // skip already executed
         if (command.result) return
 
         let result
@@ -54,7 +58,7 @@ class REPL extends React.Component<Props> {
           error = e
         }
 
-        doc.commands[i].result = stringify({ result, error }, null, 2)
+        doc.commands[i].result = stringify({ result, error })
       })
 
       return doc
