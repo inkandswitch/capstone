@@ -198,13 +198,12 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
-    const { cards, strokes } = this.props.doc
+    const { cards, strokes, topZ } = this.props.doc
     switch (this.props.mode) {
       case "fullscreen":
         return (
           <div className={css.Board} ref={this.onRef}>
             <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
-            <EdgeBoardCreator onBoardCreate={this.onCreateBoard} />
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
@@ -228,6 +227,10 @@ class Board extends React.Component<Props, State> {
                 )
               })}
             </TransitionGroup>
+            <EdgeBoardCreator
+              onBoardCreate={this.onCreateBoard}
+              zIndex={topZ + 1}
+            />
           </div>
         )
 

@@ -6,6 +6,7 @@ import * as DragMetrics from "../logic/DragMetrics"
 
 interface Props {
   onBoardCreate: (position: Point) => void
+  zIndex: number
 }
 
 interface State {
@@ -18,7 +19,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   leftEdge?: HTMLDivElement
   rightEdge?: HTMLDivElement
 
-  state = { measurements: undefined }
+  state: State = { measurements: undefined }
 
   componentDidMount() {
     GPS.stream()
@@ -49,8 +50,8 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
       } else {
         if (this.shouldCreateBoard()) {
           this.props.onBoardCreate(measurements.position)
-          this.setState({ measurements: undefined })
         }
+        this.setState({ measurements: undefined })
       }
     }
   }
@@ -58,7 +59,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   shouldCreateBoard() {
     const { measurements } = this.state
     return (
-      measurements !== undefined && measurements.delta.x >= MINIMUM_DISTANCE
+      measurements !== undefined && measurements.position.x >= MINIMUM_DISTANCE
     )
   }
 
@@ -72,13 +73,16 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
 
   render() {
     const { measurements } = this.state
+    const { zIndex } = this.props
     let dragMarker = null
     if (measurements !== undefined) {
-      const activated = measurements.delta.x >= MINIMUM_DISTANCE
+      const activated = measurements.position.x >= MINIMUM_DISTANCE
       const style = {
         top: measurements.position.y,
         left: measurements.position.x,
         borderColor: activated ? "red" : "black",
+        opacity: Math.min(measurements.position.x / MINIMUM_DISTANCE, 1.0),
+        zIndex,
       }
       dragMarker = <div className={css.Marker} style={style} />
     }
