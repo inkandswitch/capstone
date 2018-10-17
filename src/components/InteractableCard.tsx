@@ -29,7 +29,7 @@ export interface Props {
   onDragStop?: (x: number, y: number, id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
   onDoubleTap?: (url: string) => void
-  onPinchInEnd?: (id: string) => void
+  onPinchInEnd?: (url: string) => void
 }
 
 export default class InteractableCard extends React.Component<Props, State> {
@@ -72,7 +72,7 @@ export default class InteractableCard extends React.Component<Props, State> {
       if (this.state.pinchStartDistance > pinchEvent.distance) {
         // pinch out
       } else if (this.state.pinchStartDistance < pinchEvent.distance) {
-        this.props.onPinchInEnd && this.props.onPinchInEnd(this.props.card.id)
+        this.props.onPinchInEnd && this.props.onPinchInEnd(this.props.card.url)
       }
       this.setState({ pinchStartDistance: undefined })
     }

@@ -221,7 +221,7 @@ class Board extends React.Component<Props, State> {
                     <Mirrorable cardId={card.id} onMirror={this.onMirror}>
                       <InteractableCard
                         card={card}
-                        onPinchInEnd={this.onPinchCardEnd}
+                        onPinchInEnd={this.props.onNavigate}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
