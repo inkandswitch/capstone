@@ -14,25 +14,26 @@ import "./Table"
 import "./Workspace"
 import GlobalKeyboard from "./GlobalKeyboard"
 
+type Props = {
+  url: string
+}
 type State = {
-  workspaceUrl?: string
+  workspaceUrl: string
   mode: "loading" | "setup" | "ready"
   error?: string
 }
 
-export default class SidecarApp extends React.Component<{}, State> {
-  constructor(props: {}, ctx: any) {
+export default class SidecarApp extends React.Component<Props, State> {
+  constructor(props: Props, ctx: any) {
     super(props, ctx)
-    this.state = { mode: "loading" }
 
     const { workspaceUrl } = localStorage
-    if (workspaceUrl == null) {
-      this.state = { mode: "setup" }
-    } else {
-      this.state = {
-        mode: "ready",
-        workspaceUrl,
-      }
+
+    this.state = { mode: "loading", workspaceUrl: this.props.url }
+
+    this.state = {
+      mode: "ready",
+      workspaceUrl,
     }
   }
 
@@ -64,26 +65,15 @@ export default class SidecarApp extends React.Component<{}, State> {
         )
 
       case "ready":
-        if (!workspaceUrl) return null
         return (
           <div>
             <Content
               mode="fullscreen"
               url={Link.setType(workspaceUrl, "SidecarWorkspace")}
             />
-            <button onClick={this.onResetWorkspaceUrl}>
-              Reset Workspace URL
-            </button>
           </div>
         )
     }
-  }
-
-  onResetWorkspaceUrl = () => {
-    this.setState({
-      mode: "setup",
-      workspaceUrl: undefined,
-    })
   }
 
   onUrlChange = (event: any) => {

@@ -23,54 +23,41 @@ import GlobalKeyboard from "./GlobalKeyboard"
 import * as Debug from "debug"
 const log = Debug("component:app")
 
-type State = {
-  url?: string
-}
+type State = { }
 
-type Props = {}
+type Props = { url: string }
 
 export default class App extends React.Component<Props, State> {
-  state: State = {}
 
-  initWorkspace() {
-    const shelfUrl = Content.create("Shelf")
-    const rootBoardUrl = Content.create("Board")
-    const workspaceUrl = Content.create("Workspace")
+  componentWillReceiveProps(nextProps : Props) {
+    log("component will receive props", nextProps)
+    if (nextProps.url != this.props.url) {
+      this.initWorkspace(nextProps.url)
+    }
+  }
 
-    Content.workspaceUrl = workspaceUrl
-    Content.rootBoardUrl = rootBoardUrl
-
-    // Initialize the workspace
-    Content.once<Workspace.Model>(workspaceUrl, (change: Function) => {
-      change((workspace: EditDoc<Workspace.Model>) => {
-        if (!workspace.identityUrl) {
-          workspace.shelfUrl = shelfUrl
-          workspace.rootUrl = rootBoardUrl
-          workspace.navStack = []
-        }
-      })
-
-      this.setState({ url: workspaceUrl })
-      localStorage.workspaceUrl = workspaceUrl
+  initWorkspace(workspaceUrl : string) {
+    const handle = Content.handle<Workspace.Model>(workspaceUrl)
+    handle.once("doc", doc => {
+      log("doc", doc, this.props.url)
+      const shelfUrl = doc.shelfUrl || Content.create("Shelf")
+      const rootUrl = doc.rootUrl || Content.create("Board")
+      if (doc.rootUrl === "") {
+        log("doc is blank - initializing", this.props.url)
+        handle.change(doc => {
+          doc.shelfUrl = shelfUrl
+          doc.rootUrl = rootUrl
+        })
+      }
+      Content.workspaceUrl = workspaceUrl
+      Content.rootBoardUrl = rootUrl
     })
   }
 
   componentDidMount() {
-    // initialize the workspace at startup (since we have no persistence)
-    const { workspaceUrl } = localStorage
-    if (workspaceUrl == undefined) {
-      this.initWorkspace()
-    } else {
-      Content.open<Workspace.Model>(
-        workspaceUrl,
-        (workspace: Doc<Workspace.Model>) => {
-          Content.workspaceUrl = workspaceUrl
-          Content.rootBoardUrl = workspace.rootUrl
+    log("component did mount", this.props.url)
 
-          this.setState({ url: workspaceUrl })
-        },
-      )
-    }
+    this.initWorkspace(this.props.url)
 
     // subscribe to the web clipper for messages about new content
     Content.store.clipper().subscribe(message => {
@@ -126,8 +113,9 @@ export default class App extends React.Component<Props, State> {
   }
 
   render() {
-    const { url } = this.state
+    const { url } = this.props
     log("render", url)
+    log("render-props", this.props)
     if (!url) {
       return null
     }

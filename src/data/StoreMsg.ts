@@ -4,6 +4,11 @@ export interface Ready {
   type: "Ready"
 }
 
+export interface SetWorkspace {
+  type: "SetWorkspace"
+  url: string
+}
+
 export interface Create {
   type: "Create"
   docId: string
@@ -109,6 +114,7 @@ export type FrontendToBackend =
 
 export type BackendToFrontend =
   | Ready
+  | SetWorkspace
   | DocReady
   | SetActorId
   | ApplyPatch

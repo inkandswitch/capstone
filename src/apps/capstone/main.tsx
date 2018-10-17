@@ -11,6 +11,7 @@ Content.store = new Store()
 
 window.addEventListener("message", event => {
   if (typeof event.data === "string") return // setImmediate uses postMessage
+
   const msg = event.data
 
   if (msg.type === "Ready") {
@@ -21,7 +22,9 @@ window.addEventListener("message", event => {
     })
   }
 
+  if (msg.type === "SetWorkspace") {
+    ReactDOM.render(<App url={msg.url} />, document.getElementById("main"))
+  }
+
   Content.store.onMessage(event.data)
 })
-
-ReactDOM.render(<App />, document.getElementById("main"))

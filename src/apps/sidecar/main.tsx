@@ -21,7 +21,10 @@ window.addEventListener("message", event => {
     })
   }
 
+  if (msg.type === "SetWorkspace") {
+    ReactDOM.render(<SidecarApp url={msg.url} />, document.getElementById("main"))
+  }
+
   Content.store.onMessage(event.data)
 })
 
-ReactDOM.render(<SidecarApp />, document.getElementById("main"))

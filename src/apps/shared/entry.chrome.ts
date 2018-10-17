@@ -1,7 +1,8 @@
 import StoreBackend from "../../data/StoreBackend"
 import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"
-import ControlPannel from "../../components/ControlPannel"
+import { setupControlPannel, toggleDebug, setDebugPannel } from "./command"
+import * as Link from "../../data/Link"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
@@ -10,7 +11,6 @@ let racf = require("random-access-chrome-file")
 process.hrtime = require("browser-process-hrtime")
 
 const webview = document.getElementById("webview")! as HTMLIFrameElement
-const DebugPane = document.getElementById("DebugPane")!
 
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
@@ -51,24 +51,8 @@ webview.addEventListener("loadstop", () => {
 
   setDebugPannel()
 
-  const paneWidget = React.createElement(ControlPannel, { hello: "world" }, null)
-  ReactDOM.render(paneWidget, DebugPane)
+  setupControlPannel(store)
 })
-
-function setDebugPannel() {
-  chrome.storage.local.get("debugPannel", data => {
-    DebugPane.style.display = data.debugPannel
-  })
-  DebugPane.style.display =
-    DebugPane.style.display === "block" ? "none" : "block"
-}
-
-function toggleDebug() {
-  console.log("Toggling debug pane")
-  const mode = DebugPane.style.display === "block" ? "none" : "block"
-  chrome.storage.local.set({ debugPannel: mode })
-  setDebugPannel()
-}
 
 // Receive messages from the Clipper chrome extension to import content
 chrome.runtime.onMessageExternal.addListener(

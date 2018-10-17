@@ -101,7 +101,7 @@ export class Hypermerge {
     })
   }
 
-  createDocumentFrontend<T>(keys: Keys): FrontendHandle<T> {
+  createDocumentFrontend<T>(keys = crypto.keyPair()): FrontendHandle<T> {
     const back = this.createDocument(keys)
     const front = new FrontendHandle<T>(back.docId, back.docId)
     front.back = back
@@ -111,7 +111,7 @@ export class Hypermerge {
     return front
   }
 
-  createDocument(keys: Keys): BackendHandle {
+  createDocument(keys = crypto.keyPair()): BackendHandle {
     const docId = Base58.encode(keys.publicKey)
     log("Create", docId)
     const dk = discoveryKey(keys.publicKey)

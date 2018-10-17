@@ -1,6 +1,7 @@
 import * as React from "react"
 import * as Link from "../data/Link"
 import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
+import { FrontendHandle } from "../modules/hypermerge"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"
@@ -151,6 +152,12 @@ export default class Content extends React.Component<Props & unknown> {
   }
 
   // Opens an initialized document at the given URL
+
+  static handle<T>(url: string) : FrontendHandle<T> {
+    const { type, id } = Link.parse(url)
+    const handle = this.store.handle(id)
+    return handle
+  }
 
   static open<T>(
     url: string,

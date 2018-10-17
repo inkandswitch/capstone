@@ -26,6 +26,7 @@ export class FrontendHandle<T> extends EventEmitter {
       this.docId = docId
       this.actorId = actorId
       this.enableWrites()
+      this.emit("ready", this.front)
     } else {
       this.front = Frontend.init({ deferActorId: true }) as Doc<T>
       this.docId = docId
@@ -33,6 +34,9 @@ export class FrontendHandle<T> extends EventEmitter {
 
     this.on("newListener", (event, listener) => {
       if (event === "doc" && this.mode != "pending") {
+        listener(this.front)
+      }
+      if (event === "ready" && this.mode != "pending") {
         listener(this.front)
       }
     })
@@ -61,6 +65,7 @@ export class FrontendHandle<T> extends EventEmitter {
 
     if (this.mode !== "pending") return
 
+
     if (actorId) this.setActorId(actorId) // must set before patch
 
     if (patch) this.patch(patch) // first patch!
@@ -68,6 +73,8 @@ export class FrontendHandle<T> extends EventEmitter {
     this.mode = "read"
 
     if (actorId) this.enableWrites() // must enable after patch
+
+    this.emit("ready", this.front)
   }
 
   private enableWrites() {
