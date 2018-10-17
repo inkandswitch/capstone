@@ -1,4 +1,5 @@
 import * as DOM from "./DOM"
+import * as DragMetrics from "./DragMetrics"
 
 export interface DraggerOptions {
   onStart?: OnStartHandler
@@ -13,8 +14,8 @@ export type OnMoveHandler = (x: number, y: number) => void
 export type OnStopHandler = (x: number, y: number) => void
 
 export class Dragger {
+  private metrics?: DragMetrics.Metrics
   private position: Point
-  private previousDragPoint?: Point
   private onStart?: OnStartHandler
   private onDrag?: OnMoveHandler
   private onStop?: OnStopHandler
@@ -29,29 +30,30 @@ export class Dragger {
   }
 
   start(e: Point) {
-    this.previousDragPoint = DOM.getOffsetFromParent(e, this.node)
+    const dragPosition = DOM.getOffsetFromParent(e, this.node)
+    this.metrics = DragMetrics.init(dragPosition)
     this.onStart && this.onStart(this.position.x, this.position.y)
   }
 
   drag(e: Point) {
-    if (!this.previousDragPoint)
-      throw new Error("Must call start() before drag()")
+    if (!this.metrics) throw new Error("Must call start() before drag()")
 
     const dragPoint = DOM.getOffsetFromParent(e, this.node)
-    const delta = {
-      x: dragPoint.x - this.previousDragPoint.x,
-      y: dragPoint.y - this.previousDragPoint.y,
+    this.metrics = DragMetrics.update(this.metrics, dragPoint)
+    const position = {
+      x: this.position.x + this.metrics.delta.x,
+      y: this.position.y + this.metrics.delta.y,
     }
-    this.position = {
-      x: this.position.x + delta.x,
-      y: this.position.y + delta.y,
-    }
-    this.previousDragPoint = dragPoint
-    this.onDrag && this.onDrag(this.position.x, this.position.y)
+    this.onDrag && this.onDrag(position.x, position.y)
   }
 
   stop() {
-    this.previousDragPoint = undefined
+    if (!this.metrics) throw new Error("Must call star() before stop()")
+    this.position = {
+      x: this.position.x + this.metrics.delta.x,
+      y: this.position.y + this.metrics.delta.y,
+    }
+    this.metrics = undefined
     this.onStop && this.onStop(this.position.x, this.position.y)
   }
 }

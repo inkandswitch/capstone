@@ -2,20 +2,23 @@ import * as React from "react"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as css from "./css/EdgeBoardCreator.css"
+import * as DragMetrics from "../logic/DragMetrics"
 
 interface Props {
   onBoardCreate: (position: Point) => void
 }
 
 interface State {
-  dragMarker: Point | undefined
+  metrics?: DragMetrics.Metrics
 }
+
+const MINIMUM_DISTANCE = 60
 
 export default class EdgeBoardCreator extends React.Component<Props, State> {
   leftEdge?: HTMLDivElement
   rightEdge?: HTMLDivElement
 
-  state = { dragMarker: undefined }
+  state = { metrics: undefined }
 
   componentDidMount() {
     GPS.stream()
@@ -30,17 +33,29 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
 
   onPointerEvent = (e: PointerEvent) => {
     if (!this.leftEdge || !this.rightEdge) return
-    const dragMarker = this.state.dragMarker
-    if (e.type === "pointerdown" && this.leftEdge.contains(e.target as Node)) {
-      this.setState({ dragMarker: { x: e.x, y: e.y } })
-    } else if (dragMarker) {
+    const { x, y } = e
+    const metrics = this.state.metrics
+    if (
+      e.type === "pointerdown" &&
+      (this.leftEdge.contains(e.target as Node) ||
+        this.rightEdge.contains(e.target as Node))
+    ) {
+      this.setState({ metrics: DragMetrics.init({ x, y }) })
+    } else if (metrics !== undefined) {
       if (e.type === "pointermove") {
-        this.setState({ dragMarker: { x: e.x, y: e.y } })
+        this.setState({ metrics: DragMetrics.update(metrics, { x, y }) })
       } else {
-        this.props.onBoardCreate(dragMarker)
-        this.setState({ dragMarker: undefined })
+        if (this.shouldCreateBoard()) {
+          this.props.onBoardCreate(metrics.position)
+          this.setState({ metrics: undefined })
+        }
       }
     }
+  }
+
+  shouldCreateBoard() {
+    const { metrics } = this.state
+    return metrics !== undefined && metrics.delta.x >= MINIMUM_DISTANCE
   }
 
   onLeftEdge = (ref: HTMLDivElement) => {
@@ -52,14 +67,22 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   }
 
   render() {
-    const pos = this.state.dragMarker
+    const metrics = this.state.metrics
+    let dragMarker = null
+    if (metrics !== undefined) {
+      const activated = metrics.delta.x >= MINIMUM_DISTANCE
+      const style = {
+        top: metrics.position.y,
+        left: metrics.position.x,
+        borderColor: activated ? "red" : "black",
+      }
+      dragMarker = <div className={css.Marker} style={style} />
+    }
     return (
       <>
         <div className={css.LeftEdge} ref={this.onLeftEdge} />
         <div className={css.RightEdge} ref={this.onRightEdge} />
-        {pos !== undefined ? (
-          <div className={css.Marker} style={{ top: pos.y, left: pos.x }} />
-        ) : null}
+        {dragMarker}
         {this.props.children}
       </>
     )
