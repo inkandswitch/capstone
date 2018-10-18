@@ -24,12 +24,14 @@ export default class Store {
   index: { [id: string]: FrontendHandle<any> } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
+  control$: Rx.BehaviorSubject<Msg.Control | null>
 
   constructor() {
     log("constructing")
 
     this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
     this.clipper$ = new Rx.BehaviorSubject<Msg.Clipper | null>(null)
+    this.control$ = new Rx.BehaviorSubject<Msg.Control | null>(null)
   }
 
   handle(id: string): FrontendHandle<any> {
@@ -107,6 +109,19 @@ export default class Store {
     return this.clipper$
   }
 
+  control(): Rx.Observable<Msg.Control | null> {
+    return this.control$
+  }
+
+  getWorkspace() : string | null {
+    return localStorage.workspaceUrl
+  }
+
+  setWorkspace(workspaceUrl: string) {
+    localStorage.workspaceUrl = workspaceUrl
+    this.sendToBackend({ type: "WorkspaceSet", url: workspaceUrl})
+  }
+
   activity(id: string): Rx.Observable<Activity> {
     return new Rx.Observable(obs => {
       // TODO:
@@ -145,6 +160,10 @@ export default class Store {
 
       case "Presence":
         this.presence$.next(msg)
+        break
+
+      case "Control":
+        this.control$.next(msg)
         break
 
       case "Upload":

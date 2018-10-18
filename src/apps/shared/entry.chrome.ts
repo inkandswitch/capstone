@@ -3,10 +3,11 @@ import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"
 let racf = require("random-access-chrome-file")
 
+import { setupControlPanel, toggleControl, setControlPanel } from "./control"
+
 process.hrtime = require("browser-process-hrtime")
 
 const webview = document.getElementById("webview")! as HTMLIFrameElement
-const DebugPane = document.getElementById("DebugPane")!
 
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
@@ -29,8 +30,8 @@ window.addEventListener("message", ({ data: msg }) => {
     return store.sendToFrontend(msg)
   }
 
-  if (msg.type === "ToggleDebug") {
-    toggleDebug()
+  if (msg.type === "ToggleControl") {
+    toggleControl()
   }
 
   store.onMessage(msg)
@@ -38,7 +39,7 @@ window.addEventListener("message", ({ data: msg }) => {
 
 window.addEventListener("keydown", event => {
   if (event.code === "ShiftRight") {
-    toggleDebug()
+    toggleControl()
   }
 })
 
@@ -57,23 +58,9 @@ webview.addEventListener("loadstop", () => {
 
   store.sendToFrontend({ type: "Ready" })
 
-  setDebugPannel()
+  setControlPanel()
+  setupControlPanel(store)
 })
-
-function setDebugPannel() {
-  chrome.storage.local.get("debugPannel", data => {
-    DebugPane.style.display = data.debugPannel
-  })
-  DebugPane.style.display =
-    DebugPane.style.display === "block" ? "none" : "block"
-}
-
-function toggleDebug() {
-  console.log("Toggling debug pane")
-  const mode = DebugPane.style.display === "block" ? "none" : "block"
-  chrome.storage.local.set({ debugPannel: mode })
-  setDebugPannel()
-}
 
 // Receive messages from the Clipper chrome extension to import content
 chrome.runtime.onMessageExternal.addListener(

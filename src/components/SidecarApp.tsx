@@ -23,12 +23,21 @@ type State = {
 export default class SidecarApp extends React.Component<{}, State> {
   constructor(props: {}, ctx: any) {
     super(props, ctx)
+    this.loadWorkspaceUrl(Content.store.getWorkspace())
+
+    Content.store.control().subscribe(message => {
+      if (!message) return
+      this.loadWorkspaceUrl(message.workspaceUrl)
+    })
+  }
+
+  loadWorkspaceUrl(workspaceUrl: string | null) {
     this.state = { mode: "loading" }
 
-    const { workspaceUrl } = localStorage
-    if (workspaceUrl == null) {
+    if (workspaceUrl === null) {
       this.state = { mode: "setup" }
     } else {
+      Content.store.setWorkspace(workspaceUrl)
       this.state = {
         mode: "ready",
         workspaceUrl,
@@ -100,11 +109,7 @@ export default class SidecarApp extends React.Component<{}, State> {
 
     try {
       Link.parse(workspaceUrl)
-      localStorage.workspaceUrl = workspaceUrl
-      this.setState({
-        workspaceUrl,
-        mode: "ready",
-      })
+      this.loadWorkspaceUrl(workspaceUrl)
     } catch (e) {
       this.setState({ error: e.message })
     }
