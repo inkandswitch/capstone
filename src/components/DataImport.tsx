@@ -18,7 +18,7 @@ const importers: ImporterWithGlob[] = [
       addTable(await DataTransfer.extractAsText(item)),
   ],
   [
-    "text/*",
+    "text/plain",
     async (item: DataTransferItem) =>
       addText(await DataTransfer.extractAsText(item)),
   ],
