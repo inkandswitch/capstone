@@ -1,4 +1,20 @@
-let raidb = require("random-access-idb")
+const global = self as any
+
+// HACK to enable random-access-chrome-file
+const fakePersistentStorage = {
+  queryUsageAndQuota(cb: (used: number, quota: number) => void) {
+    cb(0, Number.MAX_SAFE_INTEGER)
+  },
+  requestQuota(_bytes: number, cb: (quota: number) => void) {
+    cb(Number.MAX_SAFE_INTEGER)
+  },
+}
+
+global.navigator.webkitPersistentStorage = fakePersistentStorage
+
+global.window = global
+
+let racf = require("random-access-chrome-file")
 
 import StoreBackend from "../../data/StoreBackend"
 import { Hypermerge } from "../../modules/hypermerge"
@@ -6,7 +22,7 @@ import CloudClient from "../../modules/discovery-cloud/Client"
 
 process.hrtime = require("browser-process-hrtime")
 
-const hm = new Hypermerge({ storage: raidb("hypermerge") })
+const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
 
 hm.joinSwarm(
