@@ -1,7 +1,6 @@
 import * as CalculateSize from "calculate-size"
 import { AnyDoc } from "automerge/frontend"
 import * as Link from "../data/Link"
-// import * as css from "../styles/styles.css"
 
 const TEXT_CARD_PADDING = 15
 const DEFAULT_CARD_MAX_SIZE = { width: 400, height: 400 }
@@ -20,15 +19,18 @@ export function calculateInitialSize(url: string, doc: AnyDoc): Promise<Size> {
           resolve({ width: 400, height: 400 })
         })
     } else if (type === "Text") {
-      const textSize = getTextSize((doc.content as string[]).join(""))
+      const text = (doc.content as string[]).join("")
+      const textSize = getTextSize(text)
       resolve({
         width: textSize.width + 2 * TEXT_CARD_PADDING,
         height: textSize.height + 2 * TEXT_CARD_PADDING,
       })
     } else if (type === "Board") {
       resolve({ width: 300, height: 200 })
+    } else if (type === "HTML") {
+      resolve({ width: 400, height: 400 })
     } else {
-      resolve({ width: 400, height: 300 })
+      resolve({ width: 400, height: 400 })
     }
   })
 }
@@ -47,27 +49,43 @@ function getImageSize(src: string): Promise<Size> {
 }
 
 function getTextSize(text: string): Size {
-  let options = {
-    fontSize: `14px`,
-    font: "Roboto, Arial, Helvetica, sans-serif",
-  }
-  const unconstrainedSize = CalculateSize.default(text, options)
-  if (unconstrainedSize.width < TEXT_MAX_WIDTH) {
-    return {
-      width: unconstrainedSize.width,
-      height: Math.min(unconstrainedSize.height - 5, TEXT_MAX_HEIGHT),
-    }
-  } else {
-    const constrainedSize = CalculateSize.default(
-      text,
-      Object.assign(options, {
-        width: `${TEXT_MAX_WIDTH}px`,
-      }),
-    )
-    return {
-      width: TEXT_MAX_WIDTH,
-      height: Math.min(constrainedSize.height, TEXT_MAX_HEIGHT),
-    }
+  const lines = text.split("\n")
+
+  var element = document.createElement("div")
+  var textNode = document.createTextNode("")
+  element.appendChild(textNode)
+  // TODO - Can we extract those from the CSS somehow?
+  element.style.fontFamily = "Roboto, Arial, Helvetica, sans-serif"
+  element.style.fontSize = "14px"
+  element.style.position = "absolute"
+  element.style.visibility = "hidden"
+  element.style.lineHeight = "1.5"
+  element.style.left = "-999px"
+  element.style.top = "-999px"
+  element.style.width = "auto"
+  document.body.appendChild(element)
+
+  let longestLine = 0
+  lines.forEach(line => {
+    textNode.textContent = line
+    longestLine = Math.max(longestLine, element.clientWidth)
+  })
+
+  const resolvedWidth = Math.min(longestLine, TEXT_MAX_WIDTH)
+  let totalHeight = 0
+  // for some when constraining a line to it's above calculated width, it wraps onto two lines.
+  // adding an extra 2px fixes that ¯\_(ツ)_/¯
+  element.style.width = `${resolvedWidth + 2}px`
+  element.style.height = "auto"
+  lines.forEach(line => {
+    textNode.textContent = line
+    totalHeight += Math.max(element.clientHeight, 21) // min. 21 to account for empty lines
+  })
+  element.parentNode!.removeChild(element)
+
+  return {
+    width: resolvedWidth,
+    height: Math.min(TEXT_MAX_HEIGHT, totalHeight - 10), // subtract line spacing at the end
   }
 }
 
