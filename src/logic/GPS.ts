@@ -1,6 +1,6 @@
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
-import { pickBy, map, forEach } from "lodash"
+import { pickBy, map, forEach, mapValues } from "lodash"
 import * as GPS from "../logic/GPS"
 
 export enum InteractionMode {
@@ -9,6 +9,7 @@ export enum InteractionMode {
 }
 
 export type PointerSnapshot = { [pointerId: string]: Pointer }
+
 export type Pointer = {
   canceled: boolean
   pointerId: number
@@ -87,6 +88,12 @@ export const onlyActive = (s: PointerSnapshot) => pickBy(s, p => !p.canceled)
 // True if there are pointers in the snapshot, False if empty.
 export const ifNotEmpty = (s: PointerSnapshot) => Object.keys(s).length > 0
 
+// True if there are exactly two pointers in the snapshot, False if more or less than two
+export const ifExactlyTwo = (s: PointerSnapshot) => Object.keys(s).length == 2
+
+export const toMostRecentEvents = (s: PointerSnapshot) =>
+  mapValues(s, value => value.history[value.history.length - 1])
+
 // Convert to a list of pointers.
 export const toPointers = (s: PointerSnapshot) => Object.values(s)
 
@@ -109,3 +116,8 @@ export const onlyOffTarget = (target: Node) => (s: PointerSnapshot) =>
     s,
     e => !target.contains(e.history[e.history.length - 1].target as Node),
   )
+
+export const ifTerminalEvent = (e: PointerEvent) =>
+  e.type === "pointerup" || e.type === "pointercancel"
+
+export const ifInitialEvent = (e: PointerEvent) => e.type === "pointerdown"

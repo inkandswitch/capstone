@@ -13,6 +13,9 @@ import Content, {
 import Clipboard from "./Clipboard"
 import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
+import * as Link from "../data/Link"
+import { last } from "lodash"
+import Navigatable from "./Navigatable"
 
 export interface Model {
   navStack: string[]
@@ -51,10 +54,13 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
         break
       }
       case "ReceiveDocuments": {
+        const boardsOnStack = this.doc.navStack.filter(
+          url => Link.parse(url).type == "Board",
+        )
         this.emit({
           type: "ReceiveDocuments",
           body: message.body,
-          to: this.doc.rootUrl,
+          to: last(boardsOnStack) || this.doc.rootUrl,
         })
         break
       }
@@ -139,24 +145,26 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const { shelfUrl } = this.props.doc
     const currentUrl = this.peek()
     return (
-      <div
-        className="Workspace"
-        style={style.Workspace}
-        onDragOver={this.onDragOver}
-        onDrop={this.onDrop}>
-        <GPSInput />
-        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-        <Content
-          key={currentUrl}
-          mode={this.props.mode}
-          url={currentUrl}
-          onNavigate={this.push}
-        />
-        <Content mode="embed" url={shelfUrl} />
-        <div style={style.Peers}>
-          <Peers onTapPeer={this.onTapPeer} />
+      <Navigatable onPinchInEnd={this.pop}>
+        <div
+          className="Workspace"
+          style={style.Workspace}
+          onDragOver={this.onDragOver}
+          onDrop={this.onDrop}>
+          <GPSInput />
+          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+          <Content
+            key={currentUrl}
+            mode={this.props.mode}
+            url={currentUrl}
+            onNavigate={this.push}
+          />
+          <Content mode="embed" url={shelfUrl} />
+          <div style={style.Peers}>
+            <Peers onTapPeer={this.onTapPeer} />
+          </div>
         </div>
-      </div>
+      </Navigatable>
     )
   }
 }

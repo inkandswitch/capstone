@@ -1,5 +1,4 @@
 import * as React from "react"
-import * as RxOps from "rxjs/operators"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
 import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
@@ -217,6 +216,7 @@ class Board extends React.Component<Props, State> {
                     <Mirrorable cardId={card.id} onMirror={this.onMirror}>
                       <InteractableCard
                         card={card}
+                        onPinchOutEnd={this.props.onNavigate}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>

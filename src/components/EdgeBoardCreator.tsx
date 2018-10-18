@@ -3,6 +3,7 @@ import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as css from "./css/EdgeBoardCreator.css"
 import * as DragMetrics from "../logic/DragMetrics"
+import * as Rx from "rxjs"
 
 interface Props {
   onBoardCreate: (position: Point) => void
@@ -20,11 +21,12 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   rightEdge?: HTMLDivElement
   rightEdgeMaxX?: number
   triggeredEdge?: HTMLDivElement
+  private subscription?: Rx.Subscription
 
   state: State = {}
 
   componentDidMount() {
-    GPS.stream()
+    this.subscription = GPS.stream()
       .pipe(
         RxOps.map(GPS.onlyPen),
         RxOps.filter(GPS.ifNotEmpty),
@@ -32,6 +34,10 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
         RxOps.map(GPS.toMostRecentEvent),
       )
       .subscribe(this.onPointerEvent)
+  }
+
+  componentWillUnmount() {
+    this.subscription && this.subscription.unsubscribe()
   }
 
   onPointerEvent = (e: PointerEvent) => {
@@ -82,7 +88,9 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
 
   onRightEdge = (ref: HTMLDivElement) => {
     this.rightEdge = ref
-    this.rightEdgeMaxX = ref.getBoundingClientRect().right
+    if (ref) {
+      this.rightEdgeMaxX = ref.getBoundingClientRect().right
+    }
   }
 
   render() {
