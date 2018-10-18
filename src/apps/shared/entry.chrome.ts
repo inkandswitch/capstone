@@ -1,24 +1,8 @@
-import StoreBackend from "../../data/StoreBackend"
-import { Hypermerge } from "../../modules/hypermerge"
-import CloudClient from "../../modules/discovery-cloud/Client"
-let racf = require("random-access-chrome-file")
-
-process.hrtime = require("browser-process-hrtime")
-
 const webview = document.getElementById("webview")! as HTMLIFrameElement
 const DebugPane = document.getElementById("DebugPane")!
 
 const hm = new Hypermerge({ storage: racf })
 const store = new StoreBackend(hm)
-
-hm.joinSwarm(
-  new CloudClient({
-    url: "wss://discovery-cloud.herokuapp.com",
-    // url: "ws://localhost:8080",
-    id: hm.id,
-    stream: hm.stream,
-  }),
-)
 
 window.addEventListener("message", ({ data: msg }) => {
   if (typeof msg !== "object") return
