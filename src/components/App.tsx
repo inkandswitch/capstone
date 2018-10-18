@@ -126,7 +126,7 @@ export default class App extends React.Component<Props, State> {
 
   render() {
     const { url } = this.state
-    log("render", url)
+    console.log("render", url)
     if (!url) {
       return null
     }
