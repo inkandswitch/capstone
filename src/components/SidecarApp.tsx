@@ -23,12 +23,24 @@ type State = {
 export default class SidecarApp extends React.Component<{}, State> {
   constructor(props: {}, ctx: any) {
     super(props, ctx)
-    this.state = { mode: "loading" }
+    console.log("Sidecar start", Content.store.getWorkspace())
+    this.loadWorkspaceUrl(Content.store.getWorkspace())
 
-    const { workspaceUrl } = localStorage
-    if (workspaceUrl == null) {
-      this.state = { mode: "setup" }
+    Content.store.control().subscribe(message => {
+      if (!message) return
+      this.loadWorkspaceUrl(message.workspaceUrl)
+    })
+  }
+
+  loadWorkspaceUrl(workspaceUrl: string | null) {
+    this.setState({ mode: "loading" })
+
+    console.log("load workspace url", workspaceUrl)
+    if (!workspaceUrl) {
+      this.setState({ mode: "setup" })
     } else {
+      console.log("set workspace/state", workspaceUrl)
+      Content.store.setWorkspace(workspaceUrl)
       this.state = {
         mode: "ready",
         workspaceUrl,
@@ -100,11 +112,7 @@ export default class SidecarApp extends React.Component<{}, State> {
 
     try {
       Link.parse(workspaceUrl)
-      localStorage.workspaceUrl = workspaceUrl
-      this.setState({
-        workspaceUrl,
-        mode: "ready",
-      })
+      this.loadWorkspaceUrl(workspaceUrl)
     } catch (e) {
       this.setState({ error: e.message })
     }
@@ -113,7 +121,7 @@ export default class SidecarApp extends React.Component<{}, State> {
   onKeyDown = (event: KeyboardEvent) => {
     if (event.code === "ShiftRight") {
       Content.store.sendToBackend({
-        type: "ToggleDebug",
+        type: "ToggleControl",
       })
     }
   }
