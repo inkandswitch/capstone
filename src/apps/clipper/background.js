@@ -26,7 +26,7 @@ chrome.contextMenus.onClicked.addListener(itemData => {
       canvas.width = tmpImage.width
       canvas.height = tmpImage.height
 
-      context = canvas.getContext("2d")
+      const context = canvas.getContext("2d")
       context.drawImage(tmpImage, 0, 0)
 
       chrome.runtime.sendMessage(
@@ -44,4 +44,16 @@ chrome.contextMenus.create({
   id: "capstone-clipper",
   title: "Send to Capstone",
   contexts: ["selection", "image"], // ContextType
+})
+
+chrome.browserAction.onClicked.addListener(function(tab) {
+  chrome.tabs.executeScript({
+    file: "content.js",
+  })
+  chrome.browserAction.setBadgeText({ text: "OK" })
+  chrome.browserAction.setBadgeBackgroundColor({ color: "green" })
+  setTimeout(() => {
+    chrome.browserAction.setBadgeText({ text: "" })
+    chrome.browserAction.setBadgeBackgroundColor({ color: "green" })
+  }, 1000)
 })

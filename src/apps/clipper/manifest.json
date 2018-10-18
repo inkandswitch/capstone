@@ -8,16 +8,15 @@
     "persistent": false
   },
   "browser_action": {
-    "default_title": "Clip to Capstone",
-    "default_popup": "popup.html"
+    "default_title": "Clip to Capstone"
   },
   "commands": {
     "_execute_browser_action": {
       "suggested_key": {
-        "windows": "Ctrl+Shift+Space",
-        "mac": "Command+Shift+Space",
-        "chromeos": "Ctrl+Shift+Space",
-        "linux": "Ctrl+Shift+Space"
+        "windows": "Ctrl+Shift+A",
+        "mac": "Command+Shift+A",
+        "chromeos": "Ctrl+Shift+A",
+        "linux": "Ctrl+Shift+A"
       }
     }
   },
