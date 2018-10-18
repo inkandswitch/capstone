@@ -77,7 +77,6 @@
     "lodash": "^4.17.10",
     "micromatch": "^3.1.10",
     "random-access-chrome-file": "^1.1.1",
-    "random-access-idb": "github:random-access-storage/random-access-idb",
     "random-access-memory": "^3.0.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
