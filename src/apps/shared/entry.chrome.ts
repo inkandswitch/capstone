@@ -1,19 +1,27 @@
 const webview = document.getElementById("webview")! as HTMLIFrameElement
 const DebugPane = document.getElementById("DebugPane")!
 import Queue from "../../data/Queue"
+import * as Msg from "../../data/StoreMsg"
 
-const webviewQueue = new Queue<any>()
+const mainQueue = new Queue<Msg.EntryToMain>()
 
-window.addEventListener("message", ({ data: msg }) => {
-  if (typeof msg !== "object") return
+function sendToMain(msg: Msg.EntryToMain) {
+  mainQueue.push(msg)
+}
 
-  console.log(msg)
+window.addEventListener("message", event => {
+  if (typeof event !== "object") return
+  const msg: Msg.ToEntry = event.data
 
-  if (msg.type === "ToggleDebug") {
-    toggleDebug()
+  switch (msg.type) {
+    case "ToggleDebug":
+      toggleDebug()
+      break
+
+    case "Clipper":
+      sendToMain(msg)
+      break
   }
-
-  webviewQueue.push(msg)
 })
 
 window.addEventListener("keydown", event => {
@@ -30,9 +38,11 @@ webview.addEventListener("loadstop", () => {
 
   webview.focus()
 
-  webviewQueue.subscribe(msg => {
+  mainQueue.subscribe(msg => {
     webview.contentWindow!.postMessage(msg, "*")
   })
+
+  sendToMain({ type: "Ready" })
 
   setDebugPannel()
 })
@@ -51,16 +61,3 @@ function toggleDebug() {
   chrome.storage.local.set({ debugPannel: mode })
   setDebugPannel()
 }
-
-// Receive messages from the Clipper chrome extension to import content
-chrome.runtime.onMessageExternal.addListener(
-  (request, sender, sendResponse) => {
-    if (sender.id == "blocklistedExtension") return
-
-    console.log("Received message from external extension", request, sender)
-
-    webviewQueue.push({ type: "Clipper", ...request })
-
-    sendResponse({ contentReceived: "success" })
-  },
-)

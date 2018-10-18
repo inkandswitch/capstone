@@ -112,7 +112,7 @@ export default class SidecarApp extends React.Component<{}, State> {
 
   onKeyDown = (event: KeyboardEvent) => {
     if (event.code === "ShiftRight") {
-      Content.store.sendToBackend({
+      window.sendToEntry({
         type: "ToggleDebug",
       })
     }

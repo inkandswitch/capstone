@@ -98,6 +98,13 @@ export interface ToggleDebug {
   type: "ToggleDebug"
 }
 
+export type EntryToMain = Clipper | Ready
+
+export type MainToEntry = ToggleDebug
+export type BackgroundToEntry = Clipper
+
+export type ToEntry = BackgroundToEntry | MainToEntry
+
 export type FrontendToBackend =
   | Create
   | Open
@@ -105,10 +112,8 @@ export type FrontendToBackend =
   | ActorIdRequest
   | RequestActivity
   | SetIdentity
-  | ToggleDebug
 
 export type BackendToFrontend =
-  | Ready
   | DocReady
   | SetActorId
   | ApplyPatch

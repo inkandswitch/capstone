@@ -25,13 +25,11 @@ hm.joinSwarm(
 )
 
 addEventListener("message", ({ data: msg }) => {
-  console.log(`worker received msg '${typeof msg}'`, msg)
   if (typeof msg !== "object") return
 
   store.onMessage(msg)
 })
 
 store.sendQueue.subscribe(msg => {
-  console.log("worker sending msg", msg)
   ;(postMessage as any)(msg)
 })

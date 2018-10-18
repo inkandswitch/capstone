@@ -145,7 +145,7 @@ export default class App extends React.Component<Props, State> {
 
   onKeyDown = (event: KeyboardEvent) => {
     if (event.code === "ShiftRight") {
-      Content.store.sendToBackend({ type: "ToggleDebug" })
+      window.sendToEntry({ type: "ToggleDebug" })
     }
   }
 }
