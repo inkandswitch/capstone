@@ -4,15 +4,11 @@ import * as Debug from "debug"
 const log = Debug("component:fullscreentoggle")
 
 interface Props {}
-interface State { window : any }
 
-export default class FullscreenToggle extends React.Component<Props, State> {
-  componentDidMount() {
-    this.setState({ window: chrome.app.window.current() })
-  }
+export default class FullscreenToggle extends React.Component<Props> {
 
   handleClick = () => {
-    const { window } = this.state
+    let window = chrome.app.window.current()
     if (window.isFullscreen()) {
       window.restore()
       window.show()
