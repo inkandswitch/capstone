@@ -1,7 +1,6 @@
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
 import { pickBy, map, forEach, mapValues } from "lodash"
-import * as GPS from "./GPS"
 
 export enum InteractionMode {
   default,
@@ -27,7 +26,7 @@ let interactionMode = InteractionMode.default
 // Connect a stream of PointerEvents to the GPS.
 export function connectInput(input$: Rx.Observable<PointerEvent>) {
   events$ = input$.pipe(
-    RxOps.scan((previousSnapshot: GPS.PointerSnapshot, event: PointerEvent) => {
+    RxOps.scan((previousSnapshot: PointerSnapshot, event: PointerEvent) => {
       const notCanceled = pickBy(previousSnapshot, p => {
         const mostRecent = p.history[p.history.length - 1]
         if (p.pointerType === "touch") {

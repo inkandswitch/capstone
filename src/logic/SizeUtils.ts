@@ -7,32 +7,28 @@ const DEFAULT_CARD_MAX_SIZE = { width: 400, height: 400 }
 const TEXT_MAX_WIDTH = DEFAULT_CARD_MAX_SIZE.width - 2 * TEXT_CARD_PADDING
 const TEXT_MAX_HEIGHT = DEFAULT_CARD_MAX_SIZE.height - 2 * TEXT_CARD_PADDING
 
-export function calculateInitialSize(url: string, doc: AnyDoc): Promise<Size> {
-  return new Promise((resolve, reject) => {
-    const type = Link.parse(url).type
-    if (type === "Image") {
-      getImageSize(doc.src as string)
-        .then(size => {
-          resolve(resolvedImageCardSize(size))
-        })
-        .catch(() => {
-          resolve({ width: 400, height: 400 })
-        })
-    } else if (type === "Text") {
-      const text = (doc.content as string[]).join("")
-      const textSize = getTextSize(text)
-      resolve({
-        width: textSize.width + 2 * TEXT_CARD_PADDING,
-        height: textSize.height + 2 * TEXT_CARD_PADDING,
-      })
-    } else if (type === "Board") {
-      resolve({ width: 300, height: 200 })
-    } else if (type === "HTML") {
-      resolve({ width: 300, height: 300 })
-    } else {
-      resolve({ width: 300, height: 300 })
+export async function calculateInitialSize(
+  url: string,
+  doc: AnyDoc,
+): Promise<Size> {
+  const type = Link.parse(url).type
+  if (type === "Image") {
+    const size = await getImageSize(doc.src as string)
+    return resolvedImageCardSize(size)
+  } else if (type === "Text") {
+    const text = (doc.content as string[]).join("")
+    const textSize = getTextSize(text)
+    return {
+      width: textSize.width + 2 * TEXT_CARD_PADDING,
+      height: textSize.height + 2 * TEXT_CARD_PADDING,
     }
-  })
+  } else if (type === "Board") {
+    return { width: 300, height: 200 }
+  } else if (type === "HTML") {
+    return { width: 300, height: 300 }
+  } else {
+    return { width: 300, height: 300 }
+  }
 }
 
 function getImageSize(src: string): Promise<Size> {

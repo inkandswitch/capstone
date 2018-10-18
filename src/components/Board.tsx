@@ -61,15 +61,10 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
     switch (message.type) {
       case "ReceiveDocuments": {
         const { urls } = message.body
-        this.change(doc => {
-          urls.forEach(url => {
-            makeCard(url, doc.topZ++).then(card => {
-              this.change(doc => {
-                doc.cards[card.id] = card
-                return doc
-              })
-            })
-          })
+        urls.forEach(url => {
+          getCardSize(url).then(size =>
+            this.change(doc => addCard(url, doc, size)),
+          )
         })
         break
       }
@@ -95,19 +90,17 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "ShelfContents": {
         const { urls, placementPosition } = message.body
-        this.change(doc => {
-          urls.forEach((url, index) => {
-            makeCard(
-              url,
-              doc.topZ++,
-              Position.radial(index, placementPosition),
-            ).then(card => {
-              this.change(doc => {
-                doc.cards[card.id] = card
-                return doc
-              })
-            })
-          })
+        urls.forEach((url, index) => {
+          getCardSize(url).then(size =>
+            this.change(doc =>
+              addCard(
+                url,
+                doc,
+                size,
+                Position.radial(index, placementPosition),
+              ),
+            ),
+          )
         })
         break
       }
@@ -115,28 +108,46 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
-function makeCard(
-  url: string,
-  zIndex: number,
-  position?: Point,
-): Promise<CardModel> {
+// async function getCardSize(url: string): Promise<Size> {
+//   try {
+//     await Content.open(url, doc => {
+//       const size = await SizeUtils.calculateInitialSize(url, doc)
+//       return size
+//     })
+//   } catch (e) {
+//     return { width: 400, height: 400 }
+//   }
+// }
+
+function getCardSize(url: string): Promise<Size> {
   return new Promise((resolve, reject) => {
     Content.open(url, doc => {
       SizeUtils.calculateInitialSize(url, doc).then((size: Size) => {
-        position = position || { x: 0, y: 0 }
-        const card = {
-          id: UUID.create(),
-          z: zIndex,
-          x: position.x,
-          y: position.y,
-          width: size.width,
-          height: size.height,
-          url,
-        }
-        resolve(card)
+        resolve(size)
       })
     })
   })
+}
+
+function addCard(
+  url: string,
+  board: EditDoc<Model>,
+  size: Size,
+  position?: Point,
+) {
+  const z = board.topZ + 1
+  position = position || { x: 0, y: 0 }
+  const card = {
+    id: UUID.create(),
+    z: z,
+    x: position.x,
+    y: position.y,
+    width: size.width,
+    height: size.height,
+    url,
+  }
+  board.cards[card.id] = card
+  board.topZ = z
 }
 
 class Board extends React.Component<Props, State> {
@@ -211,12 +222,8 @@ class Board extends React.Component<Props, State> {
 
   onCreateBoard = (position: Point) => {
     const url = Content.create("Board")
-    let { topZ } = this.props.doc
-    makeCard(url, topZ++, position).then(card => {
-      this.props.change(doc => {
-        doc.cards[card.id] = card
-        return doc
-      })
+    this.props.change(doc => {
+      addCard(url, doc, { width: 300, height: 200 }, position)
     })
   }
 
