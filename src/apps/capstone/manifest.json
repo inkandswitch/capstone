@@ -22,12 +22,7 @@
     "partitions": [
       {
         "name": "sandbox",
-        "accessible_resources": [
-          "worker.js",
-          "sandbox.html",
-          "main.js",
-          "assets/*"
-        ]
+        "accessible_resources": ["*"]
       }
     ]
   },
