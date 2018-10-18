@@ -10,6 +10,7 @@ import Content, {
   Message,
   ReceiveDocuments,
   DocumentCreated,
+  Mode,
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
@@ -197,11 +198,26 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
+    let style = {}
+    let cardMode: Mode = "embed"
+    const { contentSize } = this.props
+    if (this.props.mode == "embed" && contentSize) {
+      const scale = contentSize.width / 1200 // TODO detect screen size?
+      cardMode = "preview"
+      style = {
+        transform: `scale(${scale},${scale})`,
+        position: "absolute" as "absolute",
+        willChange: "transform",
+        transformOrigin: "top left",
+      }
+    }
+
     const { cards, strokes, topZ } = this.props.doc
     switch (this.props.mode) {
       case "fullscreen":
+      case "embed":
         return (
-          <div className={css.Board} ref={this.onRef}>
+          <div className={css.Board} ref={this.onRef} style={style}>
             <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
             <TransitionGroup>
               {Object.values(cards).map(card => {
@@ -220,7 +236,14 @@ class Board extends React.Component<Props, State> {
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
-                        <Content mode="embed" url={card.url} />
+                        <Content
+                          mode={cardMode}
+                          url={card.url}
+                          contentSize={{
+                            width: card.width,
+                            height: card.height,
+                          }}
+                        />
                       </InteractableCard>
                     </Mirrorable>
                   </CSSTransition>
@@ -234,7 +257,6 @@ class Board extends React.Component<Props, State> {
           </div>
         )
 
-      case "embed":
       case "preview":
         return (
           <div className={css.BoardPreview}>

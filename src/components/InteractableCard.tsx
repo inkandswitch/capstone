@@ -86,7 +86,7 @@ export default class InteractableCard extends React.Component<Props, State> {
         <Interactable
           position={{ x, y }}
           originalSize={{ width, height }}
-          preserveAspectRatio={type === "Image"}
+          preserveAspectRatio={type === "Image" || type === "Board"}
           onStart={this.start}
           onDragStop={this.dragStop}
           onResize={this.onResize}

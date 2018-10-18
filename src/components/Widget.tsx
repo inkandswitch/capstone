@@ -12,6 +12,7 @@ export interface Props<T = {}, M = never> {
   doc: Doc<T>
   url: string
   mode: Mode
+  contentSize?: Size
   emit: (message: M) => void
   change: (cb: ChangeFn<T>) => void
 }
