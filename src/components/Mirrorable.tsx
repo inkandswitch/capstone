@@ -19,10 +19,13 @@ export default class Mirrorable extends React.Component<Props> {
 
     // TODO: use operators
     this.subscription = GPS.stream().subscribe(s => {
-      // TODO (I think): touch *not* on this target
-      const hasTouch = GPS.ifNotEmpty(GPS.onlyTouch(s))
+      // Has a touch on this target.
+      const hasTouch = GPS.ifNotEmpty(
+        GPS.onlyOnTarget(this.node!)(GPS.onlyTouch(s)),
+      )
       if (!hasTouch) return
 
+      // And has a pen on this target.
       const penOnTarget = GPS.toAnyPointer(
         GPS.onlyOnTarget(this.node!)(GPS.onlyPen(s)),
       )
