@@ -17,7 +17,7 @@ export class BackendHandle extends EventEmitter {
   docId: string
   back?: BackWrapper
   actorId?: string
-  backQ: Queue<(handle: BackWrapper) => void> = new Queue()
+  backQ: Queue<(handle: BackWrapper) => void> = new Queue("backQ")
   wantsActor: boolean = false
 
   constructor(core: Hypermerge, docId: string, back?: BackDoc) {

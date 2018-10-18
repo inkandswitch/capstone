@@ -4,7 +4,7 @@ import { setupControlPanel, toggleControl } from "./control"
 
 const webview = document.getElementById("webview")! as HTMLIFrameElement
 
-const mainQueue = new Queue<Msg.EntryToMain>()
+const mainQueue = new Queue<Msg.EntryToMain>("EntryToMain")
 
 function sendToMain(msg: Msg.EntryToMain) {
   mainQueue.push(msg)

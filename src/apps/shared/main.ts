@@ -5,7 +5,7 @@ import Content from "../../components/Content"
 
 const store = new Store()
 const worker = new Worker("worker.js") as any
-const entryQueue = new Queue<Msg.MainToEntry>()
+const entryQueue = new Queue<Msg.MainToEntry>("MainToEntry")
 
 // Used for debugging from the console:
 window.Content = Content
