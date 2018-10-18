@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import * as Widget from "./Widget"
 import Content from "./Content"
 import * as css from "./css/Peer.css"
@@ -21,7 +22,10 @@ class Peer extends React.Component<Widget.Props<Model>> {
     return (
       <div className={css.Peer}>
         <div className={css.PeerName}>{this.props.doc.name || "anonymous"}</div>
-        <Content mode="embed" type="PeerStatus" url={this.props.url} />
+        <Content
+          mode="embed"
+          url={Link.setType(this.props.url, "PeerStatus")}
+        />
       </div>
     )
   }

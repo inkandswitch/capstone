@@ -20,6 +20,9 @@ import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import GlobalKeyboard from "./GlobalKeyboard"
 
+import * as Debug from "debug"
+const log = Debug("component:app")
+
 type State = {
   url?: string
 }
@@ -27,6 +30,8 @@ type State = {
 type Props = {}
 
 export default class App extends React.Component<Props, State> {
+  state: State = {}
+
   initWorkspace() {
     const shelfUrl = Content.create("Shelf")
     const rootBoardUrl = Content.create("Board")
@@ -50,9 +55,7 @@ export default class App extends React.Component<Props, State> {
     })
   }
 
-  constructor(props: Props) {
-    super(props)
-    // initialize the workspace at startup (since we have no persistence)
+  componentDidMount() {
     const { workspaceUrl } = localStorage
     if (workspaceUrl == undefined) {
       this.initWorkspace()
@@ -119,13 +122,11 @@ export default class App extends React.Component<Props, State> {
           break
       }
     })
-
-    this.state = { url: undefined }
   }
 
   render() {
     const { url } = this.state
-    console.log("APP RENDER", url)
+    log("render", url)
     if (!url) {
       return null
     }

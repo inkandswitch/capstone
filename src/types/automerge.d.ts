@@ -1,10 +1,68 @@
-declare module "automerge/frontend" {
-  function init(actorId?: string): Doc<{}>
+declare module "automerge/backend" {
+  export interface Clock {
+    [actorId: string]: number
+  }
 
+  export interface Patch {
+    clock: Clock
+    deps: Clock
+    canUndo: boolean
+    canRedo: boolean
+    diffs: Diff[]
+  }
+
+  export interface Change {
+    requestType?: string
+    actor: string
+    seq: number
+    deps: Clock
+    ops: Ops[]
+  }
+
+  export type BackDoc = string & { _: "BackDoc" }
+  export type Op = string & { _: "Op" }
+  export type Diff = string & { _: "Diff" }
+
+  function init(): BackDoc
+  function applyChanges(doc: BackDoc, changes: Change[]): [BackDoc, Patch]
+  function applyLocalChange(doc: BackDoc, changes: Change): [BackDoc, Patch]
+  function getPatch(doc: BackDoc): Patch
+  function getChanges(doc1: BackDoc, doc2: BackDoc): Change[]
+  function getChangesForActor(doc: BackDoc, actorId: string): Change[]
+  function getMissingChanges(doc: BackDoc, clock: Clock): Change[]
+  function getMissingDeps(doc: BackDoc): Clock
+  function merge(doc1: BackDoc, doc2: BackDoc): BackDoc
+}
+
+declare module "automerge/frontend" {
+  export interface Clock {
+    [actorId: string]: number
+  }
+
+  export interface Patch {
+    clock: Clock
+    deps: Clock
+    canUndo: boolean
+    canRedo: boolean
+    diffs: Diff[]
+  }
+
+  export interface Change {
+    requestType?: string
+    actor: string
+    seq: number
+    deps: Clock
+    ops: Ops[]
+  }
+
+  function init(actorId?: string): Doc<{}>
+  function init(any): Doc<{}>
+
+  function setActorId<T>(doc: Doc<T>, actorId: string): Doc<T>
   function change<T>(doc: Doc<T>, msg: string, cb: ChangeFn<T>): Doc<T>
   function change<T>(doc: Doc<T>, cb: ChangeFn<T>): Doc<T>
-  function applyPatch<T>(doc: Doc<T>, patch: any): Doc<T>
-  function getRequests<T>(doc: Doc<T>): any
+  function applyPatch<T>(doc: Doc<T>, patch: Patch): Doc<T>
+  function getRequests<T>(doc: Doc<T>): Change[]
 
   function emptyChange<T>(doc: Doc<T>, msg: string): Doc<T>
   const Text: TextConstructor

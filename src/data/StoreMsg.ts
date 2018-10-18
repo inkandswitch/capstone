@@ -1,3 +1,5 @@
+import { Change, Patch } from "automerge/backend"
+
 export interface Ready {
   type: "Ready"
 }
@@ -29,14 +31,31 @@ export interface SetIdentity {
 export interface ChangeRequest {
   type: "ChangeRequest"
   docId: string
-  changes: unknown
+  changes: Change[]
 }
 
-export interface Patch {
-  type: "Patch"
+export interface ActorIdRequest {
+  type: "ActorIdRequest"
+  docId: string
+}
+
+export interface ApplyPatch {
+  type: "ApplyPatch"
+  docId: string
+  patch: Patch
+}
+
+export interface DocReady {
+  type: "DocReady"
+  docId: string
+  actorId?: string
+  patch?: Patch
+}
+
+export interface SetActorId {
+  type: "SetActorId"
   docId: string
   actorId: string
-  patch: unknown
 }
 
 export interface Clipper {
@@ -83,13 +102,16 @@ export type FrontendToBackend =
   | Create
   | Open
   | ChangeRequest
+  | ActorIdRequest
   | RequestActivity
   | SetIdentity
   | ToggleDebug
 
 export type BackendToFrontend =
   | Ready
-  | Patch
+  | DocReady
+  | SetActorId
+  | ApplyPatch
   | Clipper
   | Presence
   | UploadActivity

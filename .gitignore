@@ -4,3 +4,5 @@ node_modules
 .cache
 .DS_Store
 /.data
+/.data1
+/.data2

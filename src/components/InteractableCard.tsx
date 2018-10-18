@@ -4,6 +4,7 @@ import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
 import * as Link from "../data/Link"
+import Navigatable from "./Navigatable"
 
 export interface CardModel {
   id: string
@@ -25,9 +26,12 @@ export interface Props {
   onDragStop?: (x: number, y: number, id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
   onDoubleTap?: (url: string) => void
+  onPinchOutEnd?: (url: string) => void
 }
 
 export default class InteractableCard extends React.Component<Props, State> {
+  node?: Element
+
   constructor(props: Props) {
     super(props)
 
@@ -63,6 +67,10 @@ export default class InteractableCard extends React.Component<Props, State> {
       )
   }
 
+  onPinchOutEnd = () => {
+    this.props.onPinchOutEnd && this.props.onPinchOutEnd(this.props.card.url)
+  }
+
   render() {
     const {
       card: { x, y, z, width, height },
@@ -74,22 +82,29 @@ export default class InteractableCard extends React.Component<Props, State> {
     const type = Link.parse(this.props.card.url).type
 
     return (
-      <Interactable
-        position={{ x, y }}
-        originalSize={{ width, height }}
-        preserveAspectRatio={type === "Image"}
-        onStart={this.start}
-        onDragStop={this.dragStop}
-        onResize={this.onResize}
-        onResizeStop={this.resizeStop}
-        z={z}>
-        <Card
-          cardId={this.props.card.id}
-          style={{ width: currentSize.width, height: currentSize.height }}
-          {...omit(rest, ["onDoubleTap", "onDragStop", "onResizeStop"])}>
-          {children}
-        </Card>
-      </Interactable>
+      <Navigatable onPinchOutEnd={this.onPinchOutEnd}>
+        <Interactable
+          position={{ x, y }}
+          originalSize={{ width, height }}
+          preserveAspectRatio={type === "Image"}
+          onStart={this.start}
+          onDragStop={this.dragStop}
+          onResize={this.onResize}
+          onResizeStop={this.resizeStop}
+          z={z}>
+          <Card
+            cardId={this.props.card.id}
+            style={{ width: currentSize.width, height: currentSize.height }}
+            {...omit(rest, [
+              "onDoubleTap",
+              "onDragStop",
+              "onResizeStop",
+              "onPinchInEnd",
+            ])}>
+            {children}
+          </Card>
+        </Interactable>
+      </Navigatable>
     )
   }
 }

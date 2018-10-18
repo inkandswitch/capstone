@@ -4,6 +4,7 @@ import { isEmpty, size } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
+import EdgeBoardCreator from "./EdgeBoardCreator"
 import Content, {
   DocumentActor,
   Message,
@@ -19,6 +20,7 @@ import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Link from "../data/Link"
 import * as Utils from "../logic/SizeUtils"
 import { resolve } from "path"
+import * as css from "./css/Board.css"
 
 const boardIcon = require("../assets/board_icon.svg")
 
@@ -32,9 +34,7 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string) => void
 }
 
-interface State {
-  focusedCardId: string | null
-}
+interface State {}
 
 export interface CreateCard extends Message {
   type: "CreateCard"
@@ -49,6 +49,8 @@ export interface CreateCard extends Message {
     }
   }
 }
+
+const BOARD_CREATE_TARGET_SIZE = 20
 
 type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
 type InMessage = WidgetMessage | ShelfContents | ReceiveDocuments
@@ -152,7 +154,7 @@ function getInitialSize(url: string): Promise<Size> {
 
 class Board extends React.Component<Props, State> {
   boardEl?: HTMLDivElement
-  state = { focusedCardId: null }
+  state: State = {}
 
   static reify(doc: AnyDoc): Model {
     return {
@@ -220,12 +222,20 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onCreateBoard = (position: Point) => {
+    const url = Content.create("Board")
+    this.props.change(doc => {
+      addCard(doc, url, position)
+      return doc
+    })
+  }
+
   render() {
-    const { cards, strokes } = this.props.doc
+    const { cards, strokes, topZ } = this.props.doc
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <div style={style.Board} ref={this.onRef}>
+          <div className={css.Board} ref={this.onRef}>
             <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
             <TransitionGroup>
               {Object.values(cards).map(card => {
@@ -240,6 +250,7 @@ class Board extends React.Component<Props, State> {
                     <Mirrorable cardId={card.id} onMirror={this.onMirror}>
                       <InteractableCard
                         card={card}
+                        onPinchOutEnd={this.props.onNavigate}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
@@ -250,16 +261,21 @@ class Board extends React.Component<Props, State> {
                 )
               })}
             </TransitionGroup>
+            <EdgeBoardCreator
+              onBoardCreate={this.onCreateBoard}
+              zIndex={topZ + 1}
+            />
           </div>
         )
+
       case "embed":
       case "preview":
         return (
-          <div style={style.Preview.Board}>
-            <img style={style.Preview.Icon} src={boardIcon} />
-            <div style={style.Preview.TitleContainer}>
-              <div style={style.Preview.Title}>Board</div>
-              <div style={style.Preview.SubTitle}>
+          <div className={css.BoardPreview}>
+            <img className={css.Icon} src={boardIcon} />
+            <div className={css.TitleContainer}>
+              <div className={css.Title}>Board</div>
+              <div className={css.SubTitle}>
                 {isEmpty(cards) ? "No" : size(cards)} items
               </div>
             </div>
@@ -274,55 +290,6 @@ class Board extends React.Component<Props, State> {
       return doc
     })
   }
-}
-
-const style = {
-  Board: {
-    width: "100%",
-    height: "100%",
-    position: "absolute" as "absolute",
-    zIndex: 0,
-    backgroundColor: "#fff",
-    overflow: "hidden",
-  },
-  FocusBackgroundOverlay: {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    position: "absolute" as "absolute",
-    backgroundColor: "#000",
-    opacity: 0.15,
-  },
-
-  Preview: {
-    Board: {
-      display: "flex" as "flex",
-      flexDirection: "row" as "row",
-      justifyContent: "center",
-      padding: "50px 25px",
-      fontSize: 16,
-      backgroundColor: "#fff",
-    },
-    Icon: {
-      height: 50,
-      width: 50,
-    },
-    TitleContainer: {
-      display: "flex" as "flex",
-      flexDirection: "column" as "column",
-      justifyContent: "center",
-      margin: "0 15px",
-    },
-    Title: {
-      fontSize: 24,
-      fontWeight: 500,
-      lineHeight: "1.2em",
-    },
-    SubTitle: {
-      fontSize: "smaller",
-    },
-  },
 }
 
 export default Widget.create("Board", Board, Board.reify, BoardActor)

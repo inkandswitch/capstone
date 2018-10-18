@@ -1,6 +1,7 @@
 import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import Content from "./Content"
 import { AnyDoc } from "automerge/frontend"
 
@@ -22,7 +23,12 @@ export default class SidecarWorkspace extends React.Component<Props> {
       doc: { shelfUrl },
     } = this.props
 
-    return <Content mode="fullscreen" type="SidecarUploader" url={shelfUrl} />
+    return (
+      <Content
+        mode="fullscreen"
+        url={Link.setType(shelfUrl, "SidecarUploader")}
+      />
+    )
   }
 }
 
