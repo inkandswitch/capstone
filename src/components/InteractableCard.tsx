@@ -26,7 +26,7 @@ export interface Props {
   onDragStop?: (x: number, y: number, id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
   onDoubleTap?: (url: string) => void
-  onPinchInEnd?: (url: string) => void
+  onPinchOutEnd?: (url: string) => void
 }
 
 export default class InteractableCard extends React.Component<Props, State> {
@@ -67,8 +67,8 @@ export default class InteractableCard extends React.Component<Props, State> {
       )
   }
 
-  onPinchInEnd = () => {
-    this.props.onPinchInEnd && this.props.onPinchInEnd(this.props.card.url)
+  onPinchOutEnd = () => {
+    this.props.onPinchOutEnd && this.props.onPinchOutEnd(this.props.card.url)
   }
 
   render() {
@@ -82,7 +82,7 @@ export default class InteractableCard extends React.Component<Props, State> {
     const type = Link.parse(this.props.card.url).type
 
     return (
-      <Navigatable onPinchOutEnd={this.onPinchInEnd}>
+      <Navigatable onPinchOutEnd={this.onPinchOutEnd}>
         <Interactable
           position={{ x, y }}
           originalSize={{ width, height }}
