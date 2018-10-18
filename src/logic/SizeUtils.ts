@@ -71,20 +71,22 @@ function getTextSize(text: string): Size {
     longestLine = Math.max(longestLine, element.clientWidth)
   })
 
-  const resolvedWidth = Math.min(longestLine, TEXT_MAX_WIDTH)
-  let totalHeight = 0
   // for some when constraining a line to it's above calculated width, it wraps onto two lines.
-  // adding an extra 2px fixes that ¯\_(ツ)_/¯
-  element.style.width = `${resolvedWidth + 2}px`
+  // adding an extra 5px fixes that ¯\_(ツ)_/¯
+  const resolvedWidth = Math.min(longestLine + 5, TEXT_MAX_WIDTH)
+  let totalHeight = 0
+
+  element.style.width = `${resolvedWidth}px`
   element.style.height = "auto"
   lines.forEach(line => {
     textNode.textContent = line
     totalHeight += Math.max(element.clientHeight, 21) // min. 21 to account for empty lines
+    console.log(`${Math.max(element.clientHeight, 21)} ${line}`)
   })
   element.parentNode!.removeChild(element)
 
   return {
-    width: resolvedWidth,
+    width: Math.min(TEXT_MAX_WIDTH, resolvedWidth),
     height: Math.min(TEXT_MAX_HEIGHT, totalHeight - 10), // subtract line spacing at the end
   }
 }
