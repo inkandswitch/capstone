@@ -1,4 +1,3 @@
-import * as CalculateSize from "calculate-size"
 import { AnyDoc } from "automerge/frontend"
 import * as Link from "../data/Link"
 
