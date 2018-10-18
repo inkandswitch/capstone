@@ -85,7 +85,7 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
       const history = [...this.state.history]
       history.splice(index,1)
       this.setState({history})
-      chrome.storage.local.set({ history: this.state.history})
+      chrome.storage.local.set({ history })
     }
   }
   setUrlFn = (url: string) => {

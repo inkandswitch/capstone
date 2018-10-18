@@ -114,7 +114,7 @@ export default class Store {
   }
 
   getWorkspace() : string | null {
-    return localStorage.workspaceUrl
+    return localStorage.workspaceUrl || null
   }
 
   setWorkspace(workspaceUrl: string) {

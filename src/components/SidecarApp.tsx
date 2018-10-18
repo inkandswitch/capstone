@@ -23,6 +23,7 @@ type State = {
 export default class SidecarApp extends React.Component<{}, State> {
   constructor(props: {}, ctx: any) {
     super(props, ctx)
+    console.log("Sidecar start", Content.store.getWorkspace())
     this.loadWorkspaceUrl(Content.store.getWorkspace())
 
     Content.store.control().subscribe(message => {
@@ -32,11 +33,13 @@ export default class SidecarApp extends React.Component<{}, State> {
   }
 
   loadWorkspaceUrl(workspaceUrl: string | null) {
-    this.state = { mode: "loading" }
+    this.setState({ mode: "loading" })
 
-    if (workspaceUrl === null) {
-      this.state = { mode: "setup" }
+    console.log("load workspace url", workspaceUrl)
+    if (!workspaceUrl) {
+      this.setState({ mode: "setup" })
     } else {
+      console.log("set workspace/state", workspaceUrl)
       Content.store.setWorkspace(workspaceUrl)
       this.state = {
         mode: "ready",
