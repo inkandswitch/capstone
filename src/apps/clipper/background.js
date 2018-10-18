@@ -5,6 +5,7 @@
 var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
 
 chrome.contextMenus.onClicked.addListener(itemData => {
+  triggerActionFeedback()
   console.log(itemData)
   if (itemData.selectionText) {
     chrome.runtime.sendMessage(
@@ -47,13 +48,17 @@ chrome.contextMenus.create({
 })
 
 chrome.browserAction.onClicked.addListener(function(tab) {
+  triggerActionFeedback()
   chrome.tabs.executeScript({
     file: "content.js",
   })
+})
+
+function triggerActionFeedback() {
   chrome.browserAction.setBadgeText({ text: "OK" })
   chrome.browserAction.setBadgeBackgroundColor({ color: "green" })
   setTimeout(() => {
     chrome.browserAction.setBadgeText({ text: "" })
     chrome.browserAction.setBadgeBackgroundColor({ color: "green" })
   }, 1000)
-})
+}
