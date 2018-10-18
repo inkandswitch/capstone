@@ -1,9 +1,3 @@
-const global = self as any
-
-global.window = {
-  indexedDB,
-}
-
 let raidb = require("random-access-idb")
 
 import StoreBackend from "../../data/StoreBackend"
