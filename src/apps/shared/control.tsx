@@ -7,22 +7,22 @@ export interface ControlProps {
   store: StoreBackend
 }
 
-const ControlPanel = document.getElementById("ControlPanel")!
+const ControlPanelDOM = document.getElementById("ControlPanel")!
 
 export function setupControlPanel(store: StoreBackend) {
-  ReactDOM.render(<ControlPanel store={store} />, ControlPanel)
+  ReactDOM.render(<ControlPanel store={store} />, ControlPanelDOM)
 }
 
 export function setControlPanel() {
   chrome.storage.local.get("controlPanel", data => {
-    ControlPanel.style.display = data.controlPanel
+    ControlPanelDOM.style.display = data.controlPanel
   })
-  ControlPanel.style.display =
-    ControlPanel.style.display === "block" ? "none" : "block"
+  ControlPanelDOM.style.display =
+    ControlPanelDOM.style.display === "block" ? "none" : "block"
 }
 
 export function toggleControl() {
-  const mode = ControlPanel.style.display === "block" ? "none" : "block"
+  const mode = ControlPanelDOM.style.display === "block" ? "none" : "block"
   chrome.storage.local.set({ controlPanel: mode })
   setControlPanel()
 }

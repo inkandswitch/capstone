@@ -29,10 +29,11 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
     })
     this.props.store.workspaceQ.subscribe(workspaceUrl => {
       log("workspace from frontend", workspaceUrl, this.state)
-      let history : string[] = [this.state.workspaceUrl, ...this.state.history]
-      history = history.reduce((acc,val) => val && !acc.includes(val) ? [...acc,val] : acc, [workspaceUrl]).slice(1)
+      let history = this.state.history.filter(v => v != workspaceUrl)
+      if (this.state.workspaceUrl) {
+        history.unshift(this.state.workspaceUrl!)
+      }
 
-      log("set state", history, workspaceUrl)
       this.setState({ history, workspaceUrl })
       chrome.storage.local.set({ history: this.state.history})
     })
