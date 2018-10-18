@@ -61,10 +61,9 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
     switch (message.type) {
       case "ReceiveDocuments": {
         const { urls } = message.body
-        urls.forEach(url => {
-          getCardSize(url).then(size =>
-            this.change(doc => addCard(url, doc, size)),
-          )
+        urls.forEach(async url => {
+          const size = await getCardSize(url)
+          this.change(doc => addCard(url, doc, size))
         })
         break
       }
@@ -90,16 +89,10 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "ShelfContents": {
         const { urls, placementPosition } = message.body
-        urls.forEach((url, index) => {
-          getCardSize(url).then(size =>
-            this.change(doc =>
-              addCard(
-                url,
-                doc,
-                size,
-                Position.radial(index, placementPosition),
-              ),
-            ),
+        urls.forEach(async (url, index) => {
+          const size = await getCardSize(url)
+          this.change(doc =>
+            addCard(url, doc, size, Position.radial(index, placementPosition)),
           )
         })
         break
@@ -107,17 +100,6 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
     }
   }
 }
-
-// async function getCardSize(url: string): Promise<Size> {
-//   try {
-//     await Content.open(url, doc => {
-//       const size = await SizeUtils.calculateInitialSize(url, doc)
-//       return size
-//     })
-//   } catch (e) {
-//     return { width: 400, height: 400 }
-//   }
-// }
 
 function getCardSize(url: string): Promise<Size> {
   return new Promise((resolve, reject) => {
