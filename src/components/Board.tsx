@@ -18,7 +18,7 @@ import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Link from "../data/Link"
-import * as Utils from "../logic/SizeUtils"
+import * as SizeUtils from "../logic/SizeUtils"
 import { resolve } from "path"
 import * as css from "./css/Board.css"
 
@@ -63,7 +63,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const { urls } = message.body
         this.change(doc => {
           urls.forEach(url => {
-            makeCard(doc, url).then(card => {
+            makeCard(url, doc.topZ++).then(card => {
               this.change(doc => {
                 doc.cards[card.id] = card
                 return doc
@@ -97,14 +97,16 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const { urls, placementPosition } = message.body
         this.change(doc => {
           urls.forEach((url, index) => {
-            makeCard(doc, url, Position.radial(index, placementPosition)).then(
-              card => {
-                this.change(doc => {
-                  doc.cards[card.id] = card
-                  return doc
-                })
-              },
-            )
+            makeCard(
+              url,
+              doc.topZ++,
+              Position.radial(index, placementPosition),
+            ).then(card => {
+              this.change(doc => {
+                doc.cards[card.id] = card
+                return doc
+              })
+            })
           })
         })
         break
@@ -114,40 +116,25 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 }
 
 function makeCard(
-  board: EditDoc<Model>,
   url: string,
+  zIndex: number,
   position?: Point,
 ): Promise<CardModel> {
   return new Promise((resolve, reject) => {
-    getInitialSize(url).then((size: Size) => {
-      position = position || { x: 0, y: 0 }
-      const card = {
-        id: UUID.create(),
-        z: board.topZ++,
-        x: position.x,
-        y: position.y,
-        width: size.width,
-        height: size.height,
-        url,
-      }
-      resolve(card)
-    })
-  })
-}
-
-function getInitialSize(url: string): Promise<Size> {
-  return new Promise((resolve, reject) => {
-    Content.open(url, (doc: AnyDoc) => {
-      const type = Link.parse(url).type
-      if (type === "Image") {
-        Utils.loadImageSize(doc.src as string).then(size => {
-          resolve(Utils.resolvedCardSize(size))
-        })
-      } else if (type === "Text") {
-        resolve(Utils.loadTextSize((doc.content as string[]).join("")))
-      } else {
-        reject()
-      }
+    Content.open(url, doc => {
+      SizeUtils.calculateInitialSize(url, doc).then((size: Size) => {
+        position = position || { x: 0, y: 0 }
+        const card = {
+          id: UUID.create(),
+          z: zIndex,
+          x: position.x,
+          y: position.y,
+          width: size.width,
+          height: size.height,
+          url,
+        }
+        resolve(card)
+      })
     })
   })
 }
@@ -224,9 +211,12 @@ class Board extends React.Component<Props, State> {
 
   onCreateBoard = (position: Point) => {
     const url = Content.create("Board")
-    this.props.change(doc => {
-      addCard(doc, url, position)
-      return doc
+    let { topZ } = this.props.doc
+    makeCard(url, topZ++, position).then(card => {
+      this.props.change(doc => {
+        doc.cards[card.id] = card
+        return doc
+      })
     })
   }
 

@@ -1,7 +1,7 @@
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
 import { pickBy, map, forEach, mapValues } from "lodash"
-import * as GPS from "../logic/GPS"
+import * as GPS from "./GPS"
 
 export enum InteractionMode {
   default,
