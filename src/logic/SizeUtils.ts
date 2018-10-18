@@ -2,6 +2,7 @@ import { AnyDoc } from "automerge/frontend"
 import * as Link from "../data/Link"
 
 const TEXT_CARD_PADDING = 15
+const IMAGE_CARD_MAX_SIZE = { width: 200, height: 200 }
 const DEFAULT_CARD_MAX_SIZE = { width: 400, height: 400 }
 const TEXT_MAX_WIDTH = DEFAULT_CARD_MAX_SIZE.width - 2 * TEXT_CARD_PADDING
 const TEXT_MAX_HEIGHT = DEFAULT_CARD_MAX_SIZE.height - 2 * TEXT_CARD_PADDING
@@ -12,7 +13,7 @@ export function calculateInitialSize(url: string, doc: AnyDoc): Promise<Size> {
     if (type === "Image") {
       getImageSize(doc.src as string)
         .then(size => {
-          resolve(resolvedCardSize(size))
+          resolve(resolvedImageCardSize(size))
         })
         .catch(() => {
           resolve({ width: 400, height: 400 })
@@ -27,9 +28,9 @@ export function calculateInitialSize(url: string, doc: AnyDoc): Promise<Size> {
     } else if (type === "Board") {
       resolve({ width: 300, height: 200 })
     } else if (type === "HTML") {
-      resolve({ width: 400, height: 400 })
+      resolve({ width: 300, height: 300 })
     } else {
-      resolve({ width: 400, height: 400 })
+      resolve({ width: 300, height: 300 })
     }
   })
 }
@@ -90,10 +91,10 @@ function getTextSize(text: string): Size {
   }
 }
 
-function resolvedCardSize(originalSize: Size): Size {
+function resolvedImageCardSize(originalSize: Size): Size {
   const scaleFactor = Math.min(
-    DEFAULT_CARD_MAX_SIZE.width / originalSize.width,
-    DEFAULT_CARD_MAX_SIZE.height / originalSize.height,
+    IMAGE_CARD_MAX_SIZE.width / originalSize.width,
+    IMAGE_CARD_MAX_SIZE.height / originalSize.height,
   )
   return {
     width: originalSize.width * scaleFactor,
