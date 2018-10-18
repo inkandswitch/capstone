@@ -11,7 +11,6 @@ import "./NetworkActivity"
 import "./Text"
 import "./Table"
 import "./Workspace"
-import "./Shelf"
 import "./Identity"
 import "./PeerStatus"
 import "./Peer"
@@ -34,7 +33,7 @@ export default class App extends React.Component<Props, State> {
 
   initWorkspace() {
     log("init workspace")
-    const shelfUrl = Content.create("Shelf")
+    const shelfUrl = Content.create("Board")
     const rootBoardUrl = Content.create("Board")
     const workspaceUrl = Content.create("Workspace")
 

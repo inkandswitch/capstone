@@ -16,7 +16,6 @@ import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
-import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
@@ -60,9 +59,9 @@ export interface CreateCard extends Message {
 
 const BOARD_CREATE_TARGET_SIZE = 20
 
-type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
-type InMessage = WidgetMessage | ShelfContents | ReceiveDocuments
-type OutMessage = DocumentCreated | AddToShelf | ShelfContentsRequested
+type WidgetMessage = CreateCard
+type InMessage = WidgetMessage | ReceiveDocuments
+type OutMessage = DocumentCreated | ReceiveDocuments
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -78,34 +77,12 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 
       case "CreateCard": {
         const { type, card } = message.body
-        // TODO: async creation - should we split this across multiple messages?
-        const url = await this.create(type)
+        const url = this.create(type)
         this.change(doc => {
           const z = ++doc.topZ
           doc.cards[card.id] = { ...card, z, url }
         })
         this.emit({ type: "DocumentCreated", body: url })
-        break
-      }
-
-      case "AddToShelf": {
-        this.emit({ type: "AddToShelf", body: message.body })
-        break
-      }
-
-      case "ShelfContentsRequested": {
-        this.emit({ type: "ShelfContentsRequested", body: message.body })
-        break
-      }
-
-      case "ShelfContents": {
-        const { urls, placementPosition } = message.body
-        urls.forEach(async (url, index) => {
-          const size = await getCardSize(url)
-          this.change(doc =>
-            addCard(url, doc, size, Position.radial(index, placementPosition)),
-          )
-        })
         break
       }
     }

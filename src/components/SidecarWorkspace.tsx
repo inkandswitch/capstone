@@ -1,9 +1,10 @@
 import * as React from "react"
+import { AnyDoc } from "automerge/frontend"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import Content from "./Content"
-import { AnyDoc } from "automerge/frontend"
+import GPSInput from "./GPSInput"
 
 export interface Model {
   shelfUrl: string
@@ -19,15 +20,13 @@ export default class SidecarWorkspace extends React.Component<Props> {
   }
 
   render() {
-    const {
-      doc: { shelfUrl },
-    } = this.props
+    const { doc } = this.props
 
     return (
-      <Content
-        mode="fullscreen"
-        url={Link.setType(shelfUrl, "SidecarUploader")}
-      />
+      <div>
+        <GPSInput />
+        <Content mode="fullscreen" url={doc.shelfUrl} />
+      </div>
     )
   }
 }
