@@ -3,7 +3,7 @@ import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"
 let racf = require("random-access-chrome-file")
 
-import { setupControlPanel, toggleControl, setControlPanel } from "./control"
+import { setupControlPanel, toggleControl } from "./control"
 
 process.hrtime = require("browser-process-hrtime")
 
@@ -58,7 +58,6 @@ webview.addEventListener("loadstop", () => {
 
   store.sendToFrontend({ type: "Ready" })
 
-  setControlPanel()
   setupControlPanel(store)
 })
 

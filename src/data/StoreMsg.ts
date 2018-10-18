@@ -104,8 +104,8 @@ export interface DownloadActivity {
   seq: number
 }
 
-export interface ToggleDebug {
-  type: "ToggleDebug"
+export interface ToggleControl {
+  type: "ToggleControl"
 }
 
 export type FrontendToBackend =
@@ -116,7 +116,7 @@ export type FrontendToBackend =
   | ActorIdRequest
   | RequestActivity
   | SetIdentity
-  | ToggleDebug
+  | ToggleControl
 
 export type BackendToFrontend =
   | Ready

@@ -13,7 +13,6 @@ type State = {
 }
 
 export default class DebugMgr extends React.Component<Props, State> {
-//  textarea: any
 
   state = { debug: "", msg: "" }
 
@@ -35,7 +34,7 @@ export default class DebugMgr extends React.Component<Props, State> {
     }
   }
 
-  onDebugChange = (event: any) => {
+  onDebugChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     event.preventDefault()
 
     const url: string = event.target.value
@@ -50,7 +49,7 @@ export default class DebugMgr extends React.Component<Props, State> {
   }
 
   render() {
-    let { msg } = this.state
+    const { msg } = this.state
     return (
       <div>
         <div>Enter a new debug filter - * for all:</div>

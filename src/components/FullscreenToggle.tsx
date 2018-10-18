@@ -8,7 +8,7 @@ interface Props {}
 export default class FullscreenToggle extends React.Component<Props> {
 
   handleClick = () => {
-    let window = chrome.app.window.current()
+    const window = chrome.app.window.current()
     if (window.isFullscreen()) {
       window.restore()
       window.show()
