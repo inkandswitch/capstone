@@ -3,12 +3,13 @@ import * as ReactDOM from "react-dom"
 import App from "../../components/App"
 import Content from "../../components/Content"
 import Store from "../../data/Store"
-import backend from "../shared/backend"
+import bootstrap from "../shared/bootstrap"
 
 // Used for debugging from the console:
 window.Content = Content
 
 Content.store = new Store()
-backend(Content.store)
+
+bootstrap(Content.store)
 
 ReactDOM.render(<App />, document.getElementById("main"))

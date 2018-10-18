@@ -1,23 +1,19 @@
 const webview = document.getElementById("webview")! as HTMLIFrameElement
 const DebugPane = document.getElementById("DebugPane")!
+import Queue from "../../data/Queue"
 
-const hm = new Hypermerge({ storage: racf })
-const store = new StoreBackend(hm)
+const webviewQueue = new Queue<any>()
 
 window.addEventListener("message", ({ data: msg }) => {
   if (typeof msg !== "object") return
 
   console.log(msg)
 
-  if (msg.type === "Clipper") {
-    return store.sendToFrontend(msg)
-  }
-
   if (msg.type === "ToggleDebug") {
     toggleDebug()
   }
 
-  store.onMessage(msg)
+  webviewQueue.push(msg)
 })
 
 window.addEventListener("keydown", event => {
@@ -28,18 +24,15 @@ window.addEventListener("keydown", event => {
 
 let loadStopped = false
 webview.addEventListener("loadstop", () => {
-  if (loadStopped) {
-    return
-  }
+  if (loadStopped) return
+
   loadStopped = true
 
   webview.focus()
 
-  store.sendQueue.subscribe(msg => {
+  webviewQueue.subscribe(msg => {
     webview.contentWindow!.postMessage(msg, "*")
   })
-
-  store.sendToFrontend({ type: "Ready" })
 
   setDebugPannel()
 })
@@ -66,7 +59,7 @@ chrome.runtime.onMessageExternal.addListener(
 
     console.log("Received message from external extension", request, sender)
 
-    store.sendToFrontend({ type: "Clipper", ...request })
+    webviewQueue.push({ type: "Clipper", ...request })
 
     sendResponse({ contentReceived: "success" })
   },

@@ -1,12 +1,19 @@
-import Queue from "../../data/Queue"
-import * as Msg from "../../data/StoreMsg"
-let racf = require("random-access-chrome-file")
+const global = self as any
+
+global.window = {
+  indexedDB,
+}
+
+let raidb = require("random-access-idb")
 
 import StoreBackend from "../../data/StoreBackend"
 import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"
 
 process.hrtime = require("browser-process-hrtime")
+
+const hm = new Hypermerge({ storage: raidb("hypermerge") })
+const store = new StoreBackend(hm)
 
 hm.joinSwarm(
   new CloudClient({
@@ -17,18 +24,14 @@ hm.joinSwarm(
   }),
 )
 
-window.addEventListener("message", ({ data: msg }) => {
+addEventListener("message", ({ data: msg }) => {
+  console.log(`worker received msg '${typeof msg}'`, msg)
   if (typeof msg !== "object") return
 
-  console.log(msg)
-
-  if (msg.type === "Clipper") {
-    return store.sendToFrontend(msg)
-  }
-
-  if (msg.type === "ToggleDebug") {
-    toggleDebug()
-  }
-
   store.onMessage(msg)
+})
+
+store.sendQueue.subscribe(msg => {
+  console.log("worker sending msg", msg)
+  ;(postMessage as any)(msg)
 })
