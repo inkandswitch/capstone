@@ -13,7 +13,6 @@ import Content, {
 import Clipboard from "./Clipboard"
 import Peers from "./Peers"
 import * as Link from "../data/Link"
-import { last } from "lodash"
 import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
 export interface Model {
@@ -34,9 +33,9 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
           url => Link.parse(url).type == "Board",
         )
         this.emit({
+          to: this.doc.shelfUrl,
           type: "ReceiveDocuments",
           body: message.body,
-          to: last(boardsOnStack) || this.doc.rootUrl,
         })
         break
       }
@@ -107,7 +106,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const urlPromises = DataImport.importData(dataTransfer)
     Promise.all(urlPromises).then(urls => {
       this.props.emit({ type: "ReceiveDocuments", body: { urls } })
-      // this.props.emit({ type: "AddToShelf", body: { urls } })
     })
   }
 
