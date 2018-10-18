@@ -3,12 +3,6 @@ import * as Msg from "../../data/StoreMsg"
 import Queue from "../../data/Queue"
 import Content from "../../components/Content"
 
-// HACK to enable random-access-chrome-file
-;(navigator as any).webkitPersistentStorage.requestQuota(
-  Number.MAX_SAFE_INTEGER,
-  () => {},
-)
-
 const store = new Store()
 const worker = new Worker("worker.js") as any
 const entryQueue = new Queue<Msg.MainToEntry>()
