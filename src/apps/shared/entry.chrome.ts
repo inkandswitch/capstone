@@ -74,16 +74,3 @@ function toggleDebug() {
   chrome.storage.local.set({ debugPannel: mode })
   setDebugPannel()
 }
-
-// Receive messages from the Clipper chrome extension to import content
-chrome.runtime.onMessageExternal.addListener(
-  (request, sender, sendResponse) => {
-    if (sender.id == "blocklistedExtension") return
-
-    console.log("Received message from external extension", request, sender)
-
-    store.sendToFrontend({ type: "Clipper", ...request })
-
-    sendResponse({ contentReceived: "success" })
-  },
-)
