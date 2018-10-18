@@ -17,6 +17,7 @@ import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
 import * as SizeUtils from "../logic/SizeUtils"
+import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
@@ -168,20 +169,36 @@ class Board extends React.Component<Props, State> {
   }
 
   onMirror = (id: string) => {
-    if (!this.props.doc.cards[id]) return
+    const card = this.props.doc.cards[id]
+    if (!card) return
+
     this.props.change(doc => {
-      const card = doc.cards[id]
-      if (!card) return
-
-      card.z = ++doc.topZ
-
-      const mirror = {
-        ...card,
-        id: UUID.create(),
-        z: card.z - 1,
-      }
-      doc.cards[mirror.id] = mirror
+      addCard(card.url, doc, card, card)
     })
+  }
+
+  onDragOver = (event: React.DragEvent) => {
+    event.preventDefault()
+  }
+
+  onDrop = (event: React.DragEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const { clientX, clientY } = event
+
+    DataImport.importData(event.dataTransfer).forEach(
+      async (urlPromise, idx) => {
+        console.log("importing", idx)
+
+        const url = await urlPromise
+        const size = await getCardSize(url)
+
+        this.props.change(doc => {
+          addCard(url, doc, size, { x: clientX, y: clientY })
+        })
+      },
+    )
   }
 
   onCreateBoard = (position: Point) => {
@@ -241,12 +258,18 @@ class Board extends React.Component<Props, State> {
         }
 
         return (
-          <div className={css.Board} ref={this.onRef} style={style}>
+          <div
+            className={css.Board}
+            ref={this.onRef}
+            onDragOver={this.onDragOver}
+            onDrop={this.onDrop}
+            style={style}>
             <Ink
               onInkStroke={this.onInkStroke}
               strokes={strokes}
               mode={this.props.mode}
             />
+
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
@@ -277,6 +300,7 @@ class Board extends React.Component<Props, State> {
                 )
               })}
             </TransitionGroup>
+
             <EdgeBoardCreator
               onBoardCreate={this.onCreateBoard}
               zIndex={topZ + 1}

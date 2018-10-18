@@ -95,16 +95,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     this.importData(e.clipboardData)
   }
 
-  onDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-  }
-
-  onDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    this.importData(event.dataTransfer)
-  }
-
   onTapPeer = (identityUrl: string) => {
     this.props.emit({
       to: this.props.doc.shelfUrl,
