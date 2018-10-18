@@ -6,6 +6,7 @@ export interface PointerInput {
 
 export interface Measurements {
   distance: number
+  scale: number
   delta: number
   initialDistance: number
   distanceHistory: number[]
@@ -15,6 +16,7 @@ export const init = (e: PointerInput[]) => {
   const distance = distanceBetween(e[0], e[1])
   return {
     distance: distance,
+    scale: 1,
     delta: 0,
     initialDistance: distance,
     distanceHistory: [distance],
@@ -31,6 +33,7 @@ export const update = (measurements: Measurements, input: PointerInput[]) => {
   const distance = distanceBetween(input[0], input[1])
   return {
     distance: distance,
+    scale: distance / measurements.initialDistance,
     delta: distance - measurements.initialDistance,
     initialDistance: measurements.initialDistance,
     distanceHistory: [...measurements.distanceHistory, distance],
