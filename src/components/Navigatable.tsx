@@ -10,10 +10,11 @@ interface NavigatableProps {
   onPinchInEnd?: () => void
   onPinchOutEnd?: () => void
   onPinchMove?: (distance: number) => void
+  children: (scale: number) => JSX.Element
 }
 
 interface State {
-  pinch: PinchMetrics.Measurements
+  pinch?: PinchMetrics.Measurements
 }
 
 const MINIMUM_PINCH_TRAVEL = 40
@@ -24,7 +25,8 @@ export default class Navigatable extends React.Component<
 > {
   private node?: Element
   private subscription?: Rx.Subscription
-  private pinchMetrics?: PinchMetrics.Measurements
+
+  state: State = { pinch: undefined }
 
   componentDidMount() {
     this.node = ReactDOM.findDOMNode(this) as Element
@@ -48,32 +50,34 @@ export default class Navigatable extends React.Component<
     if (!this.node) return
 
     const eventList = Object.values(events)
+    const { pinch } = this.state
 
     if (
-      !this.pinchMetrics &&
+      !pinch &&
       this.node.contains(eventList[0].target as Node) &&
       this.node.contains(eventList[1].target as Node)
     ) {
-      this.pinchMetrics = PinchMetrics.init(eventList)
-    } else if (this.pinchMetrics) {
+      const pinch = PinchMetrics.init(eventList)
+      this.setState({ pinch })
+    } else if (pinch) {
       if (some(events, GPS.ifTerminalEvent)) {
-        const { delta } = this.pinchMetrics
-        if (delta > MINIMUM_PINCH_TRAVEL) {
+        const { scale, delta } = pinch
+        if (scale > 1 && delta > MINIMUM_PINCH_TRAVEL) {
           this.props.onPinchOutEnd && this.props.onPinchOutEnd()
-        } else if (delta < -MINIMUM_PINCH_TRAVEL) {
+        } else if (scale < 1 && delta < -MINIMUM_PINCH_TRAVEL) {
           this.props.onPinchInEnd && this.props.onPinchInEnd()
         }
-        this.pinchMetrics = undefined
+        this.setState({ pinch: undefined })
       } else {
         // Update pinch metrics
-        this.pinchMetrics = PinchMetrics.update(this.pinchMetrics, eventList)
-        this.props.onPinchMove &&
-          this.props.onPinchMove(this.pinchMetrics.distance)
+        const updatedPinch = PinchMetrics.update(pinch, eventList)
+        this.setState({ pinch: updatedPinch })
+        this.props.onPinchMove && this.props.onPinchMove(updatedPinch.distance)
       }
     }
   }
 
   render() {
-    return this.props.children
+    return this.props.children(this.state.pinch ? this.state.pinch.scale : 1)
   }
 }

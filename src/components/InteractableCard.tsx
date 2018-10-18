@@ -83,27 +83,35 @@ export default class InteractableCard extends React.Component<Props, State> {
 
     return (
       <Navigatable onPinchOutEnd={this.onPinchOutEnd}>
-        <Interactable
-          position={{ x, y }}
-          originalSize={{ width, height }}
-          preserveAspectRatio={type === "Image"}
-          onStart={this.start}
-          onDragStop={this.dragStop}
-          onResize={this.onResize}
-          onResizeStop={this.resizeStop}
-          z={z}>
-          <Card
-            cardId={this.props.card.id}
-            style={{ width: currentSize.width, height: currentSize.height }}
-            {...omit(rest, [
-              "onDoubleTap",
-              "onDragStop",
-              "onResizeStop",
-              "onPinchOutEnd",
-            ])}>
-            {children}
-          </Card>
-        </Interactable>
+        {scale => {
+          return (
+            <Interactable
+              position={{ x, y }}
+              originalSize={{ width, height }}
+              preserveAspectRatio={type === "Image"}
+              onStart={this.start}
+              onDragStop={this.dragStop}
+              onResize={this.onResize}
+              onResizeStop={this.resizeStop}
+              z={z}>
+              <Card
+                cardId={this.props.card.id}
+                style={{
+                  width: currentSize.width,
+                  height: currentSize.height,
+                  transform: `scale(${scale})`,
+                }}
+                {...omit(rest, [
+                  "onDoubleTap",
+                  "onDragStop",
+                  "onResizeStop",
+                  "onPinchOutEnd",
+                ])}>
+                {children}
+              </Card>
+            </Interactable>
+          )
+        }}
       </Navigatable>
     )
   }
