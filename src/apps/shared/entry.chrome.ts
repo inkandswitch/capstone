@@ -1,7 +1,8 @@
-const webview = document.getElementById("webview")! as HTMLIFrameElement
-const DebugPane = document.getElementById("DebugPane")!
 import Queue from "../../data/Queue"
 import * as Msg from "../../data/StoreMsg"
+import { setupControlPanel, toggleControl } from "./control"
+
+const webview = document.getElementById("webview")! as HTMLIFrameElement
 
 const mainQueue = new Queue<Msg.EntryToMain>()
 
@@ -14,8 +15,8 @@ window.addEventListener("message", event => {
   const msg: Msg.ToEntry = event.data
 
   switch (msg.type) {
-    case "ToggleDebug":
-      toggleDebug()
+    case "ToggleControl":
+      // toggleControl()
       break
 
     case "Clipper":
@@ -26,7 +27,7 @@ window.addEventListener("message", event => {
 
 window.addEventListener("keydown", event => {
   if (event.code === "ShiftRight") {
-    toggleDebug()
+    // toggleControl()
   }
 })
 
@@ -44,20 +45,5 @@ webview.addEventListener("loadstop", () => {
 
   sendToMain({ type: "Ready" })
 
-  setDebugPannel()
+  // setupControlPanel(store)
 })
-
-function setDebugPannel() {
-  chrome.storage.local.get("debugPannel", data => {
-    DebugPane.style.display = data.debugPannel
-  })
-  DebugPane.style.display =
-    DebugPane.style.display === "block" ? "none" : "block"
-}
-
-function toggleDebug() {
-  console.log("Toggling debug pane")
-  const mode = DebugPane.style.display === "block" ? "none" : "block"
-  chrome.storage.local.set({ debugPannel: mode })
-  setDebugPannel()
-}

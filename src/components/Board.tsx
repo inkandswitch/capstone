@@ -17,6 +17,9 @@ import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
+import * as Link from "../data/Link"
+import * as SizeUtils from "../logic/SizeUtils"
+import { resolve } from "path"
 import * as css from "./css/Board.css"
 
 const boardIcon = require("../assets/board_icon.svg")
@@ -58,8 +61,9 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
     switch (message.type) {
       case "ReceiveDocuments": {
         const { urls } = message.body
-        this.change(doc => {
-          urls.forEach((url: string) => addCard(doc, url))
+        urls.forEach(async url => {
+          const size = await getCardSize(url)
+          this.change(doc => addCard(url, doc, size))
         })
         break
       }
@@ -85,11 +89,11 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "ShelfContents": {
         const { urls, placementPosition } = message.body
-        this.change(doc => {
-          urls.forEach((url, index) =>
-            addCard(doc, url, Position.radial(index, placementPosition)),
+        urls.forEach(async (url, index) => {
+          const size = await getCardSize(url)
+          this.change(doc =>
+            addCard(url, doc, size, Position.radial(index, placementPosition)),
           )
-          return doc
         })
         break
       }
@@ -97,17 +101,27 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   }
 }
 
+function getCardSize(url: string): Promise<Size> {
+  return new Promise((resolve, reject) => {
+    Content.open(url, doc => {
+      SizeUtils.calculateInitialSize(url, doc).then((size: Size) => {
+        resolve(size)
+      })
+    })
+  })
+}
+
 function addCard(
-  board: EditDoc<Model>,
   url: string,
+  board: EditDoc<Model>,
+  size: Size,
   position?: Point,
-  size?: Size,
 ) {
+  const z = board.topZ + 1
   position = position || { x: 0, y: 0 }
-  size = size || { width: 500, height: 300 }
   const card = {
     id: UUID.create(),
-    z: board.topZ++,
+    z: z,
     x: position.x,
     y: position.y,
     width: size.width,
@@ -115,7 +129,7 @@ function addCard(
     url,
   }
   board.cards[card.id] = card
-  return board
+  board.topZ = z
 }
 
 class Board extends React.Component<Props, State> {
@@ -191,8 +205,7 @@ class Board extends React.Component<Props, State> {
   onCreateBoard = (position: Point) => {
     const url = Content.create("Board")
     this.props.change(doc => {
-      addCard(doc, url, position)
-      return doc
+      addCard(url, doc, { width: 300, height: 200 }, position)
     })
   }
 

@@ -4,6 +4,11 @@ export interface Ready {
   type: "Ready"
 }
 
+export interface WorkspaceSet {
+  type: "WorkspaceSet"
+  url: string
+}
+
 export interface Create {
   type: "Create"
   docId: string
@@ -64,6 +69,11 @@ export interface Clipper {
   content: string
 }
 
+export interface Control {
+  type: "Control"
+  workspaceUrl: string | null
+}
+
 export interface Presence {
   type: "Presence"
   errs: string[]
@@ -94,13 +104,13 @@ export interface DownloadActivity {
   seq: number
 }
 
-export interface ToggleDebug {
-  type: "ToggleDebug"
+export interface ToggleControl {
+  type: "ToggleControl"
 }
 
 export type EntryToMain = Clipper | Ready
 
-export type MainToEntry = ToggleDebug
+export type MainToEntry = ToggleControl
 export type BackgroundToEntry = Clipper
 
 export type ToEntry = BackgroundToEntry | MainToEntry
@@ -108,6 +118,7 @@ export type ToEntry = BackgroundToEntry | MainToEntry
 export type FrontendToBackend =
   | Create
   | Open
+  | WorkspaceSet
   | ChangeRequest
   | ActorIdRequest
   | RequestActivity
@@ -118,6 +129,7 @@ export type BackendToFrontend =
   | SetActorId
   | ApplyPatch
   | Clipper
+  | Control
   | Presence
   | UploadActivity
   | DownloadActivity

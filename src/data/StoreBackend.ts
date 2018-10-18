@@ -15,6 +15,7 @@ export default class StoreBackend {
   hypermerge: Hypermerge
   docHandles: { [docId: string]: BackendHandle } = {}
   changeQ: { [docId: string]: Queue<Change[]> } = {}
+  workspaceQ: Queue<string> = new Queue()
 
   constructor(hm: Hypermerge) {
     log("constructing")
@@ -198,6 +199,11 @@ export default class StoreBackend {
           secretKey: Base58.decode(keys.secretKey),
         }
         this.hypermerge.createDocument(keyPair)
+        break
+      }
+
+      case "WorkspaceSet": {
+        this.workspaceQ.push(msg.url)
         break
       }
 
