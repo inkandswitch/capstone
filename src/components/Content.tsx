@@ -5,12 +5,14 @@ import Store from "../data/Store"
 import * as Reify from "../data/Reify"
 import { once } from "lodash"
 import * as Debug from "debug"
+import ContainerDimensions, { Dimensions } from "react-container-dimensions"
 const log = Debug("component:content")
 
 export interface WidgetProps<T> {
   url: string
   mode: Mode
   store: Store
+  dimensions: Dimensions
   contentSize?: Size
 }
 interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
@@ -66,7 +68,6 @@ export interface Props {
   url: string
   mode: Mode
   isFocused?: boolean
-  contentSize?: Size
   [k: string]: unknown
 }
 
@@ -216,24 +217,33 @@ export default class Content extends React.Component<Props & unknown> {
     if (!this.props.url) return null
 
     const { type } = Link.parse(this.props.url)
-    let Widget
-    try {
-      Widget = Content.find(type)
-    } catch {
-      Widget = undefined
-    }
-
-    if (!Widget) {
-      return <Missing type={type} />
-    }
-
     return (
-      <Widget
-        key={this.props.url}
-        mode={this.props.mode}
-        {...this.props}
-        store={Content.store}
-      />
+      <ContainerDimensions>
+        {(dimensions: Dimensions) => {
+          let Widget
+          try {
+            Widget = Content.find(type)
+          } catch {
+            Widget = undefined
+          }
+
+          if (!Widget) {
+            return <Missing type={type} />
+          }
+
+          console.log("DIMENSIONS", dimensions)
+
+          return (
+            <Widget
+              key={this.props.url}
+              mode={this.props.mode}
+              dimensions={dimensions}
+              {...this.props}
+              store={Content.store}
+            />
+          )
+        }}
+      </ContainerDimensions>
     )
   }
 }
