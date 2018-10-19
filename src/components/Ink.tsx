@@ -6,6 +6,7 @@ import * as css from "./css/Ink.css"
 import { Portal } from "react-portal"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
+import * as Content from "./Content"
 
 interface Bounds {
   readonly top: number
@@ -27,6 +28,7 @@ export interface InkStroke {
 
 export interface Props {
   strokes: InkStroke[]
+  mode: Content.Mode
   onInkStroke?: (strokes: InkStroke[]) => void
   style?: {}
 }
@@ -119,22 +121,23 @@ export default class Ink extends React.Component<Props, State> {
   render() {
     const { strokeType, eraserPosition } = this.state
     const style = this.props.style || {}
+    console.log(`rendering ink with style ${Object.values(style)}`)
     return (
       <div style={style}>
-        <Portal>
-          <div>
-            {eraserPosition != undefined ? (
-              <div
-                className={css.Eraser}
-                style={{
-                  left: eraserPosition.x,
-                  top: eraserPosition.y,
-                  width: eraserPosition.strokeWidth,
-                  height: eraserPosition.strokeWidth,
-                }}
-              />
-            ) : null}
-            <canvas ref={this.canvasAdded} className={css.InkLayer} />
+        <div>
+          {eraserPosition != undefined ? (
+            <div
+              className={css.Eraser}
+              style={{
+                left: eraserPosition.x,
+                top: eraserPosition.y,
+                width: eraserPosition.strokeWidth,
+                height: eraserPosition.strokeWidth,
+              }}
+            />
+          ) : null}
+          <canvas ref={this.canvasAdded} className={css.InkLayer} />
+          {this.props.mode == "fullscreen" ? (
             <div className={css.Options}>
               <Option
                 label="Ink"
@@ -149,8 +152,8 @@ export default class Ink extends React.Component<Props, State> {
                 onChange={this.onStrokeTypeChange}
               />
             </div>
-          </div>
-        </Portal>
+          ) : null}
+        </div>
       </div>
     )
   }
@@ -273,14 +276,22 @@ export default class Ink extends React.Component<Props, State> {
     var dpr = window.devicePixelRatio || 1
     // Get the size of the canvas in CSS pixels.
     var rect = canvas.getBoundingClientRect()
-    // Give the canvas pixel dimensions of their CSS
-    // size * the device pixel ratio.
-    canvas.width = window.innerWidth * dpr
-    canvas.height = window.innerHeight * dpr
+    console.log(
+      `canvas bla: ${rect.left} / ${rect.right} / ${rect.width} / ${
+        rect.height
+      }`,
+    )
     var ctx = canvas.getContext("2d")
     // Scale all drawing operations by the dpr, so you
     // don't have to worry about the difference.
-    if (ctx) {
+    if (ctx && this.props.mode == "fullscreen") {
+      canvas.width = window.innerWidth * dpr
+      canvas.height = window.innerHeight * dpr
+      ctx.translate(0.5, 0.5)
+      ctx.scale(dpr, dpr)
+    } else if (ctx) {
+      canvas.width = rect.width * dpr
+      canvas.height = rect.height * dpr
       ctx.translate(0.5, 0.5)
       ctx.scale(dpr, dpr)
     }

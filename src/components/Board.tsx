@@ -212,14 +212,14 @@ class Board extends React.Component<Props, State> {
 
   render() {
     let style = {}
+    let scale = 1.0
     let cardMode: Mode = "embed"
     const { contentSize } = this.props
     if (this.props.mode == "embed" && contentSize) {
-      const scale = contentSize.width / 1200 // TODO detect screen size?
+      scale = contentSize.width / 1200 // TODO detect screen size?
       cardMode = "preview"
       style = {
         transform: `scale(${scale},${scale})`,
-        position: "absolute" as "absolute",
         willChange: "transform",
         transformOrigin: "top left",
       }
@@ -231,11 +231,14 @@ class Board extends React.Component<Props, State> {
       case "embed":
         return (
           <div className={css.Board} ref={this.onRef} style={style}>
-            <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
+            <Ink
+              onInkStroke={this.onInkStroke}
+              strokes={strokes}
+              mode={this.props.mode}
+            />
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
-
                 return (
                   <CSSTransition
                     key={card.id}
