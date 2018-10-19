@@ -1,10 +1,12 @@
 import Content from "../components/Content"
+import * as StoreMsg from "../data/StoreMsg"
 
 declare global {
   interface Window {
     Content: typeof Content
     visualViewport: VisualViewport
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
+    sendToEntry: (msg: StoreMsg.MainToEntry) => void
   }
 
   interface PointerEvent {

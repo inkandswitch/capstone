@@ -23,6 +23,10 @@ body {
   height: auto;
 }
 
+.CodeMirror-lines {
+  padding: 0px;
+}
+
 /* CodeMirror defines "overflow: scroll !important" on .CodeMirror-scroll.
  * This causes the .CodeMirror-scroll element to trigger pointercancel events
  * whenever a pointerdown/pointermove chain begins on that element (because the

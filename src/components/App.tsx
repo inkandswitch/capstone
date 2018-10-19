@@ -50,28 +50,39 @@ export default class App extends React.Component<Props, State> {
         }
       })
 
-      this.setState({ url: workspaceUrl })
-      localStorage.workspaceUrl = workspaceUrl
+      this.setWorkspaceUrl(workspaceUrl)
     })
   }
 
+  setWorkspaceUrl(workspaceUrl: string) {
+    this.setState({ url: workspaceUrl })
+    Content.store.setWorkspace(workspaceUrl)
+  }
+
+  openWorkspace(workspaceUrl: string) {
+    Content.open<Workspace.Model>(
+      workspaceUrl,
+      (workspace: Doc<Workspace.Model>) => {
+        Content.workspaceUrl = workspaceUrl
+        Content.rootBoardUrl = workspace.rootUrl
+
+        this.setWorkspaceUrl(workspaceUrl)
+      },
+    )
+  }
+
+  configWorkspace(workspaceUrl: string | null) {
+    workspaceUrl ? this.openWorkspace(workspaceUrl) : this.initWorkspace()
+  }
+
   componentDidMount() {
-    const { workspaceUrl } = localStorage
-    if (workspaceUrl == undefined) {
-      this.initWorkspace()
-    } else {
-      Content.open<Workspace.Model>(
-        workspaceUrl,
-        (workspace: Doc<Workspace.Model>) => {
-          Content.workspaceUrl = workspaceUrl
-          Content.rootBoardUrl = workspace.rootUrl
+    this.configWorkspace(Content.store.getWorkspace())
 
-          this.setState({ url: workspaceUrl })
-        },
-      )
-    }
+    Content.store.control().subscribe(message => {
+      if (!message) return
+      this.configWorkspace(message.workspaceUrl)
+    })
 
-    // subscribe to the web clipper for messages about new content
     Content.store.clipper().subscribe(message => {
       if (!message) return
 
@@ -145,7 +156,7 @@ export default class App extends React.Component<Props, State> {
 
   onKeyDown = (event: KeyboardEvent) => {
     if (event.code === "ShiftRight") {
-      Content.store.sendToBackend({ type: "ToggleDebug" })
+      window.sendToEntry({ type: "ToggleControl" })
     }
   }
 }
