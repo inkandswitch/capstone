@@ -20,16 +20,18 @@ function isId(id: string) {
 export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
 export default class Store {
-  sendQueue = new Queue<Msg.FrontendToBackend>()
+  sendQueue = new Queue<Msg.FrontendToBackend>("Store")
   index: { [id: string]: FrontendHandle<any> } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
+  control$: Rx.BehaviorSubject<Msg.Control | null>
 
   constructor() {
     log("constructing")
 
     this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
     this.clipper$ = new Rx.BehaviorSubject<Msg.Clipper | null>(null)
+    this.control$ = new Rx.BehaviorSubject<Msg.Control | null>(null)
   }
 
   handle(id: string): FrontendHandle<any> {
@@ -70,9 +72,9 @@ export default class Store {
 
     this.index[docId] = handle
 
-//    handle.on("doc", (doc) => {
-//      log("DOC", doc)
-//    })
+    //    handle.on("doc", (doc) => {
+    //      log("DOC", doc)
+    //    })
 
     handle.on("needsActorId", () => {
       log("needsActorId", docId)
@@ -105,6 +107,19 @@ export default class Store {
 
   clipper(): Rx.Observable<Msg.Clipper | null> {
     return this.clipper$
+  }
+
+  control(): Rx.Observable<Msg.Control | null> {
+    return this.control$
+  }
+
+  getWorkspace(): string | null {
+    return localStorage.workspaceUrl || null
+  }
+
+  setWorkspace(workspaceUrl: string) {
+    localStorage.workspaceUrl = workspaceUrl
+    this.sendToBackend({ type: "WorkspaceSet", url: workspaceUrl })
   }
 
   activity(id: string): Rx.Observable<Activity> {
@@ -145,6 +160,10 @@ export default class Store {
 
       case "Presence":
         this.presence$.next(msg)
+        break
+
+      case "Control":
+        this.control$.next(msg)
         break
 
       case "Upload":

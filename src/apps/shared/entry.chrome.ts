@@ -1,76 +1,49 @@
-import StoreBackend from "../../data/StoreBackend"
-import { Hypermerge } from "../../modules/hypermerge"
-import CloudClient from "../../modules/discovery-cloud/Client"
-let racf = require("random-access-chrome-file")
-
-process.hrtime = require("browser-process-hrtime")
+import Queue from "../../data/Queue"
+import * as Msg from "../../data/StoreMsg"
+import { setupControlPanel, toggleControl } from "./control"
 
 const webview = document.getElementById("webview")! as HTMLIFrameElement
-const DebugPane = document.getElementById("DebugPane")!
 
-const hm = new Hypermerge({ storage: racf })
-const store = new StoreBackend(hm)
+const mainQueue = new Queue<Msg.EntryToMain>("EntryToMain")
 
-hm.joinSwarm(
-  new CloudClient({
-    url: "wss://discovery-cloud.herokuapp.com",
-    // url: "ws://localhost:8080",
-    id: hm.id,
-    stream: hm.stream,
-  }),
-)
+function sendToMain(msg: Msg.EntryToMain) {
+  mainQueue.push(msg)
+}
 
-window.addEventListener("message", ({ data: msg }) => {
-  if (typeof msg !== "object") return
+window.addEventListener("message", event => {
+  if (typeof event !== "object") return
+  const msg: Msg.ToEntry = event.data
 
-  console.log(msg)
+  switch (msg.type) {
+    case "ToggleControl":
+      // toggleControl()
+      break
 
-  if (msg.type === "Clipper") {
-    return store.sendToFrontend(msg)
+    case "Clipper":
+      sendToMain(msg)
+      break
   }
-
-  if (msg.type === "ToggleDebug") {
-    toggleDebug()
-  }
-
-  store.onMessage(msg)
 })
 
 window.addEventListener("keydown", event => {
   if (event.code === "ShiftRight") {
-    toggleDebug()
+    // toggleControl()
   }
 })
 
 let loadStopped = false
 webview.addEventListener("loadstop", () => {
-  if (loadStopped) {
-    return
-  }
+  if (loadStopped) return
+
   loadStopped = true
 
   webview.focus()
 
-  store.sendQueue.subscribe(msg => {
+  mainQueue.subscribe(msg => {
     webview.contentWindow!.postMessage(msg, "*")
   })
 
-  store.sendToFrontend({ type: "Ready" })
+  sendToMain({ type: "Ready" })
 
-  setDebugPannel()
+  // setupControlPanel(store)
 })
-
-function setDebugPannel() {
-  chrome.storage.local.get("debugPannel", data => {
-    DebugPane.style.display = data.debugPannel
-  })
-  DebugPane.style.display =
-    DebugPane.style.display === "block" ? "none" : "block"
-}
-
-function toggleDebug() {
-  console.log("Toggling debug pane")
-  const mode = DebugPane.style.display === "block" ? "none" : "block"
-  chrome.storage.local.set({ debugPannel: mode })
-  setDebugPannel()
-}

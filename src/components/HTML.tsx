@@ -4,7 +4,7 @@ import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 
 export interface Model {
-  content: string
+  html: string
 }
 
 interface Props extends Widget.Props<Model> {}
@@ -12,7 +12,7 @@ interface Props extends Widget.Props<Model> {}
 class HTML extends React.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
-      content: Reify.string(doc.html),
+      html: Reify.string(doc.html),
     }
   }
 
@@ -23,15 +23,12 @@ class HTML extends React.Component<Props> {
         return (
           <div
             style={style.Fullscreen}
-            dangerouslySetInnerHTML={{ __html: html as string }}
+            dangerouslySetInnerHTML={{ __html: html }}
           />
         )
       case "embed":
         return (
-          <div
-            style={style.Embed}
-            dangerouslySetInnerHTML={{ __html: html as string }}
-          />
+          <div style={style.Embed} dangerouslySetInnerHTML={{ __html: html }} />
         )
     }
   }

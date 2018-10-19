@@ -93,6 +93,7 @@ function app(env, name, overrides = {}) {
       main: `./src/apps/${name}/main.tsx`,
       background: `./src/apps/${name}/background.chrome.ts`,
       entry: `./src/apps/${name}/entry.chrome.ts`,
+      worker: `./src/apps/${name}/worker.ts`,
     },
     output: {
       path: path.resolve(__dirname, "dist", name),
