@@ -100,7 +100,7 @@ export class Hypermerge {
     const back = this.createDocument(keys)
     const front = new FrontendHandle<T>(back.docId, back.docId)
     front.back = back
-    front.on("requests", back.applyLocalChanges)
+    front.on("request", back.applyLocalChange)
     back.on("patch", front.patch)
     return front
   }
@@ -145,7 +145,7 @@ export class Hypermerge {
     const front = new FrontendHandle<T>(back.docId)
     front.back = back
     front.once("needsActorId", back.initActor)
-    front.on("requests", back.applyLocalChanges)
+    front.on("request", back.applyLocalChange)
     back.on("actorId", front.setActorId)
     back.on("ready", front.init)
     back.on("patch", front.patch)

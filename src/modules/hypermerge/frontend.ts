@@ -81,7 +81,7 @@ export class FrontendHandle<T> extends EventEmitter {
       this.front = doc
       log("change complete", this.docId, this.front)
       this.emit("doc", this.front)
-      this.emit("requests", requests)
+      this.emit("request", requests.pop())
     })
   }
 

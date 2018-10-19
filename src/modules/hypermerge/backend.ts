@@ -12,7 +12,6 @@ export class BackendHandle extends EventEmitter {
   docId: string
   actorId?: string
   private hypermerge: Hypermerge
-  private clock: Map<string, number> = new Map()
   private back?: BackDoc
   private backLocalQ: Queue<() => void> = new Queue("backLocalQ")
   private backRemoteQ: Queue<() => void> = new Queue("backRemoteQ")
@@ -45,22 +44,18 @@ export class BackendHandle extends EventEmitter {
       this.bench("applyRemoteChanges",() => {
         const [back, patch] = Backend.applyChanges(this.back!, changes)
         this.back = back
-        this.updateClock(changes)
         this.emit("patch", patch)
       })
     })
   }
 
-  applyLocalChanges = (changes: Change[]): void => {
+  applyLocalChange = (change: Change): void => {
     this.backLocalQ.push(() => {
-      this.bench("applyLocalChanges",() => {
-        changes.forEach(change => {
-          let [back, patch] = Backend.applyLocalChange(this.back!, change)
-          this.back = back
-          this.updateClock([change])
-          this.emit("patch", patch)
-          this.hypermerge.writeChange(this, this.actorId!, change)
-        })
+      this.bench("applyLocalChange",() => {
+        let [back, patch] = Backend.applyLocalChange(this.back!, change)
+        this.back = back
+        this.emit("patch", patch)
+        this.hypermerge.writeChange(this, this.actorId!, change)
       })
     })
   }
@@ -98,7 +93,6 @@ export class BackendHandle extends EventEmitter {
         this.actorId = this.hypermerge.initActorFeed(this)
       }
       this.back = back
-      this.updateClock(changes)
       this.backLocalQ.subscribe(f => f())
       this.backRemoteQ.subscribe(f => f())
       this.emit("ready", this.actorId, patch)
@@ -124,12 +118,6 @@ export class BackendHandle extends EventEmitter {
 
   metadata(): string[] {
     return this.actorIds()
-  }
-
-  private updateClock(changes: Change[]) {
-    changes.forEach((change) => {
-      this.clock.set(change.actor , Math.max( this.clock.get(change.actor) || -1 , change.seq))
-    })
   }
 
   private bench(msg: string, f: () => void) : void {

@@ -14,7 +14,7 @@ export default class StoreBackend {
   //presenceTick?: any
   hypermerge: Hypermerge
   docHandles: { [docId: string]: BackendHandle } = {}
-  changeQ: { [docId: string]: Queue<Change[]> } = {}
+//  changeQ: { [docId: string]: Queue<Change> } = {}
   workspaceQ: Queue<string> = new Queue()
 
   constructor(hm: Hypermerge) {
@@ -25,19 +25,12 @@ export default class StoreBackend {
     Peek.enable()
   }
 
-  applyChanges = (docId: string, changes: Change[]) => {
+/*
+  applyChange = (docId: string, change: Change) => {
     this.changeQ[docId] = this.changeQ[docId] || new Queue()
-    this.changeQ[docId]!.push(changes)
-    /*
-    if (handle) {
-      handle.applyChanges(changes)
-    } else {
-      this.pendingChanges[docId] = (this.pendingChanges[docId] || []).concat([
-        changes,
-      ])
-    }
-*/
+    this.changeQ[docId]!.push(change)
   }
+*/
 
   /*
   startPresence() {
@@ -116,10 +109,12 @@ export default class StoreBackend {
         const handle = this.hypermerge.openDocument(docId)
         this.docHandles[docId] = handle
 
+/*
         this.changeQ[docId] = this.changeQ[docId] || new Queue()
-        this.changeQ[docId].subscribe(changes =>
-          handle.applyLocalChanges(changes),
+        this.changeQ[docId].subscribe(change =>
+          handle.applyLocalChange(change),
         )
+*/
 
         handle.on("actorId", actorId => {
           this.sendToFrontend({ type: "SetActorId", docId, actorId })
@@ -137,9 +132,9 @@ export default class StoreBackend {
       }
 
       case "ChangeRequest": {
-        const { docId, changes } = msg
+        const { docId, change } = msg
         const handle = this.docHandles[docId]
-        handle.applyLocalChanges(changes)
+        handle.applyLocalChange(change)
         break
       }
 
