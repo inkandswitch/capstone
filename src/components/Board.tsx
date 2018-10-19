@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import { isEmpty, size } from "lodash"
+import { isEmpty, size, noop } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
@@ -10,6 +10,7 @@ import Content, {
   Message,
   ReceiveDocuments,
   DocumentCreated,
+  Mode,
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
@@ -215,11 +216,14 @@ class Board extends React.Component<Props, State> {
       case "fullscreen":
         return (
           <div className={css.Board} ref={this.onRef}>
-            <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
+            <Ink
+              onInkStroke={this.onInkStroke}
+              strokes={strokes}
+              mode={this.props.mode}
+            />
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
-
                 return (
                   <CSSTransition
                     key={card.id}
@@ -233,7 +237,14 @@ class Board extends React.Component<Props, State> {
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
-                        <Content mode="embed" url={card.url} />
+                        <Content
+                          mode="embed"
+                          url={card.url}
+                          contentSize={{
+                            width: card.width,
+                            height: card.height,
+                          }}
+                        />
                       </InteractableCard>
                     </Mirrorable>
                   </CSSTransition>
@@ -248,6 +259,51 @@ class Board extends React.Component<Props, State> {
         )
 
       case "embed":
+        const { contentSize } = this.props
+        if (!contentSize) return
+        const scale = contentSize.width / 1200
+        const style = {
+          transform: `scale(${scale},${scale})`,
+          willChange: "transform",
+          transformOrigin: "top left",
+        }
+
+        return (
+          <div className={css.BoardEmbed} ref={this.onRef}>
+            <Ink
+              onInkStroke={this.onInkStroke}
+              strokes={strokes}
+              mode={this.props.mode}
+              scale={scale}
+            />
+            <div style={style}>
+              {Object.values(cards).map(card => {
+                if (!card) return null
+                return (
+                  <InteractableCard
+                    key={card.id}
+                    card={card}
+                    onPinchOutEnd={noop}
+                    onDragStart={noop}
+                    onDragStop={noop}
+                    onResizeStop={noop}>
+                    <Content mode="preview" url={card.url} />
+                  </InteractableCard>
+                )
+              })}
+            </div>
+            <div
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0.2)",
+                width: "100%",
+                height: "100%",
+                left: 0,
+                top: 0,
+                position: "absolute",
+              }}
+            />
+          </div>
+        )
       case "preview":
         return (
           <div className={css.BoardPreview}>
