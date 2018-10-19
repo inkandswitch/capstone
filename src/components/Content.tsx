@@ -145,10 +145,6 @@ export default class Content extends React.Component<Props & unknown> {
     const handle = this.store.create(setup)
     log("create", handle.docId)
 
-    handle.on("doc", doc => {
-      log("emit doc maybe lost", handle.docId, doc)
-    })
-
     return Link.format({ type, id: handle.docId })
   }
 
