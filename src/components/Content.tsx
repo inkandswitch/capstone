@@ -13,7 +13,6 @@ export interface WidgetProps<T> {
   mode: Mode
   store: Store
   dimensions: Dimensions
-  contentSize?: Size
 }
 interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
 
