@@ -26,7 +26,7 @@ const boardIcon = require("../assets/board_icon.svg")
 
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
-  strokes: InkStroke[]
+  strokes: Array<InkStroke | string>
   topZ: number
 }
 
@@ -211,11 +211,16 @@ class Board extends React.Component<Props, State> {
 
   render() {
     const { cards, strokes, topZ } = this.props.doc
+    const parsedStrokes = strokes.map(
+      stroke =>
+        typeof stroke === "string" ? (JSON.parse(stroke) as InkStroke) : stroke,
+    )
+
     switch (this.props.mode) {
       case "fullscreen":
         return (
           <div className={css.Board} ref={this.onRef}>
-            <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
+            <Ink onInkStroke={this.onInkStroke} strokes={parsedStrokes} />
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
@@ -265,7 +270,7 @@ class Board extends React.Component<Props, State> {
 
   onInkStroke = (strokes: InkStroke[]) => {
     this.props.change(doc => {
-      doc.strokes.push(...strokes)
+      doc.strokes.push(...strokes.map(s => JSON.stringify(s)))
       return doc
     })
   }
