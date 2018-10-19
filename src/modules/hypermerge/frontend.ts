@@ -60,7 +60,7 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   init = (actorId?: string, patch?: Patch) => {
-    log("init docid=", this.docId, " actorId=", actorId, " patch=", !!patch, " mode=", this.mode)
+    log(`init docid=${this.docId} actorId=${actorId} patch=${!!patch} mode=${this.mode}`)
 
     if (this.mode !== "pending") return
 
