@@ -186,11 +186,14 @@ export class Hypermerge {
     return Promise.all(doc.actorIds().map(key => this.feedData(doc, key)))
   }
 
-  writeChange(doc: BackendHandle, actorId: string, changes: Change) {
+  writeChange(doc: BackendHandle, actorId: string, change: Change) {
     this.getFeed(doc, actorId, feed => {
-      feed.append(JsonBuffer.bufferify(changes), err => {
+      feed.append(JsonBuffer.bufferify(change), (err, idx) => {
         if (err) {
           throw new Error("failed to append to feed")
+        }
+        if (change.seq != idx + 1) {
+          throw new Error(`change.seq (${change.seq}) != idx+1 (${idx+1}) for ${doc.docId}`)
         }
       })
     })

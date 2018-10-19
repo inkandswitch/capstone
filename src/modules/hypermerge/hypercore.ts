@@ -45,7 +45,8 @@ export interface Feed<T> {
   writable: Boolean
   ready: Function
   append(data: T): void
-  append(data: T, cb: (err?: Error) => void): void
+  append(data: T, cb: (err: Error | null) => void): void
+  append(data: T, cb: (err: Error | null, idx: number) => void): void
   get(index: number, cb: (data: T) => void): void
   getBatch(start: number, end: number, cb: (Err: any, data: T[]) => void): void
   discoveryKey: Buffer
