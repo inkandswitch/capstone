@@ -14,7 +14,10 @@ const windowParams: chrome.app.CreateWindowOptions = {
 }
 
 function showMainWindow(cb: ((window: chrome.app.AppWindow) => void)) {
-  chrome.app.window.create("index.html", windowParams, cb)
+  chrome.app.window.create("index.html", windowParams, win => {
+    maybeFullscreen(win)
+    cb(win)
+  })
 }
 
 function maybeFullscreen(win: chrome.app.AppWindow) {
@@ -27,7 +30,6 @@ function maybeFullscreen(win: chrome.app.AppWindow) {
 
 chrome.app.runtime.onLaunched.addListener(() =>
   showMainWindow((win: chrome.app.AppWindow) => {
-    maybeFullscreen(win)
     win.show(true) // Passing focused: true
   }),
 )
@@ -48,7 +50,6 @@ chrome.runtime.onMessageExternal.addListener(
       forwardClipperMessage(win)
     } else {
       showMainWindow((win: chrome.app.AppWindow) => {
-        maybeFullscreen(win)
         // don't show the window if it isn't currently shown
         forwardClipperMessage(win.contentWindow)
       })

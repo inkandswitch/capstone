@@ -93,6 +93,7 @@ function app(env, name, overrides = {}) {
       main: `./src/apps/${name}/main.tsx`,
       background: `./src/apps/${name}/background.chrome.ts`,
       entry: `./src/apps/${name}/entry.chrome.ts`,
+      worker: `./src/apps/${name}/worker.ts`,
     },
     output: {
       path: path.resolve(__dirname, "dist", name),
@@ -126,10 +127,9 @@ module.exports = (env = {}) =>
       entry: {
         content: ["./src/apps/clipper/content.js"],
         background: "./src/apps/clipper/background.js",
-        popup: "./src/apps/clipper/popup.js",
       },
       plugins: [
-        new CopyWebpackPlugin(["manifest.json", "popup.html"], {
+        new CopyWebpackPlugin(["manifest.json"], {
           context: `./src/apps/clipper`,
         }),
       ],

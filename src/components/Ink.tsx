@@ -6,6 +6,7 @@ import * as css from "./css/Ink.css"
 import { Portal } from "react-portal"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
+import * as Content from "./Content"
 
 interface Bounds {
   readonly top: number
@@ -27,8 +28,9 @@ export interface InkStroke {
 
 export interface Props {
   strokes: InkStroke[]
+  mode: Content.Mode
+  scale?: number
   onInkStroke?: (strokes: InkStroke[]) => void
-  style?: {}
 }
 
 const EMPTY_BOUNDS: Bounds = {
@@ -118,23 +120,22 @@ export default class Ink extends React.Component<Props, State> {
 
   render() {
     const { strokeType, eraserPosition } = this.state
-    const style = this.props.style || {}
     return (
-      <div style={style}>
-        <Portal>
-          <div>
-            {eraserPosition != undefined ? (
-              <div
-                className={css.Eraser}
-                style={{
-                  left: eraserPosition.x,
-                  top: eraserPosition.y,
-                  width: eraserPosition.strokeWidth,
-                  height: eraserPosition.strokeWidth,
-                }}
-              />
-            ) : null}
-            <canvas ref={this.canvasAdded} className={css.InkLayer} />
+      <div>
+        <div>
+          {eraserPosition != undefined ? (
+            <div
+              className={css.Eraser}
+              style={{
+                left: eraserPosition.x,
+                top: eraserPosition.y,
+                width: eraserPosition.strokeWidth,
+                height: eraserPosition.strokeWidth,
+              }}
+            />
+          ) : null}
+          <canvas ref={this.canvasAdded} className={css.InkLayer} />
+          {this.props.mode == "fullscreen" ? (
             <div className={css.Options}>
               <Option
                 label="Ink"
@@ -149,8 +150,8 @@ export default class Ink extends React.Component<Props, State> {
                 onChange={this.onStrokeTypeChange}
               />
             </div>
-          </div>
-        </Portal>
+          ) : null}
+        </div>
       </div>
     )
   }
@@ -222,16 +223,15 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onStrokeTypeChange = (strokeType?: StrokeType) => {
-    if (this.state.strokeType === strokeType) return
-    if (!strokeType) {
+    if (this.state.strokeType === strokeType) {
       GPS.setInteractionMode(GPS.InteractionMode.default)
-      this.setState({ eraserPosition: undefined })
+      this.setState({ eraserPosition: undefined, strokeType: undefined })
       this.shouldRedrawDryInk = true
       this.inkStroke()
     } else {
       GPS.setInteractionMode(GPS.InteractionMode.inking)
+      this.setState({ strokeType })
     }
-    this.setState({ strokeType })
   }
 
   center() {
@@ -271,18 +271,24 @@ export default class Ink extends React.Component<Props, State> {
   prepareCanvas(canvas: HTMLCanvasElement) {
     // Get the device pixel ratio, falling back to 1.
     var dpr = window.devicePixelRatio || 1
+    const scale = (this.props.scale || 1) * dpr
     // Get the size of the canvas in CSS pixels.
-    var rect = canvas.getBoundingClientRect()
-    // Give the canvas pixel dimensions of their CSS
-    // size * the device pixel ratio.
-    canvas.width = window.innerWidth * dpr
-    canvas.height = window.innerHeight * dpr
+
+    if (this.props.mode == "fullscreen") {
+      canvas.width = window.innerWidth * scale
+      canvas.height = window.innerHeight * scale
+    } else {
+      var rect = canvas.getBoundingClientRect()
+      canvas.width = rect.width * dpr
+      canvas.height = rect.height * dpr
+    }
+
     var ctx = canvas.getContext("2d")
     // Scale all drawing operations by the dpr, so you
     // don't have to worry about the difference.
     if (ctx) {
       ctx.translate(0.5, 0.5)
-      ctx.scale(dpr, dpr)
+      ctx.scale(scale, scale)
     }
     return ctx
   }
@@ -376,7 +382,6 @@ class Option<T> extends React.Component<OptionProps<T>> {
       <div
         className={css.Option}
         onPointerDown={() => onChange(value)}
-        onPointerUp={() => onChange()}
         onContextMenu={this.onContextMenu}>
         <div
           className={classnames(css.OptionButton, { [css.current]: selected })}

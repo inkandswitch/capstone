@@ -10,7 +10,7 @@ import Queue from "./Queue"
 const log = Debug("store:backend")
 
 export default class StoreBackend {
-  sendQueue = new Queue<Msg.BackendToFrontend>()
+  sendQueue = new Queue<Msg.BackendToFrontend>("StoreBackend")
   //presenceTick?: any
   hypermerge: Hypermerge
   docHandles: { [docId: string]: BackendHandle } = {}
@@ -28,7 +28,7 @@ export default class StoreBackend {
   applyChanges = (docId: string, changes: Change[]) => {
     this.changeQ[docId] = this.changeQ[docId] || new Queue()
     this.changeQ[docId]!.push(changes)
-/*
+    /*
     if (handle) {
       handle.applyChanges(changes)
     } else {
@@ -39,7 +39,7 @@ export default class StoreBackend {
 */
   }
 
-/*
+  /*
   startPresence() {
     const hm = this.hypermerge
 
@@ -90,7 +90,7 @@ export default class StoreBackend {
 */
 
   reset() {
-//    this.stopPresence()
+    //    this.stopPresence()
 
     Object.values(this.docHandles).forEach(handle => {
       handle.release()
@@ -117,18 +117,21 @@ export default class StoreBackend {
         this.docHandles[docId] = handle
 
         this.changeQ[docId] = this.changeQ[docId] || new Queue()
-        this.changeQ[docId].subscribe(changes => handle.applyLocalChanges(changes))
+        this.changeQ[docId].subscribe(changes =>
+          handle.applyLocalChanges(changes),
+        )
 
         handle.on("actorId", actorId => {
           this.sendToFrontend({ type: "SetActorId", docId, actorId })
         })
 
-        handle.on("ready", (actorId,patch) => {
+        handle.on("ready", (actorId, patch) => {
           this.sendToFrontend({ type: "DocReady", docId, actorId, patch })
         })
 
         handle.on("localpatch", patch => {
-          // dont send - uselss re-render
+          const actorId = handle.actorId
+          this.sendToFrontend({ type: "ApplyPatch", docId, patch })
         })
 
         handle.on("patch", patch => {
@@ -208,8 +211,8 @@ export default class StoreBackend {
       }
 
       case "SetIdentity": {
-//        const { identityUrl } = msg
-//        this.hypermerge.setIdentity(identityUrl)
+        //        const { identityUrl } = msg
+        //        this.hypermerge.setIdentity(identityUrl)
         break
       }
     }

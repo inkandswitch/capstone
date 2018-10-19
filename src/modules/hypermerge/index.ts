@@ -11,7 +11,7 @@
 
 export const EXT = "hypermerge"
 
-type FeedFn = (f: Feed<Change>) => void
+type FeedFn = (f: Feed<Uint8Array>) => void
 
 interface Swarm {
   join(dk: Buffer): void
@@ -20,6 +20,7 @@ interface Swarm {
 }
 
 import Queue from "../../data/Queue"
+import * as JsonBuffer from "../../logic/JsonBuffer"
 import * as Base58 from "bs58"
 import * as crypto from "hypercore/lib/crypto"
 import { hypercore, Feed, Peer, discoveryKey } from "./hypercore"
@@ -63,7 +64,7 @@ export class Hypermerge {
   storage: Function
   ready: Promise<undefined>
   joined: Set<Buffer> = new Set()
-  feeds: Map<string, Feed<Change>> = new Map()
+  feeds: Map<string, Feed<Uint8Array>> = new Map()
   feedQs: Map<string, Queue<FeedFn>> = new Map()
   feedPeers: Map<string, Set<Peer>> = new Map()
   docs: Map<string, BackendHandle> = new Map()
@@ -73,7 +74,7 @@ export class Hypermerge {
   id: Buffer
 
   constructor(opts: Options) {
-    this.path = opts.path
+    this.path = opts.path || "default"
     this.storage = opts.storage || (opts.path ? raf : ram)
     this.ledger = hypercore(this.storageFn("ledger"), { valueEncoding: "json" })
     this.id = this.ledger.id
@@ -168,7 +169,9 @@ export class Hypermerge {
       this.getFeed(doc, actorId, feed => {
         const writable = feed.writable
         if (feed.length > 0) {
-          feed.getBatch(0, feed.length, (err, changes) => {
+          feed.getBatch(0, feed.length, (err, datas) => {
+            const changes = datas.map(JsonBuffer.parse)
+
             if (err) {
               reject(err)
             }
@@ -187,7 +190,7 @@ export class Hypermerge {
 
   writeChange(doc: BackendHandle, actorId: string, changes: Change) {
     this.getFeed(doc, actorId, feed => {
-      feed.append(changes, err => {
+      feed.append(JsonBuffer.bufferify(changes), err => {
         if (err) {
           throw new Error("failed to append to feed")
         }
@@ -258,7 +261,7 @@ export class Hypermerge {
   //    return this.actorIds(doc).map(actor => this.feeds.get(dkString))
   //  }
 
-  feed(actorId : string) : Feed<Change> {
+  feed(actorId: string): Feed<Uint8Array> {
     const publicKey = Base58.decode(actorId)
     const dk = discoveryKey(publicKey)
     const dkString = Base58.encode(dk)
@@ -277,8 +280,7 @@ export class Hypermerge {
     const storage = this.storageFn(actorId)
     const dk = discoveryKey(publicKey)
     const dkString = Base58.encode(dk)
-    const feed: Feed<Change> = hypercore(storage, publicKey, {
-      valueEncoding: "json",
+    const feed: Feed<Uint8Array> = hypercore(storage, publicKey, {
       secretKey,
     })
     const q = new Queue<FeedFn>()

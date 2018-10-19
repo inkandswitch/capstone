@@ -72,7 +72,7 @@ export default class App extends React.Component<Props, State> {
   }
 
   configWorkspace(workspaceUrl: string | null) {
-    workspaceUrl ?  this.openWorkspace(workspaceUrl) : this.initWorkspace()
+    workspaceUrl ? this.openWorkspace(workspaceUrl) : this.initWorkspace()
   }
 
   componentDidMount() {
@@ -156,7 +156,7 @@ export default class App extends React.Component<Props, State> {
 
   onKeyDown = (event: KeyboardEvent) => {
     if (event.code === "ShiftRight") {
-      Content.store.sendToBackend({ type: "ToggleControl" })
+      window.sendToEntry({ type: "ToggleControl" })
     }
   }
 }
