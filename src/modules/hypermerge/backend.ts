@@ -13,6 +13,7 @@ export class BackendHandle extends EventEmitter {
   docId: string
   back?: BackDoc
   actorId?: string
+  clock: Map<string, number> = new Map()
   backLocalQ: Queue<() => void> = new Queue("backLocalQ")
   backRemoteQ: Queue<() => void> = new Queue("backRemoteQ")
   wantsActor: boolean = false
@@ -39,11 +40,18 @@ export class BackendHandle extends EventEmitter {
     })
   }
 
+  updateClock(changes: Change[]) {
+    changes.forEach((change) => {
+      this.clock.set(change.actor , Math.max( this.clock.get(change.actor) || -1 , change.seq))
+    })
+  }
+
   applyRemoteChanges = (changes: Change[]): void => {
     this.backRemoteQ.push(() => {
-      this.bench("applyRemoteChanges",() =>
+      this.bench("applyRemoteChanges",() => {
         const [back, patch] = Backend.applyChanges(this.back!, changes)
         this.back = back
+        this.updateClock(changes)
         this.emit("patch", patch)
       })
     })
@@ -58,10 +66,11 @@ export class BackendHandle extends EventEmitter {
 
   applyLocalChanges = (changes: Change[]): void => {
     this.backLocalQ.push(() => {
-      this.bench("applyLocalChanges",() =>
+      this.bench("applyLocalChanges",() => {
         changes.forEach(change => {
           let [back, patch] = Backend.applyLocalChange(this.back!, change)
           this.back = back
+          this.updateClock([change])
           this.emit("localpatch", patch)
           this.hypermerge.writeChange(this, this.actorId!, change)
         })
@@ -95,13 +104,14 @@ export class BackendHandle extends EventEmitter {
   }
 
   init = (changes: Change[], actorId?: string) => {
-    this.bench("init",() =>
+    this.bench("init",() => {
       const [back, patch] = Backend.applyChanges(Backend.init(), changes)
       this.actorId = actorId
       if (this.wantsActor && !actorId) {
         this.actorId = this.hypermerge.initActorFeed(this)
       }
       this.back = back
+      this.updateClock(changes)
       this.backLocalQ.subscribe(f => f())
       this.backRemoteQ.subscribe(f => f())
       this.emit("ready", this.actorId, patch)
