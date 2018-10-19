@@ -20,6 +20,7 @@ import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/Board.css"
 
+const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
 
 export interface Model {
@@ -29,6 +30,7 @@ export interface Model {
 }
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
+  availableWidth: number
   onNavigate?: (url: string) => void
 }
 
@@ -249,8 +251,8 @@ class Board extends React.Component<Props, State> {
         )
 
       case "embed":
-        const { dimensions } = this.props
-        const scale = dimensions.width / 1200
+        const scale = this.props.availableWidth / 1200
+        console.log("width", this.props.availableWidth)
         const style = {
           transform: `scale(${scale},${scale})`,
           willChange: "transform",
@@ -316,4 +318,9 @@ class Board extends React.Component<Props, State> {
   }
 }
 
-export default Widget.create("Board", Board, Board.reify, BoardActor)
+export default Widget.create(
+  "Board",
+  withAvailableWidth(Board),
+  Board.reify,
+  BoardActor,
+)

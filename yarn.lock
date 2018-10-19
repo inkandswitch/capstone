@@ -3853,6 +3853,10 @@ react-transition-group@^2.5.0:
     prop-types "^15.6.2"
     react-lifecycles-compat "^3.0.4"
 
+react-with-available-width@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-with-available-width/-/react-with-available-width-2.0.0.tgz#09f0d3279d1cd8a1a177f2f8de60b0b6d27a2b5e"
+
 react@^16.5.2:
   version "16.5.2"
   resolved "https://registry.yarnpkg.com/react/-/react-16.5.2.tgz#19f6b444ed139baa45609eee6dc3d318b3895d42"

@@ -6,13 +6,11 @@ import * as Link from "../data/Link"
 import Store from "../data/Store"
 import Content, { Mode } from "./Content"
 import * as css from "./css/PeerStatus.css"
-import { Dimensions } from "react-container-dimensions"
 
 interface Props {
   store: Store
   mode: Mode
   url: string
-  dimensions: Dimensions
 }
 
 interface State {

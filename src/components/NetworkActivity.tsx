@@ -4,13 +4,11 @@ import * as Link from "../data/Link"
 import Content, { Mode } from "./Content"
 import Store, { Activity } from "../data/Store"
 import * as css from "./css/NetworkActivity.css"
-import { Dimensions } from "react-container-dimensions"
 
 interface Props {
   store: Store
   mode: Mode
   url: string
-  dimensions: Dimensions
 }
 
 export default class NetworkActivity extends React.Component<Props> {

@@ -165,7 +165,5 @@ const style = {
   App: {
     fontFamily: "Roboto, Arial, Helvetica, sans-serif",
     overflow: "hidden",
-    height: "100%",
-    width: "100%",
   },
 }
