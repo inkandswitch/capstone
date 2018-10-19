@@ -29,8 +29,8 @@ export interface InkStroke {
 export interface Props {
   strokes: InkStroke[]
   mode: Content.Mode
+  scale?: number
   onInkStroke?: (strokes: InkStroke[]) => void
-  style?: {}
 }
 
 const EMPTY_BOUNDS: Bounds = {
@@ -120,10 +120,8 @@ export default class Ink extends React.Component<Props, State> {
 
   render() {
     const { strokeType, eraserPosition } = this.state
-    const style = this.props.style || {}
-    console.log(`rendering ink with style ${Object.values(style)}`)
     return (
-      <div style={style}>
+      <div>
         <div>
           {eraserPosition != undefined ? (
             <div
@@ -274,26 +272,24 @@ export default class Ink extends React.Component<Props, State> {
   prepareCanvas(canvas: HTMLCanvasElement) {
     // Get the device pixel ratio, falling back to 1.
     var dpr = window.devicePixelRatio || 1
+    const scale = (this.props.scale || 1) * dpr
     // Get the size of the canvas in CSS pixels.
-    var rect = canvas.getBoundingClientRect()
-    console.log(
-      `canvas bla: ${rect.left} / ${rect.right} / ${rect.width} / ${
-        rect.height
-      }`,
-    )
+
+    if (this.props.mode == "fullscreen") {
+      canvas.width = window.innerWidth * scale
+      canvas.height = window.innerHeight * scale
+    } else {
+      var rect = canvas.getBoundingClientRect()
+      canvas.width = rect.width * dpr
+      canvas.height = rect.height * dpr
+    }
+
     var ctx = canvas.getContext("2d")
     // Scale all drawing operations by the dpr, so you
     // don't have to worry about the difference.
-    if (ctx && this.props.mode == "fullscreen") {
-      canvas.width = window.innerWidth * dpr
-      canvas.height = window.innerHeight * dpr
+    if (ctx) {
       ctx.translate(0.5, 0.5)
-      ctx.scale(dpr, dpr)
-    } else if (ctx) {
-      canvas.width = rect.width * dpr
-      canvas.height = rect.height * dpr
-      ctx.translate(0.5, 0.5)
-      ctx.scale(dpr, dpr)
+      ctx.scale(scale, scale)
     }
     return ctx
   }
