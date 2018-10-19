@@ -108,6 +108,13 @@ export interface ToggleControl {
   type: "ToggleControl"
 }
 
+export type EntryToMain = Clipper | Ready
+
+export type MainToEntry = ToggleControl
+export type BackgroundToEntry = Clipper
+
+export type ToEntry = BackgroundToEntry | MainToEntry
+
 export type FrontendToBackend =
   | Create
   | Open
@@ -116,10 +123,8 @@ export type FrontendToBackend =
   | ActorIdRequest
   | RequestActivity
   | SetIdentity
-  | ToggleControl
 
 export type BackendToFrontend =
-  | Ready
   | DocReady
   | SetActorId
   | ApplyPatch

@@ -73,7 +73,7 @@ export class Hypermerge {
   id: Buffer
 
   constructor(opts: Options) {
-    this.path = opts.path
+    this.path = opts.path || "default"
     this.storage = opts.storage || (opts.path ? raf : ram)
     this.ledger = hypercore(this.storageFn("ledger"), { valueEncoding: "json" })
     this.id = this.ledger.id
@@ -258,7 +258,7 @@ export class Hypermerge {
   //    return this.actorIds(doc).map(actor => this.feeds.get(dkString))
   //  }
 
-  feed(actorId : string) : Feed<Change> {
+  feed(actorId: string): Feed<Change> {
     const publicKey = Base58.decode(actorId)
     const dk = discoveryKey(publicKey)
     const dkString = Base58.encode(dk)

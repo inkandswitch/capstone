@@ -20,7 +20,7 @@ function isId(id: string) {
 export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
 export default class Store {
-  sendQueue = new Queue<Msg.FrontendToBackend>()
+  sendQueue = new Queue<Msg.FrontendToBackend>("Store")
   index: { [id: string]: FrontendHandle<any> } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
@@ -72,9 +72,9 @@ export default class Store {
 
     this.index[docId] = handle
 
-//    handle.on("doc", (doc) => {
-//      log("DOC", doc)
-//    })
+    //    handle.on("doc", (doc) => {
+    //      log("DOC", doc)
+    //    })
 
     handle.on("needsActorId", () => {
       log("needsActorId", docId)
@@ -113,13 +113,13 @@ export default class Store {
     return this.control$
   }
 
-  getWorkspace() : string | null {
+  getWorkspace(): string | null {
     return localStorage.workspaceUrl || null
   }
 
   setWorkspace(workspaceUrl: string) {
     localStorage.workspaceUrl = workspaceUrl
-    this.sendToBackend({ type: "WorkspaceSet", url: workspaceUrl})
+    this.sendToBackend({ type: "WorkspaceSet", url: workspaceUrl })
   }
 
   activity(id: string): Rx.Observable<Activity> {
