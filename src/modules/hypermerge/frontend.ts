@@ -60,7 +60,11 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   init = (actorId?: string, patch?: Patch) => {
-    log(`init docid=${this.docId} actorId=${actorId} patch=${!!patch} mode=${this.mode}`)
+    log(
+      `init docid=${this.docId} actorId=${actorId} patch=${!!patch} mode=${
+        this.mode
+      }`,
+    )
 
     if (this.mode !== "pending") return
 
@@ -88,7 +92,7 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   patch = (patch: Patch) => {
-    this.bench("patch",() => {
+    this.bench("patch", () => {
       this.front = Frontend.applyPatch(this.front, patch)
       if (patch.diffs.length > 0) {
         this.emit("doc", this.front)
@@ -96,7 +100,7 @@ export class FrontendHandle<T> extends EventEmitter {
     })
   }
 
-  bench(msg: string, f: () => void) : void {
+  bench(msg: string, f: () => void): void {
     const start = Date.now()
     f()
     const duration = Date.now() - start

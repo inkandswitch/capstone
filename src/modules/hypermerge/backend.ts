@@ -41,7 +41,7 @@ export class BackendHandle extends EventEmitter {
 
   applyRemoteChanges = (changes: Change[]): void => {
     this.backRemoteQ.push(() => {
-      this.bench("applyRemoteChanges",() => {
+      this.bench("applyRemoteChanges", () => {
         const [back, patch] = Backend.applyChanges(this.back!, changes)
         this.back = back
         this.emit("patch", patch)
@@ -51,7 +51,7 @@ export class BackendHandle extends EventEmitter {
 
   applyLocalChange = (change: Change): void => {
     this.backLocalQ.push(() => {
-      this.bench("applyLocalChange",() => {
+      this.bench("applyLocalChange", () => {
         const [back, patch] = Backend.applyLocalChange(this.back!, change)
         this.back = back
         this.emit("patch", patch)
@@ -86,7 +86,7 @@ export class BackendHandle extends EventEmitter {
   }
 
   init = (changes: Change[], actorId?: string) => {
-    this.bench("init",() => {
+    this.bench("init", () => {
       const [back, patch] = Backend.applyChanges(Backend.init(), changes)
       this.actorId = actorId
       if (this.wantsActor && !actorId) {
@@ -120,7 +120,7 @@ export class BackendHandle extends EventEmitter {
     return this.actorIds()
   }
 
-  private bench(msg: string, f: () => void) : void {
+  private bench(msg: string, f: () => void): void {
     const start = Date.now()
     f()
     const duration = Date.now() - start

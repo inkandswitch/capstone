@@ -24,9 +24,7 @@ export default class StoreBackend {
     Peek.enable()
   }
 
-
   reset() {
-
     Object.values(this.docHandles).forEach(handle => {
       handle.release()
     })
