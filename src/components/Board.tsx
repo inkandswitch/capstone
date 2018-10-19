@@ -269,7 +269,7 @@ class Board extends React.Component<Props, State> {
         }
 
         return (
-          <div className={css.Board} ref={this.onRef}>
+          <div className={css.BoardEmbed} ref={this.onRef}>
             <Ink
               onInkStroke={this.onInkStroke}
               strokes={strokes}
