@@ -77,11 +77,13 @@ export class FrontendHandle<T> extends EventEmitter {
     this.mode = "write"
     this.changeQ.subscribe(fn => {
       const doc = Frontend.change(this.front, fn)
-      const requests = Frontend.getRequests(doc)
+      const request = Frontend.getRequests(doc).pop()
       this.front = doc
       log("change complete", this.docId, this.front)
-      this.emit("doc", this.front)
-      this.emit("request", requests.pop())
+      if (request) {
+        this.emit("doc", this.front)
+        this.emit("request", request)
+      }
     })
   }
 
