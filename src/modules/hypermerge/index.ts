@@ -188,12 +188,12 @@ export class Hypermerge {
 
   writeChange(doc: BackendHandle, actorId: string, change: Change) {
     this.getFeed(doc, actorId, feed => {
-      feed.append(JsonBuffer.bufferify(change), (err, idx) => {
+      feed.append(JsonBuffer.bufferify(change), err => {
         if (err) {
           throw new Error("failed to append to feed")
         }
-        if (change.seq != idx + 1) {
-          throw new Error(`change.seq (${change.seq}) != idx+1 (${idx+1}) for ${doc.docId}`)
+        if (change.seq != feed.length) {
+          throw new Error(`change.seq (${change.seq}) != feed.length (${feed.length}) for ${doc.docId}`)
         }
       })
     })
