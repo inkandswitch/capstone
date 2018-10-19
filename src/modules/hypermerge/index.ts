@@ -171,6 +171,12 @@ export class Hypermerge {
         if (feed.length > 0) {
           feed.getBatch(0, feed.length, (err, datas) => {
             const changes = datas.map(JsonBuffer.parse)
+            console.log(
+              "getBatch actorId:%s feed.length:%s",
+              actorId,
+              feed.length,
+              changes,
+            )
 
             if (err) {
               reject(err)
@@ -188,9 +194,15 @@ export class Hypermerge {
     return Promise.all(doc.actorIds().map(key => this.feedData(doc, key)))
   }
 
-  writeChange(doc: BackendHandle, actorId: string, changes: Change) {
+  writeChange(doc: BackendHandle, actorId: string, change: Change) {
     this.getFeed(doc, actorId, feed => {
-      feed.append(JsonBuffer.bufferify(changes), err => {
+      console.log(
+        "append aid:%s feed.length:%s seq:%s",
+        actorId,
+        feed.length,
+        change.seq,
+      )
+      feed.append(JsonBuffer.bufferify(change), err => {
         if (err) {
           throw new Error("failed to append to feed")
         }
