@@ -9,14 +9,14 @@ import * as Debug from "debug"
 const log = Debug("hypermerge:back")
 
 export class BackendHandle extends EventEmitter {
-  hypermerge: Hypermerge
   docId: string
-  back?: BackDoc
   actorId?: string
-  clock: Map<string, number> = new Map()
-  backLocalQ: Queue<() => void> = new Queue("backLocalQ")
-  backRemoteQ: Queue<() => void> = new Queue("backRemoteQ")
-  wantsActor: boolean = false
+  private hypermerge: Hypermerge
+  private clock: Map<string, number> = new Map()
+  private back?: BackDoc
+  private backLocalQ: Queue<() => void> = new Queue("backLocalQ")
+  private backRemoteQ: Queue<() => void> = new Queue("backRemoteQ")
+  private wantsActor: boolean = false
 
   constructor(core: Hypermerge, docId: string, back?: BackDoc) {
     super()
@@ -40,12 +40,6 @@ export class BackendHandle extends EventEmitter {
     })
   }
 
-  updateClock(changes: Change[]) {
-    changes.forEach((change) => {
-      this.clock.set(change.actor , Math.max( this.clock.get(change.actor) || -1 , change.seq))
-    })
-  }
-
   applyRemoteChanges = (changes: Change[]): void => {
     this.backRemoteQ.push(() => {
       this.bench("applyRemoteChanges",() => {
@@ -55,13 +49,6 @@ export class BackendHandle extends EventEmitter {
         this.emit("patch", patch)
       })
     })
-  }
-
-  bench(msg: string, f: () => void) : void {
-    const start = Date.now()
-    f()
-    const duration = Date.now() - start
-    log(`docId=${this.docId} task=${msg} time=${duration}ms`)
   }
 
   applyLocalChanges = (changes: Change[]): void => {
@@ -137,5 +124,18 @@ export class BackendHandle extends EventEmitter {
 
   metadata(): string[] {
     return this.actorIds()
+  }
+
+  private updateClock(changes: Change[]) {
+    changes.forEach((change) => {
+      this.clock.set(change.actor , Math.max( this.clock.get(change.actor) || -1 , change.seq))
+    })
+  }
+
+  private bench(msg: string, f: () => void) : void {
+    const start = Date.now()
+    f()
+    const duration = Date.now() - start
+    log(`docId=${this.docId} task=${msg} time=${duration}ms`)
   }
 }

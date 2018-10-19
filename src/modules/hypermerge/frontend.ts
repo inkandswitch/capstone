@@ -13,10 +13,10 @@ type Mode = "pending" | "read" | "write"
 export class FrontendHandle<T> extends EventEmitter {
   docId: string
   actorId?: string
-  changeQ: Queue<ChangeFn<T>> = new Queue()
-  front: Doc<T>
-  mode: Mode = "pending"
   back?: any // place to put the backend if need be - not needed here int he code so didnt want to import
+  private changeQ: Queue<ChangeFn<T>> = new Queue()
+  private front: Doc<T>
+  private mode: Mode = "pending"
 
   constructor(docId: string, actorId?: string) {
     super()
