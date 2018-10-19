@@ -51,14 +51,25 @@ class REPL extends React.Component<Props> {
 
         let result
         let error
+        let str
 
         try {
           result = eval(`(function() { return ${command.code}; })()`)
         } catch (e) {
-          error = e
+          error = e.toString()
         }
 
-        doc.commands[i].result = stringify({ result, error })
+        try {
+          str = stringify({ result, error })
+        } catch (e) {
+          error = e.toString()
+        }
+
+        if (str) {
+          doc.commands[i].result = str
+        } else {
+          doc.commands[i].result = stringify({ error })
+        }
       })
 
       return doc
