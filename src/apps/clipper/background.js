@@ -5,6 +5,7 @@
 var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
 
 chrome.contextMenus.onClicked.addListener(itemData => {
+  triggerActionFeedback()
   console.log(itemData)
   if (itemData.selectionText) {
     chrome.runtime.sendMessage(
@@ -26,7 +27,7 @@ chrome.contextMenus.onClicked.addListener(itemData => {
       canvas.width = tmpImage.width
       canvas.height = tmpImage.height
 
-      context = canvas.getContext("2d")
+      const context = canvas.getContext("2d")
       context.drawImage(tmpImage, 0, 0)
 
       chrome.runtime.sendMessage(
@@ -45,3 +46,19 @@ chrome.contextMenus.create({
   title: "Send to Capstone",
   contexts: ["selection", "image"], // ContextType
 })
+
+chrome.browserAction.onClicked.addListener(function(tab) {
+  triggerActionFeedback()
+  chrome.tabs.executeScript({
+    file: "content.js",
+  })
+})
+
+function triggerActionFeedback() {
+  chrome.browserAction.setBadgeText({ text: "OK" })
+  chrome.browserAction.setBadgeBackgroundColor({ color: "green" })
+  setTimeout(() => {
+    chrome.browserAction.setBadgeText({ text: "" })
+    chrome.browserAction.setBadgeBackgroundColor({ color: "green" })
+  }, 1000)
+}
