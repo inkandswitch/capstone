@@ -99,6 +99,7 @@ export default class Ink extends React.Component<Props, State> {
   state: State = {}
 
   componentDidMount() {
+    this.shouldRedrawDryInk = true
     requestAnimationFrame(this.drawDry)
     this.pointerEventSubscription = GPS.stream()
       .pipe(
@@ -115,6 +116,7 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   componentDidUpdate() {
+    this.shouldRedrawDryInk = true
     requestAnimationFrame(this.drawDry)
   }
 
