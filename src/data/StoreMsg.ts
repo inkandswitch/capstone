@@ -50,12 +50,6 @@ export interface ApplyPatch {
   patch: Patch
 }
 
-export interface ApplyLocalPatch {
-  type: "ApplyLocalPatch"
-  docId: string
-  patch: Patch
-}
-
 export interface DocReady {
   type: "DocReady"
   docId: string
@@ -134,7 +128,6 @@ export type BackendToFrontend =
   | DocReady
   | SetActorId
   | ApplyPatch
-  | ApplyLocalPatch
   | Clipper
   | Control
   | Presence

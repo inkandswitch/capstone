@@ -58,7 +58,7 @@ export class BackendHandle extends EventEmitter {
           let [back, patch] = Backend.applyLocalChange(this.back!, change)
           this.back = back
           this.updateClock([change])
-          this.emit("localpatch", patch)
+          this.emit("patch", patch)
           this.hypermerge.writeChange(this, this.actorId!, change)
         })
       })

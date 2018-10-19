@@ -129,10 +129,6 @@ export default class StoreBackend {
           this.sendToFrontend({ type: "DocReady", docId, actorId, patch })
         })
 
-        handle.on("localpatch", patch => {
-          this.sendToFrontend({ type: "ApplyLocalPatch", docId, patch })
-        })
-
         handle.on("patch", patch => {
           this.sendToFrontend({ type: "ApplyPatch", docId, patch })
         })

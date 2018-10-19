@@ -94,15 +94,6 @@ export class FrontendHandle<T> extends EventEmitter {
     })
   }
 
-  localPatch = (patch: Patch) => {
-    this.bench("local patch",() => {
-      this.front = Frontend.applyPatch(this.front, patch)
-      if (patch.diffs.length > 0) {
-        this.emit("localdoc", this.front)
-      }
-    })
-  }
-
   bench(msg: string, f: () => void) : void {
     const start = Date.now()
     f()

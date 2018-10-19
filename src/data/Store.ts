@@ -154,13 +154,6 @@ export default class Store {
         break
       }
 
-      case "ApplyLocalPatch": {
-        log("ApplyLocalPatch", msg.docId)
-        const handle = this.handle(msg.docId)
-        handle.localPatch(msg.patch)
-        break
-      }
-
       case "Clipper":
         this.clipper$.next(msg)
         break

@@ -102,7 +102,6 @@ export class Hypermerge {
     front.back = back
     front.on("requests", back.applyLocalChanges)
     back.on("patch", front.patch)
-    back.on("localpatch", front.localPatch)
     return front
   }
 
@@ -150,7 +149,6 @@ export class Hypermerge {
     back.on("actorId", front.setActorId)
     back.on("ready", front.init)
     back.on("patch", front.patch)
-    back.on("localpatch", front.localPatch)
     return front
   }
 
