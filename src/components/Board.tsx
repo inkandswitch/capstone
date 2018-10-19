@@ -197,7 +197,7 @@ class Board extends React.Component<Props, State> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <div className={css.Board} ref={this.onRef}>
+          <div id="board" className={css.Board} ref={this.onRef}>
             <Ink onInkStroke={this.onInkStroke} strokes={strokes} />
             <TransitionGroup>
               {Object.values(cards).map(card => {
