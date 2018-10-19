@@ -287,14 +287,7 @@ class Board extends React.Component<Props, State> {
                     onDragStart={noop}
                     onDragStop={noop}
                     onResizeStop={noop}>
-                    <Content
-                      mode="preview"
-                      url={card.url}
-                      contentSize={{
-                        width: card.width,
-                        height: card.height,
-                      }}
-                    />
+                    <Content mode="preview" url={card.url} />
                   </InteractableCard>
                 )
               })}
