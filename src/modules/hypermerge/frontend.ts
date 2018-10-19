@@ -86,11 +86,11 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   patch = (patch: Patch) => {
+    log("patch", this.docId, this.front)
     this.front = Frontend.applyPatch(this.front, patch)
     if (patch.diffs.length > 0) {
       this.emit("doc", this.front)
     }
-    log("patch", this.docId, this.front)
   }
 
   localPatch = (patch: Patch) => {
