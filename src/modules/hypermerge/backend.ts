@@ -41,19 +41,30 @@ export class BackendHandle extends EventEmitter {
 
   applyRemoteChanges = (changes: Change[]): void => {
     this.backRemoteQ.push(() => {
-      let [back, patch] = Backend.applyChanges(this.back!, changes)
-      this.back = back
-      this.emit("patch", patch)
+      this.bench("applyRemoteChanges",() =>
+        const [back, patch] = Backend.applyChanges(this.back!, changes)
+        this.back = back
+        this.emit("patch", patch)
+      })
     })
+  }
+
+  bench(msg: string, f: () => void) : void {
+    const start = Date.now()
+    f()
+    const duration = Date.now() - start
+    log(`docId=${this.docId} task=${msg} time=${duration}ms`)
   }
 
   applyLocalChanges = (changes: Change[]): void => {
     this.backLocalQ.push(() => {
-      changes.forEach(change => {
-        let [back, patch] = Backend.applyLocalChange(this.back!, change)
-        this.back = back
-        this.emit("localpatch", patch)
-        this.hypermerge.writeChange(this, this.actorId!, change)
+      this.bench("applyLocalChanges",() =>
+        changes.forEach(change => {
+          let [back, patch] = Backend.applyLocalChange(this.back!, change)
+          this.back = back
+          this.emit("localpatch", patch)
+          this.hypermerge.writeChange(this, this.actorId!, change)
+        })
       })
     })
   }
@@ -84,15 +95,17 @@ export class BackendHandle extends EventEmitter {
   }
 
   init = (changes: Change[], actorId?: string) => {
-    const [back, patch] = Backend.applyChanges(Backend.init(), changes)
-    this.actorId = actorId
-    if (this.wantsActor && !actorId) {
-      this.actorId = this.hypermerge.initActorFeed(this)
-    }
-    this.back = back
-    this.backLocalQ.subscribe(f => f())
-    this.backRemoteQ.subscribe(f => f())
-    this.emit("ready", this.actorId, patch)
+    this.bench("init",() =>
+      const [back, patch] = Backend.applyChanges(Backend.init(), changes)
+      this.actorId = actorId
+      if (this.wantsActor && !actorId) {
+        this.actorId = this.hypermerge.initActorFeed(this)
+      }
+      this.back = back
+      this.backLocalQ.subscribe(f => f())
+      this.backRemoteQ.subscribe(f => f())
+      this.emit("ready", this.actorId, patch)
+    })
   }
 
   broadcast(message: any) {

@@ -86,18 +86,27 @@ export class FrontendHandle<T> extends EventEmitter {
   }
 
   patch = (patch: Patch) => {
-    log("patch", this.docId, this.front)
-    this.front = Frontend.applyPatch(this.front, patch)
-    if (patch.diffs.length > 0) {
-      this.emit("doc", this.front)
-    }
+    this.bench("patch",() => {
+      this.front = Frontend.applyPatch(this.front, patch)
+      if (patch.diffs.length > 0) {
+        this.emit("doc", this.front)
+      }
+    })
   }
 
   localPatch = (patch: Patch) => {
-    log("local patch", this.docId)
-    this.front = Frontend.applyPatch(this.front, patch)
-    if (patch.diffs.length > 0) {
-      this.emit("localdoc", this.front)
-    }
+    this.bench("local patch",() => {
+      this.front = Frontend.applyPatch(this.front, patch)
+      if (patch.diffs.length > 0) {
+        this.emit("localdoc", this.front)
+      }
+    })
+  }
+
+  bench(msg: string, f: () => void) : void {
+    const start = Date.now()
+    f()
+    const duration = Date.now() - start
+    log(`docId=${this.docId} task=${msg} time=${duration}ms`)
   }
 }
