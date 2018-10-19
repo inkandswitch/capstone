@@ -222,16 +222,15 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onStrokeTypeChange = (strokeType?: StrokeType) => {
-    if (this.state.strokeType === strokeType) return
-    if (!strokeType) {
+    if (this.state.strokeType === strokeType) {
       GPS.setInteractionMode(GPS.InteractionMode.default)
-      this.setState({ eraserPosition: undefined })
+      this.setState({ eraserPosition: undefined, strokeType: undefined })
       this.shouldRedrawDryInk = true
       this.inkStroke()
     } else {
       GPS.setInteractionMode(GPS.InteractionMode.inking)
+      this.setState({ strokeType })
     }
-    this.setState({ strokeType })
   }
 
   center() {
@@ -376,7 +375,6 @@ class Option<T> extends React.Component<OptionProps<T>> {
       <div
         className={css.Option}
         onPointerDown={() => onChange(value)}
-        onPointerUp={() => onChange()}
         onContextMenu={this.onContextMenu}>
         <div
           className={classnames(css.OptionButton, { [css.current]: selected })}
