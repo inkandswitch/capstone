@@ -7,6 +7,7 @@ import { Portal } from "react-portal"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as Content from "./Content"
+import { delay } from "lodash"
 
 interface Bounds {
   readonly top: number
@@ -93,6 +94,7 @@ export default class Ink extends React.Component<Props, State> {
   strokes: InkStroke[] = []
   strokeId = 0
   lastDrawnPoint = 0
+  isPenDown = false
   shouldRedrawDryInk = true
   bounds: Bounds = EMPTY_BOUNDS
 
@@ -168,6 +170,7 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onPanStart = (event: PointerEvent) => {
+    this.isPenDown = true
     this.onPanMove(event)
   }
 
@@ -207,11 +210,19 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onPanEnd = (event: PointerEvent) => {
+    this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 0
     if (this.state.eraserPosition) {
       this.setState({ eraserPosition: undefined })
     }
+    const strokeId = this.strokeId
+    const lastPoint = this.lastDrawnPoint
+    delay(() => {
+      if (!this.isPenDown && strokeId == this.strokeId && lastPoint == this.lastDrawnPoint) {
+        this.inkStroke()
+      }
+    }, 1000)
   }
 
   inkStroke = () => {
