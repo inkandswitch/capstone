@@ -130,12 +130,10 @@ export default class StoreBackend {
         })
 
         handle.on("localpatch", patch => {
-          const actorId = handle.actorId
-          this.sendToFrontend({ type: "ApplyPatch", docId, patch })
+          this.sendToFrontend({ type: "ApplyLocalPatch", docId, patch })
         })
 
         handle.on("patch", patch => {
-          const actorId = handle.actorId
           this.sendToFrontend({ type: "ApplyPatch", docId, patch })
         })
 
