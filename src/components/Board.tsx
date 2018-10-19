@@ -252,7 +252,6 @@ class Board extends React.Component<Props, State> {
 
       case "embed":
         const scale = this.props.availableWidth / 1200
-        console.log("width", this.props.availableWidth)
         const style = {
           transform: `scale(${scale},${scale})`,
           willChange: "transform",
