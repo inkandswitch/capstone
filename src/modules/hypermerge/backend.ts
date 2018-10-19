@@ -52,7 +52,7 @@ export class BackendHandle extends EventEmitter {
   applyLocalChange = (change: Change): void => {
     this.backLocalQ.push(() => {
       this.bench("applyLocalChange",() => {
-        let [back, patch] = Backend.applyLocalChange(this.back!, change)
+        const [back, patch] = Backend.applyLocalChange(this.back!, change)
         this.back = back
         this.emit("patch", patch)
         this.hypermerge.writeChange(this, this.actorId!, change)
