@@ -8,16 +8,12 @@ import * as Debug from "debug"
 
 const log = Debug("hypermerge:back")
 
-interface BackWrapper {
-  back: BackDoc
-}
-
 export class BackendHandle extends EventEmitter {
   hypermerge: Hypermerge
   docId: string
-  back?: BackWrapper
+  back?: BackDoc
   actorId?: string
-  backQ: Queue<(handle: BackWrapper) => void> = new Queue("backQ")
+  backQ = new Queue<Change>("backQ")
   wantsActor: boolean = false
 
   constructor(core: Hypermerge, docId: string, back?: BackDoc) {
@@ -27,10 +23,9 @@ export class BackendHandle extends EventEmitter {
     this.docId = docId
 
     if (back) {
-      const handle = { back }
-      this.back = handle
+      this.back = back
       this.actorId = docId
-      this.backQ.subscribe(f => f(handle))
+      this.backQ.subscribe(this.processLocalChange)
       this.emit("ready", docId, undefined)
     }
 
@@ -43,6 +38,7 @@ export class BackendHandle extends EventEmitter {
   }
 
   applyRemoteChanges = (changes: Change[]): void => {
+    const [back, patch] = Backend.applyChanges(this.back!, changes)
     this.backQ.push(handle => {
       let [back, patch] = Backend.applyChanges(handle.back, changes)
       handle.back = back
@@ -51,14 +47,20 @@ export class BackendHandle extends EventEmitter {
   }
 
   applyLocalChanges = (changes: Change[]): void => {
-    this.backQ.push(handle => {
-      changes.forEach(change => {
-        let [back, patch] = Backend.applyLocalChange(handle.back, change)
-        handle.back = back
-        this.emit("localpatch", patch)
-        this.hypermerge.writeChange(this, this.actorId!, change)
-      })
-    })
+    console.log("applyLocalChanges aid:%s", this.actorId, changes)
+    changes.forEach(change => this.backQ.push(change))
+  }
+
+  processLocalChange = (change: Change) => {
+    if (!this.back) throw new Error("Missing BackDoc")
+
+    const [newBack, patch] = Backend.applyLocalChange(this.back, change)
+    const changes = Backend.getChanges(this.back, newBack)
+    this.back = newBack
+    this.emit("localpatch", patch)
+    console.log("actual changes", changes)
+
+    this.hypermerge.writeChange(this, this.actorId!, change)
   }
 
   actorIds = (): string[] => {
