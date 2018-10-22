@@ -14,7 +14,6 @@ export default class StoreBackend {
   //presenceTick?: any
   hypermerge: Hypermerge
   docHandles: { [docId: string]: BackendHandle } = {}
-  changeQ: { [docId: string]: Queue<Change[]> } = {}
   workspaceQ: Queue<string> = new Queue()
 
   constructor(hm: Hypermerge) {
@@ -25,73 +24,7 @@ export default class StoreBackend {
     Peek.enable()
   }
 
-  applyChanges = (docId: string, changes: Change[]) => {
-    this.changeQ[docId] = this.changeQ[docId] || new Queue()
-    this.changeQ[docId]!.push(changes)
-    /*
-    if (handle) {
-      handle.applyChanges(changes)
-    } else {
-      this.pendingChanges[docId] = (this.pendingChanges[docId] || []).concat([
-        changes,
-      ])
-    }
-*/
-  }
-
-  /*
-  startPresence() {
-    const hm = this.hypermerge
-
-    this.presenceTick = setInterval(() => {
-      let message: Msg.Presence = {
-        type: "Presence",
-//        errs: hm.errs.map(e => e.toString()),
-        docs: {},
-        peers: {},
-      }
-
-      for (const docId in this.docHandles) {
-        const handle = this.docHandles[docId]
-        const connections = handle.connections()
-
-        message.docs[docId] = message.docs[docId] || {
-          connections: 0,
-          peers: {},
-        }
-        message.docs[docId].connections = connections.length
-
-        handle.peers().forEach((peer: any) => {
-          const id = peer.identity as string
-
-          message.peers[id] = message.peers[id] || {
-            devices: [],
-            docs: [],
-            lastSeen: 0,
-          }
-
-          add(message.docs[docId].peers, id)
-          add(message.peers[id].devices, peer.device)
-          add(message.peers[id].docs, docId)
-          message.peers[id].lastSeen = Math.max(
-            message.peers[id].lastSeen,
-            peer.synTime,
-          )
-        })
-      }
-
-      this.sendToFrontend(message)
-    }, 5000)
-  }
-
-  stopPresence() {
-    if (this.presenceTick != null) clearInterval(this.presenceTick)
-  }
-*/
-
   reset() {
-    //    this.stopPresence()
-
     Object.values(this.docHandles).forEach(handle => {
       handle.release()
     })
@@ -116,11 +49,6 @@ export default class StoreBackend {
         const handle = this.hypermerge.openDocument(docId)
         this.docHandles[docId] = handle
 
-        this.changeQ[docId] = this.changeQ[docId] || new Queue()
-        this.changeQ[docId].subscribe(changes =>
-          handle.applyLocalChanges(changes),
-        )
-
         handle.on("actorId", actorId => {
           this.sendToFrontend({ type: "SetActorId", docId, actorId })
         })
@@ -129,13 +57,7 @@ export default class StoreBackend {
           this.sendToFrontend({ type: "DocReady", docId, actorId, patch })
         })
 
-        handle.on("localpatch", patch => {
-          const actorId = handle.actorId
-          this.sendToFrontend({ type: "ApplyPatch", docId, patch })
-        })
-
         handle.on("patch", patch => {
-          const actorId = handle.actorId
           this.sendToFrontend({ type: "ApplyPatch", docId, patch })
         })
 
@@ -143,9 +65,9 @@ export default class StoreBackend {
       }
 
       case "ChangeRequest": {
-        const { docId, changes } = msg
+        const { docId, change } = msg
         const handle = this.docHandles[docId]
-        handle.applyLocalChanges(changes)
+        handle.applyLocalChange(change)
         break
       }
 

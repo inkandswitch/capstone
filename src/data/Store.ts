@@ -84,12 +84,11 @@ export default class Store {
       })
     })
 
-    handle.on("requests", changes => {
-      log("requests", docId, changes.length)
+    handle.on("request", change => {
       this.sendToBackend({
         type: "ChangeRequest",
         docId,
-        changes,
+        change,
       })
     })
 

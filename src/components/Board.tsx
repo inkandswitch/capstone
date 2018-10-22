@@ -10,7 +10,6 @@ import Content, {
   Message,
   ReceiveDocuments,
   DocumentCreated,
-  Mode,
 } from "./Content"
 import * as Reify from "../data/Reify"
 import * as UUID from "../data/UUID"
@@ -18,11 +17,10 @@ import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
-import * as Link from "../data/Link"
 import * as SizeUtils from "../logic/SizeUtils"
-import { resolve } from "path"
 import * as css from "./css/Board.css"
 
+const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
 
 export interface Model {
@@ -32,6 +30,7 @@ export interface Model {
 }
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
+  availableWidth: number
   onNavigate?: (url: string) => void
 }
 
@@ -68,6 +67,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         })
         break
       }
+
       case "CreateCard": {
         const { type, card } = message.body
         // TODO: async creation - should we split this across multiple messages?
@@ -75,19 +75,21 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         this.change(doc => {
           const z = ++doc.topZ
           doc.cards[card.id] = { ...card, z, url }
-          return doc
         })
         this.emit({ type: "DocumentCreated", body: url })
         break
       }
+
       case "AddToShelf": {
         this.emit({ type: "AddToShelf", body: message.body })
         break
       }
+
       case "ShelfContentsRequested": {
         this.emit({ type: "ShelfContentsRequested", body: message.body })
         break
       }
+
       case "ShelfContents": {
         const { urls, placementPosition } = message.body
         urls.forEach(async (url, index) => {
@@ -118,7 +120,7 @@ function addCard(
   size: Size,
   position?: Point,
 ) {
-  const z = board.topZ + 1
+  const z = ++board.topZ
   position = position || { x: 0, y: 0 }
   const card = {
     id: UUID.create(),
@@ -130,7 +132,6 @@ function addCard(
     url,
   }
   board.cards[card.id] = card
-  board.topZ = z
 }
 
 class Board extends React.Component<Props, State> {
@@ -152,39 +153,29 @@ class Board extends React.Component<Props, State> {
   onDragStart = (id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
-      if (!card) return doc
-      if (card.z === doc.topZ) return doc
+      if (!card) return
+      if (card.z === doc.topZ) return
 
-      doc.topZ += 1
-      // XXX: Remove once backend/store handles object immutability.
-      doc.cards[id] = { ...card, z: doc.topZ }
-      return doc
+      card.z = ++doc.topZ
     })
   }
 
   onDragStop = (x: number, y: number, id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
-      if (card) {
-        // XXX: Remove once backend/store handles object immutability.
-        doc.cards[id] = { ...card, x: x, y: y }
-      }
-      return doc
+      if (!card) return
+      card.x = x
+      card.y = y
     })
   }
 
   onResizeStop = (newSize: Size, id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
-      if (card) {
-        // XXX: Remove once backend/store handles object immutability.
-        doc.cards[id] = {
-          ...card,
-          width: newSize.width,
-          height: newSize.height,
-        }
-      }
-      return doc
+      if (!card) return
+
+      card.width = newSize.width
+      card.height = newSize.height
     })
   }
 
@@ -192,14 +183,16 @@ class Board extends React.Component<Props, State> {
     if (!this.props.doc.cards[id]) return
     this.props.change(doc => {
       const card = doc.cards[id]
-      if (!card) return doc
-      card.z = doc.topZ++
-      const mirror = Object.assign({}, card, {
+      if (!card) return
+
+      card.z = ++doc.topZ
+
+      const mirror = {
+        ...card,
         id: UUID.create(),
         z: card.z - 1,
-      })
+      }
       doc.cards[mirror.id] = mirror
-      return doc
     })
   }
 
@@ -237,14 +230,7 @@ class Board extends React.Component<Props, State> {
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
-                        <Content
-                          mode="embed"
-                          url={card.url}
-                          contentSize={{
-                            width: card.width,
-                            height: card.height,
-                          }}
-                        />
+                        <Content mode="embed" url={card.url} />
                       </InteractableCard>
                     </Mirrorable>
                   </CSSTransition>
@@ -259,9 +245,7 @@ class Board extends React.Component<Props, State> {
         )
 
       case "embed":
-        const { contentSize } = this.props
-        if (!contentSize) return
-        const scale = contentSize.width / 1200
+        const scale = this.props.availableWidth / 1200
         const style = {
           transform: `scale(${scale},${scale})`,
           willChange: "transform",
@@ -322,9 +306,13 @@ class Board extends React.Component<Props, State> {
   onInkStroke = (strokes: InkStroke[]) => {
     this.props.change(doc => {
       doc.strokes.push(...strokes)
-      return doc
     })
   }
 }
 
-export default Widget.create("Board", Board, Board.reify, BoardActor)
+export default Widget.create(
+  "Board",
+  withAvailableWidth(Board),
+  Board.reify,
+  BoardActor,
+)

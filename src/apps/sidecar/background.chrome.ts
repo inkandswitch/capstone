@@ -11,4 +11,3 @@ chrome.app.runtime.onLaunched.addListener(() => {
     },
   )
 })
-
