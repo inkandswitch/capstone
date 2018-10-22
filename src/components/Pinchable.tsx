@@ -7,10 +7,10 @@ import * as ReactDOM from "react-dom"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
 interface NavigatableProps {
-  onPinchInEnd?: () => void
-  onPinchOutEnd?: () => void
-  onPinchMove?: (distance: number) => void
-  children: (scale: number) => JSX.Element
+  onPinchStart?: (measurements: PinchMetrics.Measurements) => void
+  onPinchMove?: (measurements: PinchMetrics.Measurements) => void
+  onPinchInEnd?: (measurements: PinchMetrics.Measurements) => void
+  onPinchOutEnd?: (measurements: PinchMetrics.Measurements) => void
 }
 
 interface State {
@@ -59,25 +59,26 @@ export default class Pinchable extends React.Component<
     ) {
       const pinch = PinchMetrics.init(eventList)
       this.setState({ pinch })
+      this.props.onPinchStart && this.props.onPinchStart(pinch)
     } else if (pinch) {
       if (some(events, GPS.ifTerminalEvent)) {
         const { scale, delta } = pinch
         if (scale > 1 && delta > MINIMUM_PINCH_TRAVEL) {
-          this.props.onPinchOutEnd && this.props.onPinchOutEnd()
+          this.props.onPinchOutEnd && this.props.onPinchOutEnd(pinch)
         } else if (scale < 1 && delta < -MINIMUM_PINCH_TRAVEL) {
-          this.props.onPinchInEnd && this.props.onPinchInEnd()
+          this.props.onPinchInEnd && this.props.onPinchInEnd(pinch)
         }
         this.setState({ pinch: undefined })
       } else {
         // Update pinch metrics
         const updatedPinch = PinchMetrics.update(pinch, eventList)
         this.setState({ pinch: updatedPinch })
-        this.props.onPinchMove && this.props.onPinchMove(updatedPinch.distance)
+        this.props.onPinchMove && this.props.onPinchMove(updatedPinch)
       }
     }
   }
 
   render() {
-    return this.props.children(this.state.pinch ? this.state.pinch.scale : 1)
+    return this.props.children
   }
 }

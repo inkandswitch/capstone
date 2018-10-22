@@ -2,6 +2,7 @@ import * as React from "react"
 import * as css from "./css/Card.css"
 
 export const CARD_WIDTH = 398
+export const CARD_CLASS = css.Card
 
 export interface Props {
   cardId: string

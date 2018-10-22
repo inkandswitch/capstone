@@ -4,6 +4,7 @@ import { isEmpty, size, noop } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
+import { CARD_CLASS } from "./Card"
 import EdgeBoardCreator from "./EdgeBoardCreator"
 import Content, {
   DocumentActor,
@@ -19,8 +20,12 @@ import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/Board.css"
+import * as PinchMetrics from "../logic/PinchMetrics"
 
 const boardIcon = require("../assets/board_icon.svg")
+
+// TODO: not a constant
+const BOARD_DIMENSIONS = { height: 800, width: 1200 }
 
 export interface Model {
   cards: { [id: string]: CardModel | undefined }
@@ -32,7 +37,11 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string) => void
 }
 
-interface State {}
+interface State {
+  pinch?: PinchMetrics.Measurements
+  scale: number
+  origin: string
+}
 
 export interface CreateCard extends Message {
   type: "CreateCard"
@@ -134,7 +143,11 @@ function addCard(
 
 class Board extends React.Component<Props, State> {
   boardEl?: HTMLDivElement
-  state: State = {}
+  state: State = {
+    pinch: undefined,
+    scale: 1.0,
+    origin: "50% 50%",
+  }
 
   static reify(doc: AnyDoc): Model {
     return {
@@ -201,12 +214,57 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onPinchStart = (cardId: string, measurements: PinchMetrics.Measurements) => {
+    const card = this.props.doc.cards[cardId]
+    if (!card) {
+      return
+    }
+    const { x, y, height, width } = card
+    const origin = {
+      x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
+      y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
+    }
+    const transformOrigin = `${origin.x}% ${origin.y}%`
+    this.setState({
+      pinch: measurements,
+      scale: measurements.scale,
+      origin: transformOrigin,
+    })
+  }
+
+  onPinchMove = (cardId: string, measurements: PinchMetrics.Measurements) => {
+    const card = this.props.doc.cards[cardId]
+    if (!card) {
+      return
+    }
+    const { x, y, height, width } = card
+    const origin = {
+      x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
+      y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
+    }
+    const transformOrigin = `${origin.x}% ${origin.y}%`
+    this.setState({
+      pinch: measurements,
+      scale: measurements.scale,
+      origin: transformOrigin,
+    })
+  }
+
+  onPinchOutEnd = () => {
+    this.setState({ pinch: undefined, scale: 1.0, origin: "50% 50%" })
+  }
+
   render() {
     const { cards, strokes, topZ } = this.props.doc
+    const { scale, origin } = this.state
     switch (this.props.mode) {
-      case "fullscreen":
+      case "fullscreen": {
+        const style = {
+          transform: `scale(${scale})`,
+          transformOrigin: origin,
+        }
         return (
-          <div className={css.Board} ref={this.onRef}>
+          <div className={css.Board} ref={this.onRef} style={style}>
             <Ink
               onInkStroke={this.onInkStroke}
               strokes={strokes}
@@ -225,7 +283,9 @@ class Board extends React.Component<Props, State> {
                       <InteractableCard
                         card={card}
                         boardDimensions={{ height: 800, width: 1200 }}
-                        onPinchOutEnd={this.props.onNavigate}
+                        onPinchStart={this.onPinchStart}
+                        onPinchMove={this.onPinchMove}
+                        onPinchOutEnd={this.onPinchOutEnd}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
@@ -249,8 +309,8 @@ class Board extends React.Component<Props, State> {
             />
           </div>
         )
-
-      case "embed":
+      }
+      case "embed": {
         const { contentSize } = this.props
         if (!contentSize) return
         const scale = contentSize.width / 1200
@@ -297,7 +357,8 @@ class Board extends React.Component<Props, State> {
             />
           </div>
         )
-      case "preview":
+      }
+      case "preview": {
         return (
           <div className={css.BoardPreview}>
             <img className={css.Icon} src={boardIcon} />
@@ -309,6 +370,7 @@ class Board extends React.Component<Props, State> {
             </div>
           </div>
         )
+      }
     }
   }
 

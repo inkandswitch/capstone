@@ -146,28 +146,24 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const currentUrl = this.peek()
     return (
       <Pinchable onPinchInEnd={this.pop}>
-        {() => {
-          return (
-            <div
-              className="Workspace"
-              style={style.Workspace}
-              onDragOver={this.onDragOver}
-              onDrop={this.onDrop}>
-              <GPSInput />
-              <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-              <Content
-                key={currentUrl}
-                mode={this.props.mode}
-                url={currentUrl}
-                onNavigate={this.push}
-              />
-              <Content mode="embed" url={shelfUrl} />
-              <div style={style.Peers}>
-                <Peers onTapPeer={this.onTapPeer} />
-              </div>
-            </div>
-          )
-        }}
+        <div
+          className="Workspace"
+          style={style.Workspace}
+          onDragOver={this.onDragOver}
+          onDrop={this.onDrop}>
+          <GPSInput />
+          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+          <Content
+            key={currentUrl}
+            mode={this.props.mode}
+            url={currentUrl}
+            onNavigate={this.push}
+          />
+          <Content mode="embed" url={shelfUrl} />
+          <div style={style.Peers}>
+            <Peers onTapPeer={this.onTapPeer} />
+          </div>
+        </div>
       </Pinchable>
     )
   }

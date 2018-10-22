@@ -1,10 +1,11 @@
 import * as React from "react"
 import Interactable from "./Interactable"
-import Card from "./Card"
+import Card, { CARD_CLASS } from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
 import * as Link from "../data/Link"
 import Pinchable from "./Pinchable"
+import * as PinchMetrics from "../logic/PinchMetrics"
 
 export interface CardModel {
   id: string
@@ -27,7 +28,9 @@ export interface Props {
   onDragStop?: (x: number, y: number, id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
   onDoubleTap?: (url: string) => void
-  onPinchOutEnd?: (url: string) => void
+  onPinchStart?: (id: string, measurements: PinchMetrics.Measurements) => void
+  onPinchMove?: (id: string, measurements: PinchMetrics.Measurements) => void
+  onPinchOutEnd?: (id: string, measurements: PinchMetrics.Measurements) => void
 }
 
 export default class InteractableCard extends React.Component<Props, State> {
@@ -68,8 +71,19 @@ export default class InteractableCard extends React.Component<Props, State> {
       )
   }
 
-  onPinchOutEnd = () => {
-    this.props.onPinchOutEnd && this.props.onPinchOutEnd(this.props.card.url)
+  onPinchStart = (measurements: PinchMetrics.Measurements) => {
+    this.props.onPinchStart &&
+      this.props.onPinchStart(this.props.card.id, measurements)
+  }
+
+  onPinchMove = (measurements: PinchMetrics.Measurements) => {
+    this.props.onPinchMove &&
+      this.props.onPinchMove(this.props.card.id, measurements)
+  }
+
+  onPinchOutEnd = (measurements: PinchMetrics.Measurements) => {
+    this.props.onPinchOutEnd &&
+      this.props.onPinchOutEnd(this.props.card.id, measurements)
   }
 
   render() {
@@ -84,43 +98,34 @@ export default class InteractableCard extends React.Component<Props, State> {
     const type = Link.parse(this.props.card.url).type
 
     return (
-      <Pinchable onPinchOutEnd={this.onPinchOutEnd}>
-        {scale => {
-          const scaleTransform = Math.max(scale, 1)
-          const origin = {
-            x: (x / (boardDimensions.width - width)) * 100,
-            y: (y / (boardDimensions.height - height)) * 100,
-          }
-          const transformOrigin = `${origin.x}% ${origin.y}%`
-          return (
-            <Interactable
-              position={{ x, y }}
-              originalSize={{ width, height }}
-              preserveAspectRatio={type === "Image" || type === "Board"}
-              onStart={this.start}
-              onDragStop={this.dragStop}
-              onResize={this.onResize}
-              onResizeStop={this.resizeStop}
-              z={z}>
-              <Card
-                cardId={this.props.card.id}
-                style={{
-                  width: currentSize.width,
-                  height: currentSize.height,
-                  transform: `scale(${scaleTransform})`,
-                  transformOrigin: transformOrigin,
-                }}
-                {...omit(rest, [
-                  "onDoubleTap",
-                  "onDragStop",
-                  "onResizeStop",
-                  "onPinchOutEnd",
-                ])}>
-                {children}
-              </Card>
-            </Interactable>
-          )
-        }}
+      <Pinchable
+        onPinchStart={this.onPinchStart}
+        onPinchMove={this.onPinchMove}
+        onPinchOutEnd={this.onPinchOutEnd}>
+        <Interactable
+          position={{ x, y }}
+          originalSize={{ width, height }}
+          preserveAspectRatio={type === "Image" || type === "Board"}
+          onStart={this.start}
+          onDragStop={this.dragStop}
+          onResize={this.onResize}
+          onResizeStop={this.resizeStop}
+          z={z}>
+          <Card
+            cardId={this.props.card.id}
+            style={{
+              width: currentSize.width,
+              height: currentSize.height,
+            }}
+            {...omit(rest, [
+              "onDoubleTap",
+              "onDragStop",
+              "onResizeStop",
+              "onPinchOutEnd",
+            ])}>
+            {children}
+          </Card>
+        </Interactable>
       </Pinchable>
     )
   }
