@@ -94,7 +94,7 @@ export default class Ink extends React.Component<Props, State> {
   strokes: InkStroke[] = []
   strokeId = 0
   lastDrawnPoint = 0
-  isPenDown = false
+  saveTimerId: number | undefined = undefined
   bounds: Bounds = EMPTY_BOUNDS
 
   state: State = {}
@@ -171,7 +171,9 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onPanStart = (event: PointerEvent) => {
-    this.isPenDown = true
+    if (this.saveTimerId) {
+      clearTimeout(this.saveTimerId)
+    }
     this.onPanMove(event)
   }
 
@@ -211,7 +213,6 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onPanEnd = (event: PointerEvent) => {
-    this.isPenDown = false
     this.strokeId += 1
     this.lastDrawnPoint = 0
     if (this.state.eraserPosition) {
@@ -219,10 +220,9 @@ export default class Ink extends React.Component<Props, State> {
     }
     const strokeId = this.strokeId
     const lastPoint = this.lastDrawnPoint
-    delay(() => {
-      if (!this.isPenDown && strokeId == this.strokeId && lastPoint == this.lastDrawnPoint) {
-        this.inkStroke()
-      }
+    this.saveTimerId = delay(() => {
+      this.saveTimerId = undefined
+      this.inkStroke()
     }, 1000)
   }
 
