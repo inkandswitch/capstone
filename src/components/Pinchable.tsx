@@ -19,7 +19,7 @@ interface State {
 
 const MINIMUM_PINCH_TRAVEL = 40
 
-export default class Navigatable extends React.Component<
+export default class Pinchable extends React.Component<
   NavigatableProps,
   State
 > {

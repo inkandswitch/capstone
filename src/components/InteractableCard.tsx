@@ -4,7 +4,7 @@ import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
 import * as Link from "../data/Link"
-import Navigatable from "./Navigatable"
+import Pinchable from "./Pinchable"
 
 export interface CardModel {
   id: string
@@ -22,6 +22,7 @@ export interface State {
 
 export interface Props {
   card: CardModel
+  boardDimensions: { height: number; width: number }
   onDragStart: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
@@ -74,6 +75,7 @@ export default class InteractableCard extends React.Component<Props, State> {
   render() {
     const {
       card: { x, y, z, width, height },
+      boardDimensions,
       children,
       ...rest
     } = this.props
@@ -82,8 +84,14 @@ export default class InteractableCard extends React.Component<Props, State> {
     const type = Link.parse(this.props.card.url).type
 
     return (
-      <Navigatable onPinchOutEnd={this.onPinchOutEnd}>
+      <Pinchable onPinchOutEnd={this.onPinchOutEnd}>
         {scale => {
+          const scaleTransform = Math.max(scale, 1)
+          const origin = {
+            x: (x / (boardDimensions.width - width)) * 100,
+            y: (y / (boardDimensions.height - height)) * 100,
+          }
+          const transformOrigin = `${origin.x}% ${origin.y}%`
           return (
             <Interactable
               position={{ x, y }}
@@ -99,7 +107,8 @@ export default class InteractableCard extends React.Component<Props, State> {
                 style={{
                   width: currentSize.width,
                   height: currentSize.height,
-                  transform: `scale(${scale})`,
+                  transform: `scale(${scaleTransform})`,
+                  transformOrigin: transformOrigin,
                 }}
                 {...omit(rest, [
                   "onDoubleTap",
@@ -112,7 +121,7 @@ export default class InteractableCard extends React.Component<Props, State> {
             </Interactable>
           )
         }}
-      </Navigatable>
+      </Pinchable>
     )
   }
 }
