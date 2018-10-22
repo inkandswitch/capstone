@@ -89,10 +89,17 @@ export default class Navigatable extends React.Component<
   }
 
   onTap = (e: PointerEvent) => {
-    if (!this.node || !this.node.contains(e.target as Node)) return
+    if (
+      !this.props.onDoubleTap ||
+      !this.node ||
+      !this.node.contains(e.target as Node) ||
+      this.pinchMetrics
+    )
+      return
 
-    if (this.isDoubleTap && this.props.onDoubleTap) {
+    if (this.isDoubleTap(e)) {
       this.props.onDoubleTap()
+      this.lastPointerUpEvent = undefined
     }
   }
 

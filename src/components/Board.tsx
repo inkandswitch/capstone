@@ -227,6 +227,7 @@ class Board extends React.Component<Props, State> {
                       <InteractableCard
                         card={card}
                         onPinchOutEnd={this.props.onNavigate}
+                        onDoubleTap={this.props.onNavigate}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
@@ -264,13 +265,7 @@ class Board extends React.Component<Props, State> {
               {Object.values(cards).map(card => {
                 if (!card) return null
                 return (
-                  <InteractableCard
-                    key={card.id}
-                    card={card}
-                    onPinchOutEnd={noop}
-                    onDragStart={noop}
-                    onDragStop={noop}
-                    onResizeStop={noop}>
+                  <InteractableCard key={card.id} card={card}>
                     <Content mode="preview" url={card.url} />
                   </InteractableCard>
                 )
