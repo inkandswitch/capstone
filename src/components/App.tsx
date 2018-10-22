@@ -5,6 +5,7 @@ import Root from "./Root"
 import Content from "./Content"
 import Stats from "./Stats"
 import * as Link from "../data/Link"
+import * as UUID from "../data/UUID"
 
 import "./Board"
 import "./Image"
@@ -40,23 +41,41 @@ export default class App extends React.Component<Props, State> {
     const shelfUrl = Content.create("Shelf")
     const rootBoardUrl = Content.create("Board")
     const workspaceUrl = Content.create("Workspace")
+    const replUrl = Content.create("REPL")
 
     Content.workspaceUrl = workspaceUrl
     Content.rootBoardUrl = rootBoardUrl
+    Content.replUrl = replUrl
 
     // Initialize the workspace
     Content.once<Workspace.Model>(workspaceUrl, (change: Function) => {
       change((workspace: EditDoc<Workspace.Model>) => {
-        if (!workspace.identityUrl) {
-          workspace.shelfUrl = shelfUrl
-          workspace.rootUrl = rootBoardUrl
-          workspace.navStack = []
-          workspace.comands = []
-        }
+        workspace.shelfUrl = shelfUrl
+        workspace.rootUrl = rootBoardUrl
+        workspace.replUrl = replUrl
+        workspace.navStack = []
+        workspace.comands = []
       })
 
       this.setState({ url: workspaceUrl })
+
       localStorage.workspaceUrl = workspaceUrl
+
+      Content.once(rootBoardUrl, (change: Function) => {
+        change((rootBoard: any) => {
+          const id = UUID.create()
+
+          rootBoard.cards[id] = {
+            id,
+            url: replUrl,
+            type: "REPL",
+            x: 100,
+            y: 100,
+            width: 300,
+            height: 500,
+          }
+        })
+      })
     })
   }
 
@@ -70,6 +89,7 @@ export default class App extends React.Component<Props, State> {
         (workspace: Doc<Workspace.Model>) => {
           Content.workspaceUrl = workspaceUrl
           Content.rootBoardUrl = workspace.rootUrl
+          Content.replUrl = workspace.replUrl
 
           this.setState({ url: workspaceUrl })
         },

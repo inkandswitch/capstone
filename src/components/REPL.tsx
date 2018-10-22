@@ -2,7 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
-import { stringify } from "json-fn"
+import { stringify, parse } from "json-fn"
 
 import * as Debug from "debug"
 const log = Debug("component:repl")
@@ -77,7 +77,37 @@ class REPL extends React.Component<Props> {
   }
 
   render() {
-    return null
+    const commands = this.props.doc.commands || []
+
+    return (
+      <div style={{ padding: 20 }}>
+        <h3>REPL</h3>
+
+        <div>
+          {commands.map(command => {
+            const { result, error } = command.result
+              ? parse(command.result)
+              : { error: undefined, result: undefined }
+
+            let resultStr
+
+            try {
+              resultStr = JSON.stringify(result, null, 2)
+            } catch {
+              resultStr = stringify(result)
+            }
+
+            return (
+              <div style={{ borderBottom: "1px solid #ddd" }}>
+                <pre>>>> {command.code}</pre>
+                {error && <pre style={{ color: "red" }}>{error}</pre>}
+                {!error && resultStr && <pre>{resultStr}</pre>}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
   }
 }
 

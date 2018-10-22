@@ -1,11 +1,13 @@
 const raf = require("random-access-file")
 import * as Link from "../../data/Link"
 import * as Peek from "../../data/Peek"
+import * as Workspace from "../../components/Workspace"
 import * as repl from "repl"
 import CloudClient from "../../modules/discovery-cloud/Client"
 import Content from "../../components/Content"
 import Store from "../../data/Store"
 import StoreBackend from "../../data/StoreBackend"
+import { Doc } from "automerge/frontend"
 import { FrontendHandle } from "../../modules/hypermerge/frontend"
 import { Hypermerge } from "../../modules/hypermerge"
 import { last, once } from "lodash"
@@ -81,17 +83,15 @@ hm.ready.then(hm => {
     Peek.enable()
   }
 
-  const { id } = Link.parse(workspaceUrl)
-  const handle = Content.store.handle(id)
+  Content.open(workspaceUrl, (workspace: Doc<Workspace.Model>) => {
+    const { id } = Link.parse(workspace.replUrl)
 
-  handle.change((doc: any) => {
-    // clean up previous commands - warning, this will clear up hooks as well
-    doc.commands = []
-    return doc
+    console.log({ id, workspace })
+
+    const handle = Content.store.handle(id)
+
+    console.log(`Welcome to Capstone CLI [${id}]`)
+
+    setTimeout(() => startRepl(handle), 10)
   })
-
-  console.log(`Welcome to Capstone CLI [${id}]`)
-
-  setTimeout(() => startRepl(handle), 10)
 })
-
