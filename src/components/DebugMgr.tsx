@@ -13,22 +13,21 @@ type State = {
 }
 
 export default class DebugMgr extends React.Component<Props, State> {
-
   state = { debug: "", msg: "" }
 
   componentDidMount() {
     chrome.storage.local.get("debug", result => {
-      this.setState({debug: result.debug || ""})
+      this.setState({ debug: result.debug || "" })
     })
   }
 
   saveDebug(filter: string) {
     try {
-      chrome.storage.local.set({debug: filter})
-      this.setState({ msg: "change requires app restart", })
+      chrome.storage.local.set({ debug: filter })
+      this.setState({ msg: "change requires app restart" })
       setTimeout(() => {
-        this.setState({ msg: "", })
-      },2000)
+        this.setState({ msg: "" })
+      }, 2000)
     } catch (e) {
       this.setState({ msg: e.message })
     }
@@ -59,7 +58,9 @@ export default class DebugMgr extends React.Component<Props, State> {
           onChange={this.onDebugChange}
           value={this.state.debug}
         />
-        <div><b>{msg}</b></div>
+        <div>
+          <b>{msg}</b>
+        </div>
       </div>
     )
   }

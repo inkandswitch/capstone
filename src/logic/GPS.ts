@@ -79,7 +79,10 @@ export const onlyTouch = (s: PointerSnapshot) =>
 export const onlyPen = (s: PointerSnapshot) =>
   pickBy(
     s,
-    e => e.pointerType === "pen" || e.history[e.history.length - 1].shiftKey,
+    e =>
+      e.pointerType === "pen" ||
+      e.pointerType === "mouse" ||
+      (e.pointerType === "touch" && e.history[e.history.length - 1].shiftKey),
   )
 
 export const onlyActive = (s: PointerSnapshot) => pickBy(s, p => !p.canceled)

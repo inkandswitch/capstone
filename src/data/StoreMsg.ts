@@ -36,7 +36,7 @@ export interface SetIdentity {
 export interface ChangeRequest {
   type: "ChangeRequest"
   docId: string
-  changes: Change[]
+  change: Change
 }
 
 export interface ActorIdRequest {

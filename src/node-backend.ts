@@ -12,12 +12,14 @@ const hm = new Hypermerge({ path: "./.data" })
 const backend = new StoreBackend(hm)
 
 hm.ready.then(() => {
-  hm.joinSwarm(new CloudClient({
-    //url: "wss://discovery-cloud.herokuapp.com",
-    url: "ws://localhost:8080",
-    id: hm.id,
-    stream: hm.stream,
-  }))
+  hm.joinSwarm(
+    new CloudClient({
+      //url: "wss://discovery-cloud.herokuapp.com",
+      url: "ws://localhost:8080",
+      id: hm.id,
+      stream: hm.stream,
+    }),
+  )
   Peek.enable()
 })
 

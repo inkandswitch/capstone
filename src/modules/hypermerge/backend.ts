@@ -8,17 +8,14 @@ import * as Debug from "debug"
 
 const log = Debug("hypermerge:back")
 
-interface BackWrapper {
-  back: BackDoc
-}
-
 export class BackendHandle extends EventEmitter {
-  hypermerge: Hypermerge
   docId: string
-  back?: BackWrapper
   actorId?: string
-  backQ: Queue<(handle: BackWrapper) => void> = new Queue("backQ")
-  wantsActor: boolean = false
+  private hypermerge: Hypermerge
+  private back?: BackDoc
+  private backLocalQ: Queue<() => void> = new Queue("backLocalQ")
+  private backRemoteQ: Queue<() => void> = new Queue("backRemoteQ")
+  private wantsActor: boolean = false
 
   constructor(core: Hypermerge, docId: string, back?: BackDoc) {
     super()
@@ -27,35 +24,37 @@ export class BackendHandle extends EventEmitter {
     this.docId = docId
 
     if (back) {
-      const handle = { back }
-      this.back = handle
+      this.back = back
       this.actorId = docId
-      this.backQ.subscribe(f => f(handle))
+      this.backLocalQ.subscribe(f => f())
+      this.backRemoteQ.subscribe(f => f())
       this.emit("ready", docId, undefined)
     }
 
     this.on("newListener", (event, listener) => {
       if (event === "patch" && this.back) {
-        const patch = Backend.getPatch(this.back.back)
+        const patch = Backend.getPatch(this.back)
         listener(patch)
       }
     })
   }
 
   applyRemoteChanges = (changes: Change[]): void => {
-    this.backQ.push(handle => {
-      let [back, patch] = Backend.applyChanges(handle.back, changes)
-      handle.back = back
-      this.emit("patch", patch)
+    this.backRemoteQ.push(() => {
+      this.bench("applyRemoteChanges", () => {
+        const [back, patch] = Backend.applyChanges(this.back!, changes)
+        this.back = back
+        this.emit("patch", patch)
+      })
     })
   }
 
-  applyLocalChanges = (changes: Change[]): void => {
-    this.backQ.push(handle => {
-      changes.forEach(change => {
-        let [back, patch] = Backend.applyLocalChange(handle.back, change)
-        handle.back = back
-        this.emit("localpatch", patch)
+  applyLocalChange = (change: Change): void => {
+    this.backLocalQ.push(() => {
+      this.bench("applyLocalChange", () => {
+        const [back, patch] = Backend.applyLocalChange(this.back!, change)
+        this.back = back
+        this.emit("patch", patch)
         this.hypermerge.writeChange(this, this.actorId!, change)
       })
     })
@@ -87,15 +86,17 @@ export class BackendHandle extends EventEmitter {
   }
 
   init = (changes: Change[], actorId?: string) => {
-    const [back, patch] = Backend.applyChanges(Backend.init(), changes)
-    const handle = { back }
-    this.actorId = actorId
-    if (this.wantsActor && !actorId) {
-      this.actorId = this.hypermerge.initActorFeed(this)
-    }
-    this.back = handle
-    this.backQ.subscribe(f => f(handle))
-    this.emit("ready", this.actorId, patch)
+    this.bench("init", () => {
+      const [back, patch] = Backend.applyChanges(Backend.init(), changes)
+      this.actorId = actorId
+      if (this.wantsActor && !actorId) {
+        this.actorId = this.hypermerge.initActorFeed(this)
+      }
+      this.back = back
+      this.backLocalQ.subscribe(f => f())
+      this.backRemoteQ.subscribe(f => f())
+      this.emit("ready", this.actorId, patch)
+    })
   }
 
   broadcast(message: any) {
@@ -119,33 +120,10 @@ export class BackendHandle extends EventEmitter {
     return this.actorIds()
   }
 
-  /*
-  message(message) {
-    if (this.hypermerge.readyIndex[this.docId]) {
-      this.hypermerge.message(this.docId, message)
-    }
+  private bench(msg: string, f: () => void): void {
+    const start = Date.now()
+    f()
+    const duration = Date.now() - start
+    log(`docId=${this.docId} task=${msg} time=${duration}ms`)
   }
-
-  connections() {
-    let peers = this.actorIds().map(
-      actorId => this.hypermerge._trackedFeed(actorId).peers,
-    )
-    return peers.reduce((acc, val) => acc.concat(val), [])
-  }
-
-  peers() {
-    return this.connections().filter(peer => !!peer.identity)
-  }
-
-  onMessage(cb) {
-    this._messageCb = cb
-    return this
-  }
-
-  _message({ peer, msg }) {
-    if (this._messageCb) {
-      this._messageCb({ peer, msg })
-    }
-  }
-*/
 }

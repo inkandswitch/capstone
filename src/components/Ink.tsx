@@ -7,6 +7,7 @@ import { Portal } from "react-portal"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as Content from "./Content"
+import { delay } from "lodash"
 
 interface Bounds {
   readonly top: number
@@ -93,7 +94,7 @@ export default class Ink extends React.Component<Props, State> {
   strokes: InkStroke[] = []
   strokeId = 0
   lastDrawnPoint = 0
-  shouldRedrawDryInk = true
+  saveTimerId: number | undefined = undefined
   bounds: Bounds = EMPTY_BOUNDS
 
   state: State = {}
@@ -114,8 +115,10 @@ export default class Ink extends React.Component<Props, State> {
     this.pointerEventSubscription && this.pointerEventSubscription.unsubscribe()
   }
 
-  componentDidUpdate() {
-    requestAnimationFrame(this.drawDry)
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.strokes.length !== this.props.strokes.length) {
+      requestAnimationFrame(this.drawDry)
+    }
   }
 
   render() {
@@ -168,6 +171,9 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   onPanStart = (event: PointerEvent) => {
+    if (this.saveTimerId) {
+      clearTimeout(this.saveTimerId)
+    }
     this.onPanMove(event)
   }
 
@@ -212,13 +218,18 @@ export default class Ink extends React.Component<Props, State> {
     if (this.state.eraserPosition) {
       this.setState({ eraserPosition: undefined })
     }
+    const strokeId = this.strokeId
+    const lastPoint = this.lastDrawnPoint
+    this.saveTimerId = delay(() => {
+      this.saveTimerId = undefined
+      this.inkStroke()
+    }, 1000)
   }
 
   inkStroke = () => {
     if (!this.props.onInkStroke || !this.state.strokeType) {
       return
     }
-    this.shouldRedrawDryInk = true
     this.props.onInkStroke(this.strokes)
   }
 
@@ -226,7 +237,6 @@ export default class Ink extends React.Component<Props, State> {
     if (this.state.strokeType === strokeType) {
       GPS.setInteractionMode(GPS.InteractionMode.default)
       this.setState({ eraserPosition: undefined, strokeType: undefined })
-      this.shouldRedrawDryInk = true
       this.inkStroke()
     } else {
       GPS.setInteractionMode(GPS.InteractionMode.inking)
@@ -328,14 +338,13 @@ export default class Ink extends React.Component<Props, State> {
   })
 
   drawDry = Frame.throttle(() => {
-    if (!this.canvasElement || !this.shouldRedrawDryInk) return
+    if (!this.canvasElement) return
     this.reset()
     const { strokes } = this.props
     this.prepareCanvas(this.canvasElement)
     const ctx = this.canvasElement.getContext("2d")
     if (!ctx || strokes.length == 0) return
     strokes.forEach(stroke => this.drawDryStroke(stroke))
-    this.shouldRedrawDryInk = false
   })
 
   drawDryStroke(stroke: InkStroke) {

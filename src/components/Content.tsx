@@ -11,7 +11,6 @@ export interface WidgetProps<T> {
   url: string
   mode: Mode
   store: Store
-  contentSize?: Size
 }
 interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
 
@@ -66,7 +65,6 @@ export interface Props {
   url: string
   mode: Mode
   isFocused?: boolean
-  contentSize?: Size
   [k: string]: unknown
 }
 
@@ -144,10 +142,6 @@ export default class Content extends React.Component<Props & unknown> {
     }
     const handle = this.store.create(setup)
     log("create", handle.docId)
-
-    handle.on("doc", doc => {
-      log("emit doc maybe lost", handle.docId, doc)
-    })
 
     return Link.format({ type, id: handle.docId })
   }

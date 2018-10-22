@@ -100,9 +100,8 @@ export class Hypermerge {
     const back = this.createDocument(keys)
     const front = new FrontendHandle<T>(back.docId, back.docId)
     front.back = back
-    front.on("requests", back.applyLocalChanges)
+    front.on("request", back.applyLocalChange)
     back.on("patch", front.patch)
-    back.on("localpatch", front.localPatch)
     return front
   }
 
@@ -146,11 +145,10 @@ export class Hypermerge {
     const front = new FrontendHandle<T>(back.docId)
     front.back = back
     front.once("needsActorId", back.initActor)
-    front.on("requests", back.applyLocalChanges)
+    front.on("request", back.applyLocalChange)
     back.on("actorId", front.setActorId)
     back.on("ready", front.init)
     back.on("patch", front.patch)
-    back.on("localpatch", front.localPatch)
     return front
   }
 
@@ -188,11 +186,18 @@ export class Hypermerge {
     return Promise.all(doc.actorIds().map(key => this.feedData(doc, key)))
   }
 
-  writeChange(doc: BackendHandle, actorId: string, changes: Change) {
+  writeChange(doc: BackendHandle, actorId: string, change: Change) {
     this.getFeed(doc, actorId, feed => {
-      feed.append(JsonBuffer.bufferify(changes), err => {
+      feed.append(JsonBuffer.bufferify(change), err => {
         if (err) {
           throw new Error("failed to append to feed")
+        }
+        if (change.seq != feed.length) {
+          throw new Error(
+            `change.seq (${change.seq}) != feed.length (${feed.length}) for ${
+              doc.docId
+            }`,
+          )
         }
       })
     })

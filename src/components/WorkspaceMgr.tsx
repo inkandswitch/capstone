@@ -19,12 +19,18 @@ type State = {
 
 export default class WorkspaceMgr extends React.Component<Props, State> {
   textarea: HTMLTextAreaElement | null = null
-  state = { input: "", error: "", history: [], copyText: "copy", workspaceUrl: undefined }
+  state = {
+    input: "",
+    error: "",
+    history: [],
+    copyText: "copy",
+    workspaceUrl: undefined,
+  }
 
   componentDidMount() {
     chrome.storage.local.get("history", result => {
       log("history from storage", result)
-      this.setState({history: result.history || []})
+      this.setState({ history: result.history || [] })
     })
     this.props.store.workspaceQ.subscribe(workspaceUrl => {
       log("workspace from frontend", workspaceUrl, this.state)
@@ -40,7 +46,7 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
 
   onNewWorkspace = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    this.props.store.sendToFrontend({type: "Control", workspaceUrl: null })
+    this.props.store.sendToFrontend({ type: "Control", workspaceUrl: null })
   }
 
   saveUrl(workspaceUrl: string) {
@@ -50,13 +56,13 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
         input: "",
         error: "",
       })
-      this.props.store.sendToFrontend({type: "Control" , workspaceUrl  })
+      this.props.store.sendToFrontend({ type: "Control", workspaceUrl })
     } catch (e) {
       this.setState({ error: e.message })
     }
   }
 
-//  onCopy = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  //  onCopy = (event: React.MouseEvent<HTMLAnchorElement>) => {
   onCopy = (event: any) => {
     this.textarea!.select()
     document.execCommand("copy")
@@ -83,8 +89,8 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
   delUrlFn = (index: number) => {
     return (event: React.MouseEvent<HTMLAnchorElement>) => {
       const history = [...this.state.history]
-      history.splice(index,1)
-      this.setState({history})
+      history.splice(index, 1)
+      this.setState({ history })
       chrome.storage.local.set({ history })
     }
   }
@@ -126,7 +132,7 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
         <div> Previous Workspace </div>
         <ul>
           {" "}
-          {this.state.history.map((url,index) => (
+          {this.state.history.map((url, index) => (
             <li key={index}>
               <a href="#" onClick={this.setUrlFn(url)}>
                 {url}

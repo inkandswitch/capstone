@@ -21,6 +21,7 @@ import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
+const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
 
 // TODO: not a constant
@@ -33,6 +34,7 @@ export interface Model {
 }
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
+  availableWidth: number
   onNavigate?: (url: string) => void
   scaleProgress?: number
 }
@@ -260,14 +262,15 @@ class Board extends React.Component<Props, State> {
 
   render() {
     const { cards, strokes, topZ } = this.props.doc
-    const { maxScale, scalingCard, scale, origin } = this.state
+    const { maxScale } = this.state
     switch (this.props.mode) {
       case "fullscreen": {
-        const scaleProgress =
-          maxScale > 1.0 ? (maxScale - 1.0 - scale - 1.0) / (maxScale - 1.0) : 0
         const style = {
-          transform: `scale(${Math.min(maxScale, Math.max(1.0, scale))})`,
-          transformOrigin: origin,
+          transform: `scale(${Math.min(
+            maxScale,
+            Math.max(1.0, this.state.scale),
+          )})`,
+          transformOrigin: this.state.origin,
         }
         return (
           <div className={css.Board} ref={this.onRef} style={style}>
@@ -279,8 +282,6 @@ class Board extends React.Component<Props, State> {
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
-                const scaleProgress =
-                  card.id === scalingCard ? scale / maxScale : 0
                 return (
                   <CSSTransition
                     key={card.id}
@@ -297,15 +298,7 @@ class Board extends React.Component<Props, State> {
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
-                        <Content
-                          mode="embed"
-                          url={card.url}
-                          scaleProgress={scaleProgress}
-                          contentSize={{
-                            width: card.width,
-                            height: card.height,
-                          }}
-                        />
+                        <Content mode="embed" url={card.url} />
                       </InteractableCard>
                     </Mirrorable>
                   </CSSTransition>
@@ -320,15 +313,13 @@ class Board extends React.Component<Props, State> {
         )
       }
       case "embed": {
-        const { contentSize } = this.props
-        if (!contentSize) return
-        const scale = contentSize.width / BOARD_DIMENSIONS.width
+        const scale = this.props.availableWidth / BOARD_DIMENSIONS.width
         const style = {
           transform: `scale(${scale},${scale})`,
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = 0.2 - 0.2 * (this.props.scaleProgress || 0)
+        const overlayOpacity = 0.2 - 0.2 * scale
 
         return (
           <div className={css.BoardEmbed} ref={this.onRef}>
@@ -392,4 +383,13 @@ class Board extends React.Component<Props, State> {
   }
 }
 
-export default Widget.create("Board", Board, Board.reify, BoardActor)
+export default Widget.create(
+  "Board",
+  withAvailableWidth(Board, (domElement: HTMLElement, notify: () => void) => {
+    const observer = new ResizeObserver(() => notify())
+    observer.observe(domElement)
+    return () => observer.unobserve(domElement)
+  }),
+  Board.reify,
+  BoardActor,
+)
