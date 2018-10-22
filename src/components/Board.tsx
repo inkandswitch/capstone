@@ -312,7 +312,11 @@ class Board extends React.Component<Props, State> {
 
 export default Widget.create(
   "Board",
-  withAvailableWidth(Board),
+  withAvailableWidth(Board, (domElement: HTMLElement, notify: () => void) => {
+    const observer = new ResizeObserver(() => notify())
+    observer.observe(domElement)
+    return () => observer.unobserve(domElement)
+  }),
   Board.reify,
   BoardActor,
 )
