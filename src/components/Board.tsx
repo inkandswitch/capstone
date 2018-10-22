@@ -139,15 +139,7 @@ class Board extends React.Component<Props, State> {
     this.boardEl = ref
   }
 
-  onDragStart = (id: string) => {
-    this.props.change(doc => {
-      const card = doc.cards[id]
-      if (!card) return
-      if (card.z === doc.topZ) return
-
-      card.z = ++doc.topZ
-    })
-  }
+  onDragStart = (id: string) => {}
 
   onDragStop = (x: number, y: number, id: string) => {
     this.props.change(doc => {
@@ -155,6 +147,7 @@ class Board extends React.Component<Props, State> {
       if (!card) return
       card.x = x
       card.y = y
+      card.z = ++doc.topZ
     })
   }
 
