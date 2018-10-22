@@ -88,6 +88,9 @@ export const onlyActive = (s: PointerSnapshot) => pickBy(s, p => !p.canceled)
 export const ifNotEmpty = (s: PointerSnapshot) => Object.keys(s).length > 0
 
 // True if there are exactly two pointers in the snapshot, False if more or less than two
+export const ifExactlyOne = (s: PointerSnapshot) => Object.keys(s).length == 1
+
+// True if there are exactly two pointers in the snapshot, False if more or less than two
 export const ifExactlyTwo = (s: PointerSnapshot) => Object.keys(s).length == 2
 
 export const toMostRecentEvents = (s: PointerSnapshot) =>
@@ -118,5 +121,7 @@ export const onlyOffTarget = (target: Node) => (s: PointerSnapshot) =>
 
 export const ifTerminalEvent = (e: PointerEvent) =>
   e.type === "pointerup" || e.type === "pointercancel"
+
+export const ifPointerUpEvent = (e: PointerEvent) => e.type === "pointerup"
 
 export const ifInitialEvent = (e: PointerEvent) => e.type === "pointerdown"

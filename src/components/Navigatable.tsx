@@ -10,6 +10,7 @@ interface NavigatableProps {
   onPinchInEnd?: () => void
   onPinchOutEnd?: () => void
   onPinchMove?: (distance: number) => void
+  onDoubleTap?: () => void
 }
 
 interface State {
@@ -23,14 +24,27 @@ export default class Navigatable extends React.Component<
   State
 > {
   private node?: Element
-  private subscription?: Rx.Subscription
+  private pinchSubscription?: Rx.Subscription
+  private doubleTapSubscription?: Rx.Subscription
   private pinchMetrics?: PinchMetrics.Measurements
+  private lastPointerUpEvent?: PointerEvent
 
   componentDidMount() {
     this.node = ReactDOM.findDOMNode(this) as Element
     if (!this.node) return
 
-    this.subscription = GPS.stream()
+    this.doubleTapSubscription = GPS.stream()
+      .pipe(
+        RxOps.map(GPS.onlyTouch),
+        RxOps.map(GPS.onlyActive),
+        RxOps.filter(GPS.ifExactlyOne),
+        RxOps.map(GPS.toAnyPointer),
+        RxOps.map(GPS.toMostRecentEvent),
+        RxOps.filter(GPS.ifPointerUpEvent),
+      )
+      .subscribe(this.onTap)
+
+    this.pinchSubscription = GPS.stream()
       .pipe(
         RxOps.map(GPS.onlyTouch),
         RxOps.map(GPS.onlyActive),
@@ -41,7 +55,8 @@ export default class Navigatable extends React.Component<
   }
 
   componentWillUnmount() {
-    this.subscription && this.subscription.unsubscribe()
+    this.pinchSubscription && this.pinchSubscription.unsubscribe()
+    this.doubleTapSubscription && this.doubleTapSubscription.unsubscribe()
   }
 
   onTwoFingers = (events: { [key: number]: PointerEvent }) => {
@@ -71,6 +86,31 @@ export default class Navigatable extends React.Component<
           this.props.onPinchMove(this.pinchMetrics.distance)
       }
     }
+  }
+
+  onTap = (e: PointerEvent) => {
+    if (!this.node || !this.node.contains(e.target as Node)) return
+
+    if (this.isDoubleTap && this.props.onDoubleTap) {
+      this.props.onDoubleTap()
+    }
+  }
+
+  isDoubleTap = (e: PointerEvent) => {
+    if (!this.lastPointerUpEvent) {
+      this.lastPointerUpEvent = e
+      return false
+    }
+
+    const last = this.lastPointerUpEvent
+    this.lastPointerUpEvent = e
+
+    const timePassed = e.timeStamp - last.timeStamp
+    const distance = Math.sqrt(
+      Math.pow(e.x - last.x, 2) + Math.pow(e.y - last.y, 2),
+    )
+
+    return timePassed < 500 && distance < 60
   }
 
   render() {
