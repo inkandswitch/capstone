@@ -1,6 +1,6 @@
 import * as React from "react"
 import Interactable from "./Interactable"
-import Card, { CARD_CLASS } from "./Card"
+import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
 import * as Link from "../data/Link"
