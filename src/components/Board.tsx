@@ -19,6 +19,7 @@ import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/Board.css"
+import ResizeObserver from "resize-observer-polyfill"
 
 const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
@@ -312,7 +313,11 @@ class Board extends React.Component<Props, State> {
 
 export default Widget.create(
   "Board",
-  withAvailableWidth(Board),
+  withAvailableWidth(Board, (domElement: HTMLElement, notify: () => void) => {
+    const observer = new ResizeObserver(() => notify())
+    observer.observe(domElement)
+    return () => observer.unobserve(domElement)
+  }),
   Board.reify,
   BoardActor,
 )
