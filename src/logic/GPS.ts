@@ -87,7 +87,7 @@ export const onlyActive = (s: PointerSnapshot) => pickBy(s, p => !p.canceled)
 // True if there are pointers in the snapshot, False if empty.
 export const ifNotEmpty = (s: PointerSnapshot) => Object.keys(s).length > 0
 
-// True if there are exactly two pointers in the snapshot, False if more or less than two
+// True if there is exactly one pointers in the snapshot, False if more then one
 export const ifExactlyOne = (s: PointerSnapshot) => Object.keys(s).length == 1
 
 // True if there are exactly two pointers in the snapshot, False if more or less than two
