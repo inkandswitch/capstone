@@ -11,7 +11,6 @@ export interface WidgetProps<T> {
   url: string
   mode: Mode
   store: Store
-  contentSize?: Size
 }
 interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
 
@@ -66,7 +65,6 @@ export interface Props {
   url: string
   mode: Mode
   isFocused?: boolean
-  contentSize?: Size
   [k: string]: unknown
 }
 

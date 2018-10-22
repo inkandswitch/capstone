@@ -1,5 +1,5 @@
 import * as React from "react"
-import { getRequests, Doc, AnyDoc, ChangeFn } from "automerge/frontend"
+import { Doc, AnyDoc, ChangeFn } from "automerge/frontend"
 import ErrorBoundary from "./ErrorBoundary"
 import Content, {
   WidgetProps,
@@ -12,7 +12,6 @@ export interface Props<T = {}, M = never> {
   doc: Doc<T>
   url: string
   mode: Mode
-  contentSize?: Size
   emit: (message: M) => void
   change: (cb: ChangeFn<T>) => void
 }

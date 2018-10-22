@@ -20,6 +20,7 @@ import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/Board.css"
 
+const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
 
 export interface Model {
@@ -29,6 +30,7 @@ export interface Model {
 }
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
+  availableWidth: number
   onNavigate?: (url: string) => void
 }
 
@@ -228,14 +230,7 @@ class Board extends React.Component<Props, State> {
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
-                        <Content
-                          mode="embed"
-                          url={card.url}
-                          contentSize={{
-                            width: card.width,
-                            height: card.height,
-                          }}
-                        />
+                        <Content mode="embed" url={card.url} />
                       </InteractableCard>
                     </Mirrorable>
                   </CSSTransition>
@@ -250,9 +245,7 @@ class Board extends React.Component<Props, State> {
         )
 
       case "embed":
-        const { contentSize } = this.props
-        if (!contentSize) return
-        const scale = contentSize.width / 1200
+        const scale = this.props.availableWidth / 1200
         const style = {
           transform: `scale(${scale},${scale})`,
           willChange: "transform",
@@ -317,4 +310,9 @@ class Board extends React.Component<Props, State> {
   }
 }
 
-export default Widget.create("Board", Board, Board.reify, BoardActor)
+export default Widget.create(
+  "Board",
+  withAvailableWidth(Board),
+  Board.reify,
+  BoardActor,
+)
