@@ -19,7 +19,6 @@ import Ink, { InkStroke } from "./Ink"
 import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/Board.css"
-import ResizeObserver from "resize-observer-polyfill"
 
 const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")

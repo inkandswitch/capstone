@@ -83,7 +83,6 @@
     "react-portal": "^4.1.5",
     "react-transition-group": "^2.5.0",
     "react-with-available-width": "^2.0.0",
-    "resize-observer-polyfill": "^1.5.0",
     "rxjs": "^6.3.2",
     "stats.js": "^0.17.0",
     "tap-browser-el": "^2.0.0",
