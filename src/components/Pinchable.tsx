@@ -7,26 +7,25 @@ import * as ReactDOM from "react-dom"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
 interface NavigatableProps {
-  onPinchInEnd?: () => void
-  onPinchOutEnd?: () => void
-  onPinchMove?: (distance: number) => void
+  onPinchStart?: (measurements: PinchMetrics.Measurements) => void
+  onPinchMove?: (measurements: PinchMetrics.Measurements) => void
+  onPinchInEnd?: (measurements: PinchMetrics.Measurements) => void
+  onPinchOutEnd?: (measurements: PinchMetrics.Measurements) => void
   onDoubleTap?: () => void
 }
 
 interface State {
-  pinch: PinchMetrics.Measurements
+  pinch?: PinchMetrics.Measurements
 }
 
-const MINIMUM_PINCH_TRAVEL = 40
-
-export default class Navigatable extends React.Component<
+export default class Pinchable extends React.Component<
   NavigatableProps,
   State
 > {
   private node?: Element
+  state: State = { pinch: undefined }
   private pinchSubscription?: Rx.Subscription
   private doubleTapSubscription?: Rx.Subscription
-  private pinchMetrics?: PinchMetrics.Measurements
   private lastPointerUpEvent?: PointerEvent
 
   componentDidMount() {
@@ -63,27 +62,30 @@ export default class Navigatable extends React.Component<
     if (!this.node) return
 
     const eventList = Object.values(events)
+    const { pinch } = this.state
 
     if (
-      !this.pinchMetrics &&
+      !pinch &&
       this.node.contains(eventList[0].target as Node) &&
       this.node.contains(eventList[1].target as Node)
     ) {
-      this.pinchMetrics = PinchMetrics.init(eventList)
-    } else if (this.pinchMetrics) {
+      const pinch = PinchMetrics.init(eventList)
+      this.setState({ pinch })
+      this.props.onPinchStart && this.props.onPinchStart(pinch)
+    } else if (pinch) {
       if (some(events, GPS.ifTerminalEvent)) {
-        const { delta } = this.pinchMetrics
-        if (delta > MINIMUM_PINCH_TRAVEL) {
-          this.props.onPinchOutEnd && this.props.onPinchOutEnd()
-        } else if (delta < -MINIMUM_PINCH_TRAVEL) {
-          this.props.onPinchInEnd && this.props.onPinchInEnd()
+        const { scale } = pinch
+        if (scale > 1) {
+          this.props.onPinchOutEnd && this.props.onPinchOutEnd(pinch)
+        } else if (scale < 1) {
+          this.props.onPinchInEnd && this.props.onPinchInEnd(pinch)
         }
-        this.pinchMetrics = undefined
+        this.setState({ pinch: undefined })
       } else {
         // Update pinch metrics
-        this.pinchMetrics = PinchMetrics.update(this.pinchMetrics, eventList)
-        this.props.onPinchMove &&
-          this.props.onPinchMove(this.pinchMetrics.distance)
+        const updatedPinch = PinchMetrics.update(pinch, eventList)
+        this.setState({ pinch: updatedPinch })
+        this.props.onPinchMove && this.props.onPinchMove(updatedPinch)
       }
     }
   }
@@ -93,7 +95,7 @@ export default class Navigatable extends React.Component<
       !this.props.onDoubleTap ||
       !this.node ||
       !this.node.contains(e.target as Node) ||
-      this.pinchMetrics
+      this.state.pinch
     )
       return
 

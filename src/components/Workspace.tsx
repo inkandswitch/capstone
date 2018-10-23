@@ -15,7 +15,7 @@ import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
 import * as Link from "../data/Link"
 import { last } from "lodash"
-import Navigatable from "./Navigatable"
+import Pinchable from "./Pinchable"
 
 export interface Model {
   navStack: string[]
@@ -145,7 +145,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const { shelfUrl } = this.props.doc
     const currentUrl = this.peek()
     return (
-      <Navigatable onPinchInEnd={this.pop}>
+      <Pinchable onPinchInEnd={this.pop}>
         <div
           className="Workspace"
           style={style.Workspace}
@@ -164,7 +164,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
             <Peers onTapPeer={this.onTapPeer} />
           </div>
         </div>
-      </Navigatable>
+      </Pinchable>
     )
   }
 }

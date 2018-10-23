@@ -2,10 +2,6 @@
   font-size: 11px;
   line-height: 1.4;
   background-color: white;
-  border-radius: 3px;
   overflow: hidden;
-  border: 1px solid #e8e8e8;
-  display: grid;
-  grid-template-rows: auto;
-  grid-template-columns: auto;
+  display: block;
 }
