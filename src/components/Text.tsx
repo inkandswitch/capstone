@@ -3,6 +3,7 @@ import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import TextEditor, { Change } from "./TextEditor"
+import * as css from "./css/Text.css"
 
 export interface Model {
   content: string[]
@@ -22,11 +23,13 @@ class Text extends React.Component<Props> {
   render() {
     const { content } = this.props.doc
     return (
-      <TextEditor
-        content={content.join("")}
-        isFocused={this.props.mode === "fullscreen" || this.props.isFocused}
-        onChange={this.onChange}
-      />
+      <div className={css.Text}>
+        <TextEditor
+          content={content.join("")}
+          isFocused={this.props.mode === "fullscreen" || this.props.isFocused}
+          onChange={this.onChange}
+        />
+      </div>
     )
   }
 

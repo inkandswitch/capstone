@@ -3,7 +3,5 @@
   line-height: 1.4;
   background-color: white;
   overflow: hidden;
-  display: grid;
-  grid-template-rows: auto;
-  grid-template-columns: auto;
+  display: block;
 }
