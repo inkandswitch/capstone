@@ -89,6 +89,12 @@ export const addImage = (src: string) => {
   })
 }
 
+export const addBot = async (code: string) => {
+  return addDoc("Bot", doc => {
+    doc.code = code.split("")
+  })
+}
+
 export const addDoc = async (type: string, changeFn: ChangeFn<unknown>) => {
   const url = Content.create(type)
 

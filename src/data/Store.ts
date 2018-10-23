@@ -8,9 +8,14 @@ import { FrontendManager } from "hypermerge/frontend"
 import Queue from "./Queue"
 
 const log = Debug("store:front")
-;(window as any).peek = () => {
-  console.log("please use peek() on the backend console")
+
+function isId(id: string) {
+  return id.length >= 32 && id.length <= 44
 }
+
+// ;(window as any).peek = () => {
+//   console.log("please use peek() on the backend console")
+// }
 
 export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
