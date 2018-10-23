@@ -20,11 +20,12 @@ const MINIMUM_DISTANCE = CARD_DEFAULT_SIZE.width / 2
 const FADE_RANGE = 50
 
 export default class EdgeBoardCreator extends React.Component<Props, State> {
-  leftEdge?: HTMLDivElement
-  rightEdge?: HTMLDivElement
-  rightEdgeMaxX?: number
-  triggeredEdge?: HTMLDivElement
+  private leftEdge?: HTMLDivElement
+  private rightEdge?: HTMLDivElement
+  private rightEdgeMaxX?: number
+  private triggeredEdge?: HTMLDivElement
   private subscription?: Rx.Subscription
+  private thresholdMet: boolean = false
 
   state: State = {}
 
@@ -62,9 +63,14 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
         })
       } else {
         if (this.shouldCreateBoard()) {
-          this.props.onBoardCreate(measurements.position)
+          const position = {
+            x: measurements.position.x - CARD_DEFAULT_SIZE.width,
+            y: measurements.position.y - CARD_DEFAULT_SIZE.height / 2,
+          }
+          this.props.onBoardCreate(position)
         }
         this.triggeredEdge = undefined
+        this.thresholdMet = false
         this.setState({ measurements: undefined })
       }
     }
@@ -82,7 +88,10 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   }
 
   shouldCreateBoard() {
-    return this.getAbsoluteOffsetFromEdge() >= MINIMUM_DISTANCE
+    if (!this.thresholdMet) {
+      this.thresholdMet = this.getAbsoluteOffsetFromEdge() >= MINIMUM_DISTANCE
+    }
+    return this.thresholdMet
   }
 
   onLeftEdge = (ref: HTMLDivElement) => {
