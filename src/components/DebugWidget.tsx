@@ -16,7 +16,7 @@ type Props = {
 type State = {
   url: string
   json: string
-  handle: FrontendHandle<any>
+  handle: FrontendHandle<unknown>
   peers: number
   feeds: number
 }
@@ -30,7 +30,7 @@ export default class DebugWidget extends React.Component<Props, State> {
     feeds: this.props.store.feedCount[Link.parse(this.props.url).id] || 0,
   }
 
-  docListener = (doc: Doc<any>) => {
+  docListener = (doc: Doc<unknown>) => {
     const json = JSON.stringify(doc, undefined, 2)
     this.setState({json})
   }
@@ -64,12 +64,10 @@ export default class DebugWidget extends React.Component<Props, State> {
   }
 
   pushUrl = (url: string) => {
-
     this.state.handle.removeListener("doc", this.docListener)
     this.state.handle.removeListener("info", this.infoListener)
 
-
-    const docId = Link.parse(this.props.url).id
+    const docId = Link.parse(url).id
     const peers = this.props.store.peerCount[docId] || 0
     const feeds = this.props.store.feedCount[docId] || 0
     const handle = this.props.store.handle(docId)
