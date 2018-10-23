@@ -18,26 +18,32 @@ interface Props extends Widget.Props<Model> {
   availableWidth: number
 }
 
-class HTML extends React.Component<Props> {
+interface State {
+  encodedHtml: string
+}
+
+class HTML extends React.Component<Props, State> {
   static reify(doc: AnyDoc): Model {
     return {
       html: Reify.string(doc.html),
     }
   }
 
+  state = { encodedHtml: "" }
+
+  componentWillReceiveProps() {
+    this.setState({
+      encodedHtml:
+        "data:text/html;base64," +
+        btoa(unescape(encodeURIComponent(this.props.doc.html))),
+    })
+  }
+
   render() {
-    const { html } = this.props.doc
+    const { encodedHtml } = this.state
     switch (this.props.mode) {
       case "fullscreen":
-        return (
-          <iframe
-            style={style.Fullscreen}
-            src={
-              "data:text/html;base64," +
-              btoa(unescape(encodeURIComponent(html)))
-            }
-          />
-        )
+        return <iframe style={style.Fullscreen} src={encodedHtml} />
       case "embed":
         const contentScale =
           (this.props.availableWidth - 4) / IFRAME_DIMENSIONS.width
@@ -51,13 +57,7 @@ class HTML extends React.Component<Props> {
         return (
           <div style={style.Embed}>
             <div style={scaleStyle}>
-              <iframe
-                style={style.Embed__IFrame}
-                src={
-                  "data:text/html;base64," +
-                  btoa(unescape(encodeURIComponent(html)))
-                }
-              />
+              <iframe style={style.Embed__IFrame} src={encodedHtml} />
             </div>
           </div>
         )
@@ -68,8 +68,8 @@ class HTML extends React.Component<Props> {
 const style = {
   Fullscreen: {},
   Embed: {
-    borderRadius: "10px",
-    border: "1px solid #e8e8e8",
+    borderRadius: "6px",
+    border: "2px solid black",
     pointerEvents: "none",
     height: "100%",
     width: "100%",
