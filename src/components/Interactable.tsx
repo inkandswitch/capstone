@@ -174,11 +174,9 @@ export default class Interactable extends React.Component<
 
       const targets = document
         .elementsFromPoint(x, y)
-        .filter(el => !DOM.isAncestor(el, ref) && el !== parent)
+        .filter(el => !DOM.isAncestor(el, ref))
 
-      console.log("before event dispatch", parent, targets)
-
-      if (onDragOut) {
+      if (onDragOut && targets[0] !== parent) {
         const dataTransfer = onDragOut()
 
         for (const target of targets) {
