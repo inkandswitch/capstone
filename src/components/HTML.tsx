@@ -55,6 +55,7 @@ class HTML extends React.Component<Props, State> {
             <div style={style.Fullscreen__Banner}>{this.props.doc.src}</div>
           </div>
         )
+      case "preview":
       case "embed":
         const contentScale =
           (this.props.availableWidth - 4) / IFRAME_DIMENSIONS.width
