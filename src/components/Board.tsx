@@ -71,7 +71,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const { urls } = message.body
         urls.forEach(async url => {
           const size = await getCardSize(url)
-          this.change(doc => addCard(url, doc, size))
+          this.change(doc => addCard(url, doc, size, { x: 400, y: 400 }))
         })
         break
       }
