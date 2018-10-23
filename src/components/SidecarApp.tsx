@@ -28,7 +28,7 @@ export default class SidecarApp extends React.Component<{}, State> {
 
     Content.store.control().subscribe(message => {
       if (!message) return
-      this.loadWorkspaceUrl(message.workspaceUrl)
+      this.loadWorkspaceUrl(message.url)
     })
   }
 
@@ -52,7 +52,6 @@ export default class SidecarApp extends React.Component<{}, State> {
     return (
       <Root store={Content.store}>
         <div style={style.App}>
-          <GlobalKeyboard onKeyDown={this.onKeyDown} />
           {this.renderContent()}
         </div>
       </Root>
@@ -115,14 +114,6 @@ export default class SidecarApp extends React.Component<{}, State> {
       this.loadWorkspaceUrl(workspaceUrl)
     } catch (e) {
       this.setState({ error: e.message })
-    }
-  }
-
-  onKeyDown = (event: KeyboardEvent) => {
-    if (event.code === "ShiftRight") {
-      window.sendToEntry({
-        type: "ToggleControl",
-      })
     }
   }
 }

@@ -6,7 +6,6 @@ declare global {
     Content: typeof Content
     visualViewport: VisualViewport
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
-    sendToEntry: (msg: StoreMsg.MainToEntry) => void
   }
 
   interface PointerEvent {

@@ -22,6 +22,8 @@ export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 export default class Store {
   sendQueue = new Queue<Msg.FrontendToBackend>("Store")
   index: { [id: string]: FrontendHandle<any> } = {}
+  peerCount: { [id: string]: number } = {}
+  feedCount: { [id: string]: number } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
   control$: Rx.BehaviorSubject<Msg.Control | null>
@@ -116,9 +118,9 @@ export default class Store {
     return localStorage.workspaceUrl || null
   }
 
-  setWorkspace(workspaceUrl: string) {
-    localStorage.workspaceUrl = workspaceUrl
-    this.sendToBackend({ type: "WorkspaceSet", url: workspaceUrl })
+  setWorkspace(url: string | null) {
+    url ? (localStorage.workspaceUrl = url) : (delete localStorage.workspaceUrl)
+    this.control$.next({ type: "Control", url })
   }
 
   activity(id: string): Rx.Observable<Activity> {
@@ -146,6 +148,14 @@ export default class Store {
         handle.init(msg.actorId, msg.patch)
         break
       }
+      case "DocInfo": {
+        log("DocInfo", msg.docId, msg.peers, msg.feeds)
+        const handle = this.handle(msg.docId)
+        this.peerCount[msg.docId] = msg.peers
+        this.feedCount[msg.docId] = msg.feeds
+        handle.emit("info", msg.peers, msg.feeds)
+        break
+      }
       case "ApplyPatch": {
         log("ApplyPatch", msg.docId)
         const handle = this.handle(msg.docId)
@@ -159,10 +169,6 @@ export default class Store {
 
       case "Presence":
         this.presence$.next(msg)
-        break
-
-      case "Control":
-        this.control$.next(msg)
         break
 
       case "Upload":

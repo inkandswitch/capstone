@@ -1,0 +1,7 @@
+.Text {
+  border-radius: 3px;
+  border: 1px solid #ebeae6;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}

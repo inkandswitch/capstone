@@ -4,23 +4,41 @@ import * as Link from "../data/Link"
 
 import FullscreenToggle from "./FullscreenToggle"
 import WorkspaceMgr from "./WorkspaceMgr"
+import DebugWidget from "./DebugWidget"
 import DebugMgr from "./DebugMgr"
-import StoreBackend from "../data/StoreBackend"
+import Store from "../data/Store"
 
-type Props = {
-  store: StoreBackend
+type State = {
+  url: string | null
 }
 
-export default class ControlPanel extends React.Component<Props> {
+type Props = {
+  store: Store
+}
+
+export default class ControlPanel extends React.Component<Props, State> {
+  state = {
+    url: null
+  }
+
+  componentDidMount() {
+    this.props.store.control().subscribe(message => {
+      if (!message) return
+
+      if (message.type == "Control") {
+        this.setState({ url: message.url })
+      }
+    })
+  }
+
   render() {
     return (
       <div>
-        <FullscreenToggle />
-        <hr />
-        <DebugMgr {...this.props} />
+        <DebugMgr {...this.props}/>
         <hr />
         <WorkspaceMgr {...this.props} />
         <hr />
+        { this.state.url ? <DebugWidget store={this.props.store} url={this.state.url!} /> : " " }
       </div>
     )
   }

@@ -1,10 +1,11 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
+//import * as Debug from "debug"
 import * as Link from "../data/Link"
-import StoreBackend from "../data/StoreBackend"
+import Store from "../data/Store"
 
 type Props = {
-  store: StoreBackend
+  store: Store
 }
 
 type State = {
@@ -16,21 +17,17 @@ export default class DebugMgr extends React.Component<Props, State> {
   state = { debug: "", msg: "" }
 
   componentDidMount() {
-    chrome.storage.local.get("debug", result => {
-      this.setState({ debug: result.debug || "" })
-    })
+    const debug = localStorage.debug || ""
+    this.setState({ debug })
   }
 
-  saveDebug(filter: string) {
-    try {
-      chrome.storage.local.set({ debug: filter })
-      this.setState({ msg: "change requires app restart" })
-      setTimeout(() => {
-        this.setState({ msg: "" })
-      }, 2000)
-    } catch (e) {
-      this.setState({ msg: e.message })
-    }
+  saveDebug(debug: string) {
+    chrome.storage.local.set({ debug })
+    localStorage.debug = debug
+    this.setState({ msg: "change requires app restart" })
+    setTimeout(() => {
+      this.setState({ msg: "" })
+    }, 2000)
   }
 
   onDebugChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {

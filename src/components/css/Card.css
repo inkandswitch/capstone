@@ -4,8 +4,5 @@
   background-color: white;
   border-radius: 3px;
   overflow: hidden;
-  /* border: 1px solid #ebeae6; */
-  display: grid;
-  grid-template-rows: auto;
-  grid-template-columns: auto;
+  display: block;
 }

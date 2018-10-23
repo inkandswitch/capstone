@@ -2,7 +2,6 @@ import * as Debug from "debug"
 import { Change, Patch } from "automerge/backend"
 import { BackendHandle } from "../modules/hypermerge/backend"
 import { Hypermerge } from "../modules/hypermerge"
-import * as Peek from "./Peek"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
 import Queue from "./Queue"
@@ -14,14 +13,13 @@ export default class StoreBackend {
   //presenceTick?: any
   hypermerge: Hypermerge
   docHandles: { [docId: string]: BackendHandle } = {}
-  workspaceQ: Queue<string> = new Queue()
+//  workspaceQ: Queue<string> = new Queue()
 
   constructor(hm: Hypermerge) {
     log("constructing")
     this.hypermerge = hm
     ;(global as any).hm = this.hypermerge
     ;(global as any).sm = this
-    Peek.enable()
   }
 
   reset() {
@@ -60,6 +58,18 @@ export default class StoreBackend {
         handle.on("patch", patch => {
           this.sendToFrontend({ type: "ApplyPatch", docId, patch })
         })
+
+        const docInfo = () => {
+          const peers = handle.peers().length
+          const feeds = handle.feeds().length
+          log("DOC INFO", peers, feeds)
+          this.sendToFrontend({ type: "DocInfo", docId, peers, feeds })
+        }
+
+        handle.on("peer-add", docInfo)
+        handle.on("peer-remove", docInfo)
+        handle.on("feed", docInfo)
+        docInfo()
 
         break
       }
@@ -124,11 +134,6 @@ export default class StoreBackend {
           secretKey: Base58.decode(keys.secretKey),
         }
         this.hypermerge.createDocument(keyPair)
-        break
-      }
-
-      case "WorkspaceSet": {
-        this.workspaceQ.push(msg.url)
         break
       }
 
