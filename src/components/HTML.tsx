@@ -2,7 +2,6 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
-import { isAbsolute } from "path"
 
 const withAvailableWidth = require("react-with-available-width")
 
