@@ -16,12 +16,14 @@ export default class Warp extends React.Component<Props> {
     this.calculateRoot()
   }
 
-  componentDidUpdate() {
-    this.calculateRoot()
+  componentDidUpdate(prevProps: Props) {
+    this.calculateRoot(prevProps)
   }
 
-  calculateRoot() {
+  calculateRoot(prevProps?: Props) {
     const { to } = this.props
+
+    if (prevProps && prevProps.to === to) return
 
     if (to) {
       to.appendChild(this.root)
