@@ -23,8 +23,7 @@ export interface State {
 
 export interface Props {
   card: CardModel
-  boardDimensions: { height: number; width: number }
-  onDragStart: (id: string) => void
+  onDragStart?: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
   onDoubleTap?: (url: string) => void
@@ -45,7 +44,7 @@ export default class InteractableCard extends React.Component<Props, State> {
   }
 
   start = () => {
-    this.props.onDragStart(this.props.card.id)
+    this.props.onDragStart && this.props.onDragStart(this.props.card.id)
   }
 
   dragStop = (x: number, y: number) => {
@@ -86,10 +85,13 @@ export default class InteractableCard extends React.Component<Props, State> {
       this.props.onPinchOutEnd(this.props.card.id, measurements)
   }
 
+  onDoubleTap = () => {
+    this.props.onDoubleTap && this.props.onDoubleTap(this.props.card.url)
+  }
+
   render() {
     const {
       card: { x, y, z, width, height },
-      boardDimensions,
       children,
       ...rest
     } = this.props
@@ -101,7 +103,8 @@ export default class InteractableCard extends React.Component<Props, State> {
       <Pinchable
         onPinchStart={this.onPinchStart}
         onPinchMove={this.onPinchMove}
-        onPinchOutEnd={this.onPinchOutEnd}>
+        onPinchOutEnd={this.onPinchOutEnd}
+        onDoubleTap={this.onDoubleTap}>
         <Interactable
           position={{ x, y }}
           originalSize={{ width, height }}

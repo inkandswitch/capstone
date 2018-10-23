@@ -11,6 +11,7 @@ interface NavigatableProps {
   onPinchMove?: (measurements: PinchMetrics.Measurements) => void
   onPinchInEnd?: (measurements: PinchMetrics.Measurements) => void
   onPinchOutEnd?: (measurements: PinchMetrics.Measurements) => void
+  onDoubleTap?: () => void
 }
 
 interface State {
@@ -22,15 +23,27 @@ export default class Pinchable extends React.Component<
   State
 > {
   private node?: Element
-  private subscription?: Rx.Subscription
-
   state: State = { pinch: undefined }
+  private pinchSubscription?: Rx.Subscription
+  private doubleTapSubscription?: Rx.Subscription
+  private lastPointerUpEvent?: PointerEvent
 
   componentDidMount() {
     this.node = ReactDOM.findDOMNode(this) as Element
     if (!this.node) return
 
-    this.subscription = GPS.stream()
+    this.doubleTapSubscription = GPS.stream()
+      .pipe(
+        RxOps.map(GPS.onlyTouch),
+        RxOps.map(GPS.onlyActive),
+        RxOps.filter(GPS.ifExactlyOne),
+        RxOps.map(GPS.toAnyPointer),
+        RxOps.map(GPS.toMostRecentEvent),
+        RxOps.filter(GPS.ifPointerUpEvent),
+      )
+      .subscribe(this.onTap)
+
+    this.pinchSubscription = GPS.stream()
       .pipe(
         RxOps.map(GPS.onlyTouch),
         RxOps.map(GPS.onlyActive),
@@ -41,7 +54,8 @@ export default class Pinchable extends React.Component<
   }
 
   componentWillUnmount() {
-    this.subscription && this.subscription.unsubscribe()
+    this.pinchSubscription && this.pinchSubscription.unsubscribe()
+    this.doubleTapSubscription && this.doubleTapSubscription.unsubscribe()
   }
 
   onTwoFingers = (events: { [key: number]: PointerEvent }) => {
@@ -74,6 +88,38 @@ export default class Pinchable extends React.Component<
         this.props.onPinchMove && this.props.onPinchMove(updatedPinch)
       }
     }
+  }
+
+  onTap = (e: PointerEvent) => {
+    if (
+      !this.props.onDoubleTap ||
+      !this.node ||
+      !this.node.contains(e.target as Node) ||
+      this.state.pinch
+    )
+      return
+
+    if (this.isDoubleTap(e)) {
+      this.props.onDoubleTap()
+      this.lastPointerUpEvent = undefined
+    }
+  }
+
+  isDoubleTap = (e: PointerEvent) => {
+    if (!this.lastPointerUpEvent) {
+      this.lastPointerUpEvent = e
+      return false
+    }
+
+    const last = this.lastPointerUpEvent
+    this.lastPointerUpEvent = e
+
+    const timePassed = e.timeStamp - last.timeStamp
+    const distance = Math.sqrt(
+      Math.pow(e.x - last.x, 2) + Math.pow(e.y - last.y, 2),
+    )
+
+    return timePassed < 500 && distance < 60
   }
 
   render() {

@@ -286,10 +286,10 @@ class Board extends React.Component<Props, State> {
                     <Mirrorable cardId={card.id} onMirror={this.onMirror}>
                       <InteractableCard
                         card={card}
-                        boardDimensions={BOARD_DIMENSIONS}
                         onPinchStart={this.onPinchStart}
                         onPinchMove={this.onPinchMove}
                         onPinchOutEnd={this.onPinchOutEnd}
+                        onDoubleTap={this.props.onNavigate}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
@@ -332,7 +332,6 @@ class Board extends React.Component<Props, State> {
                   <InteractableCard
                     key={card.id}
                     card={card}
-                    boardDimensions={BOARD_DIMENSIONS}
                     onPinchOutEnd={noop}
                     onDragStart={noop}
                     onDragStop={noop}
