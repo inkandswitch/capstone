@@ -32,7 +32,7 @@ const style = {
     height: "100%",
     width: "100%",
     borderRadius: "3px",
-    border: "1px solid #e8e8e8",
+    border: "1px solid #EBEAE6",
   },
 }
 
