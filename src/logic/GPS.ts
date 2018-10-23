@@ -75,13 +75,14 @@ export const stream = () => events$
 export const onlyTouch = (s: PointerSnapshot) =>
   pickBy(s, e => e.pointerType === "touch")
 
+export const isTouchScreen = navigator.maxTouchPoints > 0
+
 // Filter the snapshot so only pen pointers remain.
 export const onlyPen = (s: PointerSnapshot) =>
   pickBy(
     s,
-    e => e.pointerType === "pen", // ||
-    // e.pointerType === "mouse" ||
-    // (e.pointerType === "touch" && e.history[e.history.length - 1].shiftKey),
+    e =>
+      e.pointerType === "pen" || (!isTouchScreen && e.pointerType === "mouse"),
   )
 
 export const onlyActive = (s: PointerSnapshot) => pickBy(s, p => !p.canceled)
