@@ -2,6 +2,7 @@ import * as React from "react"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as css from "./css/EdgeBoardCreator.css"
+import * as boardCss from "./css/Board.css"
 import * as DragMetrics from "../logic/DragMetrics"
 import * as Rx from "rxjs"
 
@@ -97,23 +98,35 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
     const { measurements } = this.state
     const { zIndex } = this.props
     let dragMarker = null
+    let boardCard = null
     if (measurements) {
       const { position } = measurements
       const thresholdMet = this.shouldCreateBoard()
       const offsetFromEdge = this.getAbsoluteOffsetFromEdge()
-      const style = {
-        transform: `translate(${position.x}px,${position.y}px)`,
-        borderColor: thresholdMet ? "red" : "black",
-        opacity: Math.min(offsetFromEdge / MINIMUM_DISTANCE, 1.0),
+      const dragMarkerStyle = {
+        transform: `translate(${position.x - 10}px,${position.y - 10}px)`,
         zIndex,
       }
-      dragMarker = <div className={css.Marker} style={style} />
+      const boardCardStyle = {
+        width: 300,
+        height: 200,
+        transform: `translate(${position.x - 300}px,${position.y - 100}px)`,
+        zIndex,
+      }
+      dragMarker = <div className={css.Marker} style={dragMarkerStyle} />
+      boardCard = (
+        <div
+          className={boardCss.CardTransluscentOverlay}
+          style={boardCardStyle}
+        />
+      )
     }
     return (
       <>
         <div className={css.LeftEdge} ref={this.onLeftEdge} />
         <div className={css.RightEdge} ref={this.onRightEdge} />
         {dragMarker}
+        {boardCard}
         {this.props.children}
       </>
     )

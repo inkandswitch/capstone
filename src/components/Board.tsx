@@ -276,16 +276,7 @@ class Board extends React.Component<Props, State> {
                 )
               })}
             </div>
-            <div
-              style={{
-                backgroundColor: "rgba(0, 0, 0, 0.2)",
-                width: "100%",
-                height: "100%",
-                left: 0,
-                top: 0,
-                position: "absolute",
-              }}
-            />
+            <div className={css.CardTransluscentOverlay} />
           </div>
         )
       case "preview":
