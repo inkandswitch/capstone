@@ -1,3 +1,6 @@
+import * as Debug from "debug"
+Debug.enable(self.name)
+
 import StoreBackend from "../../data/StoreBackend"
 import { Hypermerge } from "../../modules/hypermerge"
 import CloudClient from "../../modules/discovery-cloud/Client"

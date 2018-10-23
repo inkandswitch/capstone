@@ -33,6 +33,7 @@ export default class App extends React.Component<Props, State> {
   state: State = {}
 
   initWorkspace() {
+    log("init workspace")
     const shelfUrl = Content.create("Shelf")
     const rootBoardUrl = Content.create("Board")
     const workspaceUrl = Content.create("Workspace")
@@ -55,14 +56,17 @@ export default class App extends React.Component<Props, State> {
   }
 
   setWorkspaceUrl(workspaceUrl: string) {
+    log("set workspace", workspaceUrl)
     this.setState({ url: workspaceUrl })
     Content.store.setWorkspace(workspaceUrl)
   }
 
   openWorkspace(workspaceUrl: string) {
+    log("open workspace 1", workspaceUrl)
     Content.open<Workspace.Model>(
       workspaceUrl,
       (workspace: Doc<Workspace.Model>) => {
+        log("open workspace 2", workspaceUrl)
         Content.workspaceUrl = workspaceUrl
         Content.rootBoardUrl = workspace.rootUrl
 
@@ -72,15 +76,18 @@ export default class App extends React.Component<Props, State> {
   }
 
   configWorkspace(workspaceUrl: string | null) {
+    log("config workspace", workspaceUrl, typeof workspaceUrl)
     workspaceUrl ? this.openWorkspace(workspaceUrl) : this.initWorkspace()
   }
 
   componentDidMount() {
+    log("component did mount")
     this.configWorkspace(Content.store.getWorkspace())
 
     Content.store.control().subscribe(message => {
-      if (!message) return
-      this.configWorkspace(message.workspaceUrl)
+      if (!message || message.url == this.state.url) return
+      log("on control msg", message.url)
+      this.configWorkspace(message.url)
     })
 
     Content.store.clipper().subscribe(message => {
@@ -137,7 +144,7 @@ export default class App extends React.Component<Props, State> {
 
   render() {
     const { url } = this.state
-    console.log("render", url)
+    log("render", url)
     if (!url) {
       return null
     }
@@ -146,18 +153,11 @@ export default class App extends React.Component<Props, State> {
       <Root store={Content.store}>
         <div style={style.App}>
           <Stats />
-          <GlobalKeyboard onKeyDown={this.onKeyDown} />
           <Content mode="fullscreen" url={url} />
           <Feedback.Renderer />
         </div>
       </Root>
     )
-  }
-
-  onKeyDown = (event: KeyboardEvent) => {
-    if (event.code === "ShiftRight") {
-      window.sendToEntry({ type: "ToggleControl" })
-    }
   }
 }
 

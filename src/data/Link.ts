@@ -19,6 +19,7 @@ export const format = ({ type, id }: Pick<Link, "id" | "type">): string => {
   return `${nonCrc}/${crcOf(nonCrc)}`
 }
 
+
 export const parse = (url: string): Link => {
   const { nonCrc, scheme, type, id, crc } = parts(url)
 

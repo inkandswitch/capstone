@@ -1,16 +1,19 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import * as Link from "../data/Link"
-import StoreBackend from "../data/StoreBackend"
+import Workspace from "./Workspace"
+import Store from "../data/Store"
+import { FrontendHandle } from "../modules/hypermerge/frontend"
 import * as Debug from "debug"
 const log = Debug("component:control:workspace")
 
 type Props = {
-  store: StoreBackend
+  store: Store
 }
 
 type State = {
-  workspaceUrl?: string
+  url: string | null
+  json: string
   history: string[]
   input: string
   copyText: string
@@ -20,11 +23,12 @@ type State = {
 export default class WorkspaceMgr extends React.Component<Props, State> {
   textarea: HTMLTextAreaElement | null = null
   state = {
+    json: "",
     input: "",
     error: "",
     history: [],
     copyText: "copy",
-    workspaceUrl: undefined,
+    url: null,
   }
 
   componentDidMount() {
@@ -32,31 +36,40 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
       log("history from storage", result)
       this.setState({ history: result.history || [] })
     })
-    this.props.store.workspaceQ.subscribe(workspaceUrl => {
-      log("workspace from frontend", workspaceUrl, this.state)
-      const history = this.state.history.filter(v => v != workspaceUrl)
-      if (this.state.workspaceUrl) {
-        history.unshift(this.state.workspaceUrl!)
-      }
 
-      this.setState({ history, workspaceUrl })
-      chrome.storage.local.set({ history })
+    this.props.store.control().subscribe(message => {
+      if (!message) return
+
+      if (message.type == "Control") {
+        const url = message.url
+        if (url === this.state.url) return
+
+        const history = this.state.history.filter(v => v != url)
+
+        if (this.state.url) {
+          history.unshift(this.state.url!)
+        }
+
+        this.setState({ history, url })
+
+        chrome.storage.local.set({ history })
+      }
     })
   }
 
   onNewWorkspace = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    this.props.store.sendToFrontend({ type: "Control", workspaceUrl: null })
+    this.props.store.setWorkspace(null)
   }
 
-  saveUrl(workspaceUrl: string) {
+  saveUrl(url: string) {
     try {
-      Link.parse(workspaceUrl)
+      Link.parse(url)
       this.setState({
         input: "",
         error: "",
       })
-      this.props.store.sendToFrontend({ type: "Control", workspaceUrl })
+      this.props.store.setWorkspace(url)
     } catch (e) {
       this.setState({ error: e.message })
     }
@@ -94,11 +107,13 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
       chrome.storage.local.set({ history })
     }
   }
+
   setUrlFn = (url: string) => {
     return (event: React.MouseEvent<HTMLAnchorElement>) => {
       this.saveUrl(url)
     }
   }
+
   render() {
     log("state", this.state)
     return (
@@ -110,7 +125,7 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
             cols={85}
             readOnly
             ref={textarea => (this.textarea = textarea)}
-            value={this.state.workspaceUrl}
+            value={this.state.url || ""}
           />
           <a href="#" onClick={this.onCopy}>
             {this.state.copyText}
@@ -144,6 +159,9 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
             </li>
           ))}
         </ul>
+        <code>
+          {this.state.json}
+        </code>
       </div>
     )
   }

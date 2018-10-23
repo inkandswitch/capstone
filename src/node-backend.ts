@@ -4,7 +4,6 @@ import { Hypermerge } from "./modules/hypermerge"
 import * as Msg from "./data/StoreMsg"
 import StoreBackend from "./data/StoreBackend"
 import CloudClient from "./modules/discovery-cloud/Client"
-import * as Peek from "./data/Peek"
 
 const hm = new Hypermerge({ path: "./.data" })
 ;(global as any).hm = hm
@@ -20,7 +19,6 @@ hm.ready.then(() => {
       stream: hm.stream,
     }),
   )
-  Peek.enable()
 })
 
 const server = new ws.Server({

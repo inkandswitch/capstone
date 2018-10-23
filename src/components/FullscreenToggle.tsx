@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import * as Debug from "debug"
-const log = Debug("component:fullscreentoggle")
 
 interface Props {}
 
@@ -19,7 +18,6 @@ export default class FullscreenToggle extends React.Component<Props> {
   }
 
   render() {
-    log("render")
     return <button onClick={this.handleClick}>Toggle Fullscreen</button>
   }
 }

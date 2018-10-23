@@ -4,11 +4,6 @@ export interface Ready {
   type: "Ready"
 }
 
-export interface WorkspaceSet {
-  type: "WorkspaceSet"
-  url: string
-}
-
 export interface Create {
   type: "Create"
   docId: string
@@ -57,6 +52,13 @@ export interface DocReady {
   patch?: Patch
 }
 
+export interface DocInfo {
+  type: "DocInfo"
+  docId: string
+  peers: number
+  feeds: number
+}
+
 export interface SetActorId {
   type: "SetActorId"
   docId: string
@@ -71,7 +73,7 @@ export interface Clipper {
 
 export interface Control {
   type: "Control"
-  workspaceUrl: string | null
+  url: string | null
 }
 
 export interface Presence {
@@ -104,21 +106,15 @@ export interface DownloadActivity {
   seq: number
 }
 
-export interface ToggleControl {
-  type: "ToggleControl"
-}
-
 export type EntryToMain = Clipper | Ready
 
-export type MainToEntry = ToggleControl
 export type BackgroundToEntry = Clipper
 
-export type ToEntry = BackgroundToEntry | MainToEntry
+export type ToEntry = BackgroundToEntry
 
 export type FrontendToBackend =
   | Create
   | Open
-  | WorkspaceSet
   | ChangeRequest
   | ActorIdRequest
   | RequestActivity
@@ -126,10 +122,10 @@ export type FrontendToBackend =
 
 export type BackendToFrontend =
   | DocReady
+  | DocInfo
   | SetActorId
   | ApplyPatch
   | Clipper
-  | Control
   | Presence
   | UploadActivity
   | DownloadActivity

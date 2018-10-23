@@ -1,9 +1,8 @@
 import { EventEmitter } from "events"
 import * as Backend from "automerge/backend"
 import { Change, Patch, BackDoc } from "automerge/backend"
-import { Peer } from "./hypercore"
 import Queue from "../../data/Queue"
-import { EXT, Hypermerge } from "."
+import { Peer, Feed, EXT, Hypermerge } from "."
 import * as Debug from "debug"
 
 const log = Debug("hypermerge:back")
@@ -99,9 +98,17 @@ export class BackendHandle extends EventEmitter {
     })
   }
 
+  peers() : Peer[] {
+    return this.hypermerge.peers(this)
+  }
+
+  feeds() : Feed<Uint8Array>[] {
+    return this.actorIds().map(actorId => this.hypermerge.feeds.get(actorId)!)
+  }
+
   broadcast(message: any) {
     log("boardcast", message)
-    this.hypermerge.peers(this).forEach(peer => this.message(peer, message))
+    this.peers().forEach(peer => this.message(peer, message))
   }
 
   message(peer: Peer, message: any) {

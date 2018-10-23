@@ -58,7 +58,7 @@
     "automerge": "^0.9.1",
     "browser-process-hrtime": "^0.1.2",
     "bs58": "^4.0.1",
-    "chrome-debug": "orionz/debug",
+    "chrome-debug": "orionz/debug#d0d11282",
     "chrome-dgram": "github:inkandswitch/chrome-dgram",
     "chrome-net": "github:inkandswitch/chrome-net",
     "classnames": "^2.2.6",
