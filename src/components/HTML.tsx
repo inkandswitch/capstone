@@ -6,8 +6,8 @@ import * as Reify from "../data/Reify"
 const withAvailableWidth = require("react-with-available-width")
 
 const IFRAME_DIMENSIONS = {
-  width: 2400,
-  height: 1600,
+  width: 1090,
+  height: 727,
 }
 
 export interface Model {
