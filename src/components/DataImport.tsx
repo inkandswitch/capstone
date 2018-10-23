@@ -9,6 +9,10 @@ type ImporterWithGlob = [string, Function]
 
 const importers: ImporterWithGlob[] = [
   [
+    "text/plain+capstone",
+    async (item: DataTransferItem) => await DataTransfer.extractAsText(item),
+  ],
+  [
     "image/*",
     async (item: DataTransferItem) =>
       addImage(await DataTransfer.extractAsDataURL(item)),
@@ -17,6 +21,11 @@ const importers: ImporterWithGlob[] = [
     "text/csv",
     async (item: DataTransferItem) =>
       addTable(await DataTransfer.extractAsText(item)),
+  ],
+  [
+    "text/plain",
+    async (item: DataTransferItem) =>
+      addText(await DataTransfer.extractAsText(item)),
   ],
   [
     "text/plain",

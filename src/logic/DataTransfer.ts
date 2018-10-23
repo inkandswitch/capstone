@@ -7,6 +7,18 @@ export interface Entry {
   getAsDataURL: () => Promise<string>
 }
 
+export const createFromMap = (data: {
+  [format: string]: string
+}): DataTransfer => {
+  const dataTransfer = new DataTransfer()
+
+  for (const k in data) {
+    dataTransfer.setData(k, data[k])
+  }
+
+  return dataTransfer
+}
+
 export const extractEntries = ({ files, items }: DataTransfer): Entry[] => {
   const kind = files.length > 0 ? "file" : "string"
 

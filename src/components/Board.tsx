@@ -93,9 +93,7 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 function getCardSize(url: string): Promise<Size> {
   return new Promise((resolve, reject) => {
     Content.open(url, doc => {
-      SizeUtils.calculateInitialSize(url, doc).then((size: Size) => {
-        resolve(size)
-      })
+      SizeUtils.calculateInitialSize(url, doc).then(resolve, reject)
     })
   })
 }
@@ -151,6 +149,12 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onRemoved = (id: string) => {
+    this.props.change(doc => {
+      delete doc.cards[id]
+    })
+  }
+
   onResizeStop = (newSize: Size, id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
@@ -177,6 +181,8 @@ class Board extends React.Component<Props, State> {
   onDrop = (event: React.DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
+
+    console.log("drop", event)
 
     const { clientX, clientY } = event
 
@@ -285,6 +291,7 @@ class Board extends React.Component<Props, State> {
                         onDoubleTap={this.props.onNavigate}
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
+                        onRemoved={this.onRemoved}
                         onResizeStop={this.onResizeStop}>
                         <Content mode="embed" url={card.url} scale={navScale} />
                       </InteractableCard>

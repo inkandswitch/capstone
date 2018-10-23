@@ -20,17 +20,19 @@ export class Dragger {
   private onDrag?: OnMoveHandler
   private onStop?: OnStopHandler
   private node: HTMLElement
+  parent: Element
 
   constructor(options: DraggerOptions) {
     this.onStart = options.onStart
     this.onDrag = options.onDrag
     this.onStop = options.onStop
     this.node = options.node
+    this.parent = DOM.getOffsetParent(this.node)
     this.origin = options.position
   }
 
   start(e: Point) {
-    const dragPosition = DOM.getOffsetFromParent(e, this.node)
+    const dragPosition = DOM.getOffsetFromParent(e, this.node, this.parent)
     this.measurements = DragMetrics.init(dragPosition)
     this.onStart && this.onStart(this.origin.x, this.origin.y)
   }
@@ -38,7 +40,7 @@ export class Dragger {
   drag(e: Point) {
     if (!this.measurements) throw new Error("Must call start() before drag()")
 
-    const dragPoint = DOM.getOffsetFromParent(e, this.node)
+    const dragPoint = DOM.getOffsetFromParent(e, this.node, this.parent)
     this.measurements = DragMetrics.update(this.measurements, dragPoint)
     const translation = this.translate(this.origin, this.measurements)
     this.onDrag && this.onDrag(translation.x, translation.y)

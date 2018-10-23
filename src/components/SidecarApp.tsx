@@ -21,8 +21,9 @@ type State = {
 }
 
 export default class SidecarApp extends React.Component<{}, State> {
-  constructor(props: {}, ctx: any) {
-    super(props, ctx)
+  state: State = { mode: "loading" }
+
+  componentDidMount() {
     console.log("Sidecar start", Content.store.getWorkspace())
     this.loadWorkspaceUrl(Content.store.getWorkspace())
 

@@ -6,19 +6,25 @@ interface Props {
   children: React.ReactNode
 }
 
-// Works like a "Portal", but can be moved around during render without
+// Works like a normal "portal", but can be moved around during render without
 // remounting the children.
 export default class Warp extends React.Component<Props> {
   root = document.createElement("div")
   ref: Element | null = null
 
   componentDidMount() {
-    this.forceUpdate()
+    this.calculateRoot()
   }
 
-  componentDidUpdate(nProps: Props) {
-    if (nProps.to) {
-      nProps.to.appendChild(this.root)
+  componentDidUpdate() {
+    this.calculateRoot()
+  }
+
+  calculateRoot() {
+    const { to } = this.props
+
+    if (to) {
+      to.appendChild(this.root)
     } else {
       this.ref!.appendChild(this.root)
     }
