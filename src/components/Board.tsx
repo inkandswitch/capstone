@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import { isEmpty, size, noop } from "lodash"
+import { clamp, isEmpty, size, noop } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
@@ -36,15 +36,12 @@ export interface Model {
 interface Props extends Widget.Props<Model, WidgetMessage> {
   availableWidth: number
   onNavigate?: (url: string) => void
-  scaleProgress?: number
+  scale?: number
 }
 
 interface State {
   pinch?: PinchMetrics.Measurements
-  scale: number
   scalingCard?: string
-  maxScale: number
-  origin: string
 }
 
 export interface CreateCard extends Message {
@@ -149,10 +146,7 @@ class Board extends React.Component<Props, State> {
   boardEl?: HTMLDivElement
   state: State = {
     pinch: undefined,
-    scale: 1.0,
     scalingCard: undefined,
-    maxScale: 1.0,
-    origin: "50% 50%",
   }
 
   static reify(doc: AnyDoc): Model {
@@ -225,19 +219,9 @@ class Board extends React.Component<Props, State> {
     if (!card) {
       return
     }
-    const { x, y, height, width } = card
-    const origin = {
-      x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
-      y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
-    }
-    const transformOrigin = `${origin.x}% ${origin.y}%`
-    const maxScale = BOARD_DIMENSIONS.width / width
     this.setState({
       pinch: measurements,
       scalingCard: cardId,
-      scale: measurements.scale,
-      maxScale: maxScale,
-      origin: transformOrigin,
     })
     this.props.change(doc => {
       const card = doc.cards[cardId]
@@ -253,7 +237,7 @@ class Board extends React.Component<Props, State> {
       return
     }
     this.setState({
-      scale: measurements.scale,
+      pinch: measurements,
     })
   }
 
@@ -267,16 +251,18 @@ class Board extends React.Component<Props, State> {
 
   render() {
     const { cards, strokes, topZ } = this.props.doc
-    const { maxScale } = this.state
+    const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
       case "fullscreen": {
-        const style = {
-          transform: `scale(${Math.min(
-            maxScale,
-            Math.max(1.0, this.state.scale),
-          )})`,
-          transformOrigin: this.state.origin,
+        // Get scale transform if zooming into a card.
+        let style = {}
+        if (pinch && scalingCard && cards) {
+          const card = cards[scalingCard]
+          if (card) {
+            Object.assign(style, getBoardScaleStyle(card, pinch))
+          }
         }
+
         return (
           <div className={css.Board} ref={this.onRef} style={style}>
             <Ink
@@ -287,6 +273,10 @@ class Board extends React.Component<Props, State> {
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
+                let navScale = 0
+                if (pinch && scalingCard && scalingCard === card.id) {
+                  navScale = getCardScaleProgress(card, pinch)
+                }
                 return (
                   <CSSTransition
                     key={card.id}
@@ -303,7 +293,7 @@ class Board extends React.Component<Props, State> {
                         onDragStart={this.onDragStart}
                         onDragStop={this.onDragStop}
                         onResizeStop={this.onResizeStop}>
-                        <Content mode="embed" url={card.url} />
+                        <Content mode="embed" url={card.url} scale={navScale} />
                       </InteractableCard>
                     </Mirrorable>
                   </CSSTransition>
@@ -318,13 +308,14 @@ class Board extends React.Component<Props, State> {
         )
       }
       case "embed": {
-        const scale = this.props.availableWidth / BOARD_DIMENSIONS.width
+        const contentScale = this.props.availableWidth / BOARD_DIMENSIONS.width
+        const { scale } = this.props
         const style = {
-          transform: `scale(${scale},${scale})`,
+          transform: `scale(${contentScale})`,
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = 0.2 // - 0.2 * scale
+        const overlayOpacity = 0.2 - 0.2 * (scale ? scale : 0)
 
         return (
           <div className={css.BoardEmbed} ref={this.onRef}>
@@ -332,7 +323,7 @@ class Board extends React.Component<Props, State> {
               onInkStroke={this.onInkStroke}
               strokes={strokes}
               mode={this.props.mode}
-              scale={scale}
+              scale={contentScale}
             />
             <div style={style}>
               {Object.values(cards).map(card => {
@@ -386,6 +377,39 @@ class Board extends React.Component<Props, State> {
       doc.strokes.push(...strokes)
     })
   }
+}
+
+function getBoardScaleStyle(
+  card: CardModel,
+  pinchMeasurements: PinchMetrics.Measurements,
+) {
+  const { x, y, height, width } = card
+  const origin = {
+    x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
+    y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
+  }
+  const transformOrigin = `${origin.x}% ${origin.y}%`
+
+  const maxScale = BOARD_DIMENSIONS.width / width
+  const transform = clamp(pinchMeasurements.scale, 1.0, maxScale)
+
+  return {
+    transform: `scale(${transform})`,
+    transformOrigin: transformOrigin,
+  }
+}
+
+function getCardScaleProgress(
+  card: CardModel,
+  pinchMeasurements: PinchMetrics.Measurements,
+) {
+  const { scale } = pinchMeasurements
+  const { width } = card
+  const maxScale = BOARD_DIMENSIONS.width / width
+  // 1.0 is the minimum, so ignore figure out progress beyond 1.0
+  const adjustedScale = scale - 1.0
+  const adjustedMax = maxScale - 1.0
+  return adjustedScale / adjustedMax
 }
 
 export default Widget.create(
