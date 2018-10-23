@@ -37,7 +37,7 @@ class HTML extends React.Component<Props> {
 const style = {
   Fullscreen: {
     borderRadius: "3px",
-    border: "1px solid #e8e8e8",
+    border: "1px solid #EBEAE6",
   },
   Embed: {
     zoom: 0.25,

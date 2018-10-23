@@ -210,7 +210,7 @@ class Board extends React.Component<Props, State> {
   onCreateBoard = (position: Point) => {
     const url = Content.create("Board")
     this.props.change(doc => {
-      addCard(url, doc, { width: 300, height: 200 }, position)
+      addCard(url, doc, SizeUtils.CARD_DEFAULT_SIZE, position)
     })
   }
 
@@ -315,43 +315,35 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = 0.2 - 0.2 * (scale ? scale : 0)
+        const overlayOpacity = 0.6 + 0.4 * (scale ? clamp(scale, 0, 1) : 0)
 
         return (
           <div className={css.BoardEmbed} ref={this.onRef}>
-            <Ink
-              onInkStroke={this.onInkStroke}
-              strokes={strokes}
-              mode={this.props.mode}
-              scale={contentScale}
-            />
-            <div style={style}>
-              {Object.values(cards).map(card => {
-                if (!card) return null
-                return (
-                  <InteractableCard
-                    key={card.id}
-                    card={card}
-                    onPinchOutEnd={noop}
-                    onDragStart={noop}
-                    onDragStop={noop}
-                    onResizeStop={noop}>
-                    <Content mode="preview" url={card.url} />
-                  </InteractableCard>
-                )
-              })}
+            <div className={css.BoardEmbedBackground} />
+            <div style={{ opacity: overlayOpacity }}>
+              <Ink
+                onInkStroke={this.onInkStroke}
+                strokes={strokes}
+                mode={this.props.mode}
+                scale={contentScale}
+              />
+              <div style={style}>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
+                  return (
+                    <InteractableCard
+                      key={card.id}
+                      card={card}
+                      onPinchOutEnd={noop}
+                      onDragStart={noop}
+                      onDragStop={noop}
+                      onResizeStop={noop}>
+                      <Content mode="preview" url={card.url} />
+                    </InteractableCard>
+                  )
+                })}
+              </div>
             </div>
-            <div
-              style={{
-                backgroundColor: "#000",
-                opacity: overlayOpacity,
-                width: "100%",
-                height: "100%",
-                left: 0,
-                top: 0,
-                position: "absolute",
-              }}
-            />
           </div>
         )
       }

@@ -98,6 +98,10 @@ export default class InteractableCard extends React.Component<Props, State> {
 
     const { currentSize } = this.state
     const type = Link.parse(this.props.card.url).type
+    const style = {
+      width: currentSize.width,
+      height: currentSize.height,
+    }
 
     return (
       <Pinchable
@@ -116,14 +120,13 @@ export default class InteractableCard extends React.Component<Props, State> {
           z={z}>
           <Card
             cardId={this.props.card.id}
-            style={{
-              width: currentSize.width,
-              height: currentSize.height,
-            }}
+            style={style}
             {...omit(rest, [
               "onDoubleTap",
               "onDragStop",
               "onResizeStop",
+              "onPinchStart",
+              "onPinchMove",
               "onPinchOutEnd",
             ])}>
             {children}

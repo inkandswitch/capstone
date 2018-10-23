@@ -2,8 +2,10 @@ import * as React from "react"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as css from "./css/EdgeBoardCreator.css"
+import * as boardCss from "./css/Board.css"
 import * as DragMetrics from "../logic/DragMetrics"
 import * as Rx from "rxjs"
+import { CARD_DEFAULT_SIZE } from "../logic/SizeUtils"
 
 interface Props {
   onBoardCreate: (position: Point) => void
@@ -14,14 +16,16 @@ interface State {
   measurements?: DragMetrics.Measurements
 }
 
-const MINIMUM_DISTANCE = 60
+const MINIMUM_DISTANCE = CARD_DEFAULT_SIZE.width / 2
+const FADE_RANGE = 50
 
 export default class EdgeBoardCreator extends React.Component<Props, State> {
-  leftEdge?: HTMLDivElement
-  rightEdge?: HTMLDivElement
-  rightEdgeMaxX?: number
-  triggeredEdge?: HTMLDivElement
+  private leftEdge?: HTMLDivElement
+  private rightEdge?: HTMLDivElement
+  private rightEdgeMaxX?: number
+  private triggeredEdge?: HTMLDivElement
   private subscription?: Rx.Subscription
+  private thresholdMet: boolean = false
 
   state: State = {}
 
@@ -59,9 +63,14 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
         })
       } else {
         if (this.shouldCreateBoard()) {
-          this.props.onBoardCreate(measurements.position)
+          const position = {
+            x: measurements.position.x - CARD_DEFAULT_SIZE.width,
+            y: measurements.position.y - CARD_DEFAULT_SIZE.height / 2,
+          }
+          this.props.onBoardCreate(position)
         }
         this.triggeredEdge = undefined
+        this.thresholdMet = false
         this.setState({ measurements: undefined })
       }
     }
@@ -79,7 +88,10 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   }
 
   shouldCreateBoard() {
-    return this.getAbsoluteOffsetFromEdge() >= MINIMUM_DISTANCE
+    if (!this.thresholdMet) {
+      this.thresholdMet = this.getAbsoluteOffsetFromEdge() >= MINIMUM_DISTANCE
+    }
+    return this.thresholdMet
   }
 
   onLeftEdge = (ref: HTMLDivElement) => {
@@ -97,22 +109,43 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
     const { measurements } = this.state
     const { zIndex } = this.props
     let dragMarker = null
+    let boardCard = null
     if (measurements) {
       const { position } = measurements
       const thresholdMet = this.shouldCreateBoard()
       const offsetFromEdge = this.getAbsoluteOffsetFromEdge()
-      const style = {
-        transform: `translate(${position.x}px,${position.y}px)`,
-        borderColor: thresholdMet ? "red" : "black",
-        opacity: Math.min(offsetFromEdge / MINIMUM_DISTANCE, 1.0),
+      let cardOpacity = thresholdMet ? 1.0 : 0.5
+      let shadowOpacity = thresholdMet ? 0.0 : 0.2
+      if (!thresholdMet && offsetFromEdge > MINIMUM_DISTANCE - FADE_RANGE) {
+        const pixelsPastFadeThreshold =
+          offsetFromEdge - MINIMUM_DISTANCE + FADE_RANGE
+        cardOpacity = 0.5 + (0.5 / FADE_RANGE) * pixelsPastFadeThreshold
+        shadowOpacity = 0.2 + (-0.2 / FADE_RANGE) * pixelsPastFadeThreshold
+      }
+      const dragMarkerStyle = {
+        transform: `translate(${position.x - 10}px,${position.y - 10}px)`,
         zIndex,
       }
-      dragMarker = <div className={css.Marker} style={style} />
+      const boardCardStyle = {
+        boxShadow: `-3px 3px 8px rgba(0, 0, 0, ${shadowOpacity})`,
+        opacity: cardOpacity,
+        width: CARD_DEFAULT_SIZE.width,
+        height: CARD_DEFAULT_SIZE.height,
+        transform: `translate(${position.x -
+          CARD_DEFAULT_SIZE.width}px,${position.y -
+          CARD_DEFAULT_SIZE.height / 2}px)`,
+        zIndex,
+      }
+      dragMarker = <div className={css.Marker} style={dragMarkerStyle} />
+      boardCard = (
+        <div className={boardCss.BoardEmbedBackground} style={boardCardStyle} />
+      )
     }
     return (
       <>
         <div className={css.LeftEdge} ref={this.onLeftEdge} />
         <div className={css.RightEdge} ref={this.onRightEdge} />
+        {boardCard}
         {dragMarker}
         {this.props.children}
       </>

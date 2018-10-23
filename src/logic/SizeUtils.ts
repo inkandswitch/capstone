@@ -1,6 +1,7 @@
 import { AnyDoc } from "automerge/frontend"
 import * as Link from "../data/Link"
 
+export const CARD_DEFAULT_SIZE = { width: 300, height: 200 }
 const TEXT_CARD_PADDING = 15
 const IMAGE_CARD_MAX_SIZE = { width: 200, height: 200 }
 const DEFAULT_CARD_MAX_SIZE = { width: 400, height: 400 }
@@ -22,12 +23,8 @@ export async function calculateInitialSize(
       width: textSize.width + 2 * TEXT_CARD_PADDING,
       height: textSize.height + 2 * TEXT_CARD_PADDING,
     }
-  } else if (type === "Board") {
-    return { width: 300, height: 200 }
-  } else if (type === "HTML") {
-    return { width: 300, height: 300 }
   } else {
-    return { width: 300, height: 300 }
+    return CARD_DEFAULT_SIZE
   }
 }
 
