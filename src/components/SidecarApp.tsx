@@ -25,36 +25,22 @@ export default class SidecarApp extends React.Component<{}, State> {
 
   componentDidMount() {
     console.log("Sidecar start", Content.store.getWorkspace())
-    this.loadWorkspaceUrl(Content.store.getWorkspace())
 
     Content.store.control().subscribe(message => {
       if (!message) return
-      this.loadWorkspaceUrl(message.url)
-    })
-  }
 
-  loadWorkspaceUrl(workspaceUrl: string | null) {
-    this.setState({ mode: "loading" })
-
-    console.log("load workspace url", workspaceUrl)
-    if (!workspaceUrl) {
-      this.setState({ mode: "setup" })
-    } else {
-      console.log("set workspace/state", workspaceUrl)
-      Content.store.setWorkspace(workspaceUrl)
-      this.state = {
-        mode: "ready",
-        workspaceUrl,
+      if (message.url) {
+        this.setState({ mode: "ready", workspaceUrl: message.url })
+      } else {
+        this.setState({ mode: "setup" })
       }
-    }
+    })
   }
 
   render() {
     return (
       <Root store={Content.store}>
-        <div style={style.App}>
-          {this.renderContent()}
-        </div>
+        <div style={style.App}>{this.renderContent()}</div>
       </Root>
     )
   }
@@ -112,7 +98,7 @@ export default class SidecarApp extends React.Component<{}, State> {
 
     try {
       Link.parse(workspaceUrl)
-      this.loadWorkspaceUrl(workspaceUrl)
+      Content.store.setWorkspace(workspaceUrl)
     } catch (e) {
       this.setState({ error: e.message })
     }
