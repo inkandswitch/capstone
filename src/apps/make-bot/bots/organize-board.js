@@ -10,16 +10,20 @@ Content.open(Content.workspaceUrl, workspace => {
   const changeBoard = Content.open(boardUrl, () => {})
 
   changeBoard(doc => {
+    const nonBotCards = Object.values(doc.cards).filter(
+      card => card.url.indexOf("Bot") < 0,
+    )
+
+    console.log({ nonBotCards })
+
     const avgWidth =
-      Object.values(doc.cards).reduce((memo, card) => card.width + memo, 0) /
-      Object.keys(doc.cards).length
+      nonBotCards.reduce((memo, card) => card.width + memo, 0) /
+      nonBotCards.length
 
     let column = 0
     let topOffset = 0
 
-    Object.keys(doc.cards).forEach(key => {
-      const card = doc.cards[key]
-
+    nonBotCards.forEach(card => {
       const aspect = card.width / card.height
 
       card.width = avgWidth
