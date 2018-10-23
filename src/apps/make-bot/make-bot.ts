@@ -64,12 +64,12 @@ hm.ready.then(hm => {
     const boardHandle = Content.open(boardUrl, (doc: any) => {
       const botExists = !!doc.cards[botId]
 
-      console.log("board doc", doc)
+      // console.log("board doc", doc)
 
       if (botExists) {
         // update
         const botHandle = Content.open(doc.cards[botId].url, (doc: any) => {
-          console.log("bot doc", doc)
+          // console.log("bot doc", doc)
         })
 
         botHandle(bot => {
@@ -80,7 +80,7 @@ hm.ready.then(hm => {
         const botUrl = Content.create("Bot")
 
         const botHandle = Content.open(botUrl, (doc: any) => {
-          console.log("bot doc", doc)
+          // console.log("bot doc", doc)
         })
 
         botHandle(doc => {

@@ -1,0 +1,13 @@
+.Bot {
+  padding: 10px;
+  text-align: center;
+}
+
+.BotTriggerButton {
+  font-size: 12px;
+  border-radius: 3px;
+  background: #222;
+  color: #fff;
+  padding: 6px;
+  border: 1px solid #e8e8e8;
+}
