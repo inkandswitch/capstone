@@ -41,7 +41,7 @@ class Bot extends React.Component<Props, State> {
     let err
 
     try {
-      eval(`(() => ${code})()`)
+      eval(`(() => { ${code} })()`)
     } catch (e) {
       err = e
     }
@@ -52,8 +52,7 @@ class Bot extends React.Component<Props, State> {
   render() {
     return (
       <div>
-        BOT
-        {this.props.doc.id}
+        <div>bot: {this.props.doc.id}</div>
         <pre>{this.props.doc.code}</pre>
         {this.state.err && <div style={{ color: "red" }}>{this.state.err}</div>}
       </div>
