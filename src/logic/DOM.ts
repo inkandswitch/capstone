@@ -25,8 +25,3 @@ export function ancestors(el: Element | null): Element[] {
 
   return [el].concat(ancestors(el.parentElement))
 }
-
-export function isAncestor(el: Element | null, parent: Element): boolean {
-  if (!el) return false
-  return el === parent || isAncestor(el.parentElement, parent)
-}

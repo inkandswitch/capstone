@@ -141,7 +141,6 @@ export default class Interactable extends React.Component<
   onDrag = (x: number, y: number) => {
     this.props.onDrag && this.props.onDrag(x, y)
     const { dragState } = this.state
-    console.log("drag", x, y)
 
     if (dragState) {
       const { offset } = dragState
@@ -170,11 +169,11 @@ export default class Interactable extends React.Component<
 
     if (ref && this.dragger && dragState) {
       const { x, y } = dragState.position
-      const { parent } = this.dragger
+      const parent = ref.closest("[data-container]")
 
       const targets = document
         .elementsFromPoint(x, y)
-        .filter(el => !DOM.isAncestor(el, ref))
+        .filter(el => !ref.contains(el) && el.hasAttribute("data-container"))
 
       if (onDragOut && targets[0] !== parent) {
         const dataTransfer = onDragOut()
@@ -277,11 +276,9 @@ export default class Interactable extends React.Component<
     })
 
     return (
-      <Warp to={dragState ? document.body : null}>
-        <div ref={this.onRef} className={className} style={style}>
-          {this.props.children}
-        </div>
-      </Warp>
+      <div ref={this.onRef} className={className} style={style}>
+        {this.props.children}
+      </div>
     )
   }
 }

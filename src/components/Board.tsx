@@ -265,6 +265,7 @@ class Board extends React.Component<Props, State> {
 
         return (
           <div
+            data-container
             className={css.Board}
             ref={this.onRef}
             onDragOver={this.onDragOver}
