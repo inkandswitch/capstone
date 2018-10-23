@@ -3,6 +3,7 @@ import { once, isUndefined, first } from "lodash"
 import Content from "./Content"
 import { AnyEditDoc, ChangeFn } from "automerge/frontend"
 import { isMatch } from "micromatch"
+import * as Link from "../data/Link"
 
 type ImporterWithGlob = [string, Function]
 
@@ -40,6 +41,10 @@ export const importData = (data: DataTransfer): Promise<string>[] => {
 }
 
 export const addText = async (content: string) => {
+  if (Link.isValidLink(content)) {
+    return content // the URL is already what we want!
+  }
+
   return addDoc("Text", doc => {
     doc.content = content.split("")
   })
