@@ -199,7 +199,7 @@ class Board extends React.Component<Props, State> {
   onCreateBoard = (position: Point) => {
     const url = Content.create("Board")
     this.props.change(doc => {
-      addCard(url, doc, { width: 300, height: 200 }, position)
+      addCard(url, doc, SizeUtils.CARD_DEFAULT_SIZE, position)
     })
   }
 
@@ -254,29 +254,31 @@ class Board extends React.Component<Props, State> {
 
         return (
           <div className={css.BoardEmbed} ref={this.onRef}>
-            <Ink
-              onInkStroke={this.onInkStroke}
-              strokes={strokes}
-              mode={this.props.mode}
-              scale={scale}
-            />
-            <div style={style}>
-              {Object.values(cards).map(card => {
-                if (!card) return null
-                return (
-                  <InteractableCard
-                    key={card.id}
-                    card={card}
-                    onPinchOutEnd={noop}
-                    onDragStart={noop}
-                    onDragStop={noop}
-                    onResizeStop={noop}>
-                    <Content mode="preview" url={card.url} />
-                  </InteractableCard>
-                )
-              })}
+            <div className={css.BoardEmbedBackground} />
+            <div style={{ opacity: 0.6 }}>
+              <Ink
+                onInkStroke={this.onInkStroke}
+                strokes={strokes}
+                mode={this.props.mode}
+                scale={scale}
+              />
+              <div style={style}>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
+                  return (
+                    <InteractableCard
+                      key={card.id}
+                      card={card}
+                      onPinchOutEnd={noop}
+                      onDragStart={noop}
+                      onDragStop={noop}
+                      onResizeStop={noop}>
+                      <Content mode="preview" url={card.url} />
+                    </InteractableCard>
+                  )
+                })}
+              </div>
             </div>
-            <div className={css.CardTransluscentOverlay} />
           </div>
         )
       case "preview":
