@@ -12,6 +12,7 @@ import Content, {
   DocumentCreated,
 } from "./Content"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
@@ -91,6 +92,12 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
 }
 
 function getCardSize(url: string): Promise<Size> {
+  const { width, height } = Link.parse(url).params
+
+  if (width && height) {
+    return Promise.resolve({ width, height })
+  }
+
   return new Promise((resolve, reject) => {
     Content.open(url, doc => {
       SizeUtils.calculateInitialSize(url, doc).then(resolve, reject)

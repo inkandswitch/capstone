@@ -54,8 +54,11 @@ export default class InteractableCard extends React.Component<Props, State> {
   }
 
   dragOut = (): DataTransfer => {
+    const { url, width, height } = this.props.card
     return DataTransfer.createFromMap({
-      "text/plain+capstone": this.props.card.url,
+      "text/plain+capstone": Link.set(url, {
+        params: { width, height },
+      }),
     })
   }
 
