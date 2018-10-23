@@ -2,6 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
+import { isAbsolute } from "path"
 
 const withAvailableWidth = require("react-with-available-width")
 
@@ -12,6 +13,7 @@ const IFRAME_DIMENSIONS = {
 
 export interface Model {
   html: string
+  src: string
 }
 
 interface Props extends Widget.Props<Model> {
@@ -26,6 +28,7 @@ class HTML extends React.Component<Props, State> {
   static reify(doc: AnyDoc): Model {
     return {
       html: Reify.string(doc.html),
+      src: Reify.string(doc.src),
     }
   }
 
@@ -50,6 +53,7 @@ class HTML extends React.Component<Props, State> {
               style={style.Fullscreen__IFrame}
               src={encodedHtml}
             />
+            <div style={style.Fullscreen__Banner}>{this.props.doc.src}</div>
           </div>
         )
       case "embed":
@@ -75,6 +79,19 @@ class HTML extends React.Component<Props, State> {
 
 const style = {
   Fullscreen: {},
+  Fullscreen__Banner: {
+    background: "#F6F6F6",
+    position: "absolute",
+    height: "60px",
+    bottom: "0px",
+    width: "100%",
+    fontSize: "24px",
+    fontStyle: "medium",
+    textAlign: "center",
+    verticalAlign: "center",
+    lineHeight: "60px",
+    color: "#B4B4B4",
+  } as React.CSSProperties,
   Embed: {
     borderRadius: "6px",
     border: "2px solid black",
@@ -94,7 +111,8 @@ const style = {
     width: IFRAME_DIMENSIONS.width + "px",
     height: IFRAME_DIMENSIONS.height + "px",
     overflow: "hidden",
-  },
+    pointerEvents: "none",
+  } as React.CSSProperties,
 }
 
 export default Widget.create(

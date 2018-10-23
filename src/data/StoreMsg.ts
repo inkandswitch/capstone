@@ -69,6 +69,7 @@ export interface Clipper {
   type: "Clipper"
   contentType: string
   content: string
+  src?: string
 }
 
 export interface Control {

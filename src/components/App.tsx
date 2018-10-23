@@ -93,7 +93,7 @@ export default class App extends React.Component<Props, State> {
     Content.store.clipper().subscribe(message => {
       if (!message) return
 
-      const { contentType, content } = message
+      const { contentType, content, src } = message
 
       switch (contentType) {
         case "HTML":
@@ -102,6 +102,7 @@ export default class App extends React.Component<Props, State> {
           Content.once(htmlUrl, (change: Function) => {
             change((doc: any) => {
               doc.html = content
+              doc.src = src
             })
 
             Content.send({
