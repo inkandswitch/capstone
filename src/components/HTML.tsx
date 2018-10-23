@@ -43,7 +43,15 @@ class HTML extends React.Component<Props, State> {
     const { encodedHtml } = this.state
     switch (this.props.mode) {
       case "fullscreen":
-        return <iframe style={style.Fullscreen} src={encodedHtml} />
+        return (
+          <div style={style.Fullscreen}>
+            <iframe
+              frameBorder="0"
+              style={style.Fullscreen__IFrame}
+              src={encodedHtml}
+            />
+          </div>
+        )
       case "embed":
         const contentScale =
           (this.props.availableWidth - 4) / IFRAME_DIMENSIONS.width
@@ -70,7 +78,6 @@ const style = {
   Embed: {
     borderRadius: "6px",
     border: "2px solid black",
-    pointerEvents: "none",
     height: "100%",
     width: "100%",
     overflow: "hidden",
@@ -79,7 +86,7 @@ const style = {
     transform: "scale(0.25)",
     transformOrigin: "0 0",
   },
-  IFrame: {
+  Fullscreen__IFrame: {
     width: IFRAME_DIMENSIONS.width + "px",
     height: IFRAME_DIMENSIONS.height + "px",
   },
