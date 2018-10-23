@@ -10,14 +10,43 @@ export interface Model {
 
 interface Props extends Widget.Props<Model> {}
 
-interface State {}
+interface State {
+  err?: string
+}
 
 class Bot extends React.Component<Props, State> {
+  state = {
+    err: undefined,
+  }
+
   static reify(doc: AnyDoc): Model {
     return {
       id: Reify.string(doc.id),
       code: Reify.string(doc.string),
     }
+  }
+
+  componentDidMount() {
+    this.runCode()
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.doc.code !== prevProps.doc.code) {
+      this.runCode()
+    }
+  }
+
+  runCode = () => {
+    const { code } = this.props.doc
+    let err
+
+    try {
+      eval(`(() => ${code})()`)
+    } catch (e) {
+      err = e
+    }
+
+    this.setState({ err })
   }
 
   render() {
@@ -26,6 +55,7 @@ class Bot extends React.Component<Props, State> {
         BOT
         {this.props.doc.id}
         <pre>{this.props.doc.code}</pre>
+        {this.state.err && <div style={{ color: "red" }}>{this.state.err}</div>}
       </div>
     )
   }

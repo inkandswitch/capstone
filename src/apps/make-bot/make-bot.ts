@@ -1,14 +1,17 @@
 const { argv } = require("yargs")
+import * as fs from "fs"
 
 const { workspace, id: botId } = argv
-const fileName = argv._
+const fileName = argv._[0]
 
-if (!workspace || !botId || !fileName) {
+if (!workspace || !botId || !fileName || !fs.existsSync(fileName)) {
   console.log(
     "Usage: ./make-bot --workspace workspaceId --id botId bot-code.js",
   )
   process.exit(0)
 }
+
+const code = fs.readFileSync(fileName, "utf-8")
 
 const raf = require("random-access-file")
 import { Doc } from "automerge/frontend"
@@ -58,36 +61,47 @@ hm.ready.then(hm => {
 
     console.log(`Using board: ${boardUrl}`)
 
-    // const botUrl = Content.create("Bot")
+    const boardHandle = Content.open(boardUrl, (doc: any) => {
+      const botExists = !!doc.cards[botId]
 
-    // const botHandle = Content.open(botUrl, (doc: any) => {
-    //   console.log("bot", doc)
-    // })
+      console.log("board doc", doc)
 
-    // botHandle(doc => {
-    //   doc.id = botId
-    //   doc.code = `console.log("works!")`
-    // })
+      if (botExists) {
+        // update
+        const botHandle = Content.open(doc.cards[botId].url, (doc: any) => {
+          console.log("bot doc", doc)
+        })
 
-    // console.log({ botUrl })
-    // console.log({ botHandle })
+        botHandle(bot => {
+          bot.code = code
+        })
+      } else {
+        // create
+        const botUrl = Content.create("Bot")
 
-    // const boardHandle = Content.open(boardUrl, (doc: any) => {
-    //   console.log("board", doc)
-    // })
+        const botHandle = Content.open(botUrl, (doc: any) => {
+          console.log("bot doc", doc)
+        })
 
-    // boardHandle((board: Doc<Board.Model>) => {
-    //   const card = {
-    //     id: botId,
-    //     z: 0,
-    //     x: 0,
-    //     y: 0,
-    //     width: 200,
-    //     height: 200,
-    //     url: botUrl,
-    //   }
+        botHandle(doc => {
+          doc.id = botId
+          doc.code = code
+        })
 
-    //   board.cards[botId] = card
-    // })
+        boardHandle((board: Doc<Board.Model>) => {
+          const card = {
+            id: botId,
+            z: 0,
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 200,
+            url: botUrl,
+          }
+
+          board.cards[botId] = card
+        })
+      }
+    })
   })
 })
