@@ -239,6 +239,12 @@ class Board extends React.Component<Props, State> {
       maxScale: maxScale,
       origin: transformOrigin,
     })
+    this.props.change(doc => {
+      const card = doc.cards[cardId]
+      if (!card) return
+      if (card.z === doc.topZ) return
+      card.z = ++doc.topZ
+    })
   }
 
   onPinchMove = (cardId: string, measurements: PinchMetrics.Measurements) => {
@@ -257,7 +263,6 @@ class Board extends React.Component<Props, State> {
       return
     }
     this.props.onNavigate && this.props.onNavigate(card.url)
-    //this.setState({ pinch: undefined, scale: 1.0, origin: "50% 50%" })
   }
 
   render() {
@@ -319,7 +324,7 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = 0.2 - 0.2 * scale
+        const overlayOpacity = 0.2 // - 0.2 * scale
 
         return (
           <div className={css.BoardEmbed} ref={this.onRef}>
