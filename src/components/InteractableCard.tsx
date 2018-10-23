@@ -125,6 +125,8 @@ export default class InteractableCard extends React.Component<Props, State> {
               "onDoubleTap",
               "onDragStop",
               "onResizeStop",
+              "onPinchStart",
+              "onPinchMove",
               "onPinchOutEnd",
             ])}>
             {children}
