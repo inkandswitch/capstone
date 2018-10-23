@@ -17,8 +17,6 @@ interface State {
   pinch?: PinchMetrics.Measurements
 }
 
-const MINIMUM_PINCH_TRAVEL = 40
-
 export default class Pinchable extends React.Component<
   NavigatableProps,
   State
@@ -62,10 +60,10 @@ export default class Pinchable extends React.Component<
       this.props.onPinchStart && this.props.onPinchStart(pinch)
     } else if (pinch) {
       if (some(events, GPS.ifTerminalEvent)) {
-        const { scale, delta } = pinch
-        if (scale > 1 && delta > MINIMUM_PINCH_TRAVEL) {
+        const { scale } = pinch
+        if (scale > 1) {
           this.props.onPinchOutEnd && this.props.onPinchOutEnd(pinch)
-        } else if (scale < 1 && delta < -MINIMUM_PINCH_TRAVEL) {
+        } else if (scale < 1) {
           this.props.onPinchInEnd && this.props.onPinchInEnd(pinch)
         }
         this.setState({ pinch: undefined })
