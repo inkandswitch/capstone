@@ -56,6 +56,7 @@
     "@types/react-portal": "^4.0.1",
     "@types/react-transition-group": "^2.0.14",
     "@types/stats.js": "^0.17.0",
+    "@types/text-encoding": "^0.0.34",
     "automerge": "^0.9.1",
     "browser-process-hrtime": "^0.1.2",
     "bs58": "^4.0.1",
@@ -87,7 +88,9 @@
     "rxjs": "^6.3.2",
     "stats.js": "^0.17.0",
     "tap-browser-el": "^2.0.0",
+    "text-encoding": "^0.7.0",
     "utp": "github:pvh/utp",
-    "ws": "^6.1.0"
+    "ws": "^6.1.0",
+    "yargs": "^12.0.2"
   }
 }

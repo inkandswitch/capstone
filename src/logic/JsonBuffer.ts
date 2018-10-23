@@ -1,3 +1,5 @@
+import { TextEncoder, TextDecoder } from "text-encoding"
+
 export function parse(buffer: ArrayBuffer | ArrayBufferView): any {
   const decoder = new TextDecoder()
   return JSON.parse(decoder.decode(buffer))
