@@ -7,6 +7,8 @@ import Content, {
   Mode,
   MessageHandlerClass,
 } from "./Content"
+import { once, last } from "lodash"
+import { Model as BoardModel } from "./Board"
 
 export interface Props<T = {}, M = never> {
   doc: Doc<T>
@@ -25,6 +27,11 @@ interface WrappedComponent<T, M = never>
   extends React.Component<Props<T, M>, any> {}
 type WrappedComponentClass<T, M = never> = {
   new (...k: any[]): WrappedComponent<T, M>
+}
+
+export interface AnyChange extends Message {
+  type: "AnyChange"
+  body: any
 }
 
 export function create<T, M extends Message = never>(
@@ -46,6 +53,37 @@ export function create<T, M extends Message = never>(
     componentDidMount() {
       this.requestChanges = Content.open<T>(this.props.url, (doc: any) => {
         this.setState({ doc })
+
+        // send AnyChange to bot(s) on current board
+        Content.open(
+          Content.workspaceUrl,
+          once(workspace => {
+            const boardUrl =
+              workspace.navStack.length > 0
+                ? last(workspace.navStack)
+                : workspace.rootUrl
+
+            Content.open(
+              boardUrl,
+              once((board: BoardModel) => {
+                Object.values(board.cards).forEach(card => {
+                  if (
+                    !card ||
+                    (card && card.url && card.url.indexOf("Bot") < 0)
+                  )
+                    return
+
+                  Content.send({
+                    type: "AnyChange",
+                    body: doc,
+                    from: this.props.url,
+                    to: card.url,
+                  })
+                })
+              }),
+            )
+          }),
+        )
       })
     }
 
