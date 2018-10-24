@@ -97,7 +97,7 @@ export default class DiscoveryCloudClient extends EventEmitter {
     })
 
     this.discovery.addEventListener("error", (event: any) => {
-      log("discovery.onerror", event.error)
+      console.error("discovery.onerror", event.error)
     })
 
     return this.discovery

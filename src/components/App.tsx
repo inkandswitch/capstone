@@ -11,7 +11,6 @@ import "./NetworkActivity"
 import "./Text"
 import "./Table"
 import "./Workspace"
-import "./Shelf"
 import "./Identity"
 import "./PeerStatus"
 import "./Peer"
@@ -34,7 +33,7 @@ export default class App extends React.Component<Props, State> {
 
   initWorkspace() {
     log("init workspace")
-    const shelfUrl = Content.create("Shelf")
+    const shelfUrl = Content.create("Board")
     const rootBoardUrl = Content.create("Board")
     const workspaceUrl = Content.create("Workspace")
 
@@ -93,7 +92,7 @@ export default class App extends React.Component<Props, State> {
     Content.store.clipper().subscribe(message => {
       if (!message) return
 
-      const { contentType, content } = message
+      const { contentType, content, src } = message
 
       switch (contentType) {
         case "HTML":
@@ -102,6 +101,7 @@ export default class App extends React.Component<Props, State> {
           Content.once(htmlUrl, (change: Function) => {
             change((doc: any) => {
               doc.html = content
+              doc.src = src
             })
 
             Content.send({
@@ -145,6 +145,7 @@ export default class App extends React.Component<Props, State> {
   render() {
     const { url } = this.state
     log("render", url)
+
     if (!url) {
       return null
     }

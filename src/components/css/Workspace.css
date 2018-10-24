@@ -1,0 +1,23 @@
+:local(.Workspace) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+:local(.Peers) {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+:local(.Shelf) {
+  position: absolute;
+  height: 250px;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+}

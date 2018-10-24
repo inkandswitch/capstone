@@ -1,5 +1,13 @@
-export const getOffsetFromParent = (e: Point, node: HTMLElement) => {
-  const offsetParent = node.offsetParent || node.ownerDocument.body
+export function getOffsetParent(node: HTMLElement): Element {
+  return node.offsetParent || node.ownerDocument.body
+}
+
+export function getOffsetFromParent(
+  e: Point,
+  node: HTMLElement,
+  parent?: Element,
+) {
+  const offsetParent = parent || getOffsetParent(node)
   const offsetParentIsBody = offsetParent === offsetParent.ownerDocument.body
   const offsetBoundingRect = offsetParentIsBody
     ? { top: 0, left: 0 }
@@ -10,4 +18,10 @@ export const getOffsetFromParent = (e: Point, node: HTMLElement) => {
     y: e.y + offsetParent.scrollTop - offsetBoundingRect.top,
   }
   return offsetPosition
+}
+
+export function ancestors(el: Element | null): Element[] {
+  if (!el) return []
+
+  return [el].concat(ancestors(el.parentElement))
 }

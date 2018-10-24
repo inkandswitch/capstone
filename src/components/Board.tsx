@@ -13,12 +13,13 @@ import Content, {
   DocumentCreated,
 } from "./Content"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
-import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as SizeUtils from "../logic/SizeUtils"
+import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
@@ -40,6 +41,8 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigateBack?: () => void
   scale?: number
   transformOrigin?: string
+  noInk?: boolean
+  zIndex?: number
 }
 
 interface State {
@@ -63,9 +66,9 @@ export interface CreateCard extends Message {
 
 const BOARD_CREATE_TARGET_SIZE = 20
 
-type WidgetMessage = CreateCard | ShelfContentsRequested | AddToShelf
-type InMessage = WidgetMessage | ShelfContents | ReceiveDocuments
-type OutMessage = DocumentCreated | AddToShelf | ShelfContentsRequested
+type WidgetMessage = CreateCard
+type InMessage = WidgetMessage | ReceiveDocuments
+type OutMessage = DocumentCreated | ReceiveDocuments
 
 export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
@@ -74,15 +77,14 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const { urls } = message.body
         urls.forEach(async url => {
           const size = await getCardSize(url)
-          this.change(doc => addCard(url, doc, size))
+          this.change(doc => addCard(url, doc, size, { x: 200, y: 50 }))
         })
         break
       }
 
       case "CreateCard": {
         const { type, card } = message.body
-        // TODO: async creation - should we split this across multiple messages?
-        const url = await this.create(type)
+        const url = this.create(type)
         this.change(doc => {
           const z = ++doc.topZ
           doc.cards[card.id] = { ...card, z, url }
@@ -90,37 +92,20 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         this.emit({ type: "DocumentCreated", body: url })
         break
       }
-
-      case "AddToShelf": {
-        this.emit({ type: "AddToShelf", body: message.body })
-        break
-      }
-
-      case "ShelfContentsRequested": {
-        this.emit({ type: "ShelfContentsRequested", body: message.body })
-        break
-      }
-
-      case "ShelfContents": {
-        const { urls, placementPosition } = message.body
-        urls.forEach(async (url, index) => {
-          const size = await getCardSize(url)
-          this.change(doc =>
-            addCard(url, doc, size, Position.radial(index, placementPosition)),
-          )
-        })
-        break
-      }
     }
   }
 }
 
 function getCardSize(url: string): Promise<Size> {
+  const { width, height } = Link.parse(url).params
+
+  if (width && height) {
+    return Promise.resolve({ width, height })
+  }
+
   return new Promise((resolve, reject) => {
     Content.open(url, doc => {
-      SizeUtils.calculateInitialSize(url, doc).then((size: Size) => {
-        resolve(size)
-      })
+      SizeUtils.calculateInitialSize(url, doc).then(resolve, reject)
     })
   })
 }
@@ -161,15 +146,7 @@ class Board extends React.Component<Props, State> {
     this.boardEl = ref
   }
 
-  onDragStart = (id: string) => {
-    this.props.change(doc => {
-      const card = doc.cards[id]
-      if (!card) return
-      if (card.z === doc.topZ) return
-
-      card.z = ++doc.topZ
-    })
-  }
+  onDragStart = (id: string) => {}
 
   onDragStop = (x: number, y: number, id: string) => {
     this.props.change(doc => {
@@ -177,6 +154,13 @@ class Board extends React.Component<Props, State> {
       if (!card) return
       card.x = x
       card.y = y
+      card.z = ++doc.topZ
+    })
+  }
+
+  onRemoved = (id: string) => {
+    this.props.change(doc => {
+      delete doc.cards[id]
     })
   }
 
@@ -191,20 +175,38 @@ class Board extends React.Component<Props, State> {
   }
 
   onMirror = (id: string) => {
-    if (!this.props.doc.cards[id]) return
+    const card = this.props.doc.cards[id]
+    if (!card) return
+
     this.props.change(doc => {
-      const card = doc.cards[id]
-      if (!card) return
-
-      card.z = ++doc.topZ
-
-      const mirror = {
-        ...card,
-        id: UUID.create(),
-        z: card.z - 1,
-      }
-      doc.cards[mirror.id] = mirror
+      addCard(card.url, doc, card, card)
     })
+  }
+
+  onDragOver = (event: React.DragEvent) => {
+    event.preventDefault()
+  }
+
+  onDrop = (event: React.DragEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    console.log("drop", event)
+
+    const { clientX, clientY } = event
+
+    DataImport.importData(event.dataTransfer).forEach(
+      async (urlPromise, idx) => {
+        console.log("importing", idx)
+
+        const url = await urlPromise
+        const size = await getCardSize(url)
+
+        this.props.change(doc => {
+          addCard(url, doc, size, { x: clientX, y: clientY })
+        })
+      },
+    )
   }
 
   onCreateBoard = (position: Point) => {
@@ -278,6 +280,7 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
+    const { noInk } = this.props
     const { cards, strokes, topZ } = this.props.doc
     const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
@@ -295,18 +298,30 @@ class Board extends React.Component<Props, State> {
             transformOrigin: this.props.transformOrigin || "50% 50%",
           })
         }
+        if (this.props.zIndex) {
+          style["zIndex"] = this.props.zIndex
+        }
 
         return (
           <Pinchable
             onPinchStart={this.onBoardPinchStart}
             onPinchMove={this.onBoardPinchMove}
             onPinchInEnd={this.onBoardPinchInEnd}>
-            <div className={css.Board} ref={this.onRef} style={style}>
-              <Ink
-                onInkStroke={this.onInkStroke}
-                strokes={strokes}
-                mode={this.props.mode}
-              />
+            <div
+              data-container
+              className={css.Board}
+              ref={this.onRef}
+              onDragOver={this.onDragOver}
+              onDrop={this.onDrop}
+              style={style}>
+              {noInk ? null : (
+                <Ink
+                  onInkStroke={this.onInkStroke}
+                  strokes={strokes}
+                  mode={this.props.mode}
+                />
+              )}
+
               <TransitionGroup>
                 {Object.values(cards).map(card => {
                   if (!card) return null
@@ -329,6 +344,7 @@ class Board extends React.Component<Props, State> {
                           onDoubleTap={this.props.onNavigate}
                           onDragStart={this.onDragStart}
                           onDragStop={this.onDragStop}
+                          onRemoved={this.onRemoved}
                           onResizeStop={this.onResizeStop}>
                           <Content
                             mode="embed"
@@ -341,6 +357,7 @@ class Board extends React.Component<Props, State> {
                   )
                 })}
               </TransitionGroup>
+
               <EdgeBoardCreator
                 onBoardCreate={this.onCreateBoard}
                 zIndex={topZ + 1}
