@@ -22,11 +22,11 @@ window.makeBot = (id: string, callback: Function) => {
   window.BotStore.set(id, {})
 
   callback({
-    autonomus: (type: string, cb: Function) => {
+    autonomous: (type: string, cb: Function) => {
       window.BotStore.set(id, {
         ...window.BotStore.get(id),
-        autonomus: {
-          ...(window.BotStore.get(id).autonomus || {}),
+        autonomous: {
+          ...(window.BotStore.get(id).autonomous || {}),
           [type]: cb,
         },
       })
@@ -72,11 +72,11 @@ class BotActor extends DocumentActor<Model, AnyChange> {
   async onMessage(message: AnyChange) {
     const bot = window.BotStore.get(this.doc.id)
 
-    if (!bot || !bot.autonomus) return
+    if (!bot || !bot.autonomous) return
     if (!message.from) return
 
     const { type } = Link.parse(message.from)
-    bot.autonomus[type] && bot.autonomus[type]()
+    bot.autonomous[type] && bot.autonomous[type]()
   }
 }
 
@@ -123,8 +123,8 @@ class Bot extends React.Component<Props, State> {
         ? window.BotStore.get(this.props.doc.id)
         : undefined
 
-    const isAutonomus = botInStore
-      ? Object.keys(botInStore.autonomus || {}).length > 0
+    const isAutonomuos = botInStore
+      ? Object.keys(botInStore.autonomous || {}).length > 0
       : false
 
     const actions = botInStore ? Object.keys(botInStore.actions || {}) : []
@@ -133,7 +133,7 @@ class Bot extends React.Component<Props, State> {
       <div className={css.Bot}>
         <h3>{this.props.doc.id}</h3>
 
-        {isAutonomus && <h4>(autonomus)</h4>}
+        {isAutonomuos && <h4>(autonomous)</h4>}
 
         {actions.map(actionName => (
           <div

@@ -12,6 +12,7 @@ import Content, {
 import Handle from "../data/Handle"
 import { once, last } from "lodash"
 import { Model as BoardModel } from "./Board"
+import * as Link from "../data/Link"
 
 export interface Props<T = {}, M = never> {
   doc: Doc<T>
@@ -58,39 +59,41 @@ export function create<T, M extends Message = never>(
     }
 
     componentDidMount() {
-      this.handle = Content.open<T>(this.props.url).subscribe(doc => {
-        this.setState({ doc })
+      this.handle = Content.open<T>(this.props.url, (doc: any) => {
+        this.setState({ doc }, () => {
+          if (Link.parse(this.props.url).type === "Bot") return
 
-        // send AnyChange to bot(s) on current board
-        Content.open(
-          Content.workspaceUrl,
-          once(workspace => {
-            const boardUrl =
-              workspace.navStack.length > 0
-                ? last(workspace.navStack)
-                : workspace.rootUrl
+          // send AnyChange to bot(s) on current board
+          Content.open(
+            Content.workspaceUrl,
+            once(workspace => {
+              const boardUrl =
+                workspace.navStack.length > 0
+                  ? last(workspace.navStack)
+                  : workspace.rootUrl
 
-            Content.open(
-              boardUrl,
-              once((board: BoardModel) => {
-                Object.values(board.cards).forEach(card => {
-                  if (
-                    !card ||
-                    (card && card.url && card.url.indexOf("Bot") < 0)
-                  )
-                    return
+              Content.open(
+                boardUrl,
+                once((board: BoardModel) => {
+                  Object.values(board.cards).forEach(card => {
+                    if (
+                      !card ||
+                      (card && card.url && card.url.indexOf("Bot") < 0)
+                    )
+                      return
 
-                  Content.send({
-                    type: "AnyChange",
-                    body: doc,
-                    from: this.props.url,
-                    to: card.url,
+                    Content.send({
+                      type: "AnyChange",
+                      body: doc,
+                      from: this.props.url,
+                      to: card.url,
+                    })
                   })
-                })
-              }),
-            )
-          }),
-        )
+                }),
+              )
+            }),
+          )
+        })
       })
     }
 
