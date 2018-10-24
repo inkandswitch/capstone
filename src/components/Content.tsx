@@ -10,6 +10,7 @@ const log = Debug("component:content")
 export interface WidgetProps<T> {
   url: string
   mode: Mode
+  env: Env
   store: Store
 }
 interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
@@ -60,6 +61,10 @@ export type MessageHandlerClass = {
 export type DocumentUpdateListener<T> = (doc: Doc<T>) => void
 
 export type Mode = "fullscreen" | "embed" | "preview"
+
+export interface Env {
+  isTouchscreen: boolean
+}
 
 export interface Props {
   url: string
@@ -131,6 +136,10 @@ export default class Content extends React.Component<Props & unknown> {
   static store: Store
   static workspaceUrl: string
   static rootBoardUrl: string
+
+  static env: Env = {
+    isTouchscreen: navigator.maxTouchPoints > 0,
+  }
 
   /// Registry:
 
@@ -225,6 +234,7 @@ export default class Content extends React.Component<Props & unknown> {
       <Widget
         key={this.props.url}
         mode={this.props.mode}
+        env={Content.env}
         {...this.props}
         store={Content.store}
       />

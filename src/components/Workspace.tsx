@@ -110,8 +110,19 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   render() {
-    const { shelfUrl } = this.props.doc
+    const { doc, env } = this.props
     const currentUrl = this.peek()
+
+    if (!env.isTouchscreen) {
+      return (
+        <div>
+          <GPSInput />
+          <Clipboard onPaste={this.onPaste} />
+          <Content mode="fullscreen" noInk url={doc.shelfUrl} />
+        </div>
+      )
+    }
+
     return (
       <Pinchable onPinchInEnd={this.pop}>
         <div className={css.Workspace}>
@@ -125,7 +136,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
           />
 
           <div className={css.Shelf}>
-            <Content mode="fullscreen" noInk url={shelfUrl} />
+            <Content mode="fullscreen" noInk url={doc.shelfUrl} />
           </div>
 
           <div className={css.Peers}>

@@ -5,6 +5,7 @@ import Content, {
   WidgetProps,
   Message,
   Mode,
+  Env,
   MessageHandlerClass,
 } from "./Content"
 
@@ -12,6 +13,7 @@ export interface Props<T = {}, M = never> {
   doc: Doc<T>
   url: string
   mode: Mode
+  env: Env
   emit: (message: M) => void
   change: (cb: ChangeFn<T>) => void
 }

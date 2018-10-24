@@ -1,17 +1,29 @@
-const windowParams: chrome.app.CreateWindowOptions = {
-  id: "main",
-  frame: "chrome",
-  state: "fullscreen",
-  resizable: true,
-  outerBounds: {
-    // Half-screen default for development
-    // Press "square" key (F3) to toggle
-    top: 0,
-    left: 0,
-    width: screen.width / 2,
-    height: screen.height,
-  },
-}
+const isTouchscreen = navigator.maxTouchPoints > 0
+
+const windowParams: chrome.app.CreateWindowOptions = isTouchscreen
+  ? {
+      id: "main",
+      frame: "chrome",
+      state: "fullscreen",
+      resizable: true,
+      outerBounds: {
+        // Half-screen default for development
+        // Press "square" key (F3) to toggle
+        top: 0,
+        left: 0,
+        width: screen.width / 2,
+        height: screen.height,
+      },
+    }
+  : {
+      id: "main",
+      frame: "chrome",
+      resizable: true,
+      outerBounds: {
+        width: 900,
+        height: 600,
+      },
+    }
 
 function showMainWindow(cb: ((window: chrome.app.AppWindow) => void)) {
   chrome.app.window.create("index.html", windowParams, win => {
@@ -21,6 +33,8 @@ function showMainWindow(cb: ((window: chrome.app.AppWindow) => void)) {
 }
 
 function maybeFullscreen(win: chrome.app.AppWindow) {
+  if (!isTouchscreen) return
+
   chrome.storage.local.get(["disableFullscreen"], result => {
     if (!result.disableFullscreen) {
       win.fullscreen()
