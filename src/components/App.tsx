@@ -25,7 +25,12 @@ type State = {
   shouldHideFPSCounter?: boolean
 }
 
-export default class App extends React.Component<State> {
+type Props = {}
+
+import * as UUID from "../data/UUID"
+window.UUID = UUID
+
+export default class App extends React.Component<Props, State> {
   state: State = {}
 
   initWorkspace() {

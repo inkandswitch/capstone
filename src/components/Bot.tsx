@@ -133,6 +133,8 @@ class Bot extends React.Component<Props, State> {
       <div className={css.Bot}>
         <h3>{this.props.doc.id}</h3>
 
+        <pre>{this.state.lastUpdate}</pre>
+
         {isAutonomuos && <h4>(autonomous)</h4>}
 
         {actions.map(actionName => (

@@ -1,5 +1,6 @@
 import Content from "../components/Content"
 import * as StoreMsg from "../data/StoreMsg"
+import * as UUID from "../data/UUID"
 
 declare global {
   interface Window {
@@ -8,6 +9,7 @@ declare global {
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
     makeBot: Function
     BotStore: Map
+    UUID: UUID
   }
 
   interface PointerEvent {
