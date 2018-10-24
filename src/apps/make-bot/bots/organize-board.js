@@ -14,8 +14,6 @@ Content.open(Content.workspaceUrl, workspace => {
       card => card.url.indexOf("Bot") < 0,
     )
 
-    console.log({ nonBotCards })
-
     const avgWidth =
       nonBotCards.reduce((memo, card) => card.width + memo, 0) /
       nonBotCards.length
