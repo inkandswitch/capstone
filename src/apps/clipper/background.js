@@ -3,12 +3,8 @@
 // found in the LICENSE file.
 
 var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
-var sidecarExtensionId = "jngcacpcikdockopfgangnjgjjlknboe"
 
 function sendMessage(msg) {
-  chrome.runtime.sendMessage(sidecarExtensionId, msg, response =>
-    console.log("Capstone received the message.", msg, response),
-  )
   chrome.runtime.sendMessage(capstoneExtensionId, msg, response =>
     console.log("Capstone received the message.", msg, response),
   )
@@ -18,11 +14,14 @@ chrome.contextMenus.onClicked.addListener(itemData => {
   triggerActionFeedback()
   console.log(itemData)
   if (itemData.selectionText) {
-    chrome.tabs.executeScript( {
-      code: "window.getSelection().toString();"
-    }, (selection) => {
-      sendMessage({ contentType: "Text", content: selection[0] })
-    });
+    chrome.tabs.executeScript(
+      {
+        code: "window.getSelection().toString();",
+      },
+      selection => {
+        sendMessage({ contentType: "Text", content: selection[0] })
+      },
+    )
   }
   if (itemData.mediaType === "image") {
     const tmpImage = new Image()
