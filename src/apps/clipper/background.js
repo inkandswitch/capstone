@@ -18,7 +18,11 @@ chrome.contextMenus.onClicked.addListener(itemData => {
   triggerActionFeedback()
   console.log(itemData)
   if (itemData.selectionText) {
-    sendMessage({ contentType: "Text", content: itemData.selectionText })
+    chrome.tabs.executeScript( {
+      code: "window.getSelection().toString();"
+    }, (selection) => {
+      sendMessage({ contentType: "Text", content: selection[0] })
+    });
   }
   if (itemData.mediaType === "image") {
     const tmpImage = new Image()
