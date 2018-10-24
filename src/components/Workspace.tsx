@@ -54,7 +54,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   push = (url: string, extraProps: {} = {}) => {
-    console.log("extra props", extraProps)
     this.props.change(doc => {
       doc.navStack.push({ url, ...extraProps })
     })
@@ -72,6 +71,17 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   peek = () => {
     const { navStack, rootUrl } = this.props.doc
     return navStack[navStack.length - 1] || { url: rootUrl }
+  }
+
+  getPrevious = () => {
+    const { navStack } = this.props.doc
+    if (navStack.length === 0) {
+      return
+    } else if (navStack.length === 1) {
+      return { url: this.props.doc.rootUrl }
+    } else {
+      return navStack[navStack.length - 2]
+    }
   }
 
   onCopy = (e: ClipboardEvent) => {
@@ -109,24 +119,16 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   render() {
-    const { shelfUrl, navStack } = this.props.doc
+    const { shelfUrl } = this.props.doc
     const { url: currentUrl, ...currentExtra } = this.peek()
-    console.log(navStack)
-    console.log("Current extra", currentExtra)
-    // oh yeah
-    const previous =
-      navStack.length === 0
-        ? undefined
-        : navStack.length === 1
-          ? { url: this.props.doc.rootUrl }
-          : navStack[navStack.length - 2]
+    const previous = this.getPrevious()
     return (
       <div className={css.Workspace}>
         <GPSInput />
         <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
         {previous ? (
           <Content
-            key={previous.url + "-previous"}
+            key={previous.url + "-previous"} // Force a remount.
             mode={this.props.mode}
             url={previous.url}
             zIndex={-1}

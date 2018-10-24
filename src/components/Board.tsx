@@ -21,6 +21,7 @@ import * as SizeUtils from "../logic/SizeUtils"
 import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
+import { request } from "http"
 
 const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
@@ -214,9 +215,10 @@ class Board extends React.Component<Props, State> {
     if (!card) {
       return
     }
+    console.log("double tap", card)
     this.props.onNavigate &&
       this.props.onNavigate(card.url, {
-        backNavCardTarget: card,
+        backNavCardTarget: { ...card },
       })
   }
 
@@ -232,6 +234,8 @@ class Board extends React.Component<Props, State> {
 
   onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
     const didNavigate = this.props.onNavigateBack && this.props.onNavigateBack()
+    // We only reset state if we didn't navigate. Otherwise resetting state causes
+    // a flicker of un-scaled board content.
     if (!didNavigate) {
       this.setState({ pinch: undefined })
     }
@@ -273,10 +277,19 @@ class Board extends React.Component<Props, State> {
       this.props.onNavigate(card.url, {
         backNavCardTarget: { ...card },
       })
+
+    // TODO: we don't reset state here because it causes a flicker of
+    // un-scaled content. Because we can't reset state here, we have to
+    // mount and re-mount at the Workspace level when transitioning a board
+    // from current to previous. We could void the remount if we find a way
+    // to reset state here.
+    // XXX: A trick would be to use the presence of the zIndex prop to unset
+    // these state values.
+    //this.setState({ pinch: undefined, scalingCard: undefined })
   }
 
   render() {
-    const { noInk, backNavCardTarget } = this.props
+    const { noInk, zIndex } = this.props
     const { cards, strokes, topZ } = this.props.doc
     const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
@@ -285,8 +298,8 @@ class Board extends React.Component<Props, State> {
         const style = this.getZoomTransformStyle()
 
         // Needed to place the previous board (the back stack board) behind the current board and shelf.
-        if (this.props.zIndex) {
-          style["zIndex"] = this.props.zIndex
+        if (zIndex) {
+          style["zIndex"] = zIndex
         }
 
         return (
@@ -328,7 +341,7 @@ class Board extends React.Component<Props, State> {
                           onPinchStart={this.onPinchStart}
                           onPinchMove={this.onPinchMove}
                           onPinchOutEnd={this.onPinchOutEnd}
-                          onDoubleTap={this.props.onNavigate}
+                          onDoubleTap={this.onDoubleTap}
                           onDragStart={this.onDragStart}
                           onDragStop={this.onDragStop}
                           onRemoved={this.onRemoved}
