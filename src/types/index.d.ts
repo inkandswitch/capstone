@@ -6,6 +6,8 @@ declare global {
     Content: typeof Content
     visualViewport: VisualViewport
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
+    makeBot: Function
+    BotStore: Map
   }
 
   interface PointerEvent {
