@@ -4,15 +4,22 @@
 
 var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
 
+function sendMessage(msg) {
+  chrome.runtime.sendMessage(capstoneExtensionId, msg, response =>
+    console.log("Capstone received the message.", msg, response),
+  )
+}
+
 chrome.contextMenus.onClicked.addListener(itemData => {
   triggerActionFeedback()
   console.log(itemData)
   if (itemData.selectionText) {
-    chrome.runtime.sendMessage(
-      capstoneExtensionId,
-      { contentType: "Text", content: itemData.selectionText },
-      response => {
-        console.log("Capstone appears to have received the Text.")
+    chrome.tabs.executeScript(
+      {
+        code: "window.getSelection().toString();",
+      },
+      selection => {
+        sendMessage({ contentType: "Text", content: selection[0] })
       },
     )
   }
@@ -30,21 +37,17 @@ chrome.contextMenus.onClicked.addListener(itemData => {
       const context = canvas.getContext("2d")
       context.drawImage(tmpImage, 0, 0)
 
-      chrome.runtime.sendMessage(
-        capstoneExtensionId,
-        { contentType: "Image", content: canvas.toDataURL() },
-        response => {
-          console.log("Capstone appears to have received the Text.")
-        },
-      )
+      sendMessage({ contentType: "Image", content: canvas.toDataURL() })
     }
   }
 })
 
-chrome.contextMenus.create({
-  id: "capstone-clipper",
-  title: "Send to Capstone",
-  contexts: ["selection", "image"], // ContextType
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "capstone-clipper",
+    title: "Send to Capstone",
+    contexts: ["selection", "image"], // ContextType
+  })
 })
 
 chrome.browserAction.onClicked.addListener(function(tab) {
