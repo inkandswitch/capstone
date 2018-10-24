@@ -6,6 +6,7 @@ import * as DataImport from "./DataImport"
 import Content, { ReceiveDocuments } from "./Content"
 import GPSInput from "./GPSInput"
 import Clipboard from "./Clipboard"
+import { WorkspaceActor } from "./Workspace"
 
 export interface Model {
   shelfUrl: string
@@ -48,4 +49,9 @@ export default class SidecarWorkspace extends React.Component<Props> {
   }
 }
 
-Widget.create("SidecarWorkspace", SidecarWorkspace, SidecarWorkspace.reify)
+Widget.create(
+  "SidecarWorkspace",
+  SidecarWorkspace,
+  SidecarWorkspace.reify,
+  WorkspaceActor,
+)

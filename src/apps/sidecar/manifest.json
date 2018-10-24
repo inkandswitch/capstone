@@ -2,6 +2,7 @@
   "manifest_version": 2,
   "name": "Sidecar",
   "version": "3.1",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwfQmFxKu5PWWO2FXPKihxnrnbXLvoEAudnJKXpEUf9isqr7TsRdTlEmlDRvNKUsZbkc3lHV8/Mn+ggXJreWHjMegxHp0eaWElrIFQIq7W1v6BNeCNxZ7vgzS1tRkVOEgOyt3+NxLJDo1srmCk8os+93zvWRFt/zLx53nmCgY1jnGC9OtsBhDE6ZilHQBw66f5e9uJN9ZcfcCxcq8TzBoa6XWf1PP2gVLktg3rIKzgdT6myOzbag09crep3+qcPIbP9xfi5UPKWgnS+u2FBFcdmV1nVFLmr5zMgwgjz+YoCOrPV9tgd1ryadl2UYWz0zDlW4rFfxR+qH4uox9f9FjXQIDAQAB",
   "permissions": [
     "background",
     "clipboardRead",

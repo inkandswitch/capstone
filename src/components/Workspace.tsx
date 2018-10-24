@@ -25,7 +25,11 @@ type WidgetMessage = DocumentCreated | ReceiveDocuments
 type InMessage = FullyFormedMessage<DocumentCreated | ReceiveDocuments>
 type OutMessage = DocumentCreated | ReceiveDocuments
 
-class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
+export class WorkspaceActor extends DocumentActor<
+  Model,
+  InMessage,
+  OutMessage
+> {
   async onMessage(message: InMessage) {
     switch (message.type) {
       case "ReceiveDocuments": {
