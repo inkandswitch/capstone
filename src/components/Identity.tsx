@@ -3,7 +3,6 @@ import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import Content, { DocumentActor } from "./Content"
-import { AddToShelf, ShelfContents, ShelfContentsRequested } from "./Shelf"
 import * as Widget from "./Widget"
 import IdentityBadge from "./IdentityBadge"
 
@@ -13,50 +12,7 @@ export interface Model {
   mailboxUrl: string
 }
 
-type WidgetMessage = ShelfContentsRequested | AddToShelf
-type InMessage = WidgetMessage | ShelfContents
-type OutMessage = ShelfContentsRequested | AddToShelf
-
-export class IdentityActor extends DocumentActor<Model, InMessage, OutMessage> {
-  async onMessage(message: InMessage) {
-    switch (message.type) {
-      case "AddToShelf": {
-        this.emit({ type: "AddToShelf", body: message.body })
-        break
-      }
-      case "ShelfContentsRequested": {
-        this.emit({ type: "ShelfContentsRequested", body: message.body })
-        break
-      }
-      case "ShelfContents": {
-        const { urls, intent } = message.body
-        if (!urls.length) return
-
-        if (intent === "avatar") {
-          this.change(doc => {
-            // Only change avatar if there is a single document on the shelf and it is
-            // an image.
-            // TODO: Feedback if this fails
-            const { type } = Link.parse(urls[0])
-            if (urls.length === 1 && type === "Image") {
-              doc.avatarUrl = urls[0]
-            }
-            return doc
-          })
-        } else {
-          this.emit({
-            type: "AddToShelf",
-            to: this.doc.mailboxUrl,
-            body: { urls },
-          })
-        }
-        break
-      }
-    }
-  }
-}
-
-interface Props extends Widget.Props<Model, WidgetMessage> {
+interface Props extends Widget.Props<Model> {
   onNavigate?: (url: string) => void
 }
 
@@ -168,9 +124,4 @@ const style = {
   },
 }
 
-export default Widget.create(
-  "Identity",
-  Identity,
-  Identity.reify,
-  IdentityActor,
-)
+export default Widget.create("Identity", Identity, Identity.reify)

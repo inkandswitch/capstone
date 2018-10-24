@@ -33,7 +33,10 @@ export default class Store {
 
     this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
     this.clipper$ = new Rx.BehaviorSubject<Msg.Clipper | null>(null)
-    this.control$ = new Rx.BehaviorSubject<Msg.Control | null>(null)
+    this.control$ = new Rx.BehaviorSubject<Msg.Control | null>({
+      type: "Control",
+      url: this.getWorkspace(),
+    })
   }
 
   handle(id: string): FrontendHandle<any> {
@@ -119,7 +122,7 @@ export default class Store {
   }
 
   setWorkspace(url: string | null) {
-    url ? (localStorage.workspaceUrl = url) : (delete localStorage.workspaceUrl)
+    url ? (localStorage.workspaceUrl = url) : delete localStorage.workspaceUrl
     this.control$.next({ type: "Control", url })
   }
 

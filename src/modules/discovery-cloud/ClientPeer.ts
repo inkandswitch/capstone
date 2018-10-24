@@ -55,11 +55,11 @@ export default class ClientPeer {
     socket.ready.then(socket => protocol.pipe(socket).pipe(protocol))
 
     protocol.on("error", err => {
-      log("protocol.onerror %s", this.id, err)
+      console.error("protocol.onerror %s", tag, err)
     })
 
     socket.on("error", err => {
-      log("socket.onerror %s", this.id, err)
+      console.error("socket.onerror %s", tag, err)
     })
 
     socket.once("end", () => {

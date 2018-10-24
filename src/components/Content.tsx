@@ -233,6 +233,12 @@ export default class Content extends React.Component<Props & unknown> {
 }
 
 export class Missing extends React.Component<{ type: string }> {
+  componentDidMount() {
+    console.error(
+      new Error(`'${this.props.type}' not found in Content.registry`),
+    )
+  }
+
   render() {
     return <div>'{this.props.type}' not found in Content.registry</div>
   }

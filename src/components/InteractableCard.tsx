@@ -4,8 +4,9 @@ import Card from "./Card"
 import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
 import * as Link from "../data/Link"
-import Pinchable from "./Pinchable"
 import * as PinchMetrics from "../logic/PinchMetrics"
+import * as DataTransfer from "../logic/DataTransfer"
+import Pinchable from "./Pinchable"
 
 export interface CardModel {
   id: string
@@ -25,6 +26,7 @@ export interface Props {
   card: CardModel
   onDragStart?: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
+  onRemoved?: (id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
   onDoubleTap?: (url: string) => void
   onPinchStart?: (id: string, measurements: PinchMetrics.Measurements) => void
@@ -49,6 +51,19 @@ export default class InteractableCard extends React.Component<Props, State> {
 
   dragStop = (x: number, y: number) => {
     this.props.onDragStop && this.props.onDragStop(x, y, this.props.card.id)
+  }
+
+  dragOut = (): DataTransfer => {
+    const { url, width, height } = this.props.card
+    return DataTransfer.createFromMap({
+      "text/plain+capstone": Link.set(url, {
+        params: { width, height },
+      }),
+    })
+  }
+
+  removed = () => {
+    this.props.onRemoved && this.props.onRemoved(this.props.card.id)
   }
 
   onResize = (newSize: Size) => {
@@ -117,6 +132,8 @@ export default class InteractableCard extends React.Component<Props, State> {
           }
           onStart={this.start}
           onDragStop={this.dragStop}
+          onDragOut={this.dragOut}
+          onRemoved={this.removed}
           onResize={this.onResize}
           onResizeStop={this.resizeStop}
           z={z}>
@@ -130,6 +147,7 @@ export default class InteractableCard extends React.Component<Props, State> {
               "onPinchStart",
               "onPinchMove",
               "onPinchOutEnd",
+              "onRemoved",
             ])}>
             {children}
           </Card>

@@ -11,56 +11,31 @@ import Content, {
   ReceiveDocuments,
 } from "./Content"
 import Clipboard from "./Clipboard"
-import { AddToShelf, ShelfContentsRequested, SendShelfContents } from "./Shelf"
 import Peers from "./Peers"
 import * as Link from "../data/Link"
-import { last } from "lodash"
 import Pinchable from "./Pinchable"
-
+import * as css from "./css/Workspace.css"
 export interface Model {
   navStack: string[]
   rootUrl: string
   shelfUrl: string
 }
 
-type WidgetMessage = DocumentCreated | AddToShelf | ReceiveDocuments
-type InMessage = FullyFormedMessage<
-  DocumentCreated | AddToShelf | ShelfContentsRequested | ReceiveDocuments
->
-type OutMessage =
-  | DocumentCreated
-  | AddToShelf
-  | SendShelfContents
-  | ReceiveDocuments
+type WidgetMessage = DocumentCreated | ReceiveDocuments
+type InMessage = FullyFormedMessage<DocumentCreated | ReceiveDocuments>
+type OutMessage = DocumentCreated | ReceiveDocuments
 
 class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
-      case "AddToShelf": {
-        this.emit({
-          type: "AddToShelf",
-          body: message.body,
-          to: this.doc.shelfUrl,
-        })
-        break
-      }
-      case "ShelfContentsRequested": {
-        const body = message.body || {}
-        this.emit({
-          type: "SendShelfContents",
-          body: { recipientUrl: message.from, ...body },
-          to: this.doc.shelfUrl,
-        })
-        break
-      }
       case "ReceiveDocuments": {
         const boardsOnStack = this.doc.navStack.filter(
           url => Link.parse(url).type == "Board",
         )
         this.emit({
+          to: this.doc.shelfUrl,
           type: "ReceiveDocuments",
           body: message.body,
-          to: last(boardsOnStack) || this.doc.rootUrl,
         })
         break
       }
@@ -119,25 +94,18 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     this.importData(e.clipboardData)
   }
 
-  onDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-  }
-
-  onDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    this.importData(event.dataTransfer)
-  }
-
   onTapPeer = (identityUrl: string) => {
-    this.props.emit({ type: "AddToShelf", body: { url: identityUrl } })
+    this.props.emit({
+      to: this.props.doc.shelfUrl,
+      type: "ReceiveDocuments",
+      body: { urls: [identityUrl] },
+    })
   }
 
   importData = (dataTransfer: DataTransfer) => {
     const urlPromises = DataImport.importData(dataTransfer)
     Promise.all(urlPromises).then(urls => {
       this.props.emit({ type: "ReceiveDocuments", body: { urls } })
-      // this.props.emit({ type: "AddToShelf", body: { urls } })
     })
   }
 
@@ -146,11 +114,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const currentUrl = this.peek()
     return (
       <Pinchable onPinchInEnd={this.pop}>
-        <div
-          className="Workspace"
-          style={style.Workspace}
-          onDragOver={this.onDragOver}
-          onDrop={this.onDrop}>
+        <div className={css.Workspace}>
           <GPSInput />
           <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
           <Content
@@ -159,30 +123,18 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
             url={currentUrl}
             onNavigate={this.push}
           />
-          <Content mode="embed" url={shelfUrl} />
-          <div style={style.Peers}>
+
+          <div className={css.Shelf}>
+            <Content mode="fullscreen" noInk url={shelfUrl} />
+          </div>
+
+          <div className={css.Peers}>
             <Peers onTapPeer={this.onTapPeer} />
           </div>
         </div>
       </Pinchable>
     )
   }
-}
-
-const style = {
-  Workspace: {
-    position: "absolute" as "absolute",
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-  },
-  Peers: {
-    position: "absolute" as "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-  },
 }
 
 export default Widget.create(

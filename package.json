@@ -9,6 +9,7 @@
     "dev": "yarn --ignore-engines && webpack",
     "build": "yarn --ignore-engines && webpack --env.mode=production",
     "test": "yarn tests",
+    "cloud": "yarn repl src/modules/discovery-cloud/server.js",
     "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache node -r ts-node/register",
     "clean": "rm -r dist .data",
     "format": "prettier --write 'src/**/*.{js,ts,tsx}'",
