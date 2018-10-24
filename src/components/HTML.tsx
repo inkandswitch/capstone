@@ -19,9 +19,7 @@ interface Props extends Widget.Props<Model> {
   availableWidth: number
 }
 
-interface State {}
-
-class HTML extends React.Component<Props, State> {
+class HTML extends React.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       html: Reify.string(doc.html),
