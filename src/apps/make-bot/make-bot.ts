@@ -92,7 +92,6 @@ hm.ready.then(hm => {
 
             botHandle(bot => {
               bot.code = code
-              setTimeout(() => process.exit(0), 10)
             })
           } else {
             console.log("creating...")
@@ -124,8 +123,6 @@ hm.ready.then(hm => {
               }
 
               board.cards[botId] = card
-
-              setTimeout(() => process.exit(0), 10)
             })
           }
         }),
