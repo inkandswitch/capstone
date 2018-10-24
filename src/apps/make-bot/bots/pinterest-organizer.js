@@ -46,7 +46,7 @@ const organizeItems = () => {
 
 // id here has to be the same as --id passed to cli, because of lazy engineering
 makeBot("pinterest-organizer", bot => {
-  bot.autonomus("Board", () => {
+  bot.autonomous("Board", () => {
     organizeItems()
   })
 })
