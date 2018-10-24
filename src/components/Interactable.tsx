@@ -245,7 +245,7 @@ export default class Interactable extends React.Component<
     const offsetFromLeft = e.x
     const offsetFromRight = window.innerWidth - e.x
     const offsetFromTop = e.y
-    const offsetFromBottom = window.innerHeight - e.x
+    const offsetFromBottom = window.innerHeight - e.y
 
     const lowestOffset = Math.min(
       offsetFromLeft,
