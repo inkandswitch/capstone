@@ -80,7 +80,7 @@ hm.ready.then(hm => {
           console.log("board doc", doc)
 
           if (botExists) {
-            console.log("updating...")
+            console.log(`Updating bot ${botId}`)
 
             // update
             const botHandle = Content.open(
@@ -94,7 +94,7 @@ hm.ready.then(hm => {
               bot.code = code
             })
           } else {
-            console.log("creating...")
+            console.log(`creating new bot: ${botId}`)
 
             // create
             const botUrl = Content.create("Bot")

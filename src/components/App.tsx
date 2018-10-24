@@ -29,6 +29,9 @@ type State = {
 
 type Props = {}
 
+import * as UUID from "../data/UUID"
+window.UUID = UUID
+
 export default class App extends React.Component<Props, State> {
   state: State = {}
 
