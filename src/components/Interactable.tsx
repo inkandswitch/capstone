@@ -35,9 +35,11 @@ interface InteractableState {
   isResizing: boolean
   position: Point
   currentSize: Size
+  opacity: number
 }
 
 const RESIZE_TARGET_SIZE: Size = { width: 40, height: 40 }
+const DELETE_EDGE_THRESHOLD = 20
 
 export const pointerEventToPoint = (e: PointerEvent): Point => ({
   x: e.clientX,
@@ -61,6 +63,7 @@ export default class Interactable extends React.Component<
       isResizing: false,
       position: props.position,
       currentSize: props.originalSize,
+      opacity: 1.0,
     }
   }
 
@@ -163,7 +166,6 @@ export default class Interactable extends React.Component<
     const { onDragOut } = this.props
     const { dragState } = this.state
 
-    console.log("dragstop", x, y)
     this.props.onDragStop && this.props.onDragStop(x, y)
     this.setState({ dragState: undefined, position: { x, y } })
 
@@ -191,12 +193,9 @@ export default class Interactable extends React.Component<
             cancelable: true,
           } as any)
 
-          console.log(event)
-
           target.dispatchEvent(event)
 
           if (event.defaultPrevented) {
-            console.log("card removed")
             this.props.onRemoved && this.props.onRemoved()
             break
           }
@@ -225,17 +224,51 @@ export default class Interactable extends React.Component<
         const point = pointerEventToPoint(e)
         if (this.state.dragState) {
           this.dragger.drag(point)
+          this.adjustOpacityState(e)
         } else if (this.state.isResizing) {
           this.resizer.resize(point)
         }
       } else if (e.type === "pointerup" || e.type === "pointercancel") {
         if (this.state.dragState) {
           this.dragger.stop()
+          if (this.isInDeleteEdgeRange(e)) {
+            this.props.onRemoved && this.props.onRemoved()
+          }
         } else if (this.state.isResizing) {
           this.resizer.stop()
         }
       }
     }
+  }
+
+  adjustOpacityState = (e: PointerEvent) => {
+    const offsetFromLeft = e.x
+    const offsetFromRight = window.innerWidth - e.x
+    const offsetFromTop = e.y
+    const offsetFromBottom = window.innerHeight - e.y
+
+    const lowestOffset = Math.min(
+      offsetFromLeft,
+      offsetFromRight,
+      offsetFromBottom,
+      offsetFromTop,
+    )
+
+    if (lowestOffset < DELETE_EDGE_THRESHOLD) {
+      const opacity = Math.max(0.25, lowestOffset / DELETE_EDGE_THRESHOLD)
+      this.setState({ opacity: opacity })
+    } else if (this.state.opacity != 1.0) {
+      this.setState({ opacity: 1.0 })
+    }
+  }
+
+  isInDeleteEdgeRange = (e: PointerEvent) => {
+    return (
+      e.x < DELETE_EDGE_THRESHOLD ||
+      e.x > window.innerWidth - DELETE_EDGE_THRESHOLD ||
+      e.y < DELETE_EDGE_THRESHOLD ||
+      e.y > window.innerHeight - DELETE_EDGE_THRESHOLD
+    )
   }
 
   shouldTriggerResize = (point: Point, rect: ClientRect | DOMRect) => {
@@ -256,7 +289,7 @@ export default class Interactable extends React.Component<
   }
 
   render() {
-    const { dragState } = this.state
+    const { dragState, opacity } = this.state
     const { position } = dragState || this.state
     const transform = `translate(${position.x}px,${position.y}px)`
 
@@ -264,6 +297,7 @@ export default class Interactable extends React.Component<
       top: 0,
       left: 0,
       zIndex: this.props.z,
+      opacity: opacity,
       transform,
       position: dragState ? ("fixed" as "fixed") : ("absolute" as "absolute"),
       willChange: "transform",
