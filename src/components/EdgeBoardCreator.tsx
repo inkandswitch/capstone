@@ -7,6 +7,8 @@ import * as DragMetrics from "../logic/DragMetrics"
 import * as Rx from "rxjs"
 import { CARD_DEFAULT_SIZE } from "../logic/SizeUtils"
 
+type Edge = "left" | "right"
+
 interface Props {
   onBoardCreate: (position: Point) => void
   zIndex: number
@@ -15,7 +17,7 @@ interface Props {
 interface State {
   measurements?: DragMetrics.Measurements
   thresholdMet: boolean
-  triggeredEdge?: HTMLDivElement
+  triggeredEdge?: Edge
 }
 
 const MINIMUM_DISTANCE = CARD_DEFAULT_SIZE.width / 2
@@ -52,12 +54,12 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
       if (this.leftEdge.contains(e.target as Node)) {
         this.setState({
           measurements: DragMetrics.init({ x, y }),
-          triggeredEdge: this.leftEdge,
+          triggeredEdge: "left",
         })
       } else if (this.rightEdge.contains(e.target as Node)) {
         this.setState({
           measurements: DragMetrics.init({ x, y }),
-          triggeredEdge: this.rightEdge,
+          triggeredEdge: "right",
         })
       }
     } else if (measurements !== undefined) {
@@ -80,14 +82,11 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   }
 
   getAbsoluteOffsetFromEdge() {
-    const { measurements } = this.state
-    if (!measurements || !this.state.triggeredEdge) return 0
-    if (this.state.triggeredEdge == this.leftEdge) {
+    const { measurements, triggeredEdge } = this.state
+    if (!measurements || !triggeredEdge) return 0
+    if (triggeredEdge == "left") {
       return measurements.position.x
-    } else if (
-      this.state.triggeredEdge == this.rightEdge &&
-      this.rightEdgeMaxX
-    ) {
+    } else if (triggeredEdge == "right" && this.rightEdgeMaxX) {
       return this.rightEdgeMaxX - measurements.position.x
     }
     return 0
@@ -95,9 +94,9 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
 
   shouldCreateBoard() {
     if (!this.state.thresholdMet) {
-      this.setState({
-        thresholdMet: this.getAbsoluteOffsetFromEdge() >= MINIMUM_DISTANCE,
-      })
+      const thresholdMet = this.getAbsoluteOffsetFromEdge() >= MINIMUM_DISTANCE
+      this.setState({ thresholdMet })
+      return thresholdMet
     }
     return this.state.thresholdMet
   }
@@ -116,7 +115,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   getBoardPosition = () => {
     if (!this.state.measurements) return { x: 0, y: 0 }
     const translationX =
-      this.state.triggeredEdge == this.leftEdge ? -CARD_DEFAULT_SIZE.width : 0
+      this.state.triggeredEdge == "left" ? -CARD_DEFAULT_SIZE.width : 0
     return {
       x: this.state.measurements.position.x + translationX,
       y: this.state.measurements.position.y - CARD_DEFAULT_SIZE.height / 2,
@@ -124,11 +123,11 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   }
 
   render() {
-    const { measurements, thresholdMet } = this.state
+    const { measurements, thresholdMet, triggeredEdge } = this.state
     const { zIndex } = this.props
     let dragMarker = null
     let boardCard = null
-    if (measurements && this.state.triggeredEdge) {
+    if (measurements && triggeredEdge) {
       const { position } = measurements
       const offsetFromEdge = this.getAbsoluteOffsetFromEdge()
       let cardOpacity = thresholdMet ? 1.0 : 0.5
@@ -144,8 +143,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
         zIndex,
       }
 
-      const shadowOffsetX =
-        this.state.triggeredEdge == this.leftEdge ? "-3px" : "3px"
+      const shadowOffsetX = this.state.triggeredEdge == "left" ? "-3px" : "3px"
       const boardPosition = this.getBoardPosition()
       const boardCardStyle = {
         boxShadow: `${shadowOffsetX} 3px 8px rgba(0, 0, 0, ${shadowOpacity})`,
