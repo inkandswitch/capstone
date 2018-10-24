@@ -3,6 +3,7 @@ import * as Link from "../data/Link"
 import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
+import * as Env from "../data/Env"
 import { once } from "lodash"
 import * as Debug from "debug"
 const log = Debug("component:content")
@@ -10,7 +11,7 @@ const log = Debug("component:content")
 export interface WidgetProps<T> {
   url: string
   mode: Mode
-  env: Env
+  env: Env.Env
   store: Store
 }
 interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
@@ -61,10 +62,6 @@ export type MessageHandlerClass = {
 export type DocumentUpdateListener<T> = (doc: Doc<T>) => void
 
 export type Mode = "fullscreen" | "embed" | "preview"
-
-export interface Env {
-  isTouchscreen: boolean
-}
 
 export interface Props {
   url: string
@@ -137,9 +134,7 @@ export default class Content extends React.Component<Props & unknown> {
   static workspaceUrl: string
   static rootBoardUrl: string
 
-  static env: Env = {
-    isTouchscreen: navigator.maxTouchPoints > 0,
-  }
+  static env = Env.load()
 
   /// Registry:
 
