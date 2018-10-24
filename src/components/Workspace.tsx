@@ -113,7 +113,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     const { doc, env } = this.props
     const currentUrl = this.peek()
 
-    if (!env.isTouchscreen) {
+    if (env.device === "sidecar") {
       return (
         <div>
           <GPSInput />
