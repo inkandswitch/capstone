@@ -17,8 +17,10 @@ import * as Link from "../data/Link"
 import { last } from "lodash"
 import Pinchable from "./Pinchable"
 
+type NavEntry = { url: string; [extra: string]: any }
+
 export interface Model {
-  navStack: string[]
+  navStack: NavEntry[]
   rootUrl: string
   shelfUrl: string
 }
@@ -55,12 +57,13 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
       case "ReceiveDocuments": {
         const boardsOnStack = this.doc.navStack.filter(
-          url => Link.parse(url).type == "Board",
+          ({ url }: NavEntry) => Link.parse(url).type == "Board",
         )
+        const topBoard = last(boardsOnStack)
         this.emit({
           type: "ReceiveDocuments",
           body: message.body,
-          to: last(boardsOnStack) || this.doc.rootUrl,
+          to: topBoard ? topBoard.url : this.doc.rootUrl,
         })
         break
       }
@@ -81,23 +84,24 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     return this.peek()
   }
 
-  push = (url: string) => {
+  push = (url: string, extraProps: {} = {}) => {
     this.props.change(doc => {
-      doc.navStack.push(url)
+      doc.navStack.push({ url, ...extraProps })
     })
   }
 
   pop = () => {
-    if (this.props.doc.navStack.length === 0) return
+    if (this.props.doc.navStack.length === 0) return false
 
     this.props.change(doc => {
       doc.navStack.pop()
     })
+    return true
   }
 
   peek = () => {
     const { navStack, rootUrl } = this.props.doc
-    return navStack[navStack.length - 1] || rootUrl
+    return navStack[navStack.length - 1] || { url: rootUrl }
   }
 
   onCopy = (e: ClipboardEvent) => {
@@ -110,9 +114,9 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     // Otherwise, prevent default behavior and copy the currently active/fullscreen
     // document url to the clipboard.
     e.preventDefault()
-    const currentUrl = this.peek()
-    e.clipboardData.setData("text/plain", currentUrl)
-    console.log(`Copied current url to the clipboard: ${currentUrl}`)
+    const current = this.peek()
+    e.clipboardData.setData("text/plain", current.url)
+    console.log(`Copied current url to the clipboard: ${current.url}`)
   }
 
   onPaste = (e: ClipboardEvent) => {
@@ -142,29 +146,45 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   render() {
-    const { shelfUrl } = this.props.doc
-    const currentUrl = this.peek()
+    const { shelfUrl, navStack } = this.props.doc
+    const { url: currentUrl, ...currentExtra } = this.peek()
+    // oh yeah
+    const previous =
+      navStack.length === 0
+        ? undefined
+        : navStack.length === 1
+          ? { url: this.props.doc.rootUrl }
+          : navStack[navStack.length - 2]
+    console.log("nav stack", navStack)
+    console.log("previous", previous)
     return (
-      <Pinchable onPinchInEnd={this.pop}>
-        <div
-          className="Workspace"
-          style={style.Workspace}
-          onDragOver={this.onDragOver}
-          onDrop={this.onDrop}>
-          <GPSInput />
-          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+      <div
+        className="Workspace"
+        style={style.Workspace}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}>
+        <GPSInput />
+        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+        {previous ? (
           <Content
-            key={currentUrl}
+            key={previous.url + "-previous"}
             mode={this.props.mode}
-            url={currentUrl}
-            onNavigate={this.push}
+            url={previous.url}
           />
-          <Content mode="embed" url={shelfUrl} />
-          <div style={style.Peers}>
-            <Peers onTapPeer={this.onTapPeer} />
-          </div>
+        ) : null}
+        <Content
+          key={currentUrl}
+          mode={this.props.mode}
+          url={currentUrl}
+          {...currentExtra}
+          onNavigate={this.push}
+          onNavigateBack={this.pop}
+        />
+        <Content mode="embed" url={shelfUrl} />
+        <div style={style.Peers}>
+          <Peers onTapPeer={this.onTapPeer} />
         </div>
-      </Pinchable>
+      </div>
     )
   }
 }

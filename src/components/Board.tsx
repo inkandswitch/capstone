@@ -4,6 +4,7 @@ import { clamp, isEmpty, size, noop } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
+import Pinchable from "./Pinchable"
 import EdgeBoardCreator from "./EdgeBoardCreator"
 import Content, {
   DocumentActor,
@@ -35,8 +36,10 @@ export interface Model {
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
   availableWidth: number
-  onNavigate?: (url: string) => void
+  onNavigate?: (url: string, extraProps?: {}) => void
+  onNavigateBack?: () => void
   scale?: number
+  transformOrigin?: string
 }
 
 interface State {
@@ -144,10 +147,7 @@ function addCard(
 
 class Board extends React.Component<Props, State> {
   boardEl?: HTMLDivElement
-  state: State = {
-    pinch: undefined,
-    scalingCard: undefined,
-  }
+  state: State = { pinch: undefined }
 
   static reify(doc: AnyDoc): Model {
     return {
@@ -214,6 +214,29 @@ class Board extends React.Component<Props, State> {
     })
   }
 
+  onDoubleTap = (url: string) => {
+    this.props.onNavigate && this.props.onNavigate(url)
+  }
+
+  onBoardPinchStart = (measurements: PinchMetrics.Measurements) => {
+    this.setState({
+      pinch: measurements,
+    })
+  }
+
+  onBoardPinchMove = (measurements: PinchMetrics.Measurements) => {
+    this.setState({ pinch: measurements })
+  }
+
+  onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
+    console.log("board pinch in  end")
+    //this.setState({ pinch: undefined })
+    const didNavigate = this.props.onNavigateBack && this.props.onNavigateBack()
+    if (!didNavigate) {
+      this.setState({ pinch: undefined })
+    }
+  }
+
   onPinchStart = (cardId: string, measurements: PinchMetrics.Measurements) => {
     const card = this.props.doc.cards[cardId]
     if (!card) {
@@ -246,7 +269,12 @@ class Board extends React.Component<Props, State> {
     if (!card) {
       return
     }
-    this.props.onNavigate && this.props.onNavigate(card.url)
+    console.log("pinch out end")
+    const scaleStyle = getBoardScaleStyle(card, this.state.pinch!)
+    this.props.onNavigate &&
+      this.props.onNavigate(card.url, {
+        transformOrigin: scaleStyle.transformOrigin,
+      })
   }
 
   render() {
@@ -261,50 +289,64 @@ class Board extends React.Component<Props, State> {
           if (card) {
             Object.assign(style, getBoardScaleStyle(card, pinch))
           }
+        } else if (pinch && pinch.scale < 1.0) {
+          Object.assign(style, {
+            transform: `scale(${pinch.scale})`,
+            transformOrigin: this.props.transformOrigin || "50% 50%",
+          })
         }
 
         return (
-          <div className={css.Board} ref={this.onRef} style={style}>
-            <Ink
-              onInkStroke={this.onInkStroke}
-              strokes={strokes}
-              mode={this.props.mode}
-            />
-            <TransitionGroup>
-              {Object.values(cards).map(card => {
-                if (!card) return null
-                let navScale = 0
-                if (pinch && scalingCard && scalingCard === card.id) {
-                  navScale = getCardScaleProgress(card, pinch)
-                }
-                return (
-                  <CSSTransition
-                    key={card.id}
-                    classNames="Card"
-                    enter={false}
-                    timeout={{ exit: 1 }}>
-                    <Mirrorable cardId={card.id} onMirror={this.onMirror}>
-                      <InteractableCard
-                        card={card}
-                        onPinchStart={this.onPinchStart}
-                        onPinchMove={this.onPinchMove}
-                        onPinchOutEnd={this.onPinchOutEnd}
-                        onDoubleTap={this.props.onNavigate}
-                        onDragStart={this.onDragStart}
-                        onDragStop={this.onDragStop}
-                        onResizeStop={this.onResizeStop}>
-                        <Content mode="embed" url={card.url} scale={navScale} />
-                      </InteractableCard>
-                    </Mirrorable>
-                  </CSSTransition>
-                )
-              })}
-            </TransitionGroup>
-            <EdgeBoardCreator
-              onBoardCreate={this.onCreateBoard}
-              zIndex={topZ + 1}
-            />
-          </div>
+          <Pinchable
+            onPinchStart={this.onBoardPinchStart}
+            onPinchMove={this.onBoardPinchMove}
+            onPinchInEnd={this.onBoardPinchInEnd}>
+            <div className={css.Board} ref={this.onRef} style={style}>
+              <Ink
+                onInkStroke={this.onInkStroke}
+                strokes={strokes}
+                mode={this.props.mode}
+              />
+              <TransitionGroup>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
+                  let navScale = 0
+                  if (pinch && scalingCard && scalingCard === card.id) {
+                    navScale = getCardScaleProgress(card, pinch)
+                  }
+                  return (
+                    <CSSTransition
+                      key={card.id}
+                      classNames="Card"
+                      enter={false}
+                      timeout={{ exit: 1 }}>
+                      <Mirrorable cardId={card.id} onMirror={this.onMirror}>
+                        <InteractableCard
+                          card={card}
+                          onPinchStart={this.onPinchStart}
+                          onPinchMove={this.onPinchMove}
+                          onPinchOutEnd={this.onPinchOutEnd}
+                          onDoubleTap={this.props.onNavigate}
+                          onDragStart={this.onDragStart}
+                          onDragStop={this.onDragStop}
+                          onResizeStop={this.onResizeStop}>
+                          <Content
+                            mode="embed"
+                            url={card.url}
+                            scale={navScale}
+                          />
+                        </InteractableCard>
+                      </Mirrorable>
+                    </CSSTransition>
+                  )
+                })}
+              </TransitionGroup>
+              <EdgeBoardCreator
+                onBoardCreate={this.onCreateBoard}
+                zIndex={topZ + 1}
+              />
+            </div>
+          </Pinchable>
         )
       }
       case "embed": {
@@ -382,7 +424,7 @@ function getBoardScaleStyle(
   const transformOrigin = `${origin.x}% ${origin.y}%`
 
   const maxScale = BOARD_DIMENSIONS.width / width
-  const transform = clamp(pinchMeasurements.scale, 1.0, maxScale)
+  const transform = Math.min(pinchMeasurements.scale, maxScale)
 
   return {
     transform: `scale(${transform})`,
