@@ -38,6 +38,7 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   availableWidth: number
   onNavigate?: (url: string) => void
   scale?: number
+  noInk?: boolean
 }
 
 interface State {
@@ -250,6 +251,7 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
+    const { noInk } = this.props
     const { cards, strokes, topZ } = this.props.doc
     const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
@@ -271,11 +273,13 @@ class Board extends React.Component<Props, State> {
             onDragOver={this.onDragOver}
             onDrop={this.onDrop}
             style={style}>
-            <Ink
-              onInkStroke={this.onInkStroke}
-              strokes={strokes}
-              mode={this.props.mode}
-            />
+            {noInk ? null : (
+              <Ink
+                onInkStroke={this.onInkStroke}
+                strokes={strokes}
+                mode={this.props.mode}
+              />
+            )}
 
             <TransitionGroup>
               {Object.values(cards).map(card => {

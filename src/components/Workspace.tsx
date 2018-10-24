@@ -125,7 +125,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
           />
 
           <div className={css.Shelf}>
-            <Content mode="fullscreen" url={shelfUrl} />
+            <Content mode="fullscreen" noInk url={shelfUrl} />
           </div>
 
           <div className={css.Peers}>

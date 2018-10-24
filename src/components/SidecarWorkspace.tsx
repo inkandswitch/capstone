@@ -27,7 +27,7 @@ export default class SidecarWorkspace extends React.Component<Props> {
       <div>
         <GPSInput />
         <Clipboard onPaste={this.onPaste} />
-        <Content mode="fullscreen" url={doc.shelfUrl} />
+        <Content mode="fullscreen" noInk url={doc.shelfUrl} />
       </div>
     )
   }
