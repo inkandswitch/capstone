@@ -88,10 +88,16 @@ const style = {
     transform: "scale(0.25)",
     transformOrigin: "0 0",
   },
+  Fullscreen: {
+    width: "100%",
+    height: "100%",
+    overflow: "scroll",
+  } as React.CSSProperties,
   Fullscreen__IFrame: {
-    width: IFRAME_DIMENSIONS.width + "px",
-    height: IFRAME_DIMENSIONS.height + "px",
-  },
+    width: "100vw",
+    height: "100vh",
+    pointerEvents: "none",
+  } as React.CSSProperties,
   Embed__IFrame: {
     width: IFRAME_DIMENSIONS.width + "px",
     height: IFRAME_DIMENSIONS.height + "px",
