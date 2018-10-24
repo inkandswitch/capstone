@@ -5,9 +5,6 @@ import * as RxOps from "rxjs/operators"
 import * as GPS from "../logic/GPS"
 import * as Dragger from "../logic/Dragger"
 import * as Resizer from "../logic/Resizer"
-import * as DOM from "../logic/DOM"
-import Warp from "./Warp"
-import { createPortal } from "react-dom"
 
 interface InteractableProps {
   onStart?: () => void
