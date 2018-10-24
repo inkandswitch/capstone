@@ -3,6 +3,8 @@ import * as Reify from "../data/Reify"
 import * as Widget from "./Widget"
 import * as css from "./css/Bot.css"
 import { AnyDoc } from "automerge/frontend"
+import { AnyChange } from "./Widget"
+import { DocumentActor } from "./Content"
 
 export interface Model {
   id: string
@@ -12,12 +14,42 @@ export interface Model {
 interface Props extends Widget.Props<Model> {}
 
 interface State {
-  err?: string
+  error?: string
+}
+
+const safeEval = (code: string) => {
+  let error
+
+  try {
+    eval(`(() => { ${code} })()`)
+  } catch (e) {
+    error = e
+  }
+
+  return error
+}
+
+class BotActor extends DocumentActor<Model, AnyChange> {
+  async onMessage(message: AnyChange) {
+    // console.log(`[BOT MSG (${this.doc.id})]`, message)
+
+    if (!message.from) return
+
+    if (message.from.indexOf("Board")) {
+      // TODO: have autonomic and triggerable bots
+
+      // const error = safeEval(this.doc.code)
+
+      // if (error) {
+      //   console.log(`[BOT ERR (${this.doc.id})]`, error)
+      // }
+    }
+  }
 }
 
 class Bot extends React.Component<Props, State> {
   state = {
-    err: undefined,
+    error: undefined,
   }
 
   static reify(doc: AnyDoc): Model {
@@ -27,27 +59,19 @@ class Bot extends React.Component<Props, State> {
     }
   }
 
-  componentDidMount() {
-    this.runCode()
-  }
+  // componentDidMount() {
+  //   this.runCode()
+  // }
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.doc.code !== prevProps.doc.code) {
-      this.runCode()
-    }
-  }
+  // componentDidUpdate(prevProps: Props) {
+  //   if (this.props.doc.code !== prevProps.doc.code) {
+  //     this.runCode()
+  //   }
+  // }
 
   runCode = () => {
-    const { code } = this.props.doc
-    let err
-
-    try {
-      eval(`(() => { ${code} })()`)
-    } catch (e) {
-      err = e
-    }
-
-    this.setState({ err })
+    const error = safeEval(this.props.doc.code)
+    this.setState({ error })
   }
 
   render() {
@@ -59,10 +83,12 @@ class Bot extends React.Component<Props, State> {
           Execute
         </div>
 
-        {this.state.err && <div style={{ color: "red" }}>{this.state.err}</div>}
+        {this.state.error && (
+          <div style={{ color: "red" }}>{this.state.error}</div>
+        )}
       </div>
     )
   }
 }
 
-export default Widget.create("Bot", Bot, Bot.reify)
+export default Widget.create("Bot", Bot, Bot.reify, BotActor)

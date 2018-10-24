@@ -41,6 +41,20 @@ export default class InteractableCard extends React.Component<Props, State> {
     }
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (
+      nextProps.card.width !== this.props.card.width ||
+      nextProps.card.height !== this.props.card.height
+    ) {
+      this.setState({
+        currentSize: {
+          width: nextProps.card.width,
+          height: nextProps.card.height,
+        },
+      })
+    }
+  }
+
   start = () => {
     this.props.onDragStart && this.props.onDragStart(this.props.card.id)
   }
