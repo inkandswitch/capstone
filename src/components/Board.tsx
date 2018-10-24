@@ -16,7 +16,6 @@ import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
-import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as DataImport from "./DataImport"
@@ -40,7 +39,7 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   onNavigate?: (url: string, extraProps?: {}) => void
   onNavigateBack?: () => void
   scale?: number
-  transformOrigin?: string
+  backNavCardTarget?: CardModel // Used to target back nav zooming.
   noInk?: boolean
   zIndex?: number
 }
@@ -63,8 +62,6 @@ export interface CreateCard extends Message {
     }
   }
 }
-
-const BOARD_CREATE_TARGET_SIZE = 20
 
 type WidgetMessage = CreateCard
 type InMessage = WidgetMessage | ReceiveDocuments
@@ -191,14 +188,10 @@ class Board extends React.Component<Props, State> {
     event.preventDefault()
     event.stopPropagation()
 
-    console.log("drop", event)
-
     const { clientX, clientY } = event
 
     DataImport.importData(event.dataTransfer).forEach(
       async (urlPromise, idx) => {
-        console.log("importing", idx)
-
         const url = await urlPromise
         const size = await getCardSize(url)
 
@@ -216,8 +209,15 @@ class Board extends React.Component<Props, State> {
     })
   }
 
-  onDoubleTap = (url: string) => {
-    this.props.onNavigate && this.props.onNavigate(url)
+  onDoubleTap = (id: string) => {
+    const card = this.props.doc.cards[id]
+    if (!card) {
+      return
+    }
+    this.props.onNavigate &&
+      this.props.onNavigate(card.url, {
+        backNavCardTarget: card,
+      })
   }
 
   onBoardPinchStart = (measurements: PinchMetrics.Measurements) => {
@@ -231,8 +231,6 @@ class Board extends React.Component<Props, State> {
   }
 
   onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
-    console.log("board pinch in  end")
-    //this.setState({ pinch: undefined })
     const didNavigate = this.props.onNavigateBack && this.props.onNavigateBack()
     if (!didNavigate) {
       this.setState({ pinch: undefined })
@@ -271,33 +269,22 @@ class Board extends React.Component<Props, State> {
     if (!card) {
       return
     }
-    console.log("pinch out end")
-    const scaleStyle = getBoardScaleStyle(card, this.state.pinch!)
     this.props.onNavigate &&
       this.props.onNavigate(card.url, {
-        transformOrigin: scaleStyle.transformOrigin,
+        backNavCardTarget: { ...card },
       })
   }
 
   render() {
-    const { noInk } = this.props
+    const { noInk, backNavCardTarget } = this.props
     const { cards, strokes, topZ } = this.props.doc
     const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
       case "fullscreen": {
-        // Get scale transform if zooming into a card.
-        let style = {}
-        if (pinch && scalingCard && cards) {
-          const card = cards[scalingCard]
-          if (card) {
-            Object.assign(style, getBoardScaleStyle(card, pinch))
-          }
-        } else if (pinch && pinch.scale < 1.0) {
-          Object.assign(style, {
-            transform: `scale(${pinch.scale})`,
-            transformOrigin: this.props.transformOrigin || "50% 50%",
-          })
-        }
+        // Get the transform styles for zoom in/out states.
+        const style = this.getZoomTransformStyle()
+
+        // Needed to place the previous board (the back stack board) behind the current board and shelf.
         if (this.props.zIndex) {
           style["zIndex"] = this.props.zIndex
         }
@@ -427,26 +414,68 @@ class Board extends React.Component<Props, State> {
       doc.strokes.push(...strokes)
     })
   }
+
+  getZoomTransformStyle() {
+    const { backNavCardTarget } = this.props
+    const { cards } = this.props.doc
+    const { pinch, scalingCard } = this.state
+
+    let style: any = {}
+    // Zooming towards a card
+    if (pinch && scalingCard && cards) {
+      const card = cards[scalingCard]
+      if (card) {
+        const scale = getZoomTowardsScale(card, pinch)
+        const scaleOrigin = getZoomOrigin(card)
+        style = {
+          transform: `scale(${scale})`,
+          transformOrigin: `${scaleOrigin.x}% ${scaleOrigin.y}%`,
+        }
+      }
+
+      // Zooming away from the current board
+    } else if (pinch && pinch.scale < 1.0) {
+      if (backNavCardTarget) {
+        const scale = getZoomAwayScale(backNavCardTarget, pinch)
+        const scaleOrigin = getZoomOrigin(backNavCardTarget)
+        style = {
+          transform: `scale(${scale})`,
+          transformOrigin: `${scaleOrigin.x}% ${scaleOrigin.y}%`,
+        }
+      } else {
+        // If we don't know where to zoom back to, just zoom towards the middle
+        // of the previous board.
+        const scale = getZoomAwayScale(SizeUtils.CARD_DEFAULT_SIZE, pinch)
+        style = {
+          transform: `scale(${scale})`,
+          transformOrigin: "50% 50%",
+        }
+      }
+    }
+    return style
+  }
 }
 
-function getBoardScaleStyle(
-  card: CardModel,
-  pinchMeasurements: PinchMetrics.Measurements,
-) {
+function getZoomOrigin(card: CardModel) {
   const { x, y, height, width } = card
   const origin = {
     x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
     y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
   }
-  const transformOrigin = `${origin.x}% ${origin.y}%`
+  return origin
+}
 
-  const maxScale = BOARD_DIMENSIONS.width / width
-  const transform = Math.min(pinchMeasurements.scale, maxScale)
+function getZoomAwayScale(card: Size, measurements: PinchMetrics.Measurements) {
+  const { width } = card
+  return clamp(measurements.scale, width / BOARD_DIMENSIONS.width, 1.0)
+}
 
-  return {
-    transform: `scale(${transform})`,
-    transformOrigin: transformOrigin,
-  }
+function getZoomTowardsScale(
+  card: Size,
+  measurements: PinchMetrics.Measurements,
+) {
+  const { width } = card
+  return clamp(measurements.scale, 1.0, BOARD_DIMENSIONS.width / width)
 }
 
 function getCardScaleProgress(

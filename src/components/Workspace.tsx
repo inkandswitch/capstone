@@ -11,9 +11,6 @@ import Content, {
   ReceiveDocuments,
 } from "./Content"
 import Clipboard from "./Clipboard"
-import Peers from "./Peers"
-import * as Link from "../data/Link"
-import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
 
 type NavEntry = { url: string; [extra: string]: any }
@@ -57,6 +54,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   push = (url: string, extraProps: {} = {}) => {
+    console.log("extra props", extraProps)
     this.props.change(doc => {
       doc.navStack.push({ url, ...extraProps })
     })
@@ -113,6 +111,8 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   render() {
     const { shelfUrl, navStack } = this.props.doc
     const { url: currentUrl, ...currentExtra } = this.peek()
+    console.log(navStack)
+    console.log("Current extra", currentExtra)
     // oh yeah
     const previous =
       navStack.length === 0
@@ -120,8 +120,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
         : navStack.length === 1
           ? { url: this.props.doc.rootUrl }
           : navStack[navStack.length - 2]
-    console.log("nav stack", navStack)
-    console.log("previous", previous)
     return (
       <div className={css.Workspace}>
         <GPSInput />
