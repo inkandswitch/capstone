@@ -15,6 +15,7 @@ import "./Identity"
 import "./PeerStatus"
 import "./Peer"
 import "./HTML"
+import "./Bot"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import GlobalKeyboard from "./GlobalKeyboard"
@@ -27,6 +28,9 @@ type State = {
 }
 
 type Props = {}
+
+import * as UUID from "../data/UUID"
+window.UUID = UUID
 
 export default class App extends React.Component<Props, State> {
   state: State = {}
