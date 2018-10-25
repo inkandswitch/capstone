@@ -4,7 +4,7 @@ import * as Link from "../data/Link"
 
 import Workspace from "./Workspace"
 import Store from "../data/Store"
-import { Doc, FrontendHandle } from "../modules/hypermerge"
+import { Doc, FrontendManager } from "../modules/hypermerge"
 import * as Debug from "debug"
 const log = Debug("component:control:widget")
 
@@ -16,7 +16,7 @@ type Props = {
 type State = {
   url: string
   json: string
-  handle: FrontendHandle<unknown>
+  handle: FrontendManager<unknown>
   peers: number
   feeds: number
 }
@@ -32,11 +32,11 @@ export default class DebugWidget extends React.Component<Props, State> {
 
   docListener = (doc: Doc<unknown>) => {
     const json = JSON.stringify(doc, undefined, 2)
-    this.setState({json})
+    this.setState({ json })
   }
 
   infoListener = (peers: number, feeds: number) => {
-    this.setState({peers, feeds})
+    this.setState({ peers, feeds })
   }
 
   componentDidMount() {
@@ -45,14 +45,20 @@ export default class DebugWidget extends React.Component<Props, State> {
   }
 
   jsonComponent() {
-    const chunks = this.state.json.split('"').map((chunk : string, i: number) => {
-      if (chunk.startsWith("capstone://")) {
-        return <a key={i} href={"#"} onClick={ this.pushUrlFn(chunk) }>{chunk}</a>
-      } else {
-        return chunk
-      }
-    })
-    return <pre> { chunks } </pre>
+    const chunks = this.state.json
+      .split('"')
+      .map((chunk: string, i: number) => {
+        if (chunk.startsWith("capstone://")) {
+          return (
+            <a key={i} href={"#"} onClick={this.pushUrlFn(chunk)}>
+              {chunk}
+            </a>
+          )
+        } else {
+          return chunk
+        }
+      })
+    return <pre> {chunks} </pre>
   }
 
   resetUrl = () => {
@@ -81,9 +87,22 @@ export default class DebugWidget extends React.Component<Props, State> {
     log(this.state)
     return (
       <div>
-        <div> { this.state.url } | { this.state.url === this.props.url ? "" : <a href={"#"} onClick={this.resetUrl}>{"reset"}</a> } </div>
-        <div> peers: { this.state.peers } | feeds: { this.state.feeds } </div>
-        { this.jsonComponent() }
+        <div>
+          {" "}
+          {this.state.url} |{" "}
+          {this.state.url === this.props.url ? (
+            ""
+          ) : (
+            <a href={"#"} onClick={this.resetUrl}>
+              {"reset"}
+            </a>
+          )}{" "}
+        </div>
+        <div>
+          {" "}
+          peers: {this.state.peers} | feeds: {this.state.feeds}{" "}
+        </div>
+        {this.jsonComponent()}
       </div>
     )
   }

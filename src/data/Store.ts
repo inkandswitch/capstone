@@ -4,7 +4,7 @@ import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
-import { FrontendHandle } from "../modules/hypermerge/frontend"
+import { FrontendManager } from "../modules/hypermerge/frontend"
 import Queue from "./Queue"
 
 const log = Debug("store:front")
@@ -21,7 +21,7 @@ export type Activity = Msg.UploadActivity | Msg.DownloadActivity
 
 export default class Store {
   sendQueue = new Queue<Msg.FrontendToBackend>("Store")
-  index: { [id: string]: FrontendHandle<any> } = {}
+  index: { [id: string]: FrontendManager<any> } = {}
   peerCount: { [id: string]: number } = {}
   feedCount: { [id: string]: number } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
@@ -39,11 +39,11 @@ export default class Store {
     })
   }
 
-  handle(id: string): FrontendHandle<any> {
+  handle(id: string): FrontendManager<any> {
     return this.index[id] || this.makeHandle(id)
   }
 
-  create(setup: ChangeFn<any>): FrontendHandle<any> {
+  create(setup: ChangeFn<any>): FrontendManager<any> {
     const buffers = keyPair()
     const keys = {
       publicKey: Base58.encode(buffers.publicKey),
@@ -71,9 +71,9 @@ export default class Store {
     })
   }
 
-  makeHandle(docId: string, actorId?: string): FrontendHandle<any> {
+  makeHandle(docId: string, actorId?: string): FrontendManager<any> {
     log("makeHandle", docId, actorId)
-    const handle = new FrontendHandle<any>(docId, actorId)
+    const handle = new FrontendManager<any>(docId, actorId)
 
     this.index[docId] = handle
 

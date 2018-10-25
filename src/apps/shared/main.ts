@@ -8,7 +8,9 @@ import Content from "../../components/Content"
 import { setupControlPanel, toggleControl } from "./control"
 
 const store = new Store()
-const worker = new (Worker as any)("worker.js", { name: localStorage.debug || ''}) as any // only way I could find to get debug enabled for boot debug messages
+const worker = new (Worker as any)("worker.js", {
+  name: localStorage.debug || "",
+}) as any // only way I could find to get debug enabled for boot debug messages
 
 // Used for debugging from the console:
 window.Content = Content

@@ -3,7 +3,7 @@ import * as ReactDOM from "react-dom"
 import ControlPanel from "../../components/ControlPanel"
 import Store from "../../data/Store"
 
-let ControlPanelDOM : null | HTMLElement = null
+let ControlPanelDOM: null | HTMLElement = null
 
 export function setupControlPanel(store: Store) {
   ControlPanelDOM = document.getElementById("ControlPanel")!

@@ -7,7 +7,7 @@ import * as Debug from "debug"
 
 const log = Debug("hypermerge:back")
 
-export class BackendHandle extends EventEmitter {
+export class BackendManager extends EventEmitter {
   docId: string
   actorId?: string
   private hypermerge: Hypermerge
