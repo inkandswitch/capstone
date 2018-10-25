@@ -53,9 +53,8 @@ export class Dragger {
     this.onStop && this.onStop(this.origin.x, this.origin.y)
   }
 
-  setPosition(e: Point) {
-    this.origin = e
-    this.measurements = undefined
+  setPosition(pt: Point) {
+    this.origin = pt
   }
 
   private translate(origin: Point, measurements: DragMetrics.Measurements) {

@@ -65,6 +65,10 @@ export class Resizer {
     this.onDrag && this.onDrag(newSize)
   }
 
+  setSize(size: Size) {
+    this.originalSize = size
+  }
+
   stop() {
     if (!this.measurements) throw new Error("Must call start() before stop()")
     this.measurements = undefined

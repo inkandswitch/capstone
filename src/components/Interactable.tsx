@@ -73,6 +73,7 @@ export default class Interactable extends React.Component<
         nextProps.position.y !== this.props.position.y)
     ) {
       this.setState({ position: nextProps.position })
+      this.dragger && this.dragger.setPosition(nextProps.position)
     }
 
     if (
@@ -82,6 +83,7 @@ export default class Interactable extends React.Component<
         nextProps.originalSize.height !== this.props.originalSize.height)
     ) {
       this.setState({ currentSize: nextProps.originalSize })
+      this.resizer && this.resizer.setSize(nextProps.originalSize)
     }
   }
 
