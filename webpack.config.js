@@ -2,6 +2,8 @@ const path = require("path")
 const EncodingPlugin = require("webpack-encoding-plugin")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin")
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+  .BundleAnalyzerPlugin
 const glob = require("glob")
 const env = process.env.NODE_ENV
 
@@ -135,6 +137,7 @@ module.exports = (env = {}) =>
         new EncodingPlugin({
           encoding: "ascii",
         }),
+        new BundleAnalyzerPlugin(),
       ],
     }),
   ].filter(x => x)
