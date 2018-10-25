@@ -133,9 +133,13 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   render() {
-    const { doc, env } = this.props
+    const { doc, env, mode, url } = this.props
     const { url: currentUrl, ...currentExtra } = this.peek()
     const previous = this.getPrevious()
+
+    if (mode !== "fullscreen") {
+      return <div>Embedded workspace: {url}</div>
+    }
 
     if (env.device === "sidecar") {
       return (
