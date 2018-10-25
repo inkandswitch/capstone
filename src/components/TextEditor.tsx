@@ -22,7 +22,7 @@ export type Change = Removal | Insertion
 
 export interface Props {
   content: string
-  isFocused: boolean
+  isFocused?: boolean
   onChange: ((_: Change[]) => void)
 }
 
