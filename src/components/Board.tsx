@@ -4,6 +4,7 @@ import { clamp, isEmpty, size, noop } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
+import Pinchable from "./Pinchable"
 import EdgeBoardCreator from "./EdgeBoardCreator"
 import Content, {
   DocumentActor,
@@ -15,12 +16,12 @@ import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
 import * as UUID from "../data/UUID"
 import { EditDoc, AnyDoc } from "automerge/frontend"
-import * as Position from "../logic/Position"
 import Ink, { InkStroke } from "./Ink"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
+import { request } from "http"
 
 const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
@@ -36,9 +37,12 @@ export interface Model {
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
   availableWidth: number
-  onNavigate?: (url: string) => void
+  onNavigate?: (url: string, extraProps?: {}) => void
+  onNavigateBack?: () => void
   scale?: number
+  backNavCardTarget?: CardModel // Used to target back nav zooming.
   noInk?: boolean
+  zIndex?: number
 }
 
 interface State {
@@ -59,8 +63,6 @@ export interface CreateCard extends Message {
     }
   }
 }
-
-const BOARD_CREATE_TARGET_SIZE = 20
 
 type WidgetMessage = CreateCard
 type InMessage = WidgetMessage | ReceiveDocuments
@@ -128,10 +130,7 @@ function addCard(
 
 class Board extends React.Component<Props, State> {
   boardEl?: HTMLDivElement
-  state: State = {
-    pinch: undefined,
-    scalingCard: undefined,
-  }
+  state: State = { pinch: undefined }
 
   static reify(doc: AnyDoc): Model {
     return {
@@ -190,14 +189,10 @@ class Board extends React.Component<Props, State> {
     event.preventDefault()
     event.stopPropagation()
 
-    console.log("drop", event)
-
     const { clientX, clientY } = event
 
     DataImport.importData(event.dataTransfer).forEach(
       async (urlPromise, idx) => {
-        console.log("importing", idx)
-
         const url = await urlPromise
         const size = await getCardSize(url)
 
@@ -213,6 +208,37 @@ class Board extends React.Component<Props, State> {
     this.props.change(doc => {
       addCard(url, doc, SizeUtils.CARD_DEFAULT_SIZE, position)
     })
+  }
+
+  onDoubleTap = (id: string) => {
+    const card = this.props.doc.cards[id]
+    if (!card) {
+      return
+    }
+    console.log("double tap", card)
+    this.props.onNavigate &&
+      this.props.onNavigate(card.url, {
+        backNavCardTarget: { ...card },
+      })
+  }
+
+  onBoardPinchStart = (measurements: PinchMetrics.Measurements) => {
+    this.setState({
+      pinch: measurements,
+    })
+  }
+
+  onBoardPinchMove = (measurements: PinchMetrics.Measurements) => {
+    this.setState({ pinch: measurements })
+  }
+
+  onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
+    const didNavigate = this.props.onNavigateBack && this.props.onNavigateBack()
+    // We only reset state if we didn't navigate. Otherwise resetting state causes
+    // a flicker of un-scaled board content.
+    if (!didNavigate) {
+      this.setState({ pinch: undefined })
+    }
   }
 
   onPinchStart = (cardId: string, measurements: PinchMetrics.Measurements) => {
@@ -247,77 +273,97 @@ class Board extends React.Component<Props, State> {
     if (!card) {
       return
     }
-    this.props.onNavigate && this.props.onNavigate(card.url)
+    this.props.onNavigate &&
+      this.props.onNavigate(card.url, {
+        backNavCardTarget: { ...card },
+      })
+
+    // TODO: we don't reset state here because it causes a flicker of
+    // un-scaled content. Because we can't reset state here, we have to
+    // mount and re-mount at the Workspace level when transitioning a board
+    // from current to previous. We could void the remount if we find a way
+    // to reset state here.
+    // XXX: A trick would be to use the presence of the zIndex prop to unset
+    // these state values.
+    //this.setState({ pinch: undefined, scalingCard: undefined })
   }
 
   render() {
-    const { noInk } = this.props
+    const { noInk, zIndex } = this.props
     const { cards, strokes, topZ } = this.props.doc
     const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
       case "fullscreen": {
-        // Get scale transform if zooming into a card.
-        let style = {}
-        if (pinch && scalingCard && cards) {
-          const card = cards[scalingCard]
-          if (card) {
-            Object.assign(style, getBoardScaleStyle(card, pinch))
-          }
+        // Get the transform styles for zoom in/out states.
+        const style = this.getZoomTransformStyle()
+
+        // Needed to place the previous board (the back stack board) behind the current board and shelf.
+        if (zIndex) {
+          style["zIndex"] = zIndex
         }
 
         return (
-          <div
-            data-container
-            className={css.Board}
-            ref={this.onRef}
-            onDragOver={this.onDragOver}
-            onDrop={this.onDrop}
-            style={style}>
-            {noInk ? null : (
-              <Ink
-                onInkStroke={this.onInkStroke}
-                strokes={strokes}
-                mode={this.props.mode}
+          <Pinchable
+            onPinchStart={this.onBoardPinchStart}
+            onPinchMove={this.onBoardPinchMove}
+            onPinchInEnd={this.onBoardPinchInEnd}>
+            <div
+              data-container
+              className={css.Board}
+              ref={this.onRef}
+              onDragOver={this.onDragOver}
+              onDrop={this.onDrop}
+              style={style}>
+              {noInk ? null : (
+                <Ink
+                  onInkStroke={this.onInkStroke}
+                  strokes={strokes}
+                  mode={this.props.mode}
+                />
+              )}
+
+              <TransitionGroup>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
+                  let navScale = 0
+                  if (pinch && scalingCard && scalingCard === card.id) {
+                    navScale = getCardScaleProgress(card, pinch)
+                  }
+                  return (
+                    <CSSTransition
+                      key={card.id}
+                      classNames="Card"
+                      enter={false}
+                      timeout={{ exit: 1 }}>
+                      <Mirrorable cardId={card.id} onMirror={this.onMirror}>
+                        <InteractableCard
+                          card={card}
+                          onPinchStart={this.onPinchStart}
+                          onPinchMove={this.onPinchMove}
+                          onPinchOutEnd={this.onPinchOutEnd}
+                          onDoubleTap={this.onDoubleTap}
+                          onDragStart={this.onDragStart}
+                          onDragStop={this.onDragStop}
+                          onRemoved={this.onRemoved}
+                          onResizeStop={this.onResizeStop}>
+                          <Content
+                            mode="embed"
+                            url={card.url}
+                            scale={navScale}
+                          />
+                        </InteractableCard>
+                      </Mirrorable>
+                    </CSSTransition>
+                  )
+                })}
+              </TransitionGroup>
+
+              <EdgeBoardCreator
+                onBoardCreate={this.onCreateBoard}
+                zIndex={topZ + 1}
               />
-            )}
-
-            <TransitionGroup>
-              {Object.values(cards).map(card => {
-                if (!card) return null
-                let navScale = 0
-                if (pinch && scalingCard && scalingCard === card.id) {
-                  navScale = getCardScaleProgress(card, pinch)
-                }
-                return (
-                  <CSSTransition
-                    key={card.id}
-                    classNames="Card"
-                    enter={false}
-                    timeout={{ exit: 1 }}>
-                    <Mirrorable cardId={card.id} onMirror={this.onMirror}>
-                      <InteractableCard
-                        card={card}
-                        onPinchStart={this.onPinchStart}
-                        onPinchMove={this.onPinchMove}
-                        onPinchOutEnd={this.onPinchOutEnd}
-                        onDoubleTap={this.props.onNavigate}
-                        onDragStart={this.onDragStart}
-                        onDragStop={this.onDragStop}
-                        onRemoved={this.onRemoved}
-                        onResizeStop={this.onResizeStop}>
-                        <Content mode="embed" url={card.url} scale={navScale} />
-                      </InteractableCard>
-                    </Mirrorable>
-                  </CSSTransition>
-                )
-              })}
-            </TransitionGroup>
-
-            <EdgeBoardCreator
-              onBoardCreate={this.onCreateBoard}
-              zIndex={topZ + 1}
-            />
-          </div>
+            </div>
+          </Pinchable>
         )
       }
       case "embed": {
@@ -328,35 +374,36 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = 0.6 + 0.4 * (scale ? clamp(scale, 0, 1) : 0)
+        const overlayOpacity = 0.2 - 0.2 * (scale ? scale : 0)
 
         return (
-          <div className={css.BoardEmbed} ref={this.onRef}>
-            <div className={css.BoardEmbedBackground} />
-            <div style={{ opacity: overlayOpacity }}>
-              <Ink
-                onInkStroke={this.onInkStroke}
-                strokes={strokes}
-                mode={this.props.mode}
-                scale={contentScale}
-              />
-              <div style={style}>
-                {Object.values(cards).map(card => {
-                  if (!card) return null
-                  return (
-                    <InteractableCard
-                      key={card.id}
-                      card={card}
-                      onPinchOutEnd={noop}
-                      onDragStart={noop}
-                      onDragStop={noop}
-                      onResizeStop={noop}>
-                      <Content mode="preview" url={card.url} />
-                    </InteractableCard>
-                  )
-                })}
-              </div>
+          <div className={css.Board} ref={this.onRef}>
+            <Ink
+              onInkStroke={this.onInkStroke}
+              strokes={strokes}
+              mode={this.props.mode}
+              scale={contentScale}
+            />
+            <div style={style}>
+              {Object.values(cards).map(card => {
+                if (!card) return null
+                return (
+                  <InteractableCard
+                    key={card.id}
+                    card={card}
+                    onPinchOutEnd={noop}
+                    onDragStart={noop}
+                    onDragStop={noop}
+                    onResizeStop={noop}>
+                    <Content mode="preview" url={card.url} />
+                  </InteractableCard>
+                )
+              })}
             </div>
+            <div
+              className={css.FrostedGlass}
+              style={{ opacity: overlayOpacity }}
+            />
           </div>
         )
       }
@@ -381,26 +428,68 @@ class Board extends React.Component<Props, State> {
       doc.strokes.push(...strokes)
     })
   }
+
+  getZoomTransformStyle() {
+    const { backNavCardTarget } = this.props
+    const { cards } = this.props.doc
+    const { pinch, scalingCard } = this.state
+
+    let style: any = {}
+    // Zooming towards a card
+    if (pinch && scalingCard && cards) {
+      const card = cards[scalingCard]
+      if (card) {
+        const scale = getZoomTowardsScale(card, pinch)
+        const scaleOrigin = getZoomOrigin(card)
+        style = {
+          transform: `scale(${scale})`,
+          transformOrigin: `${scaleOrigin.x}% ${scaleOrigin.y}%`,
+        }
+      }
+
+      // Zooming away from the current board
+    } else if (pinch && pinch.scale < 1.0) {
+      if (backNavCardTarget) {
+        const scale = getZoomAwayScale(backNavCardTarget, pinch)
+        const scaleOrigin = getZoomOrigin(backNavCardTarget)
+        style = {
+          transform: `scale(${scale})`,
+          transformOrigin: `${scaleOrigin.x}% ${scaleOrigin.y}%`,
+        }
+      } else {
+        // If we don't know where to zoom back to, just zoom towards the middle
+        // of the previous board.
+        const scale = getZoomAwayScale(SizeUtils.CARD_DEFAULT_SIZE, pinch)
+        style = {
+          transform: `scale(${scale})`,
+          transformOrigin: "50% 50%",
+        }
+      }
+    }
+    return style
+  }
 }
 
-function getBoardScaleStyle(
-  card: CardModel,
-  pinchMeasurements: PinchMetrics.Measurements,
-) {
+function getZoomOrigin(card: CardModel) {
   const { x, y, height, width } = card
   const origin = {
     x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
     y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
   }
-  const transformOrigin = `${origin.x}% ${origin.y}%`
+  return origin
+}
 
-  const maxScale = BOARD_DIMENSIONS.width / width
-  const transform = clamp(pinchMeasurements.scale, 1.0, maxScale)
+function getZoomAwayScale(card: Size, measurements: PinchMetrics.Measurements) {
+  const { width } = card
+  return clamp(measurements.scale, width / BOARD_DIMENSIONS.width, 1.0)
+}
 
-  return {
-    transform: `scale(${transform})`,
-    transformOrigin: transformOrigin,
-  }
+function getZoomTowardsScale(
+  card: Size,
+  measurements: PinchMetrics.Measurements,
+) {
+  const { width } = card
+  return clamp(measurements.scale, 1.0, BOARD_DIMENSIONS.width / width)
 }
 
 function getCardScaleProgress(
