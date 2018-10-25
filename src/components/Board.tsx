@@ -403,7 +403,7 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = 0.2 - 0.2 * (scale ? scale : 0)
+        const overlayOpacity = clamp(0.2 - 0.2 * (scale ? scale : 0), 0.0, 0.2)
 
         return (
           <div className={css.Board} ref={this.onRef}>
@@ -540,44 +540,6 @@ class Board extends React.Component<Props, State> {
     }
     return 1.0
   }
-}
-
-function getZoomOrigin(card: CardModel) {
-  const { x, y, height, width } = card
-  const origin = {
-    x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
-    y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
-  }
-  return origin
-}
-
-function getZoomAwayScale(card: Size, measurements: PinchMetrics.Measurements) {
-  // fullscreen-scale
-  const destScale = card.width / BOARD_DIMENSIONS.width
-  const startScale = 1.0
-  return clamp(measurements.scale, destScale, startScale)
-  //const { width } = card
-  //return clamp(measurements.scale, width / BOARD_DIMENSIONS.width, 1.0)
-}
-
-function getZoomTowardsScale(
-  card: Size,
-  measurements: PinchMetrics.Measurements,
-) {
-  // translate to fullscreen-scale
-  const boardScale = card.width / BOARD_DIMENSIONS.width
-  const boardScaleMaxScale = 1.0
-  const currentBoardScale = clamp(
-    measurements.scale * boardScale,
-    boardScale,
-    boardScaleMaxScale,
-  )
-  // translate back to embed-scale
-  const cardScale = currentBoardScale / boardScale
-  return cardScale
-
-  //const { width } = card
-  //return clamp(measurements.scale, 1.0, BOARD_DIMENSIONS.width / width)
 }
 
 function getCardScaleProgress(
