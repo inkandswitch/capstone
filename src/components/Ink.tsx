@@ -7,14 +7,6 @@ import { Portal } from "react-portal"
 import * as GPS from "../logic/GPS"
 import * as RxOps from "rxjs/operators"
 import * as Content from "./Content"
-import { delay } from "lodash"
-
-interface Bounds {
-  readonly top: number
-  readonly right: number
-  readonly bottom: number
-  readonly left: number
-}
 
 export interface PenPoint {
   x: number
@@ -41,13 +33,6 @@ export interface CanvasProps {
   onInkStroke?: (strokes: InkStroke[]) => void
   strokeType?: StrokeType
   updateVisibleEraserPosition: (eraserPosition?: PenPoint) => void
-}
-
-const EMPTY_BOUNDS: Bounds = {
-  top: Infinity,
-  right: -Infinity,
-  bottom: -Infinity,
-  left: Infinity,
 }
 
 enum StrokeType {
@@ -168,11 +153,10 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   ctx?: CanvasRenderingContext2D | null
   pointerEventSubscription?: Rx.Subscription
 
-  strokes: InkStroke[] = []
+  wetStrokes: InkStroke[] = []
   strokeId = 0
   lastDrawnPoint = 0
   saveTimerId: number | undefined = undefined
-  bounds: Bounds = EMPTY_BOUNDS
 
   state: CanvasState = {}
 
@@ -235,13 +219,13 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     if (!strokeType) return
 
     const coalesced: PointerEvent[] = event.getCoalescedEvents()
-    if (!this.strokes[this.strokeId]) {
-      this.strokes[this.strokeId] = {
+    if (!this.wetStrokes[this.strokeId]) {
+      this.wetStrokes[this.strokeId] = {
         points: [],
         settings: StrokeSettings[strokeType],
       }
     }
-    this.strokes[this.strokeId].points.push(
+    this.wetStrokes[this.strokeId].points.push(
       ...coalesced.map((value, i, a) => {
         return {
           x: value.x,
@@ -260,7 +244,6 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
       this.props.updateVisibleEraserPosition(eraserPosition)
     }
 
-    this.updateBounds(x, y)
     this.drawWet()
   }
 
@@ -277,32 +260,13 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     if (!this.props.onInkStroke || !this.props.strokeType) {
       return
     }
-    this.props.onInkStroke(this.strokes)
-  }
-
-  center() {
-    const b = this.bounds
-    return {
-      x: (b.left + b.right) / 2,
-      y: (b.top + b.bottom) / 2,
-    }
-  }
-
-  updateBounds(x: number, y: number) {
-    const b = this.bounds
-    this.bounds = {
-      top: Math.min(b.top, y),
-      right: Math.max(b.right, x),
-      bottom: Math.max(b.bottom, y),
-      left: Math.min(b.left, x),
-    }
+    this.props.onInkStroke(this.wetStrokes)
   }
 
   reset() {
-    this.strokes = []
+    this.wetStrokes = []
     this.strokeId = 0
     this.lastDrawnPoint = 0
-    this.bounds = EMPTY_BOUNDS
     if (this.ctx && this.canvasElement) {
       this.ctx.clearRect(
         0,
@@ -347,15 +311,15 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   drawWet = Frame.throttle(() => {
-    if (!this.ctx || !this.strokes[this.strokeId] || !this.props.strokeType)
+    if (!this.ctx || !this.wetStrokes[this.strokeId] || !this.props.strokeType)
       return
 
     for (
       this.lastDrawnPoint;
-      this.lastDrawnPoint < this.strokes[this.strokeId].points.length;
+      this.lastDrawnPoint < this.wetStrokes[this.strokeId].points.length;
       this.lastDrawnPoint++
     ) {
-      let point = this.strokes[this.strokeId].points[this.lastDrawnPoint]
+      let point = this.wetStrokes[this.strokeId].points[this.lastDrawnPoint]
       let settings = StrokeSettings[this.props.strokeType]
       settings.lineWidth = point.strokeWidth
       Object.assign(this.ctx, settings)
@@ -363,7 +327,7 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
         continue
       }
       const twoPoints = [
-        this.strokes[this.strokeId].points[this.lastDrawnPoint - 1],
+        this.wetStrokes[this.strokeId].points[this.lastDrawnPoint - 1],
         point,
       ]
       const pathString =
