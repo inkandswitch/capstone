@@ -228,21 +228,24 @@ class Board extends React.Component<Props, State> {
   }
 
   onBoardPinchStart = (measurements: PinchMetrics.Measurements) => {
+    if (!this.props.backNavCardTarget) {
+      return
+    }
     this.setState({
       pinch: measurements,
     })
   }
 
   onBoardPinchMove = (measurements: PinchMetrics.Measurements) => {
+    if (!this.props.backNavCardTarget) {
+      return
+    }
     this.setState({ pinch: measurements })
   }
 
   onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
-    // We only reset state if there is no backNavCardTarget. This is sort of a hack,
-    // but we can use the absence of backNavCardTarget to indicate that we are at
-    // the nav root.
     if (!this.props.backNavCardTarget) {
-      this.setState({ pinch: undefined })
+      return
     }
   }
 
