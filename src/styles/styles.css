@@ -14,30 +14,6 @@ body {
   right: 0;
 }
 
-.CodeMirror {
-  /* Set height, width, borders, and global font properties here */
-  font-family: Roboto, Arial, Helvetica, sans-serif;
-  font-size: 14px;
-  direction: ltr;
-  max-height: 100%;
-  height: auto;
-}
-
-.CodeMirror-lines {
-  padding: 0px;
-}
-
-/* CodeMirror defines "overflow: scroll !important" on .CodeMirror-scroll.
- * This causes the .CodeMirror-scroll element to trigger pointercancel events
- * whenever a pointerdown/pointermove chain begins on that element (because the
- * browser things it should scroll and cancel the pointer). Override
- * that behavior by setting explicitly setting touch-action.
- */
-.CodeMirror .CodeMirror-scroll {
-  touch-action: none;
-  max-height: 500px;
-}
-
 .CommandFeedback {
   background: rgba(0, 0, 0, 0.5);
   height: 30px;

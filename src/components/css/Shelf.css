@@ -19,7 +19,7 @@
 
 :local(.Tab) {
   position: absolute;
-  height: 80px;
+  height: 200px;
   bottom: 100%;
   width: 100%;
 }

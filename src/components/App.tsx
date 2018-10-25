@@ -18,6 +18,7 @@ import "./HTML"
 import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
 import GlobalKeyboard from "./GlobalKeyboard"
+import "../styles/styles.css"
 
 import * as Debug from "debug"
 const log = Debug("component:app")

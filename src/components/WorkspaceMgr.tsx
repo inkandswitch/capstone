@@ -3,7 +3,7 @@ import * as ReactDOM from "react-dom"
 import * as Link from "../data/Link"
 import Workspace from "./Workspace"
 import Store from "../data/Store"
-import { FrontendHandle } from "../modules/hypermerge/frontend"
+import { FrontendManager } from "../modules/hypermerge/frontend"
 import * as Debug from "debug"
 const log = Debug("component:control:workspace")
 
@@ -159,9 +159,7 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
             </li>
           ))}
         </ul>
-        <code>
-          {this.state.json}
-        </code>
+        <code>{this.state.json}</code>
       </div>
     )
   }

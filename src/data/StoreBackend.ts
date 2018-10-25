@@ -1,6 +1,6 @@
 import * as Debug from "debug"
 import { Change, Patch } from "automerge/backend"
-import { BackendHandle } from "../modules/hypermerge/backend"
+import { BackendManager } from "../modules/hypermerge/backend"
 import { Hypermerge } from "../modules/hypermerge"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
@@ -12,8 +12,8 @@ export default class StoreBackend {
   sendQueue = new Queue<Msg.BackendToFrontend>("StoreBackend")
   //presenceTick?: any
   hypermerge: Hypermerge
-  docHandles: { [docId: string]: BackendHandle } = {}
-//  workspaceQ: Queue<string> = new Queue()
+  docHandles: { [docId: string]: BackendManager } = {}
+  //  workspaceQ: Queue<string> = new Queue()
 
   constructor(hm: Hypermerge) {
     log("constructing")

@@ -9,6 +9,8 @@
 // 8. does not allocate a hypercore for a document unless you intend to write to it (read only mode)
 // 9. exports almost the same interface as hypermerge
 
+// Notes - Hypermerge.front will not emit a doc if it is empty - even if its supposed to be
+
 export const EXT = "hypermerge"
 
 type FeedFn = (f: Feed<Uint8Array>) => void
@@ -25,16 +27,14 @@ import * as Base58 from "bs58"
 import * as crypto from "hypercore/lib/crypto"
 import { hypercore, Feed, Peer, discoveryKey } from "./hypercore"
 import * as Backend from "automerge/backend"
-import { Change, Patch, BackDoc } from "automerge/backend"
-import { BackendHandle } from "./backend"
-import { FrontendHandle } from "./frontend"
+import { Change } from "automerge/backend"
+import { BackendManager } from "./backend"
+import { FrontendManager } from "./frontend"
 import * as Debug from "debug"
 
 export { Feed, Peer } from "./hypercore"
 export { Patch, Doc, EditDoc, ChangeFn } from "automerge/frontend"
-export { FrontendHandle } from "./frontend"
-export { BackendHandle } from "./backend"
-
+export { BackendManager, FrontendManager }
 
 Debug.formatters.b = Base58.encode
 
@@ -73,7 +73,7 @@ export class Hypermerge {
   feeds: Map<string, Feed<Uint8Array>> = new Map()
   feedQs: Map<string, Queue<FeedFn>> = new Map()
   feedPeers: Map<string, Set<Peer>> = new Map()
-  docs: Map<string, BackendHandle> = new Map()
+  docs: Map<string, BackendManager> = new Map()
   ledger: Feed<LedgerData>
   docMetadata: Map<string, string[]> = new Map() // Map of Sets - FIXME
   swarm?: Swarm
@@ -102,20 +102,20 @@ export class Hypermerge {
     })
   }
 
-  createDocumentFrontend<T>(keys: Keys): FrontendHandle<T> {
+  createDocumentFrontend<T>(keys: Keys): FrontendManager<T> {
     const back = this.createDocument(keys)
-    const front = new FrontendHandle<T>(back.docId, back.docId)
+    const front = new FrontendManager<T>(back.docId, back.docId)
     front.back = back
     front.on("request", back.applyLocalChange)
     back.on("patch", front.patch)
     return front
   }
 
-  createDocument(keys: Keys): BackendHandle {
+  createDocument(keys: Keys): BackendManager {
     const docId = Base58.encode(keys.publicKey)
     log("Create", docId)
     const dk = discoveryKey(keys.publicKey)
-    const doc = new BackendHandle(this, docId, Backend.init())
+    const doc = new BackendManager(this, docId, Backend.init())
 
     this.docs.set(docId, doc)
 
@@ -135,8 +135,8 @@ export class Hypermerge {
     })
   }
 
-  openDocument(docId: string): BackendHandle {
-    let doc = this.docs.get(docId) || new BackendHandle(this, docId)
+  openDocument(docId: string): BackendManager {
+    let doc = this.docs.get(docId) || new BackendManager(this, docId)
     if (!this.docs.has(docId)) {
       this.docs.set(docId, doc)
       this.addMetadata(docId, docId)
@@ -146,9 +146,9 @@ export class Hypermerge {
     return doc
   }
 
-  openDocumentFrontend<T>(docId: string): FrontendHandle<T> {
+  openDocumentFrontend<T>(docId: string): FrontendManager<T> {
     const back = this.openDocument(docId)
-    const front = new FrontendHandle<T>(back.docId)
+    const front = new FrontendManager<T>(back.docId)
     front.back = back
     front.once("needsActorId", back.initActor)
     front.on("request", back.applyLocalChange)
@@ -168,7 +168,7 @@ export class Hypermerge {
     }
   }
 
-  private feedData(doc: BackendHandle, actorId: string): Promise<FeedData> {
+  private feedData(doc: BackendManager, actorId: string): Promise<FeedData> {
     return new Promise((resolve, reject) => {
       this.getFeed(doc, actorId, feed => {
         const writable = feed.writable
@@ -188,11 +188,11 @@ export class Hypermerge {
     })
   }
 
-  private allFeedData(doc: BackendHandle): Promise<FeedData[]> {
+  private allFeedData(doc: BackendManager): Promise<FeedData[]> {
     return Promise.all(doc.actorIds().map(key => this.feedData(doc, key)))
   }
 
-  writeChange(doc: BackendHandle, actorId: string, change: Change) {
+  writeChange(doc: BackendManager, actorId: string, change: Change) {
     this.getFeed(doc, actorId, feed => {
       feed.append(JsonBuffer.bufferify(change), err => {
         if (err) {
@@ -209,7 +209,7 @@ export class Hypermerge {
     })
   }
 
-  private loadDocument(doc: BackendHandle) {
+  private loadDocument(doc: BackendManager) {
     return this.ready.then(() =>
       this.allFeedData(doc).then(feedData => {
         const writer = feedData
@@ -238,7 +238,7 @@ export class Hypermerge {
     this.joined.delete(dk)
   }
 
-  private getFeed = (doc: BackendHandle, actorId: string, cb: FeedFn) => {
+  private getFeed = (doc: BackendManager, actorId: string, cb: FeedFn) => {
     const publicKey = Base58.decode(actorId)
     const dk = discoveryKey(publicKey)
     const dkString = Base58.encode(dk)
@@ -252,7 +252,7 @@ export class Hypermerge {
     }
   }
 
-  initActorFeed(doc: BackendHandle): string {
+  initActorFeed(doc: BackendManager): string {
     log("initActorFeed", doc.docId)
     const keys = crypto.keyPair()
     const actorId = Base58.encode(keys.publicKey)
@@ -264,7 +264,7 @@ export class Hypermerge {
     peer.stream.extension(EXT, Buffer.from(JSON.stringify(data)))
   }
 
-  actorIds(doc: BackendHandle): string[] {
+  actorIds(doc: BackendManager): string[] {
     return this.docMetadata.get(doc.docId) || []
   }
 
@@ -279,13 +279,15 @@ export class Hypermerge {
     return this.feeds.get(dkString)!
   }
 
-  peers(doc: BackendHandle): Peer[] {
+  peers(doc: BackendManager): Peer[] {
     return ([] as Peer[]).concat(
-      ...this.actorIds(doc).map(actorId => [...(this.feedPeers.get(actorId) || [])]),
+      ...this.actorIds(doc).map(actorId => [
+        ...(this.feedPeers.get(actorId) || []),
+      ]),
     )
   }
 
-  private initFeed(doc: BackendHandle, keys: Keys): Queue<FeedFn> {
+  private initFeed(doc: BackendManager, keys: Keys): Queue<FeedFn> {
     const { publicKey, secretKey } = keys
     const actorId = Base58.encode(publicKey)
     const storage = this.storageFn(actorId)
@@ -349,6 +351,7 @@ export class Hypermerge {
       live: true,
       id: this.ledger.id,
       encrypt: false,
+      timeout: 10000,
       extensions: [EXT],
     })
 
@@ -370,7 +373,7 @@ export class Hypermerge {
     return stream
   }
 
-  releaseHandle(handle: BackendHandle) {
+  releaseHandle(handle: BackendManager) {
     throw new Error("unimplemented")
   }
 }

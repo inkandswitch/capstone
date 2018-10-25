@@ -5,6 +5,7 @@ import * as RxOps from "rxjs/operators"
 import * as GPS from "../logic/GPS"
 import * as Dragger from "../logic/Dragger"
 import * as Resizer from "../logic/Resizer"
+import { DEFAULT_CARD_DIMENSION } from "../logic/SizeUtils"
 
 interface InteractableProps {
   onStart?: () => void
@@ -19,6 +20,7 @@ interface InteractableProps {
   position: Point
   originalSize: Size
   preserveAspectRatio: boolean
+  minDimensionForLongestSide: number
   z: number
 }
 
@@ -160,9 +162,32 @@ export default class Interactable extends React.Component<
     }
   }
 
+  newSizeAdjustedToMin = (newSize: Size) => {
+    const { originalSize, minDimensionForLongestSide } = this.props
+    if (originalSize.height <= originalSize.width) {
+      // landscape or square
+      const resolvedWidth = Math.max(minDimensionForLongestSide, newSize.width)
+      return {
+        width: resolvedWidth,
+        height: resolvedWidth * (newSize.height / newSize.width),
+      }
+    } else {
+      // portrait
+      const resolvedHeight = Math.max(
+        minDimensionForLongestSide,
+        newSize.height,
+      )
+      return {
+        width: resolvedHeight * (newSize.width / newSize.height),
+        height: resolvedHeight,
+      }
+    }
+  }
+
   onResize = (newSize: Size) => {
-    this.props.onResize && this.props.onResize(newSize)
-    this.setState({ currentSize: newSize })
+    const resolvedSize = this.newSizeAdjustedToMin(newSize)
+    this.props.onResize && this.props.onResize(resolvedSize)
+    this.setState({ currentSize: resolvedSize })
   }
 
   onDragStop = (x: number, y: number) => {
@@ -215,8 +240,9 @@ export default class Interactable extends React.Component<
   }
 
   onResizeStop = (newSize: Size) => {
-    this.props.onResizeStop && this.props.onResizeStop(newSize)
-    this.setState({ isResizing: false, currentSize: newSize })
+    const resolvedSize = this.newSizeAdjustedToMin(newSize)
+    this.props.onResizeStop && this.props.onResizeStop(resolvedSize)
+    this.setState({ isResizing: false, currentSize: resolvedSize })
   }
 
   onPointerEvent = (e: PointerEvent) => {
