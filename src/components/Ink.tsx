@@ -155,7 +155,7 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
 
   wetStroke?: InkStroke
   lastDrawnPoint = 0
-  saveTimerId: number | undefined = undefined
+  nextDryStroke = 0
 
   state: CanvasState = {}
 
@@ -206,9 +206,6 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   onPanStart = (event: PointerEvent) => {
-    if (this.saveTimerId) {
-      clearTimeout(this.saveTimerId)
-    }
     this.onPanMove(event)
   }
 
@@ -331,7 +328,10 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     this.prepareCanvas(this.canvasElement)
     const ctx = this.canvasElement.getContext("2d")
     if (!ctx || strokes.length == 0) return
-    strokes.forEach(stroke => this.drawDryStroke(stroke))
+    strokes
+      .slice(this.nextDryStroke)
+      .forEach(stroke => this.drawDryStroke(stroke))
+    this.nextDryStroke = strokes.length
   })
 
   drawDryStroke(stroke: InkStroke) {
