@@ -22,7 +22,7 @@ import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
-const withAvailableWidth = require("react-with-available-width")
+const withAvailableSize = require("../modules/react-with-available-size")
 const boardIcon = require("../assets/board_icon.svg")
 
 // TODO: not a constant
@@ -35,7 +35,7 @@ export interface Model {
 }
 
 interface Props extends Widget.Props<Model, WidgetMessage> {
-  availableWidth: number
+  availableSize: Size
   onNavigate?: (url: string, extraProps?: {}) => void
   onNavigateBack?: () => void
   scale?: number
@@ -371,7 +371,8 @@ class Board extends React.Component<Props, State> {
         )
       }
       case "embed": {
-        const contentScale = this.props.availableWidth / BOARD_DIMENSIONS.width
+        const contentScale =
+          this.props.availableSize.width / BOARD_DIMENSIONS.width
         const { scale } = this.props
         const style = {
           transform: `scale(${contentScale})`,
@@ -414,9 +415,9 @@ class Board extends React.Component<Props, State> {
       case "preview": {
         return (
           <div>
-            <div className={css.Board}/>
-            <div className={css.FrostedGlass}/>
-         </div>
+            <div className={css.Board} />
+            <div className={css.FrostedGlass} />
+          </div>
         )
       }
     }
@@ -506,7 +507,7 @@ function getCardScaleProgress(
 
 export default Widget.create(
   "Board",
-  withAvailableWidth(Board, (domElement: HTMLElement, notify: () => void) => {
+  withAvailableSize(Board, (domElement: HTMLElement, notify: () => void) => {
     const observer = new ResizeObserver(() => notify())
     observer.observe(domElement)
     return () => observer.unobserve(domElement)
