@@ -377,7 +377,7 @@ class Board extends React.Component<Props, State> {
         const overlayOpacity = 0.2 - 0.2 * (scale ? scale : 0)
 
         return (
-          <div className={css.BoardEmbed} ref={this.onRef}>
+          <div className={css.Board} ref={this.onRef}>
             <Ink
               onInkStroke={this.onInkStroke}
               strokes={strokes}
@@ -401,7 +401,7 @@ class Board extends React.Component<Props, State> {
               })}
             </div>
             <div
-              className={css.BoardEmbedBackground}
+              className={css.FrostedGlass}
               style={{ opacity: overlayOpacity }}
             />
           </div>

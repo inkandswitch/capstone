@@ -4,9 +4,10 @@
   position: absolute;
   background-color: #f9f8f3;
   overflow: hidden;
+  border-radius: 3px;
 }
 
-:local(.BoardEmbedBackground) {
+:local(.FrostedGlass) {
   top: 0;
   right: 0;
   bottom: 0;
