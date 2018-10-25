@@ -181,12 +181,6 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.strokes.length !== this.props.strokes.length) {
-      requestAnimationFrame(this.drawDry)
-    }
-  }
-
   shouldComponentUpdate() {
     return false
   }
