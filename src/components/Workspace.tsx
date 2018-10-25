@@ -12,6 +12,7 @@ import Content, {
 } from "./Content"
 import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
+import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
 
 type NavEntry = { url: string; [extra: string]: any }
@@ -146,14 +147,16 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
             zIndex={-1}
           />
         ) : null}
-        <Content
-          key={currentUrl}
-          mode={this.props.mode}
-          url={currentUrl}
-          {...currentExtra}
-          onNavigate={this.push}
-          onNavigateBack={this.pop}
-        />
+        <Pinchable onPinchInEnd={this.pop}>
+          <Content
+            key={currentUrl}
+            mode={this.props.mode}
+            url={currentUrl}
+            {...currentExtra}
+            onNavigate={this.push}
+            onNavigateBack={this.pop}
+          />
+        </Pinchable>
         <Shelf>
           <Content mode="fullscreen" noInk url={doc.shelfUrl} />
         </Shelf>

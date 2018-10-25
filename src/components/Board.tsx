@@ -233,12 +233,12 @@ class Board extends React.Component<Props, State> {
   }
 
   onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
-    const didNavigate = this.props.onNavigateBack && this.props.onNavigateBack()
+    //const didNavigate = this.props.onNavigateBack && this.props.onNavigateBack()
     // We only reset state if we didn't navigate. Otherwise resetting state causes
     // a flicker of un-scaled board content.
-    if (!didNavigate) {
-      this.setState({ pinch: undefined })
-    }
+    //if (!didNavigate) {
+    //  this.setState({ pinch: undefined })
+    //}
   }
 
   onPinchStart = (cardId: string, measurements: PinchMetrics.Measurements) => {
