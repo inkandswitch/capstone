@@ -13,7 +13,8 @@
 
 ## Cards
 
-* **Drag card** - Use the stylus to move boards, images, text, or web clippings.
+* **Move card** - Use the stylus to drag boards, images, text, or web clippings.
+* **Resize card** - Touch the stylus in the bottom-right corner of the card and drag to resize.
 * **Mirror card** - Put your finger on the card and then use the stylus to drag off a mirror of the card. It's a reference, so any changes to the either card will be reflected in both.
 * **Delete card** - Drag the card to the edge of the screen to delete it ("throw it off the edge of the world").
 
