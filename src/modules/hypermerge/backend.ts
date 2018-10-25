@@ -75,8 +75,8 @@ export class BackendHandle extends EventEmitter {
       if (!this.actorId) {
         log("get actorId now")
         this.actorId = this.hypermerge.initActorFeed(this)
-        this.emit("actorId", this.actorId)
       }
+      this.emit("actorId", this.actorId)
     } else {
       // remember we want one for when init happens
       log("get actorId later")
@@ -98,11 +98,11 @@ export class BackendHandle extends EventEmitter {
     })
   }
 
-  peers() : Peer[] {
+  peers(): Peer[] {
     return this.hypermerge.peers(this)
   }
 
-  feeds() : Feed<Uint8Array>[] {
+  feeds(): Feed<Uint8Array>[] {
     return this.actorIds().map(actorId => this.hypermerge.feeds.get(actorId)!)
   }
 
