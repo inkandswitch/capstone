@@ -3,7 +3,12 @@ import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as css from "./css/Text.css"
-import { getTextWidth, DEFAULT_CARD_DIMENSION } from "../logic/SizeUtils"
+import {
+  breakIntoLines,
+  DEFAULT_CARD_DIMENSION,
+  TEXT_MAX_WIDTH,
+  TEXT_CARD_LINE_HEIGHT,
+} from "../logic/SizeUtils"
 
 const withAvailableSize = require("../modules/react-with-available-size")
 
@@ -35,7 +40,7 @@ class Text extends React.Component<Props> {
   componentWillMount() {
     const { content } = this.props.doc
     const text = content.join("")
-    this.setState({ lines: this.breakIntoLines(text, 164) })
+    this.setState({ lines: breakIntoLines(text, TEXT_MAX_WIDTH) })
   }
 
   render() {
@@ -64,15 +69,10 @@ class Text extends React.Component<Props> {
             xmlns="http://www.w3.org/2000/svg"
             version="2"
             width={this.props.availableSize.width - PADDING}
-            height={this.props.availableSize.height}>
+            height={this.props.availableSize.height - 10}
+            style={{ overflow: "hidden" }}>
             {this.state.lines.map((line, idx) => {
-              // TODO: There's a couple magic numbers here that could be cleaned up.. 💩
-              const y = 22 + (idx == 0 ? 0 : 2) + idx * PADDING
-              if (
-                (y + 8) * scale > this.props.availableSize.height - PADDING &&
-                idx > 0
-              )
-                return
+              const y = 22 + idx * TEXT_CARD_LINE_HEIGHT
               const textStyle =
                 idx == 0 ? { font: "bold 8px Arial" } : { font: "6px Arial" }
               return (
@@ -89,41 +89,6 @@ class Text extends React.Component<Props> {
         </div>
       </div>
     )
-  }
-
-  // borrowed and altered from
-  // https://stackoverflow.com/questions/21711768/split-string-in-javascript-and-detect-line-break
-  breakIntoLines(text: string, maxWidth: number) {
-    const lineBreakMarker = "!@*%$*)%#"
-    let lines: string[] = []
-
-    var breaks = text.split("\n")
-    var newLines = ""
-    for (var i = 0; i < breaks.length; i++) {
-      newLines = newLines + breaks[i] + ` ${lineBreakMarker} `
-    }
-
-    var words = newLines.split(" ")
-    var line = ""
-    for (var n = 0; n < words.length; n++) {
-      if (words[n] != lineBreakMarker) {
-        var testLine = line + words[n] + " "
-        const size = lines.length == 0 ? 8 : 6
-        const weight = lines.length == 0 ? "bold" : "regular"
-        var testWidth = getTextWidth(testLine, size, weight)
-        if (testWidth > maxWidth && n > 0) {
-          lines.push(line)
-          line = words[n] + " "
-        } else {
-          line = testLine
-        }
-      } else {
-        lines.push(line)
-        line = ""
-      }
-    }
-    lines.push(line)
-    return lines
   }
 }
 

@@ -6,11 +6,11 @@ export const CARD_DEFAULT_SIZE = {
   width: DEFAULT_CARD_DIMENSION,
   height: 128,
 }
-const TEXT_CARD_PADDING = 15
-const DEFAULT_FONT_SIZE = 6
 
-const TEXT_MAX_WIDTH = DEFAULT_CARD_DIMENSION - 2 * TEXT_CARD_PADDING
-const TEXT_MAX_HEIGHT = DEFAULT_CARD_DIMENSION - 2 * TEXT_CARD_PADDING
+export const TEXT_CARD_LINE_HEIGHT = 12
+
+export const TEXT_MAX_WIDTH = DEFAULT_CARD_DIMENSION - 30
+const TEXT_MAX_HEIGHT = 200
 
 export async function calculateInitialSize(
   url: string,
@@ -24,8 +24,8 @@ export async function calculateInitialSize(
     const text = (doc.content as string[]).join("")
     const textSize = getTextSize(text)
     return {
-      width: textSize.width + 2 * TEXT_CARD_PADDING,
-      height: textSize.height + 2 * TEXT_CARD_PADDING,
+      width: DEFAULT_CARD_DIMENSION,
+      height: textSize.height + 20,
     }
   } else {
     return CARD_DEFAULT_SIZE
@@ -71,42 +71,49 @@ export function getTextWidth(
   return width
 }
 
+// borrowed and altered from
+// https://stackoverflow.com/questions/21711768/split-string-in-javascript-and-detect-line-break
+export function breakIntoLines(text: string, maxWidth: number) {
+  const lineBreakMarker = "!@*%$*)%#"
+  let lines: string[] = []
+
+  var breaks = text.split("\n")
+  var newLines = ""
+  for (var i = 0; i < breaks.length; i++) {
+    newLines = newLines + breaks[i] + ` ${lineBreakMarker} `
+  }
+
+  var words = newLines.split(" ")
+  var line = ""
+  for (var n = 0; n < words.length; n++) {
+    if (words[n] != lineBreakMarker) {
+      var testLine = line + words[n] + " "
+      const size = lines.length == 0 ? 8 : 6
+      const weight = lines.length == 0 ? "bold" : "regular"
+      var testWidth = getTextWidth(testLine, size, weight)
+      if (testWidth > maxWidth && n > 0) {
+        lines.push(line)
+        line = words[n] + " "
+      } else {
+        line = testLine
+      }
+    } else {
+      lines.push(line)
+      line = ""
+    }
+  }
+  lines.push(line)
+  return lines
+}
+
 function getTextSize(text: string): Size {
-  const lines = text.split("\n")
-  const fontSize = DEFAULT_FONT_SIZE
-  const lineHeight = 1.5
-  const lineHeightPx = fontSize * lineHeight
-
-  var element = document.createElement("div")
-  var textNode = document.createTextNode("")
-  element.appendChild(textNode)
-  // TODO - Can we extract those from the CSS somehow?
-  element.style.fontFamily = "Arial, Helvetica, sans-serif"
-  element.style.fontSize = `${fontSize}px`
-  element.style.position = "absolute"
-  element.style.visibility = "hidden"
-  element.style.lineHeight = `${lineHeight}`
-  element.style.left = "-999px"
-  element.style.top = "-999px"
-  element.style.width = `${TEXT_MAX_WIDTH}px`
-  element.style.height = "auto"
-  document.body.appendChild(element)
-
-  let totalHeight = 0
-
-  lines.forEach(line => {
-    textNode.textContent = line
-    totalHeight += Math.max(element.clientHeight, lineHeightPx) // min. 21 to account for empty lines
-    console.log(`${Math.max(element.clientHeight, lineHeightPx)} ${line}`)
-  })
-  element.parentNode!.removeChild(element)
-
+  const lines = breakIntoLines(text, TEXT_MAX_WIDTH)
   return {
     width: TEXT_MAX_WIDTH,
     height: Math.max(
-      DEFAULT_FONT_SIZE,
-      Math.min(TEXT_MAX_HEIGHT, totalHeight - 10),
-    ), // subtract line spacing at the end
+      Math.min(TEXT_MAX_HEIGHT, lines.length * TEXT_CARD_LINE_HEIGHT - 4),
+      8,
+    ),
   }
 }
 

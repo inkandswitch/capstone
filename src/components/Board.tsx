@@ -415,9 +415,9 @@ class Board extends React.Component<Props, State> {
       case "preview": {
         return (
           <div>
-            <div className={css.Board}/>
-            <div className={css.FrostedGlass}/>
-         </div>
+            <div className={css.Board} />
+            <div className={css.FrostedGlass} />
+          </div>
         )
       }
     }
