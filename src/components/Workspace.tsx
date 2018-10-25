@@ -1,6 +1,7 @@
 import * as React from "react"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
+import * as Link from "../data/Link"
 import * as DataImport from "./DataImport"
 import GPSInput from "./GPSInput"
 import { AnyDoc } from "automerge/frontend"
@@ -30,10 +31,21 @@ class WorkspaceActor extends DocumentActor<Model, InMessage, OutMessage> {
   async onMessage(message: InMessage) {
     switch (message.type) {
       case "ReceiveDocuments": {
+        const urls = []
+        for (const url of message.body.urls) {
+          const { type } = Link.parse(url)
+
+          if (type === "Workspace") {
+            Content.store.setWorkspace(url)
+          } else {
+            urls.push(url)
+          }
+        }
+
         this.emit({
           to: this.doc.shelfUrl,
           type: "ReceiveDocuments",
-          body: message.body,
+          body: { urls },
         })
         break
       }
