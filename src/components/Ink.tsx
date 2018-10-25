@@ -34,6 +34,15 @@ export interface Props {
   onInkStroke?: (strokes: InkStroke[]) => void
 }
 
+export interface CanvasProps {
+  strokes: InkStroke[]
+  mode: Content.Mode
+  scale?: number
+  onInkStroke?: (strokes: InkStroke[]) => void
+  strokeType?: StrokeType
+  updateVisibleEraserPosition: (eraserPosition?: PenPoint) => void
+}
+
 const EMPTY_BOUNDS: Bounds = {
   top: Infinity,
   right: -Infinity,
@@ -86,7 +95,74 @@ interface State {
   eraserPosition?: PenPoint
 }
 
+interface CanvasState {}
+
 export default class Ink extends React.Component<Props, State> {
+  state: State = {}
+
+  render() {
+    const { onInkStroke, strokes, mode } = this.props
+    const { eraserPosition, strokeType } = this.state
+    const { updateVisibleEraserPosition } = this
+    return (
+      <div>
+        {eraserPosition != undefined ? (
+          <div
+            className={css.Eraser}
+            style={{
+              left: eraserPosition.x,
+              top: eraserPosition.y,
+              width: eraserPosition.strokeWidth,
+              height: eraserPosition.strokeWidth,
+            }}
+          />
+        ) : null}
+
+        <InkCanvas
+          strokeType={strokeType}
+          onInkStroke={onInkStroke}
+          updateVisibleEraserPosition={updateVisibleEraserPosition}
+          strokes={strokes}
+          mode={mode}
+        />
+        {this.props.mode == "fullscreen" ? (
+          <Portal>
+            <div className={css.Options}>
+              <Option
+                label="Ink"
+                value={StrokeType.ink}
+                selected={strokeType === StrokeType.ink}
+                onChange={this.onStrokeTypeChange}
+              />
+              <Option
+                label="Erase"
+                value={StrokeType.erase}
+                selected={strokeType === StrokeType.erase}
+                onChange={this.onStrokeTypeChange}
+              />
+            </div>
+          </Portal>
+        ) : null}
+      </div>
+    )
+  }
+
+  onStrokeTypeChange = (strokeType?: StrokeType) => {
+    if (this.state.strokeType === strokeType) {
+      GPS.setInteractionMode(GPS.InteractionMode.default)
+      this.setState({ eraserPosition: undefined, strokeType: undefined })
+    } else {
+      GPS.setInteractionMode(GPS.InteractionMode.inking)
+      this.setState({ strokeType })
+    }
+  }
+
+  updateVisibleEraserPosition = (eraserPosition?: PenPoint) => {
+    this.setState({ eraserPosition })
+  }
+}
+
+class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   canvasElement?: HTMLCanvasElement | null
   ctx?: CanvasRenderingContext2D | null
   pointerEventSubscription?: Rx.Subscription
@@ -97,7 +173,7 @@ export default class Ink extends React.Component<Props, State> {
   saveTimerId: number | undefined = undefined
   bounds: Bounds = EMPTY_BOUNDS
 
-  state: State = {}
+  state: CanvasState = {}
 
   componentDidMount() {
     requestAnimationFrame(this.drawDry)
@@ -122,47 +198,17 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   render() {
-    const { strokeType, eraserPosition } = this.state
     return (
       <div>
         <div>
-          {eraserPosition != undefined ? (
-            <div
-              className={css.Eraser}
-              style={{
-                left: eraserPosition.x,
-                top: eraserPosition.y,
-                width: eraserPosition.strokeWidth,
-                height: eraserPosition.strokeWidth,
-              }}
-            />
-          ) : null}
           <canvas ref={this.canvasAdded} className={css.InkLayer} />
-          {this.props.mode == "fullscreen" ? (
-            <Portal>
-              <div className={css.Options}>
-                <Option
-                  label="Ink"
-                  value={StrokeType.ink}
-                  selected={strokeType === StrokeType.ink}
-                  onChange={this.onStrokeTypeChange}
-                />
-                <Option
-                  label="Erase"
-                  value={StrokeType.erase}
-                  selected={strokeType === StrokeType.erase}
-                  onChange={this.onStrokeTypeChange}
-                />
-              </div>
-            </Portal>
-          ) : null}
         </div>
       </div>
     )
   }
 
   onPenEvent = (event: PointerEvent) => {
-    if (!this.state.strokeType) return
+    if (!this.props.strokeType) return
     if (event.type == "pointerdown") {
       this.onPanStart(event)
     } else if (event.type == "pointerup" || event.type == "pointercancel") {
@@ -181,7 +227,7 @@ export default class Ink extends React.Component<Props, State> {
 
   onPanMove = (event: PointerEvent) => {
     const { x, y } = event
-    const { strokeType } = this.state
+    const { strokeType } = this.props
     if (!strokeType) return
 
     const coalesced: PointerEvent[] = event.getCoalescedEvents()
@@ -207,7 +253,7 @@ export default class Ink extends React.Component<Props, State> {
         y: event.y,
         strokeWidth: StrokeMappings[strokeType](event.pressure),
       }
-      this.setState({ eraserPosition })
+      this.props.updateVisibleEraserPosition(eraserPosition)
     }
 
     this.updateBounds(x, y)
@@ -217,33 +263,17 @@ export default class Ink extends React.Component<Props, State> {
   onPanEnd = (event: PointerEvent) => {
     this.strokeId += 1
     this.lastDrawnPoint = 0
-    if (this.state.eraserPosition) {
-      this.setState({ eraserPosition: undefined })
+    if (this.props.strokeType === StrokeType.erase) {
+      this.props.updateVisibleEraserPosition(undefined)
     }
-    const strokeId = this.strokeId
-    const lastPoint = this.lastDrawnPoint
-    this.saveTimerId = delay(() => {
-      this.saveTimerId = undefined
-      this.inkStroke()
-    }, 1000)
+    this.inkStroke()
   }
 
   inkStroke = () => {
-    if (!this.props.onInkStroke || !this.state.strokeType) {
+    if (!this.props.onInkStroke || !this.props.strokeType) {
       return
     }
     this.props.onInkStroke(this.strokes)
-  }
-
-  onStrokeTypeChange = (strokeType?: StrokeType) => {
-    if (this.state.strokeType === strokeType) {
-      GPS.setInteractionMode(GPS.InteractionMode.default)
-      this.setState({ eraserPosition: undefined, strokeType: undefined })
-      this.inkStroke()
-    } else {
-      GPS.setInteractionMode(GPS.InteractionMode.inking)
-      this.setState({ strokeType })
-    }
   }
 
   center() {
@@ -313,7 +343,7 @@ export default class Ink extends React.Component<Props, State> {
   }
 
   drawWet = Frame.throttle(() => {
-    if (!this.ctx || !this.strokes[this.strokeId] || !this.state.strokeType)
+    if (!this.ctx || !this.strokes[this.strokeId] || !this.props.strokeType)
       return
 
     for (
@@ -322,7 +352,7 @@ export default class Ink extends React.Component<Props, State> {
       this.lastDrawnPoint++
     ) {
       let point = this.strokes[this.strokeId].points[this.lastDrawnPoint]
-      let settings = StrokeSettings[this.state.strokeType]
+      let settings = StrokeSettings[this.props.strokeType]
       settings.lineWidth = point.strokeWidth
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {
