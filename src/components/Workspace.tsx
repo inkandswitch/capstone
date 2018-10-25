@@ -14,7 +14,9 @@ import Clipboard from "./Clipboard"
 import Peers from "./Peers"
 import * as Link from "../data/Link"
 import Pinchable from "./Pinchable"
+import Shelf from "./Shelf"
 import * as css from "./css/Workspace.css"
+
 export interface Model {
   navStack: string[]
   rootUrl: string
@@ -135,9 +137,9 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
             onNavigate={this.push}
           />
 
-          <div className={css.Shelf}>
+          <Shelf>
             <Content mode="fullscreen" noInk url={doc.shelfUrl} />
-          </div>
+          </Shelf>
 
           <div className={css.Peers}>
             <Peers onTapPeer={this.onTapPeer} />

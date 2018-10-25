@@ -139,20 +139,22 @@ export default class Ink extends React.Component<Props, State> {
           ) : null}
           <canvas ref={this.canvasAdded} className={css.InkLayer} />
           {this.props.mode == "fullscreen" ? (
-            <div className={css.Options}>
-              <Option
-                label="Ink"
-                value={StrokeType.ink}
-                selected={strokeType === StrokeType.ink}
-                onChange={this.onStrokeTypeChange}
-              />
-              <Option
-                label="Erase"
-                value={StrokeType.erase}
-                selected={strokeType === StrokeType.erase}
-                onChange={this.onStrokeTypeChange}
-              />
-            </div>
+            <Portal>
+              <div className={css.Options}>
+                <Option
+                  label="Ink"
+                  value={StrokeType.ink}
+                  selected={strokeType === StrokeType.ink}
+                  onChange={this.onStrokeTypeChange}
+                />
+                <Option
+                  label="Erase"
+                  value={StrokeType.erase}
+                  selected={strokeType === StrokeType.erase}
+                  onChange={this.onStrokeTypeChange}
+                />
+              </div>
+            </Portal>
           ) : null}
         </div>
       </div>

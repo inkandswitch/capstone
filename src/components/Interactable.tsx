@@ -125,9 +125,12 @@ export default class Interactable extends React.Component<
 
     const { top, left } = this.ref.getBoundingClientRect()
 
+    const offset = { x: left - x, y: top - y }
+    const position = { x, y }
+
     const dragState = {
-      position: { x: left, y: top },
-      offset: { x: left - x, y: top - y },
+      position,
+      offset,
     }
 
     this.setState({ dragState, isResizing: false })
@@ -144,10 +147,12 @@ export default class Interactable extends React.Component<
 
     if (dragState) {
       const { offset } = dragState
+      const position = { x, y }
+
       this.setState({
         dragState: {
-          ...dragState,
-          position: { x: x + offset.x, y: y + offset.y },
+          offset,
+          position,
         },
       })
     }
@@ -167,11 +172,17 @@ export default class Interactable extends React.Component<
     this.setState({ dragState: undefined, position: { x, y } })
 
     if (ref && this.dragger && dragState) {
+      const { offset } = dragState
       const { x, y } = dragState.position
+      const screen = {
+        x: x + offset.x,
+        y: y + offset.y,
+      }
+
       const parent = ref.closest("[data-container]")
 
       const targets = document
-        .elementsFromPoint(x, y)
+        .elementsFromPoint(screen.x, screen.y)
         .filter(el => !ref.contains(el) && el.hasAttribute("data-container"))
 
       if (onDragOut && targets[0] !== parent) {
@@ -182,10 +193,10 @@ export default class Interactable extends React.Component<
 
           const event = new DragEvent("drop", {
             dataTransfer,
-            screenX: x,
-            screenY: y,
-            clientX: x - left,
-            clientY: y - top,
+            screenX: screen.x,
+            screenY: screen.y,
+            clientX: screen.x - left,
+            clientY: screen.y - top,
             bubbles: true,
             cancelable: true,
           } as any)
@@ -293,10 +304,10 @@ export default class Interactable extends React.Component<
     const style = {
       top: 0,
       left: 0,
-      zIndex: this.props.z,
+      zIndex: dragState ? 10000001 : this.props.z,
       opacity: opacity,
       transform,
-      position: dragState ? ("fixed" as "fixed") : ("absolute" as "absolute"),
+      position: "absolute" as "absolute",
       willChange: "transform",
     }
 

@@ -1,0 +1,25 @@
+:local(.Wrapper) {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+}
+
+:local(.Shelf) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+  z-index: 10000000;
+}
+
+:local(.Tab) {
+  position: absolute;
+  height: 80px;
+  bottom: 100%;
+  width: 100%;
+}
