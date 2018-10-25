@@ -126,10 +126,8 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
   render() {
     const { measurements, thresholdMet, triggeredEdge } = this.state
     const { zIndex } = this.props
-    let dragMarker = null
     let boardCard = null
     if (measurements && triggeredEdge) {
-      const { position } = measurements
       const offsetFromEdge = this.getAbsoluteOffsetFromEdge()
       let cardOpacity = thresholdMet ? 1.0 : 0.5
       let shadowOpacity = thresholdMet ? 0.0 : 0.2
@@ -138,10 +136,6 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
           offsetFromEdge - MINIMUM_DISTANCE + FADE_RANGE
         cardOpacity = 0.5 + (0.5 / FADE_RANGE) * pixelsPastFadeThreshold
         shadowOpacity = 0.2 + (-0.2 / FADE_RANGE) * pixelsPastFadeThreshold
-      }
-      const dragMarkerStyle = {
-        transform: `translate(${position.x - 10}px,${position.y - 10}px)`,
-        zIndex,
       }
 
       const shadowOffsetX = this.state.triggeredEdge == "left" ? "-3px" : "3px"
@@ -154,13 +148,9 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
         transform: `translate(${boardPosition.x}px,${boardPosition.y}px)`,
         zIndex,
       }
-      dragMarker = <div className={css.Marker} style={dragMarkerStyle} />
       boardCard = (
-        <div className={boardCss.BoardEmbed} style={boardCardStyle}>
-          <div
-            className={boardCss.BoardEmbedBackground}
-            style={{ opacity: 0.2 }}
-          />
+        <div className={boardCss.Board} style={boardCardStyle}>
+          <div className={boardCss.FrostedGlass} />
         </div>
       )
     }
@@ -169,7 +159,6 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
         <div className={css.LeftEdge} ref={this.onLeftEdge} />
         <div className={css.RightEdge} ref={this.onRightEdge} />
         {boardCard}
-        {dragMarker}
         {this.props.children}
       </>
     )

@@ -128,6 +128,12 @@ function addCard(
   board.cards[card.id] = card
 }
 
+type ZoomState =
+  | "zoomTowardsCard"
+  | "zoomAwayFromCard"
+  | "zoomAwayFromSelf"
+  | "none"
+
 class Board extends React.Component<Props, State> {
   boardEl?: HTMLDivElement
   state: State = { pinch: undefined }
@@ -215,7 +221,6 @@ class Board extends React.Component<Props, State> {
     if (!card) {
       return
     }
-    console.log("double tap", card)
     this.props.onNavigate &&
       this.props.onNavigate(card.url, {
         backNavCardTarget: { ...card },
@@ -299,12 +304,9 @@ class Board extends React.Component<Props, State> {
         // when zooming out, if this is the previous board, we need to scale the board from extra-large to board-size. (scale > 1.0)
         //  This is the inverse of zooming in.
         // Get the transform styles for zoom in/out states.
-
         const scale = this.getScale()
         const scaleOrigin = this.getScaleOrigin()
         const overlayOpacity = this.getOverlayOpacity(scale)
-        console.log("scale", scale)
-        console.log("overlay opacity", overlayOpacity)
         const style: any = {
           transform: `scale(${scale})`,
           transformOrigin: scaleOrigin,
@@ -460,7 +462,6 @@ class Board extends React.Component<Props, State> {
     } else if (backNavCardTarget) {
       const startScale = 1.0
       const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
-      console.log("dest scale", destScale)
       return getOpacity(scale, startScale, destScale)
     }
     return 0.0
@@ -471,7 +472,6 @@ class Board extends React.Component<Props, State> {
       const current = scale - Math.min(destScale, startScale)
       const progress = current / total
       const value = destScale < startScale ? 1.0 - progress : progress
-      console.log("progress", value)
       return clamp(value * 0.2, 0.0, 0.2)
     }
   }
