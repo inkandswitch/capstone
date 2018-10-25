@@ -25,4 +25,11 @@
 
 ## Clip
 
-* TODO
+Install Clipper extension on your Pixelbook. Then from the Chrome web browser:
+
+* **Clip image** - Right-click or two-finger tap an image on the web and select "Send to Capstone".
+* **Clip text** - Select text, tap "...", and select "Send to Capstone".
+* **Clip website** - Press the "C" button in the Chrome address bar to clip an entire website.
+
+In all cases, the clipped content will land on your shelf. If your shelf isn't visible, pull up from the button of the screen with a finger to reveal. Then drag the card onto a board and manipulate as normal.
+
