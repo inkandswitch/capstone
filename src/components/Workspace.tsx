@@ -136,18 +136,18 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
 
     return (
-      <div className={css.Workspace}>
-        <GPSInput />
-        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-        {previous ? (
-          <Content
-            key={previous.url + "-previous"} // Force a remount.
-            mode={this.props.mode}
-            url={previous.url}
-            zIndex={-1}
-          />
-        ) : null}
-        <Pinchable onPinchInEnd={this.pop}>
+      <Pinchable onPinchInEnd={this.pop}>
+        <div className={css.Workspace}>
+          <GPSInput />
+          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+          {previous ? (
+            <Content
+              key={previous.url + "-previous"} // Force a remount.
+              mode={this.props.mode}
+              url={previous.url}
+              zIndex={-1}
+            />
+          ) : null}
           <Content
             key={currentUrl}
             mode={this.props.mode}
@@ -156,11 +156,11 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
             onNavigate={this.push}
             onNavigateBack={this.pop}
           />
-        </Pinchable>
-        <Shelf>
-          <Content mode="fullscreen" noInk url={doc.shelfUrl} />
-        </Shelf>
-      </div>
+          <Shelf>
+            <Content mode="fullscreen" noInk url={doc.shelfUrl} />
+          </Shelf>
+        </div>
+      </Pinchable>
     )
   }
 }
