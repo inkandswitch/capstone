@@ -166,6 +166,12 @@ export default class Store {
         break
       }
 
+      case "SetActorId": {
+        const handle = this.handle(msg.docId)
+        handle.setActorId(msg.actorId)
+        break
+      }
+
       case "Clipper":
         this.clipper$.next(msg)
         break
