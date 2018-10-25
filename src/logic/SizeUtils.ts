@@ -1,15 +1,16 @@
 import { AnyDoc } from "automerge/frontend"
 import * as Link from "../data/Link"
 
-export const DEFAULT_MAX_CARD_DIMENSION = 192
+export const DEFAULT_CARD_DIMENSION = 192
 export const CARD_DEFAULT_SIZE = {
-  width: DEFAULT_MAX_CARD_DIMENSION,
+  width: DEFAULT_CARD_DIMENSION,
   height: 128,
 }
 const TEXT_CARD_PADDING = 15
+const DEFAULT_FONT_SIZE = 6
 
-const TEXT_MAX_WIDTH = DEFAULT_MAX_CARD_DIMENSION - 2 * TEXT_CARD_PADDING
-const TEXT_MAX_HEIGHT = DEFAULT_MAX_CARD_DIMENSION - 2 * TEXT_CARD_PADDING
+const TEXT_MAX_WIDTH = DEFAULT_CARD_DIMENSION - 2 * TEXT_CARD_PADDING
+const TEXT_MAX_HEIGHT = DEFAULT_CARD_DIMENSION - 2 * TEXT_CARD_PADDING
 
 export async function calculateInitialSize(
   url: string,
@@ -72,7 +73,7 @@ export function getTextWidth(
 
 function getTextSize(text: string): Size {
   const lines = text.split("\n")
-  const fontSize = 6
+  const fontSize = DEFAULT_FONT_SIZE
   const lineHeight = 1.5
   const lineHeightPx = fontSize * lineHeight
 
@@ -102,14 +103,17 @@ function getTextSize(text: string): Size {
 
   return {
     width: TEXT_MAX_WIDTH,
-    height: Math.min(TEXT_MAX_HEIGHT, totalHeight - 10), // subtract line spacing at the end
+    height: Math.max(
+      DEFAULT_FONT_SIZE,
+      Math.min(TEXT_MAX_HEIGHT, totalHeight - 10),
+    ), // subtract line spacing at the end
   }
 }
 
 function resolvedImageCardSize(originalSize: Size): Size {
   const scaleFactor = Math.min(
-    DEFAULT_MAX_CARD_DIMENSION / originalSize.width,
-    DEFAULT_MAX_CARD_DIMENSION / originalSize.height,
+    DEFAULT_CARD_DIMENSION / originalSize.width,
+    DEFAULT_CARD_DIMENSION / originalSize.height,
   )
   return {
     width: originalSize.width * scaleFactor,

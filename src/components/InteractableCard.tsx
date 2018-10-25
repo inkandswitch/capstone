@@ -7,6 +7,7 @@ import * as Link from "../data/Link"
 import * as PinchMetrics from "../logic/PinchMetrics"
 import * as DataTransfer from "../logic/DataTransfer"
 import Pinchable from "./Pinchable"
+import { DEFAULT_CARD_DIMENSION } from "../logic/SizeUtils"
 
 export interface CardModel {
   id: string
@@ -128,6 +129,11 @@ export default class InteractableCard extends React.Component<Props, State> {
           position={{ x, y }}
           originalSize={{ width, height }}
           preserveAspectRatio={true}
+          minDimensionForLongestSide={
+            type === "Text"
+              ? DEFAULT_CARD_DIMENSION
+              : DEFAULT_CARD_DIMENSION / 2
+          }
           onStart={this.start}
           onDragStop={this.dragStop}
           onDragOut={this.dragOut}

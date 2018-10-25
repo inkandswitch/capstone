@@ -2,7 +2,6 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
-import TextEditor, { Change } from "./TextEditor"
 import * as css from "./css/Text.css"
 import * as SizeUtils from "../logic/SizeUtils"
 
@@ -38,7 +37,6 @@ class Text extends React.Component<Props> {
 
   render() {
     if (!this.state) return
-    const fontSize = this.props.availableSize.width / (196 / 6)
     const scale = Math.max(1, Math.min(3, this.props.availableSize.width / 196))
     const style = {
       position: "relative",
@@ -57,15 +55,21 @@ class Text extends React.Component<Props> {
             xmlns="http://www.w3.org/2000/svg"
             version="2"
             width={this.props.availableSize.width - 10}
-            height={this.props.availableSize.height - 10}>
+            height={this.props.availableSize.height}>
             {this.state.lines.map((line, idx) => {
+              const y = 22 + (idx == 0 ? 0 : 2) + idx * 10
+              if (
+                (y + 8) * scale > this.props.availableSize.height - 10 &&
+                idx > 0
+              )
+                return
               const textStyle =
                 idx == 0 ? { font: "bold 8px Arial" } : { font: "6px Arial" }
               return (
                 <text
                   style={Object.assign({}, style, textStyle)}
-                  x="8"
-                  y={`${14 + (idx == 0 ? 0 : 2) + idx * 10}`}
+                  x="6"
+                  y={y}
                   key={idx}>
                   {line}
                 </text>
@@ -110,27 +114,6 @@ class Text extends React.Component<Props> {
     }
     lines.push(line)
     return lines
-  }
-
-  onChange = (changes: Change[]) => {
-    this.props.change(doc => {
-      changes.forEach(change => {
-        switch (change.type) {
-          case "removal": {
-            doc.content.splice(change.at, change.length)
-            break
-          }
-          case "insertion": {
-            doc.content.splice(change.at, 0, change.content)
-            break
-          }
-          default: {
-            console.log("Unknown TextEditor Change type.")
-          }
-        }
-      })
-      return doc
-    })
   }
 }
 
