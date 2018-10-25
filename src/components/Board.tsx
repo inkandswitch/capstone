@@ -408,15 +408,10 @@ class Board extends React.Component<Props, State> {
       }
       case "preview": {
         return (
-          <div className={css.BoardPreview}>
-            <img className={css.Icon} src={boardIcon} />
-            <div className={css.TitleContainer}>
-              <div className={css.Title}>Board</div>
-              <div className={css.SubTitle}>
-                {isEmpty(cards) ? "No" : size(cards)} items
-              </div>
-            </div>
-          </div>
+          <div>
+            <div className={css.Board}/>
+            <div className={css.FrostedGlass}/>
+         </div>
         )
       }
     }
