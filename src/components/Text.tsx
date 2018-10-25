@@ -3,7 +3,7 @@ import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as css from "./css/Text.css"
-import * as SizeUtils from "../logic/SizeUtils"
+import { getTextWidth, DEFAULT_CARD_DIMENSION } from "../logic/SizeUtils"
 
 const withAvailableSize = require("../modules/react-with-available-size")
 
@@ -19,6 +19,9 @@ interface Props extends Widget.Props<Model, State> {
   availableSize: Size
   isFocused: boolean
 }
+
+const MAX_SCALE = 3
+const PADDING = 10
 
 class Text extends React.Component<Props> {
   state: State = { lines: [] }
@@ -37,7 +40,13 @@ class Text extends React.Component<Props> {
 
   render() {
     if (!this.state) return
-    const scale = Math.max(1, Math.min(3, this.props.availableSize.width / 196))
+    const scale = Math.max(
+      1,
+      Math.min(
+        MAX_SCALE,
+        this.props.availableSize.width / DEFAULT_CARD_DIMENSION,
+      ),
+    )
     const style = {
       position: "relative",
       transformOrigin: "top left",
@@ -48,18 +57,19 @@ class Text extends React.Component<Props> {
         <div
           style={{
             position: "fixed",
-            maxWidth: 196 * 3,
+            maxWidth: DEFAULT_CARD_DIMENSION * MAX_SCALE,
             right: 0,
           }}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             version="2"
-            width={this.props.availableSize.width - 10}
+            width={this.props.availableSize.width - PADDING}
             height={this.props.availableSize.height}>
             {this.state.lines.map((line, idx) => {
-              const y = 22 + (idx == 0 ? 0 : 2) + idx * 10
+              // TODO: There's a couple magic numbers here that could be cleaned up.. 💩
+              const y = 22 + (idx == 0 ? 0 : 2) + idx * PADDING
               if (
-                (y + 8) * scale > this.props.availableSize.height - 10 &&
+                (y + 8) * scale > this.props.availableSize.height - PADDING &&
                 idx > 0
               )
                 return
@@ -100,7 +110,7 @@ class Text extends React.Component<Props> {
         var testLine = line + words[n] + " "
         const size = lines.length == 0 ? 8 : 6
         const weight = lines.length == 0 ? "bold" : "regular"
-        var testWidth = SizeUtils.getTextWidth(testLine, size, weight)
+        var testWidth = getTextWidth(testLine, size, weight)
         if (testWidth > maxWidth && n > 0) {
           lines.push(line)
           line = words[n] + " "

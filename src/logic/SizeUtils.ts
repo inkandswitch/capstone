@@ -55,7 +55,7 @@ export function getTextWidth(
   textNode.textContent = text
   element.appendChild(textNode)
 
-  element.style.fontFamily = "Roboto, Arial, Helvetica, sans-serif"
+  element.style.fontFamily = "Arial, Helvetica, sans-serif"
   element.style.fontSize = `${fontSize}px`
   element.style.fontWeight = fontWeight
   element.style.position = "absolute"
@@ -81,7 +81,7 @@ function getTextSize(text: string): Size {
   var textNode = document.createTextNode("")
   element.appendChild(textNode)
   // TODO - Can we extract those from the CSS somehow?
-  element.style.fontFamily = "Roboto, Arial, Helvetica, sans-serif"
+  element.style.fontFamily = "Arial, Helvetica, sans-serif"
   element.style.fontSize = `${fontSize}px`
   element.style.position = "absolute"
   element.style.visibility = "hidden"
