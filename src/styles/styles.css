@@ -17,7 +17,7 @@ body {
 .CodeMirror {
   /* Set height, width, borders, and global font properties here */
   font-family: Roboto, Arial, Helvetica, sans-serif;
-  font-size: 14px;
+  font-size: 6px;
   direction: ltr;
   max-height: 100%;
   height: auto;

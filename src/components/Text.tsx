@@ -5,11 +5,14 @@ import * as Reify from "../data/Reify"
 import TextEditor, { Change } from "./TextEditor"
 import * as css from "./css/Text.css"
 
+const withAvailableSize = require("../modules/react-with-available-size")
+
 export interface Model {
   content: string[]
 }
 
 interface Props extends Widget.Props<Model> {
+  availableSize: Size
   isFocused: boolean
 }
 
@@ -55,4 +58,12 @@ class Text extends React.Component<Props> {
   }
 }
 
-export default Widget.create("Text", Text, Text.reify)
+export default Widget.create(
+  "Text",
+  withAvailableSize(Text, (domElement: HTMLElement, notify: () => void) => {
+    const observer = new ResizeObserver(() => notify())
+    observer.observe(domElement)
+    return () => observer.unobserve(domElement)
+  }),
+  Text.reify,
+)
