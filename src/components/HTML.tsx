@@ -54,7 +54,10 @@ class HTML extends React.Component<Props> {
         return (
           <div style={style.Embed}>
             <div style={scaleStyle}>
-              <iframe style={style.Embed__IFrame} srcDoc={this.props.doc.html} />
+              <iframe
+                style={style.Embed__IFrame}
+                srcDoc={this.props.doc.html}
+              />
             </div>
           </div>
         )
@@ -63,7 +66,6 @@ class HTML extends React.Component<Props> {
 }
 
 const style = {
-  Fullscreen: {},
   Fullscreen__Banner: {
     background: "#F6F6F6",
     position: "absolute",
