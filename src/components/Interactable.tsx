@@ -184,7 +184,7 @@ export default class Interactable extends React.Component<
       const parent = ref.closest("[data-container]")
 
       const targets = document
-        .elementsFromPoint(screen.x, screen.y)
+        .elementsFromPoint(Math.max(0, screen.x), Math.max(0, screen.y))
         .filter(el => !ref.contains(el) && el.hasAttribute("data-container"))
 
       if (onDragOut && targets[0] !== parent) {
