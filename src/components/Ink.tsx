@@ -181,12 +181,13 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     }
   }
 
-  once = false
-  shouldComponentUpdate() {
-    if (!this.once) {
-      this.once = true
-      return true
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.strokes.length !== this.props.strokes.length) {
+      requestAnimationFrame(this.drawDry)
     }
+  }
+
+  shouldComponentUpdate() {
     return false
   }
 
@@ -249,6 +250,7 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
       this.props.updateVisibleEraserPosition(undefined)
     }
     this.inkStroke()
+    this.resetWetStroke()
   }
 
   inkStroke = () => {
@@ -258,7 +260,7 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     this.wetStroke && this.props.onInkStroke(this.wetStroke)
   }
 
-  reset() {
+  resetWetStroke() {
     this.wetStroke = undefined
     this.lastDrawnPoint = 0
     if (this.ctx && this.canvasElement) {
@@ -323,7 +325,6 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
 
   drawDry = Frame.throttle(() => {
     if (!this.canvasElement) return
-    this.reset()
     const { strokes } = this.props
     this.prepareCanvas(this.canvasElement)
     const ctx = this.canvasElement.getContext("2d")
