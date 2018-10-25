@@ -374,35 +374,36 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = 0.6 + 0.4 * (scale ? clamp(scale, 0, 1) : 0)
+        const overlayOpacity = 0.2 - 0.2 * (scale ? scale : 0)
 
         return (
           <div className={css.BoardEmbed} ref={this.onRef}>
-            <div className={css.BoardEmbedBackground} />
-            <div style={{ opacity: overlayOpacity }}>
-              <Ink
-                onInkStroke={this.onInkStroke}
-                strokes={strokes}
-                mode={this.props.mode}
-                scale={contentScale}
-              />
-              <div style={style}>
-                {Object.values(cards).map(card => {
-                  if (!card) return null
-                  return (
-                    <InteractableCard
-                      key={card.id}
-                      card={card}
-                      onPinchOutEnd={noop}
-                      onDragStart={noop}
-                      onDragStop={noop}
-                      onResizeStop={noop}>
-                      <Content mode="preview" url={card.url} />
-                    </InteractableCard>
-                  )
-                })}
-              </div>
+            <Ink
+              onInkStroke={this.onInkStroke}
+              strokes={strokes}
+              mode={this.props.mode}
+              scale={contentScale}
+            />
+            <div style={style}>
+              {Object.values(cards).map(card => {
+                if (!card) return null
+                return (
+                  <InteractableCard
+                    key={card.id}
+                    card={card}
+                    onPinchOutEnd={noop}
+                    onDragStart={noop}
+                    onDragStop={noop}
+                    onResizeStop={noop}>
+                    <Content mode="preview" url={card.url} />
+                  </InteractableCard>
+                )
+              })}
             </div>
+            <div
+              className={css.BoardEmbedBackground}
+              style={{ opacity: overlayOpacity }}
+            />
           </div>
         )
       }
