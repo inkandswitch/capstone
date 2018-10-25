@@ -14,7 +14,7 @@
     "clean": "rm -r dist .data",
     "format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "capstone": "node ./bin/launch.js capstone",
-    "sidecar": "node ./bin/launch.js sidecar",
+    "sidecar": "node ./bin/launch.js capstone",
     "tests": "node ./bin/launch.js tests"
   },
   "author": "Ink & Switch",

@@ -7,6 +7,7 @@ import WorkspaceMgr from "./WorkspaceMgr"
 import DebugWidget from "./DebugWidget"
 import DebugMgr from "./DebugMgr"
 import Store from "../data/Store"
+import EnvMgr from "./EnvMgr"
 
 type State = {
   url: string | null
@@ -18,7 +19,7 @@ type Props = {
 
 export default class ControlPanel extends React.Component<Props, State> {
   state = {
-    url: null
+    url: null,
   }
 
   componentDidMount() {
@@ -34,11 +35,17 @@ export default class ControlPanel extends React.Component<Props, State> {
   render() {
     return (
       <div>
-        <DebugMgr {...this.props}/>
+        <DebugMgr {...this.props} />
+        <hr />
+        <EnvMgr />
         <hr />
         <WorkspaceMgr {...this.props} />
         <hr />
-        { this.state.url ? <DebugWidget store={this.props.store} url={this.state.url!} /> : " " }
+        {this.state.url ? (
+          <DebugWidget store={this.props.store} url={this.state.url!} />
+        ) : (
+          " "
+        )}
       </div>
     )
   }

@@ -119,9 +119,20 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
   }
 
   render() {
-    const { shelfUrl } = this.props.doc
+    const { doc, env } = this.props
     const { url: currentUrl, ...currentExtra } = this.peek()
     const previous = this.getPrevious()
+
+    if (env.device === "sidecar") {
+      return (
+        <div>
+          <GPSInput />
+          <Clipboard onPaste={this.onPaste} />
+          <Content mode="fullscreen" noInk url={doc.shelfUrl} />
+        </div>
+      )
+    }
+
     return (
       <div className={css.Workspace}>
         <GPSInput />
@@ -142,8 +153,9 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
           onNavigate={this.push}
           onNavigateBack={this.pop}
         />
+
         <div className={css.Shelf}>
-          <Content mode="fullscreen" noInk url={shelfUrl} />
+          <Content mode="fullscreen" noInk url={doc.shelfUrl} />
         </div>
       </div>
     )

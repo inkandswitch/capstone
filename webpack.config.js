@@ -113,7 +113,6 @@ function app(env, name, overrides = {}) {
 module.exports = (env = {}) =>
   [
     app(env, "capstone"),
-    app(env, "sidecar"),
     app(env, "tests", {
       entry: {
         main: [
