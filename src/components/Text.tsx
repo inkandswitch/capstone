@@ -78,7 +78,7 @@ class Text extends React.Component<Props> {
               return (
                 <text
                   style={Object.assign({}, style, textStyle)}
-                  x="6"
+                  x={6 * scale}
                   y={y}
                   key={idx}>
                   {line}
