@@ -35,7 +35,6 @@ export { Patch, Doc, EditDoc, ChangeFn } from "automerge/frontend"
 export { FrontendHandle } from "./frontend"
 export { BackendHandle } from "./backend"
 
-
 Debug.formatters.b = Base58.encode
 
 const HypercoreProtocol: Function = require("hypercore-protocol")
@@ -281,7 +280,9 @@ export class Hypermerge {
 
   peers(doc: BackendHandle): Peer[] {
     return ([] as Peer[]).concat(
-      ...this.actorIds(doc).map(actorId => [...(this.feedPeers.get(actorId) || [])]),
+      ...this.actorIds(doc).map(actorId => [
+        ...(this.feedPeers.get(actorId) || []),
+      ]),
     )
   }
 
@@ -349,6 +350,7 @@ export class Hypermerge {
       live: true,
       id: this.ledger.id,
       encrypt: false,
+      timeout: 10000,
       extensions: [EXT],
     })
 
