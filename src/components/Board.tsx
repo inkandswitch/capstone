@@ -21,7 +21,6 @@ import * as SizeUtils from "../logic/SizeUtils"
 import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
-import { request } from "http"
 
 const withAvailableWidth = require("react-with-available-width")
 const boardIcon = require("../assets/board_icon.svg")
@@ -233,10 +232,10 @@ class Board extends React.Component<Props, State> {
   }
 
   onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
-    const didNavigate = this.props.onNavigateBack && this.props.onNavigateBack()
-    // We only reset state if we didn't navigate. Otherwise resetting state causes
-    // a flicker of un-scaled board content.
-    if (!didNavigate) {
+    // We only reset state if there is no backNavCardTarget. This is sort of a hack,
+    // but we can use the absence of backNavCardTarget to indicate that we are at
+    // the nav root.
+    if (!this.props.backNavCardTarget) {
       this.setState({ pinch: undefined })
     }
   }

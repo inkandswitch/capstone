@@ -13,6 +13,7 @@ import Content, {
 } from "./Content"
 import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
+import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
 
 type NavEntry = { url: string; [extra: string]: any }
@@ -147,29 +148,31 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
 
     return (
-      <div className={css.Workspace}>
-        <GPSInput />
-        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-        {previous ? (
+      <Pinchable onPinchInEnd={this.pop}>
+        <div className={css.Workspace}>
+          <GPSInput />
+          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+          {previous ? (
+            <Content
+              key={previous.url + "-previous"} // Force a remount.
+              mode={this.props.mode}
+              url={previous.url}
+              zIndex={-1}
+            />
+          ) : null}
           <Content
-            key={previous.url + "-previous"} // Force a remount.
+            key={currentUrl}
             mode={this.props.mode}
-            url={previous.url}
-            zIndex={-1}
+            url={currentUrl}
+            {...currentExtra}
+            onNavigate={this.push}
+            onNavigateBack={this.pop}
           />
-        ) : null}
-        <Content
-          key={currentUrl}
-          mode={this.props.mode}
-          url={currentUrl}
-          {...currentExtra}
-          onNavigate={this.push}
-          onNavigateBack={this.pop}
-        />
-        <Shelf>
-          <Content mode="fullscreen" noInk url={doc.shelfUrl} />
-        </Shelf>
-      </div>
+          <Shelf>
+            <Content mode="fullscreen" noInk url={doc.shelfUrl} />
+          </Shelf>
+        </div>
+      </Pinchable>
     )
   }
 }
