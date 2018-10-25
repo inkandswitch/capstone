@@ -265,12 +265,6 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     this.wetStroke = undefined
     this.lastDrawnPoint = 0
     if (this.ctx && this.canvasElement) {
-      this.ctx.clearRect(
-        0,
-        0,
-        this.canvasElement.width,
-        this.canvasElement.height,
-      )
       this.ctx.beginPath()
     }
   }
