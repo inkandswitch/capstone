@@ -36,6 +36,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
       .pipe(
         RxOps.map(GPS.onlyPen),
         RxOps.filter(GPS.ifNotEmpty),
+        RxOps.filter(GPS.ifNotInking),
         RxOps.map(GPS.toAnyPointer),
         RxOps.map(GPS.toMostRecentEvent),
       )
