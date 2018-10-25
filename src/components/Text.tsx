@@ -26,14 +26,14 @@ class Text extends React.Component<Props> {
   render() {
     const { content } = this.props.doc
     return (
-      // <div className={css.Text}>hello</div>
-      <div className={css.Text}>
-        <TextEditor
-          content={content.join("")}
-          isFocused={this.props.mode === "fullscreen" || this.props.isFocused}
-          onChange={this.onChange}
-        />
-      </div>
+      <div className={css.Text}>what the ffffff</div>
+      // <div className={css.Text}>
+      //   <TextEditor
+      //     content={content.join("")}
+      //     isFocused={this.props.mode === "fullscreen" || this.props.isFocused}
+      //     onChange={this.onChange}
+      //   />
+      // </div>
     )
   }
 
