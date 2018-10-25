@@ -301,14 +301,17 @@ export class Hypermerge {
     this.feedPeers.set(actorId, peers)
     this.addMetadata(doc.docId, actorId)
     log("init feed", actorId)
+    log("nettest - init feed", actorId)
     feed.ready(() => {
       doc.broadcastMetadata()
       this.join(actorId)
       feed.on("peer-remove", (peer: Peer) => {
         peers.delete(peer)
         doc.emit("peer-remove", peer)
+        log("nettest - peer remove", actorId)
       })
       feed.on("peer-add", (peer: Peer) => {
+        log("nettest - peer add", actorId)
         peer.stream.on("extension", (ext: string, buf: Buffer) => {
           if (ext === EXT) {
             const msg: string[] = JSON.parse(buf.toString())
