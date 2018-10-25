@@ -9,10 +9,9 @@ export default class Handle<T> {
   constructor() {}
 
   push = (item: Doc<T>) => {
+    this.value = item
     if (this.subscription) {
       this.subscription(item)
-    } else {
-      this.value = item
     }
   }
 
@@ -32,7 +31,6 @@ export default class Handle<T> {
 
     if (this.value != null) {
       subscriber(this.value)
-      this.value = null
     }
   }
 

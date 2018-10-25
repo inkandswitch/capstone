@@ -7,7 +7,7 @@ import * as Debug from "debug"
 
 const log = Debug("hypermerge:back")
 
-export class BackendHandle extends EventEmitter {
+export class BackendManager extends EventEmitter {
   docId: string
   actorId?: string
   private hypermerge: Hypermerge
@@ -98,11 +98,11 @@ export class BackendHandle extends EventEmitter {
     })
   }
 
-  peers() : Peer[] {
+  peers(): Peer[] {
     return this.hypermerge.peers(this)
   }
 
-  feeds() : Feed<Uint8Array>[] {
+  feeds(): Feed<Uint8Array>[] {
     return this.actorIds().map(actorId => this.hypermerge.feeds.get(actorId)!)
   }
 

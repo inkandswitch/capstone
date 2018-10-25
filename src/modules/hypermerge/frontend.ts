@@ -5,6 +5,9 @@ import Queue from "../../data/Queue"
 import Handle from "./handle"
 import * as Debug from "debug"
 
+// TODO - i bet this can be rewritten where the Frontend allocates the actorid on write - this
+// would make first writes a few ms faster
+
 const log = Debug("hypermerge:front")
 
 export type Patch = Patch
