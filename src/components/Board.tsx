@@ -294,14 +294,27 @@ class Board extends React.Component<Props, State> {
     const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
       case "fullscreen": {
+        // when zooming in, we need to scale the board so the card reaches board-size (scale > 1.0)
+        // when zooming out, if this is the current board, we need to scale the board down to card-size. (scale < 1.0)
+        // when zooming out, if this is the previous board, we need to scale the board from extra-large to board-size. (scale > 1.0)
+        //  This is the inverse of zooming in.
         // Get the transform styles for zoom in/out states.
-        const style = this.getZoomTransformStyle()
+
+        const scale = this.getScale()
+        const scaleOrigin = this.getScaleOrigin()
+        const overlayOpacity = this.getOverlayOpacity(scale)
+        console.log("scale", scale)
+        console.log("overlay opacity", overlayOpacity)
+        const style: any = {
+          transform: `scale(${scale})`,
+          transformOrigin: scaleOrigin,
+        }
 
         // Needed to place the previous board (the back stack board) behind the current board and shelf.
+        // isPrevious
         if (zIndex) {
           style.zIndex = zIndex
         }
-
         if (color) {
           style.backgroundColor = color
         }
@@ -366,6 +379,12 @@ class Board extends React.Component<Props, State> {
                 onBoardCreate={this.onCreateBoard}
                 zIndex={topZ + 1}
               />
+              {overlayOpacity > 0.0 ? (
+                <div
+                  className={css.FrostedGlass}
+                  style={{ opacity: overlayOpacity, zIndex: 100000 }}
+                />
+              ) : null}
             </div>
           </Pinchable>
         )
@@ -429,44 +448,94 @@ class Board extends React.Component<Props, State> {
     })
   }
 
-  getZoomTransformStyle() {
+  getOverlayOpacity(scale: number) {
+    const { scalingCard } = this.state
+    const { backNavCardTarget, doc } = this.props
+    if (scalingCard) {
+      return 0.0
+      //const card = doc.cards[scalingCard]!
+      //const startScale = card.width / BOARD_DIMENSIONS.width
+      //const destScale = 1.0
+      //return getOpacity(scale, startScale, destScale)
+    } else if (backNavCardTarget) {
+      const startScale = 1.0
+      const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
+      console.log("dest scale", destScale)
+      return getOpacity(scale, startScale, destScale)
+    }
+    return 0.0
+
+    function getOpacity(scale: number, startScale: number, destScale: number) {
+      if (scale >= 1.0) return 0.0
+      const total = Math.abs(destScale - startScale)
+      const current = scale - Math.min(destScale, startScale)
+      const progress = current / total
+      const value = destScale < startScale ? 1.0 - progress : progress
+      console.log("progress", value)
+      return clamp(value * 0.2, 0.0, 0.2)
+    }
+  }
+
+  getScaleOrigin() {
+    const { scalingCard } = this.state
+    const { backNavCardTarget, doc } = this.props
+    if (scalingCard && doc.cards[scalingCard]) {
+      const { x, y, height, width } = doc.cards[scalingCard]!
+      const origin = {
+        x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
+        y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
+      }
+      return `${origin.x}% ${origin.y}%`
+    } else if (backNavCardTarget) {
+      const { x, y, height, width } = backNavCardTarget
+      const origin = {
+        x: (x / (BOARD_DIMENSIONS.width - width)) * 100,
+        y: (y / (BOARD_DIMENSIONS.height - height)) * 100,
+      }
+      return `${origin.x}% ${origin.y}%`
+    } else {
+      return "50% 50%"
+    }
+  }
+
+  getScale() {
     const { backNavCardTarget } = this.props
     const { cards } = this.props.doc
     const { pinch, scalingCard } = this.state
 
-    let style: any = {}
     // Zooming towards a card
     if (pinch && scalingCard && cards) {
       const card = cards[scalingCard]
       if (card) {
-        const scale = getZoomTowardsScale(card, pinch)
-        const scaleOrigin = getZoomOrigin(card)
-        style = {
-          transform: `scale(${scale})`,
-          transformOrigin: `${scaleOrigin.x}% ${scaleOrigin.y}%`,
-        }
+        // get relative-scale.
+        const boardScale = card.width / BOARD_DIMENSIONS.width
+        const boardScaleMaxScale = 1.0
+        const currentBoardScale = clamp(
+          pinch.scale * boardScale,
+          boardScale,
+          boardScaleMaxScale,
+        )
+        // translate back to absolute-scale
+        return currentBoardScale / boardScale
       }
 
       // Zooming away from the current board
     } else if (pinch && pinch.scale < 1.0) {
       if (backNavCardTarget) {
-        const scale = getZoomAwayScale(backNavCardTarget, pinch)
-        const scaleOrigin = getZoomOrigin(backNavCardTarget)
-        style = {
-          transform: `scale(${scale})`,
-          transformOrigin: `${scaleOrigin.x}% ${scaleOrigin.y}%`,
-        }
+        // absolute-scale
+        const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
+        const startScale = 1.0
+        return clamp(pinch.scale, destScale, startScale)
       } else {
         // If we don't know where to zoom back to, just zoom towards the middle
         // of the previous board.
-        const scale = getZoomAwayScale(SizeUtils.CARD_DEFAULT_SIZE, pinch)
-        style = {
-          transform: `scale(${scale})`,
-          transformOrigin: "50% 50%",
-        }
+        const destScale =
+          SizeUtils.CARD_DEFAULT_SIZE.width / BOARD_DIMENSIONS.width
+        const startScale = 1.0
+        return clamp(pinch.scale, destScale, startScale)
       }
     }
-    return style
+    return 1.0
   }
 }
 
@@ -480,16 +549,32 @@ function getZoomOrigin(card: CardModel) {
 }
 
 function getZoomAwayScale(card: Size, measurements: PinchMetrics.Measurements) {
-  const { width } = card
-  return clamp(measurements.scale, width / BOARD_DIMENSIONS.width, 1.0)
+  // fullscreen-scale
+  const destScale = card.width / BOARD_DIMENSIONS.width
+  const startScale = 1.0
+  return clamp(measurements.scale, destScale, startScale)
+  //const { width } = card
+  //return clamp(measurements.scale, width / BOARD_DIMENSIONS.width, 1.0)
 }
 
 function getZoomTowardsScale(
   card: Size,
   measurements: PinchMetrics.Measurements,
 ) {
-  const { width } = card
-  return clamp(measurements.scale, 1.0, BOARD_DIMENSIONS.width / width)
+  // translate to fullscreen-scale
+  const boardScale = card.width / BOARD_DIMENSIONS.width
+  const boardScaleMaxScale = 1.0
+  const currentBoardScale = clamp(
+    measurements.scale * boardScale,
+    boardScale,
+    boardScaleMaxScale,
+  )
+  // translate back to embed-scale
+  const cardScale = currentBoardScale / boardScale
+  return cardScale
+
+  //const { width } = card
+  //return clamp(measurements.scale, 1.0, BOARD_DIMENSIONS.width / width)
 }
 
 function getCardScaleProgress(
