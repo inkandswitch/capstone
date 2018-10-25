@@ -1,5 +1,7 @@
 # capstone
 
+Brief usage docs in the [cheatsheet](Cheatsheet.md).
+
 ## Usage
 
 On each of your tablet and desktop, clone into `capstone` and run:

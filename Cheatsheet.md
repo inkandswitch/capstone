@@ -5,12 +5,16 @@
 * **Ink** - Tap the pink "Ink" button to enter ink mode. Draw with the stylus anywhere. Tap again to deactivate.
 * **Erase** - Tap the pink "Erase" button to enter erase mode. Draw with the stylus to erase ink. Tap again to deactivate.
 
-## Manipulate boards and cards
+## Boards
 
 * **Create board** - Drag stylus from the left or right edge of the screen to create a new board.
 * **Enter board** - Pinch in or double-tap a board to zoom into it.
 * **Exit board** - Pinch out to zoom out from a board.
+
+## Cards
+
 * **Drag card** - Use the stylus to move boards, images, text, or web clippings.
+* **Mirror card** - Put your finger on the card and then use the stylus to drag off a mirror of the card. It's a reference, so any changes to the either card will be reflected in both.
 * **Delete card** - Drag the card to the edge of the screen to delete it ("throw it off the edge of the world").
 
 ## Shelf
