@@ -23,14 +23,14 @@ export interface Props {
   strokes: InkStroke[]
   mode: Content.Mode
   scale?: number
-  onInkStroke?: (strokes: InkStroke[]) => void
+  onInkStroke?: (stroke: InkStroke) => void
 }
 
 export interface CanvasProps {
   strokes: InkStroke[]
   mode: Content.Mode
   scale?: number
-  onInkStroke?: (strokes: InkStroke[]) => void
+  onInkStroke?: (stroke: InkStroke) => void
   strokeType?: StrokeType
   updateVisibleEraserPosition: (eraserPosition?: PenPoint) => void
 }
@@ -153,8 +153,7 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   ctx?: CanvasRenderingContext2D | null
   pointerEventSubscription?: Rx.Subscription
 
-  wetStrokes: InkStroke[] = []
-  strokeId = 0
+  wetStroke?: InkStroke
   lastDrawnPoint = 0
   saveTimerId: number | undefined = undefined
 
@@ -219,13 +218,13 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     if (!strokeType) return
 
     const coalesced: PointerEvent[] = event.getCoalescedEvents()
-    if (!this.wetStrokes[this.strokeId]) {
-      this.wetStrokes[this.strokeId] = {
+    if (!this.wetStroke) {
+      this.wetStroke = {
         points: [],
         settings: StrokeSettings[strokeType],
       }
     }
-    this.wetStrokes[this.strokeId].points.push(
+    this.wetStroke.points.push(
       ...coalesced.map((value, i, a) => {
         return {
           x: value.x,
@@ -248,7 +247,6 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   onPanEnd = (event: PointerEvent) => {
-    this.strokeId += 1
     this.lastDrawnPoint = 0
     if (this.props.strokeType === StrokeType.erase) {
       this.props.updateVisibleEraserPosition(undefined)
@@ -260,12 +258,11 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     if (!this.props.onInkStroke || !this.props.strokeType) {
       return
     }
-    this.props.onInkStroke(this.wetStrokes)
+    this.wetStroke && this.props.onInkStroke(this.wetStroke)
   }
 
   reset() {
-    this.wetStrokes = []
-    this.strokeId = 0
+    this.wetStroke = undefined
     this.lastDrawnPoint = 0
     if (this.ctx && this.canvasElement) {
       this.ctx.clearRect(
@@ -311,25 +308,21 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   drawWet = Frame.throttle(() => {
-    if (!this.ctx || !this.wetStrokes[this.strokeId] || !this.props.strokeType)
-      return
+    if (!this.ctx || !this.wetStroke || !this.props.strokeType) return
 
     for (
       this.lastDrawnPoint;
-      this.lastDrawnPoint < this.wetStrokes[this.strokeId].points.length;
+      this.lastDrawnPoint < this.wetStroke.points.length;
       this.lastDrawnPoint++
     ) {
-      let point = this.wetStrokes[this.strokeId].points[this.lastDrawnPoint]
+      let point = this.wetStroke.points[this.lastDrawnPoint]
       let settings = StrokeSettings[this.props.strokeType]
       settings.lineWidth = point.strokeWidth
       Object.assign(this.ctx, settings)
       if (this.lastDrawnPoint === 0) {
         continue
       }
-      const twoPoints = [
-        this.wetStrokes[this.strokeId].points[this.lastDrawnPoint - 1],
-        point,
-      ]
+      const twoPoints = [this.wetStroke.points[this.lastDrawnPoint - 1], point]
       const pathString =
         "M " + twoPoints.map(point => `${point.x} ${point.y}`).join(" L ")
       const path = new Path2D(pathString)
