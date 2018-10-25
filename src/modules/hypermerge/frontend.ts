@@ -72,8 +72,6 @@ export class FrontendHandle<T> extends EventEmitter {
 
     if (patch) this.patch(patch) // first patch!
 
-    this.mode = "read"
-
     if (actorId) this.enableWrites() // must enable after patch
   }
 
@@ -95,6 +93,7 @@ export class FrontendHandle<T> extends EventEmitter {
     this.bench("patch", () => {
       this.front = Frontend.applyPatch(this.front, patch)
       if (patch.diffs.length > 0) {
+        if (this.mode === "pending") this.mode = "read"
         this.emit("doc", this.front)
       }
     })
