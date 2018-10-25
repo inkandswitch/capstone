@@ -101,7 +101,7 @@ export default class Ink extends React.Component<Props, State> {
   state: State = {}
 
   render() {
-    const { onInkStroke, strokes, mode } = this.props
+    const { onInkStroke, strokes, mode, scale } = this.props
     const { eraserPosition, strokeType } = this.state
     const { updateVisibleEraserPosition } = this
     return (
@@ -123,6 +123,7 @@ export default class Ink extends React.Component<Props, State> {
           onInkStroke={onInkStroke}
           updateVisibleEraserPosition={updateVisibleEraserPosition}
           strokes={strokes}
+          scale={scale}
           mode={mode}
         />
         {this.props.mode == "fullscreen" ? (
@@ -197,14 +198,17 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     }
   }
 
+  once = false
+  shouldComponentUpdate() {
+    if (!this.once) {
+      this.once = true
+      return true
+    }
+    return false
+  }
+
   render() {
-    return (
-      <div>
-        <div>
-          <canvas ref={this.canvasAdded} className={css.InkLayer} />
-        </div>
-      </div>
-    )
+    return <canvas ref={this.canvasAdded} className={css.InkLayer} />
   }
 
   onPenEvent = (event: PointerEvent) => {
