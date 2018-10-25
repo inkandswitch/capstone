@@ -142,7 +142,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
         <div>
           <GPSInput />
           <Clipboard onPaste={this.onPaste} />
-          <Content mode="fullscreen" noInk url={doc.shelfUrl} />
+          <Content mode="fullscreen" noInk color="#f0f0f0" url={doc.shelfUrl} />
         </div>
       )
     }
@@ -169,7 +169,12 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
             onNavigateBack={this.pop}
           />
           <Shelf>
-            <Content mode="fullscreen" noInk url={doc.shelfUrl} />
+            <Content
+              mode="fullscreen"
+              noInk
+              color="#f0f0f0"
+              url={doc.shelfUrl}
+            />
           </Shelf>
         </div>
       </Pinchable>

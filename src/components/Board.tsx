@@ -42,6 +42,7 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   backNavCardTarget?: CardModel // Used to target back nav zooming.
   noInk?: boolean
   zIndex?: number
+  color?: string
 }
 
 interface State {
@@ -288,7 +289,7 @@ class Board extends React.Component<Props, State> {
   }
 
   render() {
-    const { noInk, zIndex } = this.props
+    const { noInk, zIndex, color } = this.props
     const { cards, strokes, topZ } = this.props.doc
     const { pinch, scalingCard } = this.state
     switch (this.props.mode) {
@@ -298,7 +299,11 @@ class Board extends React.Component<Props, State> {
 
         // Needed to place the previous board (the back stack board) behind the current board and shelf.
         if (zIndex) {
-          style["zIndex"] = zIndex
+          style.zIndex = zIndex
+        }
+
+        if (color) {
+          style.backgroundColor = color
         }
 
         return (
