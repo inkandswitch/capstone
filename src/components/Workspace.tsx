@@ -11,6 +11,7 @@ import Content, {
   ReceiveDocuments,
 } from "./Content"
 import Clipboard from "./Clipboard"
+import Shelf from "./Shelf"
 import * as css from "./css/Workspace.css"
 
 type NavEntry = { url: string; [extra: string]: any }
@@ -153,10 +154,9 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
           onNavigate={this.push}
           onNavigateBack={this.pop}
         />
-
-        <div className={css.Shelf}>
+        <Shelf>
           <Content mode="fullscreen" noInk url={doc.shelfUrl} />
-        </div>
+        </Shelf>
       </div>
     )
   }
