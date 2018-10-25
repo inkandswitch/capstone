@@ -1,7 +1,7 @@
 import * as crypto from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import { Hypermerge } from ".."
-import { Patch, FrontendHandle } from "../frontend"
+import { Patch, FrontendManager } from "../frontend"
 import CloudClient from "../../discovery-cloud/Client"
 
 import * as Debug from "debug"
@@ -28,7 +28,7 @@ interface Foo {
   counter2: number
 }
 
-const front: FrontendHandle<Foo> = docId
+const front: FrontendManager<Foo> = docId
   ? t.openDocumentFrontend(docId)
   : t.createDocumentFrontend(crypto.keyPair())
 

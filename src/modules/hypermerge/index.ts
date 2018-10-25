@@ -9,6 +9,8 @@
 // 8. does not allocate a hypercore for a document unless you intend to write to it (read only mode)
 // 9. exports almost the same interface as hypermerge
 
+// Notes - Hypermerge.front will not emit a doc if it is empty - even if its supposed to be
+
 export const EXT = "hypermerge"
 
 type FeedFn = (f: Feed<Uint8Array>) => void
@@ -27,14 +29,13 @@ import { hypercore, Feed, Peer, discoveryKey } from "./hypercore"
 import * as Backend from "automerge/backend"
 import { Change, Patch, BackDoc } from "automerge/backend"
 import { BackendHandle } from "./backend"
-import { FrontendHandle } from "./frontend"
+import { FrontendManager } from "./frontend"
 import * as Debug from "debug"
 
 export { Feed, Peer } from "./hypercore"
 export { Patch, Doc, EditDoc, ChangeFn } from "automerge/frontend"
-export { FrontendHandle } from "./frontend"
+export { FrontendManager } from "./frontend"
 export { BackendHandle } from "./backend"
-
 
 Debug.formatters.b = Base58.encode
 
@@ -102,9 +103,9 @@ export class Hypermerge {
     })
   }
 
-  createDocumentFrontend<T>(keys: Keys): FrontendHandle<T> {
+  createDocumentFrontend<T>(keys: Keys): FrontendManager<T> {
     const back = this.createDocument(keys)
-    const front = new FrontendHandle<T>(back.docId, back.docId)
+    const front = new FrontendManager<T>(back.docId, back.docId)
     front.back = back
     front.on("request", back.applyLocalChange)
     back.on("patch", front.patch)
@@ -146,9 +147,9 @@ export class Hypermerge {
     return doc
   }
 
-  openDocumentFrontend<T>(docId: string): FrontendHandle<T> {
+  openDocumentFrontend<T>(docId: string): FrontendManager<T> {
     const back = this.openDocument(docId)
-    const front = new FrontendHandle<T>(back.docId)
+    const front = new FrontendManager<T>(back.docId)
     front.back = back
     front.once("needsActorId", back.initActor)
     front.on("request", back.applyLocalChange)
@@ -281,7 +282,9 @@ export class Hypermerge {
 
   peers(doc: BackendHandle): Peer[] {
     return ([] as Peer[]).concat(
-      ...this.actorIds(doc).map(actorId => [...(this.feedPeers.get(actorId) || [])]),
+      ...this.actorIds(doc).map(actorId => [
+        ...(this.feedPeers.get(actorId) || []),
+      ]),
     )
   }
 

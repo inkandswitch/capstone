@@ -2,6 +2,7 @@ import { EventEmitter } from "events"
 import { Patch, Doc, ChangeFn } from "automerge/frontend"
 import * as Frontend from "automerge/frontend"
 import Queue from "../../data/Queue"
+import Handle from "./handle"
 import * as Debug from "debug"
 
 const log = Debug("hypermerge:front")
@@ -10,11 +11,11 @@ export type Patch = Patch
 
 type Mode = "pending" | "read" | "write"
 
-export class FrontendHandle<T> extends EventEmitter {
+export class FrontendManager<T> extends EventEmitter {
   docId: string
   actorId?: string
   back?: any // place to put the backend if need be - not needed here int he code so didnt want to import
-  private changeQ: Queue<ChangeFn<T>> = new Queue()
+  private changeQ: Queue<ChangeFn<T>> = new Queue("frontend:change")
   private front: Doc<T>
   private mode: Mode = "pending"
 
@@ -36,6 +37,16 @@ export class FrontendHandle<T> extends EventEmitter {
         listener(this.front)
       }
     })
+  }
+
+  handle(): Handle<T> {
+    let handle = new Handle<T>()
+    handle.cleanup = () => {
+      this.removeListener("doc", handle.push)
+    }
+    handle.change = this.change
+    this.on("doc", handle.push)
+    return handle
   }
 
   change = (fn: ChangeFn<T>) => {
