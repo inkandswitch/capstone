@@ -44,6 +44,32 @@ function getImageSize(src: string): Promise<Size> {
   })
 }
 
+export function getTextWidth(
+  text: string,
+  fontSize: number,
+  fontWeight: string,
+): number {
+  var element = document.createElement("div")
+  var textNode = document.createTextNode("")
+  textNode.textContent = text
+  element.appendChild(textNode)
+
+  element.style.fontFamily = "Roboto, Arial, Helvetica, sans-serif"
+  element.style.fontSize = `${fontSize}px`
+  element.style.fontWeight = fontWeight
+  element.style.position = "absolute"
+  element.style.visibility = "hidden"
+  element.style.left = "-999px"
+  element.style.top = "-999px"
+  element.style.width = "auto"
+  element.style.height = "auto"
+  document.body.appendChild(element)
+
+  const width = element.clientWidth
+  element.parentNode!.removeChild(element)
+  return width
+}
+
 function getTextSize(text: string): Size {
   const lines = text.split("\n")
   const fontSize = 6
@@ -69,8 +95,8 @@ function getTextSize(text: string): Size {
 
   lines.forEach(line => {
     textNode.textContent = line
-    totalHeight += Math.max(element.clientHeight, 21) // min. 21 to account for empty lines
-    console.log(`${Math.max(element.clientHeight, 21)} ${line}`)
+    totalHeight += Math.max(element.clientHeight, lineHeightPx) // min. 21 to account for empty lines
+    console.log(`${Math.max(element.clientHeight, lineHeightPx)} ${line}`)
   })
   element.parentNode!.removeChild(element)
 
