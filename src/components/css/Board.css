@@ -3,17 +3,18 @@
   height: 100%;
   position: absolute;
   background-color: #f9f8f3;
-  overflow: hidden;
+  border-radius: 3px;
 }
 
-:local(.BoardEmbedBackground) {
+:local(.FrostedGlass) {
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
   position: absolute;
-  background-color: #efeeea;
+  background-color: #333;
   border-radius: 3px;
+  opacity: 0.2;
 }
 
 :local(.BoardEmbed) {
@@ -21,6 +22,7 @@
   z-index: 0;
   overflow: hidden;
   height: 100%;
+  background-color: #f9f8f3;
 }
 
 :local(.BoardPreview) {

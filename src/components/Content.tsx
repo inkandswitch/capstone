@@ -3,6 +3,7 @@ import * as Link from "../data/Link"
 import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
 import * as Reify from "../data/Reify"
+import * as Env from "../data/Env"
 import { once } from "lodash"
 import * as Debug from "debug"
 const log = Debug("component:content")
@@ -10,6 +11,7 @@ const log = Debug("component:content")
 export interface WidgetProps<T> {
   url: string
   mode: Mode
+  env: Env.Env
   store: Store
 }
 interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
@@ -132,6 +134,8 @@ export default class Content extends React.Component<Props & unknown> {
   static workspaceUrl: string
   static rootBoardUrl: string
 
+  static env = Env.load()
+
   /// Registry:
 
   // Creates an initialized document of the given type and returns its URL
@@ -225,6 +229,7 @@ export default class Content extends React.Component<Props & unknown> {
       <Widget
         key={this.props.url}
         mode={this.props.mode}
+        env={Content.env}
         {...this.props}
         store={Content.store}
       />

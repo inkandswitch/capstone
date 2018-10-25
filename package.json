@@ -14,7 +14,7 @@
     "clean": "rm -r dist .data",
     "format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "capstone": "node ./bin/launch.js capstone",
-    "sidecar": "node ./bin/launch.js sidecar",
+    "sidecar": "node ./bin/launch.js capstone",
     "tests": "node ./bin/launch.js tests"
   },
   "author": "Ink & Switch",
@@ -88,6 +88,7 @@
     "stats.js": "^0.17.0",
     "tap-browser-el": "^2.0.0",
     "utp": "github:pvh/utp",
+    "webpack-encoding-plugin": "^0.2.1",
     "ws": "^6.1.0"
   }
 }

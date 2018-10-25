@@ -4,10 +4,12 @@ import * as Link from "../data/Link"
 import Content, { Mode } from "./Content"
 import Store, { Activity } from "../data/Store"
 import * as css from "./css/NetworkActivity.css"
+import { Env } from "../data/Env"
 
 interface Props {
   store: Store
   mode: Mode
+  env: Env
   url: string
 }
 

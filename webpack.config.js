@@ -1,4 +1,5 @@
 const path = require("path")
+const EncodingPlugin = require("webpack-encoding-plugin")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin")
 const glob = require("glob")
@@ -113,7 +114,6 @@ function app(env, name, overrides = {}) {
 module.exports = (env = {}) =>
   [
     app(env, "capstone"),
-    app(env, "sidecar"),
     app(env, "tests", {
       entry: {
         main: [
@@ -131,6 +131,9 @@ module.exports = (env = {}) =>
       plugins: [
         new CopyWebpackPlugin(["manifest.json"], {
           context: `./src/apps/clipper`,
+        }),
+        new EncodingPlugin({
+          encoding: "ascii",
         }),
       ],
     }),

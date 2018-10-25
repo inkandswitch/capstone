@@ -1,5 +1,7 @@
 # capstone
 
+Brief usage docs in the [cheatsheet](Cheatsheet.md).
+
 ## Usage
 
 On each of your tablet and desktop, clone into `capstone` and run:
@@ -10,8 +12,7 @@ $ yarn start
 ```
 
 Again on each device, open Chrome and go to `chrome://extensions`. Select "Load
-unpacked". For the tablet, select `capstone/dist/capstone`, for the desktop,
-`capstone/dist/sidecar`.
+unpacked". Select `capstone/dist/capstone`
 
 You should then be able to open Sidecar on your desktop and Capstone on your
 tablet as you would other apps on those platforms.

@@ -36,6 +36,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
       .pipe(
         RxOps.map(GPS.onlyPen),
         RxOps.filter(GPS.ifNotEmpty),
+        RxOps.filter(GPS.ifNotInking),
         RxOps.map(GPS.toAnyPointer),
         RxOps.map(GPS.toMostRecentEvent),
       )
@@ -155,7 +156,12 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
       }
       dragMarker = <div className={css.Marker} style={dragMarkerStyle} />
       boardCard = (
-        <div className={boardCss.BoardEmbedBackground} style={boardCardStyle} />
+        <div className={boardCss.BoardEmbed} style={boardCardStyle}>
+          <div
+            className={boardCss.BoardEmbedBackground}
+            style={{ opacity: 0.2 }}
+          />
+        </div>
       )
     }
     return (

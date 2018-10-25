@@ -29,7 +29,7 @@ export interface Props {
   onDragStop?: (x: number, y: number, id: string) => void
   onRemoved?: (id: string) => void
   onResizeStop?: (newSize: Size, id: string) => void
-  onDoubleTap?: (url: string) => void
+  onDoubleTap?: (id: string) => void
   onPinchStart?: (id: string, measurements: PinchMetrics.Measurements) => void
   onPinchMove?: (id: string, measurements: PinchMetrics.Measurements) => void
   onPinchOutEnd?: (id: string, measurements: PinchMetrics.Measurements) => void
@@ -102,7 +102,7 @@ export default class InteractableCard extends React.Component<Props, State> {
   }
 
   onDoubleTap = () => {
-    this.props.onDoubleTap && this.props.onDoubleTap(this.props.card.url)
+    this.props.onDoubleTap && this.props.onDoubleTap(this.props.card.id)
   }
 
   render() {

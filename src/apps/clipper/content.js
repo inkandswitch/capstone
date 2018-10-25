@@ -3,11 +3,9 @@ import freezeDry from "freeze-dry"
 var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
 
 freezeDry(document, { addMetadata: true }).then(html => {
-  chrome.runtime.sendMessage(
-    capstoneExtensionId,
-    { contentType: "HTML", src: window.location.href, content: html },
-    response => {
-      console.log("Capstone appears to have received the HTML.")
-    },
-  )
+  const msg = { contentType: "HTML", src: window.location.href, content: html }
+
+  chrome.runtime.sendMessage(capstoneExtensionId, msg, response => {
+    console.log("Capstone got the HTML.")
+  })
 })

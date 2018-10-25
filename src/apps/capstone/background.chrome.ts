@@ -1,15 +1,14 @@
+import { defaultEnv } from "../../data/Env"
+
+const env = defaultEnv()
+
 const windowParams: chrome.app.CreateWindowOptions = {
   id: "main",
   frame: "chrome",
-  state: "fullscreen",
   resizable: true,
   outerBounds: {
-    // Half-screen default for development
-    // Press "square" key (F3) to toggle
-    top: 0,
-    left: 0,
-    width: screen.width / 2,
-    height: screen.height,
+    width: 900,
+    height: 600,
   },
 }
 
@@ -21,6 +20,8 @@ function showMainWindow(cb: ((window: chrome.app.AppWindow) => void)) {
 }
 
 function maybeFullscreen(win: chrome.app.AppWindow) {
+  if (env.device === "sidecar") return
+
   chrome.storage.local.get(["disableFullscreen"], result => {
     if (!result.disableFullscreen) {
       win.fullscreen()

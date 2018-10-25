@@ -19,11 +19,7 @@ interface Props extends Widget.Props<Model> {
   availableWidth: number
 }
 
-interface State {
-  encodedHtml: string
-}
-
-class HTML extends React.Component<Props, State> {
+class HTML extends React.Component<Props> {
   static reify(doc: AnyDoc): Model {
     return {
       html: Reify.string(doc.html),
@@ -31,18 +27,7 @@ class HTML extends React.Component<Props, State> {
     }
   }
 
-  state = { encodedHtml: "" }
-
-  componentWillReceiveProps() {
-    this.setState({
-      encodedHtml:
-        "data:text/html;base64," +
-        btoa(unescape(encodeURIComponent(this.props.doc.html))),
-    })
-  }
-
   render() {
-    const { encodedHtml } = this.state
     switch (this.props.mode) {
       case "fullscreen":
         return (
@@ -50,7 +35,7 @@ class HTML extends React.Component<Props, State> {
             <iframe
               frameBorder="0"
               style={style.Fullscreen__IFrame}
-              src={encodedHtml}
+              srcDoc={this.props.doc.html}
             />
             <div style={style.Fullscreen__Banner}>{this.props.doc.src}</div>
           </div>
@@ -69,7 +54,10 @@ class HTML extends React.Component<Props, State> {
         return (
           <div style={style.Embed}>
             <div style={scaleStyle}>
-              <iframe style={style.Embed__IFrame} src={encodedHtml} />
+              <iframe
+                style={style.Embed__IFrame}
+                srcDoc={this.props.doc.html}
+              />
             </div>
           </div>
         )
@@ -78,7 +66,6 @@ class HTML extends React.Component<Props, State> {
 }
 
 const style = {
-  Fullscreen: {},
   Fullscreen__Banner: {
     background: "#F6F6F6",
     position: "absolute",
@@ -103,10 +90,16 @@ const style = {
     transform: "scale(0.25)",
     transformOrigin: "0 0",
   },
+  Fullscreen: {
+    width: "100%",
+    height: "100%",
+    overflow: "scroll",
+  } as React.CSSProperties,
   Fullscreen__IFrame: {
-    width: IFRAME_DIMENSIONS.width + "px",
-    height: IFRAME_DIMENSIONS.height + "px",
-  },
+    width: "100vw",
+    height: "100vh",
+    pointerEvents: "none",
+  } as React.CSSProperties,
   Embed__IFrame: {
     width: IFRAME_DIMENSIONS.width + "px",
     height: IFRAME_DIMENSIONS.height + "px",
