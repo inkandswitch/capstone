@@ -330,8 +330,7 @@ class Board extends React.Component<Props, State> {
         // Get the transform styles for zoom in/out states.
         const scale = this.getScale()
         const scaleOrigin = this.getScaleOrigin()
-        const backgroundOpacity = this.getBackgroundOpacity(scale)
-        const contentOpacity = this.getContentOpacity(scale)
+        const backgroundOpacity = this.getOverlayOpacity(scale)
         const style: any =
           scale === 1
             ? {}
@@ -361,61 +360,59 @@ class Board extends React.Component<Props, State> {
               onDragOver={this.onDragOver}
               onDrop={this.onDrop}
               style={style}>
+              {noInk ? null : (
+                <Ink
+                  onInkStroke={this.onInkStroke}
+                  strokes={strokes}
+                  mode={this.props.mode}
+                />
+              )}
+              <TransitionGroup>
+                {Object.values(cards).map(card => {
+                  if (!card) return null
+                  let navScale = 0
+                  if (pinch && scalingCard && scalingCard === card.id) {
+                    navScale = getCardScaleProgress(card, pinch)
+                  }
+                  return (
+                    <CSSTransition
+                      key={card.id}
+                      classNames="Card"
+                      enter={false}
+                      timeout={{ exit: 1 }}>
+                      <Mirrorable cardId={card.id} onMirror={this.onMirror}>
+                        <InteractableCard
+                          card={card}
+                          onPinchStart={this.onPinchStart}
+                          onPinchMove={this.onPinchMove}
+                          onPinchOutEnd={this.onPinchOutEnd}
+                          onDoubleTap={this.onDoubleTap}
+                          onDragStart={this.onDragStart}
+                          onDragStop={this.onDragStop}
+                          onRemoved={this.onRemoved}
+                          onResizeStop={this.onResizeStop}>
+                          <Content
+                            mode="embed"
+                            url={card.url}
+                            scale={navScale}
+                          />
+                        </InteractableCard>
+                      </Mirrorable>
+                    </CSSTransition>
+                  )
+                })}
+              </TransitionGroup>
+
+              <EdgeBoardCreator
+                onBoardCreate={this.onCreateBoard}
+                zIndex={topZ + 1}
+              />
               {backgroundOpacity > 0.0 ? (
                 <div
-                  className={css.BoardEmbedBackground}
-                  style={{ opacity: backgroundOpacity }}
+                  className={css.FrostedGlass}
+                  style={{ opacity: backgroundOpacity, zIndex: 10000000 }}
                 />
               ) : null}
-              <div style={{ opacity: contentOpacity }}>
-                {noInk ? null : (
-                  <Ink
-                    onInkStroke={this.onInkStroke}
-                    strokes={strokes}
-                    mode={this.props.mode}
-                  />
-                )}
-                <TransitionGroup>
-                  {Object.values(cards).map(card => {
-                    if (!card) return null
-                    let navScale = 0
-                    if (pinch && scalingCard && scalingCard === card.id) {
-                      navScale = getCardScaleProgress(card, pinch)
-                    }
-                    return (
-                      <CSSTransition
-                        key={card.id}
-                        classNames="Card"
-                        enter={false}
-                        timeout={{ exit: 1 }}>
-                        <Mirrorable cardId={card.id} onMirror={this.onMirror}>
-                          <InteractableCard
-                            card={card}
-                            onPinchStart={this.onPinchStart}
-                            onPinchMove={this.onPinchMove}
-                            onPinchOutEnd={this.onPinchOutEnd}
-                            onDoubleTap={this.onDoubleTap}
-                            onDragStart={this.onDragStart}
-                            onDragStop={this.onDragStop}
-                            onRemoved={this.onRemoved}
-                            onResizeStop={this.onResizeStop}>
-                            <Content
-                              mode="embed"
-                              url={card.url}
-                              scale={navScale}
-                            />
-                          </InteractableCard>
-                        </Mirrorable>
-                      </CSSTransition>
-                    )
-                  })}
-                </TransitionGroup>
-
-                <EdgeBoardCreator
-                  onBoardCreate={this.onCreateBoard}
-                  zIndex={topZ + 1}
-                />
-              </div>
             </div>
           </Pinchable>
         )
@@ -431,39 +428,39 @@ class Board extends React.Component<Props, State> {
           transformOrigin: "top left",
         }
 
-        const backgroundOpacity = this.getOpacity(scale, 0.0, 1.0, 0.04, 0.0)
-        const contentOpacity = clamp(0.6 + 0.4 * scale, 0.0, 1.0)
+        const backgroundOpacity = this.getOpacity(scale, 0.0, 1.0, 0.4, 0.0)
 
         return (
           <div className={css.Board} ref={this.onRef}>
+            <Ink
+              onInkStroke={this.onInkStroke}
+              strokes={strokes}
+              mode={this.props.mode}
+              scale={contentScale}
+            />
+            <div style={style}>
+              {Object.values(cards).map(card => {
+                if (!card) return null
+                const type = Link.parse(card.url).type
+                if (type === "Board") {
+                }
+                return (
+                  <InteractableCard
+                    key={card.id}
+                    card={card}
+                    onPinchOutEnd={noop}
+                    onDragStart={noop}
+                    onDragStop={noop}
+                    onResizeStop={noop}>
+                    <Content mode="preview" url={card.url} />
+                  </InteractableCard>
+                )
+              })}
+            </div>
             <div
-              className={css.BoardEmbedBackground}
+              className={css.FrostedGlass}
               style={{ opacity: backgroundOpacity }}
             />
-            <div style={{ opacity: contentOpacity }}>
-              <Ink
-                onInkStroke={this.onInkStroke}
-                strokes={strokes}
-                mode={this.props.mode}
-                scale={contentScale}
-              />
-              <div style={style}>
-                {Object.values(cards).map(card => {
-                  if (!card) return null
-                  return (
-                    <InteractableCard
-                      key={card.id}
-                      card={card}
-                      onPinchOutEnd={noop}
-                      onDragStart={noop}
-                      onDragStop={noop}
-                      onResizeStop={noop}>
-                      <Content mode="preview" url={card.url} />
-                    </InteractableCard>
-                  )
-                })}
-              </div>
-            </div>
           </div>
         )
       }
@@ -471,7 +468,7 @@ class Board extends React.Component<Props, State> {
         return (
           <div>
             <div className={css.Board} />
-            <div className={css.BoardInBoardInBoard} />
+            <div className={css.FrostedGlass} />
           </div>
         )
       }
@@ -484,7 +481,7 @@ class Board extends React.Component<Props, State> {
     })
   }
 
-  getBackgroundOpacity(scale: number) {
+  getOverlayOpacity(scale: number) {
     const { scalingCard } = this.state
     const { backNavCardTarget, doc } = this.props
     if (scalingCard) {
@@ -493,23 +490,9 @@ class Board extends React.Component<Props, State> {
       if (scale >= 1.0) return 0.0
       const startScale = 1.0
       const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
-      return this.getOpacity(scale, startScale, destScale, 0.0, 0.04)
+      return this.getOpacity(scale, startScale, destScale, 0.0, 0.4)
     }
     return 0.0
-  }
-
-  getContentOpacity(scale: number) {
-    const { scalingCard } = this.state
-    const { backNavCardTarget, doc } = this.props
-    if (scalingCard) {
-      return 1.0
-    } else if (backNavCardTarget) {
-      if (scale > 1.0) return 1.0
-      const startScale = 1.0
-      const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
-      return this.getOpacity(scale, startScale, destScale, 1.0, 0.6)
-    }
-    return 1.0
   }
 
   getOpacity = (
