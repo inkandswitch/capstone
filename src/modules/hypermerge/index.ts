@@ -74,6 +74,7 @@ export class Hypermerge {
   feedQs: Map<string, Queue<FeedFn>> = new Map()
   feedPeers: Map<string, Set<Peer>> = new Map()
   docs: Map<string, BackendManager> = new Map()
+  feedSeq: Map<string,number> = new Map()
   ledger: Feed<LedgerData>
   docMetadata: Map<string, string[]> = new Map() // Map of Sets - FIXME
   swarm?: Swarm
@@ -179,6 +180,9 @@ export class Hypermerge {
             if (err) {
               reject(err)
             }
+
+            this.feedSeq.set(actorId, datas.length)
+
             resolve({ actorId, writable, changes })
           })
         } else {
@@ -193,12 +197,16 @@ export class Hypermerge {
   }
 
   writeChange(doc: BackendManager, actorId: string, change: Change) {
+    const feedLength = this.feedSeq.get(actorId) || 0
+    const ok = feedLength + 1 === change.seq
+    log(`write actor=${actorId} seq=${change.seq} feed=${feedLength} ok=${ok}`)
+    // if (!ok) { throw new Error("seq != feedLength - wtf man") }
+    this.feedSeq.set(actorId, feedLength + 1)
     this.getFeed(doc, actorId, feed => {
       feed.append(JsonBuffer.bufferify(change), err => {
         if (err) {
           throw new Error("failed to append to feed")
         }
-        log(`write actor=${actorId} seq=${change.seq} length=${feed.length} ok=${change.seq == feed.length}`)
       })
     })
   }
@@ -298,6 +306,7 @@ export class Hypermerge {
     this.addMetadata(doc.docId, actorId)
     log("init feed", actorId)
     feed.ready(() => {
+      this.feedSeq.set(actorId, 0)
       doc.broadcastMetadata()
       this.join(actorId)
       feed.on("peer-remove", (peer: Peer) => {
