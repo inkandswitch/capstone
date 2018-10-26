@@ -63,6 +63,14 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
   }
 
+  static initDoc(): Model {
+    return {
+      navStack: [],
+      rootUrl: Content.create("Board"),
+      shelfUrl: Content.create("Board"),
+    }
+  }
+
   get currentUrl() {
     return this.peek()
   }

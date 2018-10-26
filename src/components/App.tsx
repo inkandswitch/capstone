@@ -34,41 +34,19 @@ export default class App extends React.Component<Props, State> {
 
   initWorkspace() {
     log("init workspace")
-    const shelfUrl = Content.create("Board")
-    const rootBoardUrl = Content.create("Board")
-    const workspaceUrl = Content.create("Workspace")
+    const url = Content.create("Workspace")
+    this.setState({ url })
 
-    Content.workspaceUrl = workspaceUrl
-    Content.rootBoardUrl = rootBoardUrl
-
-    Content.open<Workspace.Model>(workspaceUrl)
-      .change(workspace => {
-        if (!workspace.identityUrl) {
-          workspace.shelfUrl = shelfUrl
-          workspace.rootUrl = rootBoardUrl
-          workspace.navStack = []
-        }
-      })
-      .once(() => {
-        this.setWorkspaceUrl(workspaceUrl)
-      })
+    setTimeout(() => {
+      // This fn is triggered by the same observable setWorkspace writes to.
+      // Without the timeout, some receive the workspace in the wrong order
+      Content.store.setWorkspace(url)
+    }, 0)
   }
 
-  setWorkspaceUrl(workspaceUrl: string) {
-    log("set workspace", workspaceUrl)
-    this.setState({ url: workspaceUrl })
-    Content.store.setWorkspace(workspaceUrl)
-  }
-
-  openWorkspace(workspaceUrl: string) {
-    log("open workspace 1", workspaceUrl)
-    Content.once<Workspace.Model>(workspaceUrl, workspace => {
-      log("open workspace 2", workspaceUrl)
-      Content.workspaceUrl = workspaceUrl
-      Content.rootBoardUrl = workspace.rootUrl
-
-      this.setWorkspaceUrl(workspaceUrl)
-    })
+  openWorkspace(url: string) {
+    log("open workspace 1", url)
+    this.setState({ url })
   }
 
   configWorkspace(workspaceUrl: string | null) {

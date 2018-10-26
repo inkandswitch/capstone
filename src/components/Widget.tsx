@@ -28,6 +28,8 @@ interface WrappedComponent<T, M = never>
   extends React.Component<Props<T, M>, any> {}
 type WrappedComponentClass<T, M = never> = {
   new (...k: any[]): WrappedComponent<T, M>
+  reify?: (doc: AnyDoc) => T
+  initDoc?: () => T
 }
 
 export function create<T, M extends Message = never>(
@@ -39,6 +41,7 @@ export function create<T, M extends Message = never>(
   const WidgetClass = class extends React.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
+    static initDoc = WrappedComponent.initDoc
     handle?: Handle<T>
 
     constructor(props: WidgetProps<T>, ctx: any) {

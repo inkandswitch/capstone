@@ -20,6 +20,7 @@ interface Widget<T> extends React.Component<WidgetProps<T>, any> {}
 export type WidgetClass<T> = {
   new (...k: any[]): Widget<T>
   reify(doc: AnyDoc): T
+  initDoc?: () => T
 }
 
 export interface Message {
@@ -131,8 +132,6 @@ export default class Content extends React.Component<Props & unknown> {
   static documentCache: { [id: string]: Doc<any> } = {}
 
   static store: Store
-  static workspaceUrl: string
-  static rootBoardUrl: string
 
   static env = Env.load()
 
@@ -142,7 +141,7 @@ export default class Content extends React.Component<Props & unknown> {
   static create<T>(type: string): string {
     const widget = this.find(type) as WidgetClass<T>
     const setup: any = (doc: any) => {
-      Reify.reify(doc, widget.reify)
+      Reify.reify(doc, widget.initDoc || widget.reify)
     }
 
     const id = this.store.create(setup).docId
@@ -190,7 +189,11 @@ export default class Content extends React.Component<Props & unknown> {
   }
 
   static send(message: Message) {
-    message.to = message.to || Content.workspaceUrl
+    if (!message.to) {
+      const to = this.store.getWorkspace()
+      if (!to) return console.error("No workspace to send messsage", message)
+      message.to = to
+    }
     const { type: recipientType } = Link.parse(message.to)
     const Recipient = Content.getMessageHandler(recipientType)
     if (!Recipient) return

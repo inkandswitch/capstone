@@ -22,7 +22,7 @@ type State = {
 
 export default class WorkspaceMgr extends React.Component<Props, State> {
   textarea: HTMLTextAreaElement | null = null
-  state = {
+  state: State = {
     json: "",
     input: "",
     error: "",
@@ -37,17 +37,16 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
       this.setState({ history: result.history || [] })
     })
 
-    this.props.store.control().subscribe(message => {
-      if (!message) return
-
-      if (message.type == "Control") {
-        const url = message.url
+    this.props.store.control().subscribe(msg => {
+      console.log("msg", msg)
+      if (msg.type == "Control") {
+        const url = msg.url
         if (url === this.state.url) return
 
         const history = this.state.history.filter(v => v != url)
 
         if (this.state.url) {
-          history.unshift(this.state.url!)
+          history.unshift(this.state.url)
         }
 
         this.setState({ history, url })
@@ -90,7 +89,7 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
     event.preventDefault()
 
     const url: string = event.target.value
-    if (url.endsWith("\n")) {
+    if (url.includes("\n")) {
       this.saveUrl(this.state.input)
     } else {
       this.setState({

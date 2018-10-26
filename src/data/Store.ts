@@ -26,14 +26,14 @@ export default class Store {
   feedCount: { [id: string]: number } = {}
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
-  control$: Rx.BehaviorSubject<Msg.Control | null>
+  control$: Rx.BehaviorSubject<Msg.Control>
 
   constructor() {
     log("constructing")
 
     this.presence$ = new Rx.BehaviorSubject<Msg.Presence | null>(null)
     this.clipper$ = new Rx.BehaviorSubject<Msg.Clipper | null>(null)
-    this.control$ = new Rx.BehaviorSubject<Msg.Control | null>({
+    this.control$ = new Rx.BehaviorSubject<Msg.Control>({
       type: "Control",
       url: this.getWorkspace(),
     })
@@ -111,7 +111,7 @@ export default class Store {
     return this.clipper$
   }
 
-  control(): Rx.Observable<Msg.Control | null> {
+  control(): Rx.Observable<Msg.Control> {
     return this.control$
   }
 
