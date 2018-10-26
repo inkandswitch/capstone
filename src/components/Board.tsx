@@ -403,7 +403,7 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = clamp(0.2 - 0.2 * (scale ? scale : 0), 0.0, 0.2)
+        const overlayOpacity = clamp(0.4 - 0.4 * (scale ? scale : 0), 0.0, 0.4)
 
         return (
           <div className={css.Board} ref={this.onRef}>
