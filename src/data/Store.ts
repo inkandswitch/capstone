@@ -39,10 +39,6 @@ export default class Store {
     })
   }
 
-  handle(id: string): FrontendManager<any> {
-    return this.index[id] || this.makeHandle(id)
-  }
-
   create(setup: ChangeFn<any>): FrontendManager<any> {
     const buffers = keyPair()
     const keys = {
@@ -59,9 +55,9 @@ export default class Store {
       keys,
     })
 
-    const handle = this.makeHandle(docId, docId)
-    handle.change(setup)
-    return handle
+    const manager = this.manager(docId, docId)
+    manager.change(setup)
+    return manager
   }
 
   setIdentity(identityUrl: string) {
@@ -71,17 +67,19 @@ export default class Store {
     })
   }
 
-  makeHandle(docId: string, actorId?: string): FrontendManager<any> {
-    log("makeHandle", docId, actorId)
-    const handle = new FrontendManager<any>(docId, actorId)
+  manager(docId: string, actorId?: string): FrontendManager<any> {
+    if (this.index[docId]) return this.index[docId]
 
-    this.index[docId] = handle
+    log("manager", docId, actorId)
+    const manager = new FrontendManager<any>(docId, actorId)
 
-    //    handle.on("doc", (doc) => {
+    this.index[docId] = manager
+
+    //    manager.on("doc", (doc) => {
     //      log("DOC", doc)
     //    })
 
-    handle.on("needsActorId", () => {
+    manager.on("needsActorId", () => {
       log("needsActorId", docId)
       this.sendToBackend({
         type: "ActorIdRequest",
@@ -89,7 +87,7 @@ export default class Store {
       })
     })
 
-    handle.on("request", change => {
+    manager.on("request", change => {
       this.sendToBackend({
         type: "ChangeRequest",
         docId,
@@ -101,12 +99,12 @@ export default class Store {
 
     // TODO:
     // port.onDisconnect.addListener(() => {
-    //   console.log("Port disconnect handle", docId)
-    //   handle.release()
+    //   console.log("Port disconnect manager", docId)
+    //   manager.release()
     //   delete this.index[docId]
     // })
 
-    return handle
+    return manager
   }
 
   clipper(): Rx.Observable<Msg.Clipper | null> {
@@ -147,28 +145,28 @@ export default class Store {
     switch (msg.type) {
       case "DocReady": {
         log("DocReady", msg.docId)
-        const handle = this.handle(msg.docId)
-        handle.init(msg.actorId, msg.patch)
+        const manager = this.manager(msg.docId)
+        manager.init(msg.actorId, msg.patch)
         break
       }
       case "DocInfo": {
         log("DocInfo", msg.docId, msg.peers, msg.feeds)
-        const handle = this.handle(msg.docId)
+        const manager = this.manager(msg.docId)
         this.peerCount[msg.docId] = msg.peers
         this.feedCount[msg.docId] = msg.feeds
-        handle.emit("info", msg.peers, msg.feeds)
+        manager.emit("info", msg.peers, msg.feeds)
         break
       }
       case "ApplyPatch": {
         log("ApplyPatch", msg.docId)
-        const handle = this.handle(msg.docId)
-        handle.patch(msg.patch)
+        const manager = this.manager(msg.docId)
+        manager.patch(msg.patch)
         break
       }
 
       case "SetActorId": {
-        const handle = this.handle(msg.docId)
-        handle.setActorId(msg.actorId)
+        const manager = this.manager(msg.docId)
+        manager.setActorId(msg.actorId)
         break
       }
 

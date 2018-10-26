@@ -157,13 +157,13 @@ export default class Content extends React.Component<Props & unknown> {
     callback: (doc: Doc<T>) => void,
   ): (cfn: ChangeFn<T>) => void {
     const { type, id } = Link.parse(url)
-    const handle = this.store.handle(id)
+    const manager = this.store.manager(id)
     log("open doc", id)
-    handle.on("doc", doc => {
+    manager.on("doc", doc => {
       log("emit doc", id, doc)
       setImmediate(() => callback(doc))
     })
-    return handle.change
+    return manager.change
   }
 
   static once<T>(url: string, cfn: Function): void {
