@@ -74,7 +74,7 @@ class Text extends React.Component<Props> {
             {this.state.lines.map((line, idx) => {
               const y = 22 + idx * TEXT_CARD_LINE_HEIGHT
               const textStyle =
-                idx == 0 ? { font: "bold 8px Arial" } : { font: "6px Arial" }
+                idx == 0 ? { font: "bold 8px Roboto" } : { font: "6px Roboto" }
               return (
                 <text
                   style={Object.assign({}, style, textStyle)}
