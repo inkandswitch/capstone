@@ -133,6 +133,14 @@ export default class Ink extends React.Component<Props, State> {
     )
   }
 
+  componentDidMount() {
+    GPS.setInteractionMode(GPS.InteractionMode.default)
+  }
+
+  componentWillUnmount() {
+    GPS.setInteractionMode(GPS.InteractionMode.default)
+  }
+
   onStrokeTypeChange = (strokeType?: StrokeType) => {
     if (this.state.strokeType === strokeType) {
       GPS.setInteractionMode(GPS.InteractionMode.default)
