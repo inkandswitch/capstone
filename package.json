@@ -11,7 +11,7 @@
     "test": "yarn tests",
     "cloud": "yarn repl src/modules/discovery-cloud/server.js",
     "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache node -r ts-node/register",
-    "clean": "rm -r dist .data",
+    "clean": "rm -rf dist .data",
     "format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "capstone": "node ./bin/launch.js capstone",
     "sidecar": "node ./bin/launch.js capstone",
