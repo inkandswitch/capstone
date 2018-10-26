@@ -75,7 +75,9 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
         const { urls } = message.body
         urls.forEach(async url => {
           const size = await getCardSize(url)
-          this.change(doc => addCard(url, doc, size, { x: 200, y: 10 }))
+          const numCards = Object.keys(this.doc.cards).length || 0
+          const position = calculateReceivePosition(numCards, size)
+          this.change(doc => addCard(url, doc, size, position))
         })
         break
       }
@@ -92,6 +94,25 @@ export class BoardActor extends DocumentActor<Model, InMessage, OutMessage> {
       }
     }
   }
+}
+
+function calculateReceivePosition(cardCount: number, size: Size): Point {
+  const pad = 20
+  const left_ink_offset = 75
+  const max_card_width = 200
+  const cards_per_pile = 5
+
+  const c = cardCount
+
+  const column_width =
+    Math.floor(c / cards_per_pile) * (max_card_width + pad * cards_per_pile)
+  const column_start = left_ink_offset + column_width
+  const stack_offset = (c % cards_per_pile) * pad
+
+  const x = column_start + stack_offset
+  const y = pad + (c % cards_per_pile) * pad
+
+  return { x, y }
 }
 
 function getCardSize(url: string): Promise<Size> {
