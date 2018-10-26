@@ -310,10 +310,13 @@ class Board extends React.Component<Props, State> {
         const scale = this.getScale()
         const scaleOrigin = this.getScaleOrigin()
         const overlayOpacity = this.getOverlayOpacity(scale)
-        const style: any = {
-          transform: `scale(${scale})`,
-          transformOrigin: scaleOrigin,
-        }
+        const style: any =
+          scale === 1
+            ? {}
+            : {
+                transform: `scale(${scale})`,
+                transformOrigin: scaleOrigin,
+              }
 
         // Needed to place the previous board (the back stack board) behind the current board and shelf.
         // isPrevious
