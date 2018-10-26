@@ -44,6 +44,16 @@ export const extractAsText = (item: DataTransferItem): Promise<string> => {
   }
 }
 
+export const extractAsHtml = (item: DataTransferItem): Promise<string> => {
+  const file = item.getAsFile()
+
+  if (file) {
+    return File.read("Text", file)
+  } else {
+    return new Promise(resolve => item.getAsString(resolve))
+  }
+}
+
 export const extractAsDataURL = (item: DataTransferItem): Promise<string> => {
   const file = item.getAsFile()
 

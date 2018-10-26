@@ -13,6 +13,7 @@ const IFRAME_DIMENSIONS = {
 export interface Model {
   html: string
   src: string
+  snippet: boolean
 }
 
 interface Props extends Widget.Props<Model> {
@@ -24,43 +25,60 @@ class HTML extends React.Component<Props> {
     return {
       html: Reify.string(doc.html),
       src: Reify.string(doc.src),
+      snippet: Reify.boolean(doc.snippet, () => false),
     }
   }
 
   render() {
-    switch (this.props.mode) {
-      case "fullscreen":
+    switch (this.props.doc.snippet) {
+      case true:
         return (
-          <div style={style.Fullscreen}>
+          <div style={style.Snippet}>
             <iframe
               frameBorder="0"
-              style={style.Fullscreen__IFrame}
+              style={style.Snippet__IFrame}
               srcDoc={this.props.doc.html}
             />
-            <div style={style.Fullscreen__Banner}>{this.props.doc.src}</div>
           </div>
         )
-      case "preview":
-      case "embed":
-        const contentScale =
-          (this.props.availableWidth - 4) / IFRAME_DIMENSIONS.width
-        //const { scale } = this.props
-        const scaleStyle = {
-          transform: `scale(${contentScale})`,
-          willChange: "transform",
-          transformOrigin: "top left",
-        }
+        break
+      case undefined:
+      case false:
+        switch (this.props.mode) {
+          case "fullscreen":
+            return (
+              <div style={style.Fullscreen}>
+                <iframe
+                  frameBorder="0"
+                  style={style.Fullscreen__IFrame}
+                  srcDoc={this.props.doc.html}
+                />
+                <div style={style.Fullscreen__Banner}>{this.props.doc.src}</div>
+              </div>
+            )
+          case "preview":
+          case "embed":
+            const contentScale =
+              (this.props.availableWidth - 4) / IFRAME_DIMENSIONS.width
+            //const { scale } = this.props
+            const scaleStyle = {
+              transform: `scale(${contentScale})`,
+              willChange: "transform",
+              transformOrigin: "top left",
+            }
 
-        return (
-          <div style={style.Embed}>
-            <div style={scaleStyle}>
-              <iframe
-                style={style.Embed__IFrame}
-                srcDoc={this.props.doc.html}
-              />
-            </div>
-          </div>
-        )
+            return (
+              <div style={style.Embed}>
+                <div style={scaleStyle}>
+                  <iframe
+                    style={style.Embed__IFrame}
+                    srcDoc={this.props.doc.html}
+                  />
+                </div>
+              </div>
+            )
+        }
+        break
     }
   }
 }
@@ -106,6 +124,8 @@ const style = {
     overflow: "hidden",
     pointerEvents: "none",
   } as React.CSSProperties,
+  Snippet: {},
+  Snippet__IFrame: {},
 }
 
 export default Widget.create(

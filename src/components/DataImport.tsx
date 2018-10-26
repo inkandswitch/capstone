@@ -23,9 +23,9 @@ const importers: ImporterWithGlob[] = [
       addTable(await DataTransfer.extractAsText(item)),
   ],
   [
-    "text/plain",
+    "text/html",
     async (item: DataTransferItem) =>
-      addText(await DataTransfer.extractAsText(item)),
+      addRichText(await DataTransfer.extractAsHtml(item)),
   ],
   [
     "text/plain",
@@ -56,6 +56,17 @@ export const addText = async (content: string) => {
 
   return addDoc("Text", doc => {
     doc.content = content.split("")
+  })
+}
+
+export const addRichText = async (content: string) => {
+  if (Link.isValidLink(content)) {
+    return content // the URL is already what we want!
+  }
+
+  return addDoc("HTML", doc => {
+    doc.html = content
+    doc.snippet = true
   })
 }
 
