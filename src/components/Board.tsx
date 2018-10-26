@@ -403,7 +403,7 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const overlayOpacity = clamp(1.0 - 1.0 * (scale ? scale : 0), 0.0, 1.0)
+        const overlayOpacity = clamp(0.4 - 0.4 * (scale ? scale : 0), 0.0, 0.4)
 
         return (
           <div className={css.Board} ref={this.onRef}>
@@ -475,7 +475,7 @@ class Board extends React.Component<Props, State> {
       const current = scale - Math.min(destScale, startScale)
       const progress = current / total
       const value = destScale < startScale ? 1.0 - progress : progress
-      return clamp(value * 1.0, 0.0, 1.0)
+      return clamp(value * 0.2, 0.0, 0.2)
     }
   }
 
