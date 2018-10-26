@@ -128,7 +128,7 @@ export default class App extends React.Component<Props, State> {
     return (
       <Root store={Content.store}>
         <div style={style.App}>
-          <Stats />
+          {Content.env.device === "capstone" ? <Stats /> : null}
           <Content mode="fullscreen" url={url} />
           <Feedback.Renderer />
         </div>
