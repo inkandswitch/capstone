@@ -181,6 +181,10 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     }
   }
 
+  shouldComponentUpdate() {
+    return false
+  }
+
   render() {
     return <canvas ref={this.canvasAdded} className={css.InkLayer} />
   }
