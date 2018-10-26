@@ -1,22 +1,14 @@
 import * as Debug from "debug"
 
 export default class Queue<T> {
-  queue: T[] = []
-  subscription?: (item: T) => void
-  log: Debug.IDebugger
+  push: (item: T) => void
+  private queue: T[] = []
+  private log: Debug.IDebugger
+  private subscription?: (item: T) => void
 
   constructor(name: string = "unknown") {
     this.log = Debug(`queue:${name}`)
-  }
-
-  push(item: T) {
-    if (this.subscription) {
-      this.log("subbed", item)
-      this.subscription(item)
-    } else {
-      this.log("queued", item)
-      this.queue.push(item)
-    }
+    this.push = this.enqueue
   }
 
   subscribe(subscriber: (item: T) => void) {
@@ -27,14 +19,31 @@ export default class Queue<T> {
     this.log("subscribe")
 
     this.subscription = subscriber
-    this.queue.forEach(e => {
-      subscriber(e)
-    })
-    this.queue = []
+
+    // this is so push(), unsubscribe(), re-subscribe() will processing the backlog
+
+    while (this.subscription === subscriber) {
+      const item = this.queue.shift()
+      if (item === undefined) {
+        this.push = subscriber
+        break
+      }
+      subscriber(item)
+    }
   }
 
   unsubscribe() {
     this.log("unsubscribe")
     this.subscription = undefined
+    this.push = this.enqueue
+  }
+
+  get length() {
+    return this.queue.length
+  }
+
+  private enqueue = (item: T) => {
+    this.log("queued", item)
+    this.queue.push(item)
   }
 }
