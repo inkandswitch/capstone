@@ -198,13 +198,7 @@ export class Hypermerge {
         if (err) {
           throw new Error("failed to append to feed")
         }
-        if (change.seq != feed.length) {
-          throw new Error(
-            `change.seq (${change.seq}) != feed.length (${feed.length}) for ${
-              doc.docId
-            }`,
-          )
-        }
+        log(`write actor=${actorId} seq=${change.seq} length=${feed.length} ok=${change.seq == feed.length}`)
       })
     })
   }

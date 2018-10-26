@@ -95,7 +95,7 @@ export class FrontendManager<T> extends EventEmitter {
       const doc = Frontend.change(this.front, fn)
       const request = Frontend.getRequests(doc).pop()
       this.front = doc
-      log("change complete", this.docId, this.front)
+      log(`change complete doc=${this.docId} seq=${request ? request.seq : "null"}`)
       if (request) {
         this.emit("doc", this.front)
         this.emit("request", request)

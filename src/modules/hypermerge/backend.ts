@@ -50,7 +50,7 @@ export class BackendManager extends EventEmitter {
 
   applyLocalChange = (change: Change): void => {
     this.backLocalQ.push(() => {
-      this.bench("applyLocalChange", () => {
+      this.bench(`applyLocalChange seq=${change.seq}`, () => {
         const [back, patch] = Backend.applyLocalChange(this.back!, change)
         this.back = back
         this.emit("patch", patch)
