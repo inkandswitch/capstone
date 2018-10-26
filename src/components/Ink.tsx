@@ -366,16 +366,18 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   }
 }
 
-interface OptionProps<T> {
+interface OptionProps {
   label: React.ReactNode
-  value: T
+  value: StrokeType
   selected: boolean
-  onChange: (value?: T) => void
+  onChange: (value?: StrokeType) => void
 }
 
-class Option<T> extends React.Component<OptionProps<T>> {
+class Option<T> extends React.Component<OptionProps> {
   render() {
-    const { label, value, selected, onChange } = this.props
+    const { value, selected, onChange } = this.props
+    const baseName =
+      value == StrokeType.ink ? css.OptionButtonInk : css.OptionButtonEraser
 
     return (
       <div
@@ -383,9 +385,11 @@ class Option<T> extends React.Component<OptionProps<T>> {
         onPointerDown={() => onChange(value)}
         onContextMenu={this.onContextMenu}>
         <div
-          className={classnames(css.OptionButton, { [css.current]: selected })}
+          className={classnames(baseName, {
+            [css.selected]: selected,
+            [css.deselected]: !selected,
+          })}
         />
-        {label}
       </div>
     )
   }

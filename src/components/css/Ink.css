@@ -29,19 +29,29 @@
 }
 
 :local(.Option) {
-  padding: 5px;
+  padding-left: 21px;
+  padding-bottom: 21px;
   display: flex;
   align-items: center;
 }
 
-:local(.OptionButton) {
-  height: 60px;
-  width: 60px;
-  background-color: magenta;
-  border-radius: 99px;
-  margin-right: 10px;
+:local(.OptionButtonInk) {
+  height: 24px;
+  width: 24px;
+  border-radius: 12px;
 }
 
-:local(.current) {
-  background-color: pink;
+:local(.OptionButtonEraser) {
+  height: 22px;
+  width: 22px;
+}
+
+:local(.selected) {
+  background-color: black;
+  border: 2.5px solid black;
+}
+
+:local(.deselected) {
+  background-color: transparent;
+  border: 2.5px solid #d1d1d1;
 }
