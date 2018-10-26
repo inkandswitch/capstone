@@ -72,45 +72,35 @@ export default class App extends React.Component<Props, State> {
       switch (contentType) {
         case "HTML":
           const htmlUrl = Content.create("HTML")
-
-          Content.once(htmlUrl, (change: Function) => {
-            change((doc: any) => {
-              doc.html = content
-              doc.src = src
-            })
-
-            Content.send({
-              type: "ReceiveDocuments",
-              body: { urls: [htmlUrl] },
-            })
+          Content.change(htmlUrl, doc => {
+            doc.html = content
+            doc.src = src
+          })
+          Content.send({
+            type: "ReceiveDocuments",
+            body: { urls: [htmlUrl] },
           })
           break
 
         case "Text":
           const textUrl = Content.create("Text")
-          Content.once(textUrl, (change: Function) => {
-            change((doc: any) => {
-              doc.content = content.split("")
-            })
-
-            Content.send({
-              type: "ReceiveDocuments",
-              body: { urls: [textUrl] },
-            })
+          Content.change(textUrl, doc => {
+            doc.content = content.split("")
+          })
+          Content.send({
+            type: "ReceiveDocuments",
+            body: { urls: [textUrl] },
           })
           break
 
         case "Image":
           const imageUrl = Content.create("Image")
-          Content.once(imageUrl, (change: Function) => {
-            change((doc: any) => {
-              doc.src = content
-            })
-
-            Content.send({
-              type: "ReceiveDocuments",
-              body: { urls: [imageUrl] },
-            })
+          Content.change(imageUrl, (doc: any) => {
+            doc.src = content
+          })
+          Content.send({
+            type: "ReceiveDocuments",
+            body: { urls: [imageUrl] },
           })
           break
       }

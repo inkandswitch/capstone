@@ -167,6 +167,12 @@ export default class Content extends React.Component<Props & unknown> {
     this.open<T>(url).once(cfn)
   }
 
+  static change<T>(url: string, cfn: ChangeFn<T>) {
+    this.open<T>(url)
+      .change(cfn)
+      .close()
+  }
+
   static registerWidget(type: string, component: WidgetClass<any>) {
     this.widgetRegistry[type] = component
   }
