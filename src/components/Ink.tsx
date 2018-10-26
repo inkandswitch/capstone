@@ -168,7 +168,7 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
   state: CanvasState = {}
 
   componentDidMount() {
-    requestAnimationFrame(this.drawDry)
+    this.drawDry()
     this.pointerEventSubscription = GPS.stream()
       .pipe(
         RxOps.map(GPS.onlyPen),
