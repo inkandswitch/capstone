@@ -195,9 +195,6 @@ export default class Interactable extends React.Component<
     const { onDragOut } = this.props
     const { dragState } = this.state
 
-    this.props.onDragStop && this.props.onDragStop(x, y)
-    this.setState({ dragState: undefined, position: { x, y } })
-
     if (ref && this.dragger && dragState) {
       const { offset } = dragState
       const { x, y } = dragState.position
@@ -232,10 +229,13 @@ export default class Interactable extends React.Component<
 
           if (event.defaultPrevented) {
             this.props.onRemoved && this.props.onRemoved()
-            break
+            return
           }
         }
       }
+
+      this.props.onDragStop && this.props.onDragStop(x, y)
+      this.setState({ dragState: undefined, position: { x, y } })
     }
   }
 
