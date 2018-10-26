@@ -9,7 +9,7 @@ export const CARD_DEFAULT_SIZE = {
 
 export const TEXT_CARD_LINE_HEIGHT = 12
 
-export const TEXT_MAX_WIDTH = DEFAULT_CARD_DIMENSION - 30
+export const TEXT_MAX_WIDTH = DEFAULT_CARD_DIMENSION * 0.85
 const TEXT_MAX_HEIGHT = 200
 
 export async function calculateInitialSize(
@@ -55,7 +55,7 @@ export function getTextWidth(
   textNode.textContent = text
   element.appendChild(textNode)
 
-  element.style.fontFamily = "Arial, Helvetica, sans-serif"
+  element.style.fontFamily = "Roboto, Arial, Helvetica, sans-serif"
   element.style.fontSize = `${fontSize}px`
   element.style.fontWeight = fontWeight
   element.style.position = "absolute"

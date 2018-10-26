@@ -3,6 +3,7 @@ import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as css from "./css/Text.css"
+import { clamp } from "lodash"
 import {
   breakIntoLines,
   DEFAULT_CARD_DIMENSION,
@@ -45,30 +46,32 @@ class Text extends React.Component<Props> {
 
   render() {
     if (!this.state) return
-    const scale = Math.max(
+    const scale = clamp(
+      (this.props.availableSize.width * 0.85) / TEXT_MAX_WIDTH,
       1,
-      Math.min(
-        MAX_SCALE,
-        this.props.availableSize.width / DEFAULT_CARD_DIMENSION,
-      ),
+      MAX_SCALE,
     )
     const style = {
       position: "relative",
       transformOrigin: "top left",
       transform: `scale(${scale})`,
     }
+    const maxContentWidth = TEXT_MAX_WIDTH * MAX_SCALE
     return (
       <div className={css.Text}>
         <div
           style={{
-            position: "fixed",
-            maxWidth: DEFAULT_CARD_DIMENSION * MAX_SCALE,
-            right: 0,
+            width: "85%",
+            display: "inline-block",
+            maxWidth: maxContentWidth,
           }}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             version="2"
-            width={this.props.availableSize.width - PADDING}
+            width={Math.min(
+              maxContentWidth,
+              this.props.availableSize.width * 0.85,
+            )}
             height={this.props.availableSize.height - 10}
             style={{ overflow: "hidden" }}>
             {this.state.lines.map((line, idx) => {
@@ -78,7 +81,7 @@ class Text extends React.Component<Props> {
               return (
                 <text
                   style={Object.assign({}, style, textStyle)}
-                  x={6 * scale}
+                  x={0}
                   y={y}
                   key={idx}>
                   {line}
