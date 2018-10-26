@@ -84,6 +84,7 @@ interface CanvasState {}
 
 export default class Ink extends React.Component<Props, State> {
   state: State = {}
+  optionsPanel?: HTMLDivElement
 
   render() {
     const { onInkStroke, strokes, mode, scale } = this.props
@@ -113,7 +114,7 @@ export default class Ink extends React.Component<Props, State> {
         />
         {this.props.mode == "fullscreen" ? (
           <Portal>
-            <div className={css.Options}>
+            <div className={css.Options} ref={this.onOptionsPanelRef}>
               <Option
                 label="Ink"
                 value={StrokeType.ink}
@@ -139,6 +140,10 @@ export default class Ink extends React.Component<Props, State> {
 
   componentWillUnmount() {
     GPS.setInteractionMode(GPS.InteractionMode.default)
+  }
+
+  onOptionsPanelRef = (ref: HTMLDivElement) => {
+    this.optionsPanel = ref
   }
 
   onStrokeTypeChange = (strokeType?: StrokeType) => {
@@ -199,6 +204,9 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
 
   onPenEvent = (event: PointerEvent) => {
     if (!this.props.strokeType) return
+    const target = event.target as HTMLElement
+    // don't record strokes on the options buttons
+    if (target && target.className.indexOf("Option") >= 0) return
     if (event.type == "pointerdown") {
       this.onPanStart(event)
     } else if (event.type == "pointerup" || event.type == "pointercancel") {
