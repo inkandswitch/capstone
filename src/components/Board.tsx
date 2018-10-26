@@ -102,7 +102,7 @@ function getCardSize(url: string): Promise<Size> {
   }
 
   return new Promise((resolve, reject) => {
-    Content.open(url, doc => {
+    Content.once(url, doc => {
       SizeUtils.calculateInitialSize(url, doc).then(resolve, reject)
     })
   })

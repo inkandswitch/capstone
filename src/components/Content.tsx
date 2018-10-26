@@ -2,6 +2,7 @@ import * as React from "react"
 import * as Link from "../data/Link"
 import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
+import Handle from "../data/Handle"
 import * as Reify from "../data/Reify"
 import * as Env from "../data/Env"
 import { once } from "lodash"
@@ -90,9 +91,8 @@ export class DocumentActor<
       this.doc = doc
       this.onMessage(message)
     }
-    // TODO: this will leave a noop receiveChangeCallback attached
-    // to the port.
-    this.change = Content.open<T>(message.to, once(onDocumentReady))
+
+    this.change = Content.open<T>(message.to).once(onDocumentReady).change
   }
 
   create(type: string) {
@@ -144,31 +144,28 @@ export default class Content extends React.Component<Props & unknown> {
     const setup: any = (doc: any) => {
       Reify.reify(doc, widget.reify)
     }
-    const handle = this.store.create(setup)
-    log("create", handle.docId)
 
-    return Link.format({ type, id: handle.docId })
+    const id = this.store.create(setup).docId
+
+    log("create", id)
+
+    return Link.format({ type, id })
   }
 
   // Opens an initialized document at the given URL
 
-  static open<T>(
-    url: string,
-    callback: (doc: Doc<T>) => void,
-  ): (cfn: ChangeFn<T>) => void {
-    const { type, id } = Link.parse(url)
-    const manager = this.store.manager(id)
-    log("open doc", id)
-    manager.on("doc", doc => {
-      log("emit doc", id, doc)
-      setImmediate(() => callback(doc))
-    })
-    return manager.change
+  static open<T>(url: string): Handle<T> {
+    const link = Link.parse(url)
+
+    const handle = new Handle<T>(this.store.manager(link.id).handle(), link)
+
+    log("open doc", handle.id)
+
+    return handle
   }
 
-  static once<T>(url: string, cfn: Function): void {
-    const update = Content.open(url, doc => {})
-    cfn(update)
+  static once<T>(url: string, cfn: (doc: Doc<T>) => void): void {
+    this.open<T>(url).once(cfn)
   }
 
   static registerWidget(type: string, component: WidgetClass<any>) {

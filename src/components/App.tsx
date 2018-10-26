@@ -41,18 +41,17 @@ export default class App extends React.Component<Props, State> {
     Content.workspaceUrl = workspaceUrl
     Content.rootBoardUrl = rootBoardUrl
 
-    // Initialize the workspace
-    Content.once<Workspace.Model>(workspaceUrl, (change: Function) => {
-      change((workspace: EditDoc<Workspace.Model>) => {
+    Content.open<Workspace.Model>(workspaceUrl)
+      .change(workspace => {
         if (!workspace.identityUrl) {
           workspace.shelfUrl = shelfUrl
           workspace.rootUrl = rootBoardUrl
           workspace.navStack = []
         }
       })
-
-      this.setWorkspaceUrl(workspaceUrl)
-    })
+      .once(() => {
+        this.setWorkspaceUrl(workspaceUrl)
+      })
   }
 
   setWorkspaceUrl(workspaceUrl: string) {
@@ -63,16 +62,13 @@ export default class App extends React.Component<Props, State> {
 
   openWorkspace(workspaceUrl: string) {
     log("open workspace 1", workspaceUrl)
-    Content.open<Workspace.Model>(
-      workspaceUrl,
-      (workspace: Doc<Workspace.Model>) => {
-        log("open workspace 2", workspaceUrl)
-        Content.workspaceUrl = workspaceUrl
-        Content.rootBoardUrl = workspace.rootUrl
+    Content.once<Workspace.Model>(workspaceUrl, workspace => {
+      log("open workspace 2", workspaceUrl)
+      Content.workspaceUrl = workspaceUrl
+      Content.rootBoardUrl = workspace.rootUrl
 
-        this.setWorkspaceUrl(workspaceUrl)
-      },
-    )
+      this.setWorkspaceUrl(workspaceUrl)
+    })
   }
 
   configWorkspace(workspaceUrl: string | null) {

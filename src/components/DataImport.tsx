@@ -93,10 +93,9 @@ export const addImage = (src: string) => {
 export const addDoc = async (type: string, changeFn: ChangeFn<unknown>) => {
   const url = Content.create(type)
 
-  const onOpen = (doc: AnyEditDoc) => {
-    change(changeFn)
-  }
+  Content.open(url)
+    .change(changeFn)
+    .close()
 
-  const change = Content.open(url, once(onOpen))
   return url
 }

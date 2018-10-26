@@ -8,6 +8,7 @@ import Content, {
   Mode,
   MessageHandlerClass,
 } from "./Content"
+import Handle from "../data/Handle"
 
 export interface Props<T = {}, M = never> {
   doc: Doc<T>
@@ -38,7 +39,7 @@ export function create<T, M extends Message = never>(
   const WidgetClass = class extends React.Component<WidgetProps<T>, State<T>> {
     // TODO: update register fn to not need static reify.
     static reify = reify
-    requestChanges?: (ChangeFn: any) => void
+    handle?: Handle<T>
 
     constructor(props: WidgetProps<T>, ctx: any) {
       super(props, ctx)
@@ -46,9 +47,13 @@ export function create<T, M extends Message = never>(
     }
 
     componentDidMount() {
-      this.requestChanges = Content.open<T>(this.props.url, (doc: any) => {
+      this.handle = Content.open<T>(this.props.url).subscribe(doc => {
         this.setState({ doc })
       })
+    }
+
+    componentWillUnmount() {
+      this.handle && this.handle.close()
     }
 
     emit = (message: M) => {
@@ -60,13 +65,7 @@ export function create<T, M extends Message = never>(
     }
 
     change = (cb: ChangeFn<T>) => {
-      // Temporary change prop until all document updates are move to Updater/reducer
-      if (!this.state.doc) {
-        // TODO: handle this case better.
-        throw new Error("Cannot call change before the document has loaded.")
-      }
-
-      this.requestChanges!(cb)
+      this.handle && this.handle.change(cb)
     }
 
     render() {
