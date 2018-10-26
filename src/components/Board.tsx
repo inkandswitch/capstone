@@ -409,7 +409,8 @@ class Board extends React.Component<Props, State> {
           willChange: "transform",
           transformOrigin: "top left",
         }
-        const backgroundOpacity = clamp(1 - scale, 0.0, 1.0)
+
+        const backgroundOpacity = this.getOpacity(scale, 0.0, 1.0, 0.04, 0.0)
         const contentOpacity = clamp(0.6 + 0.4 * scale, 0.0, 1.0)
 
         return (
@@ -449,7 +450,7 @@ class Board extends React.Component<Props, State> {
         return (
           <div>
             <div className={css.Board} />
-            <div className={css.FrostedGlass} />
+            <div className={css.BoardInBoardInBoard} />
           </div>
         )
       }
@@ -468,9 +469,10 @@ class Board extends React.Component<Props, State> {
     if (scalingCard) {
       return 0.0
     } else if (backNavCardTarget) {
+      if (scale >= 1.0) return 0.0
       const startScale = 1.0
       const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
-      return this.getOpacity(scale, startScale, destScale, 0.0, 1.0)
+      return this.getOpacity(scale, startScale, destScale, 0.0, 0.04)
     }
     return 0.0
   }
@@ -481,6 +483,7 @@ class Board extends React.Component<Props, State> {
     if (scalingCard) {
       return 1.0
     } else if (backNavCardTarget) {
+      if (scale > 1.0) return 1.0
       const startScale = 1.0
       const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
       return this.getOpacity(scale, startScale, destScale, 1.0, 0.6)
@@ -495,15 +498,10 @@ class Board extends React.Component<Props, State> {
     lowerBound: number,
     upperBound: number,
   ) => {
-    if (scale >= 1.0) return lowerBound
     const value =
       lowerBound +
       ((upperBound - lowerBound) / (destScale - startScale)) *
         (scale - startScale)
-    // const total = Math.abs(destScale - startScale)
-    // const current = scale - Math.min(destScale, startScale)
-    // const progress = current / total
-    // const value = destScale < startScale ? 1.0 - progress : progress
     return clamp(value, 0.0, 1.0)
   }
 

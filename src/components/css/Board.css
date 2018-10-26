@@ -12,19 +12,20 @@
   bottom: 0;
   left: 0;
   position: absolute;
-  background-color: #efeeea;
+  background-color: black;
+  opacity: 0.04;
   border-radius: 3px;
 }
 
-:local(.FrostedGlass) {
+:local(.BoardInBoardInBoard) {
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
   position: absolute;
-  background-color: #efeeea;
+  background-color: black;
+  opacity: 0.0666;
   border-radius: 3px;
-  opacity: 0.2;
 }
 
 :local(.BoardEmbed) {
