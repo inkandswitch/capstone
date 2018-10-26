@@ -26,6 +26,7 @@ export default class Shelf extends React.Component<Props, State> {
       <Movable map={mapPosition}>
         {(ref, { position: { y } }) => (
           <div ref={ref} className={css.Wrapper}>
+            <div className={css.FixedTab} />
             <div
               className={css.Tab}
               style={{ transform: `translateY(${y}px)` }}

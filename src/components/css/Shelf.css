@@ -17,9 +17,16 @@
   z-index: 10000000;
 }
 
+:local(.FixedTab) {
+  position: absolute;
+  height: 80px;
+  bottom: 100%;
+  width: 100%;
+}
+
 :local(.Tab) {
   position: absolute;
-  height: 200px;
+  height: 20px;
   bottom: 100%;
   width: 100%;
 }
