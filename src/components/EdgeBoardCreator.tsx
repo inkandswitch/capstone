@@ -150,7 +150,7 @@ export default class EdgeBoardCreator extends React.Component<Props, State> {
       }
       boardCard = (
         <div className={boardCss.Board} style={boardCardStyle}>
-          <div className={boardCss.FrostedGlass} />
+          <div className={boardCss.BoardEmbedBackground} />
         </div>
       )
     }
