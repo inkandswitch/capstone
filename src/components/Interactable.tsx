@@ -281,12 +281,10 @@ export default class Interactable extends React.Component<
     const offsetFromLeft = e.x
     const offsetFromRight = window.innerWidth - e.x
     const offsetFromTop = e.y
-    const offsetFromBottom = window.innerHeight - e.y
 
     const lowestOffset = Math.min(
       offsetFromLeft,
       offsetFromRight,
-      offsetFromBottom,
       offsetFromTop,
     )
 
@@ -302,8 +300,7 @@ export default class Interactable extends React.Component<
     return (
       e.x < DELETE_EDGE_THRESHOLD ||
       e.x > window.innerWidth - DELETE_EDGE_THRESHOLD ||
-      e.y < DELETE_EDGE_THRESHOLD ||
-      e.y > window.innerHeight - DELETE_EDGE_THRESHOLD
+      e.y < DELETE_EDGE_THRESHOLD
     )
   }
 
