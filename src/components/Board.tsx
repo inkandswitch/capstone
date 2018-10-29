@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import { clamp, isEmpty, size, noop } from "lodash"
+import { clamp, noop } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
@@ -23,7 +23,6 @@ import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
 const withAvailableSize = require("../modules/react-with-available-size")
-const boardIcon = require("../assets/board_icon.svg")
 
 // TODO: not a constant
 const BOARD_DIMENSIONS = { height: 800, width: 1200 }

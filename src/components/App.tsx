@@ -1,5 +1,4 @@
 import * as React from "react"
-import { Doc, EditDoc } from "automerge/frontend"
 
 import Root from "./Root"
 import Content from "./Content"
@@ -16,8 +15,6 @@ import "./PeerStatus"
 import "./Peer"
 import "./HTML"
 import * as Feedback from "./CommandFeedback"
-import * as Workspace from "./Workspace"
-import GlobalKeyboard from "./GlobalKeyboard"
 import "../styles/styles.css"
 
 import * as Debug from "debug"
