@@ -1,7 +1,6 @@
 import * as React from "react"
 import Interactable from "./Interactable"
 import Card from "./Card"
-import { DraggableData } from "../modules/draggable/types"
 import { omit } from "lodash"
 import * as Link from "../data/Link"
 import * as PinchMetrics from "../logic/PinchMetrics"
@@ -74,16 +73,6 @@ export default class InteractableCard extends React.Component<Props, State> {
   resizeStop = (newSize: Size) => {
     this.props.onResizeStop &&
       this.props.onResizeStop(newSize, this.props.card.id)
-  }
-
-  cancel = (data: DraggableData) => {
-    this.props.onDragStop &&
-      this.props.onDragStop(data.x, data.y, this.props.card.id)
-    this.props.onResizeStop &&
-      this.props.onResizeStop(
-        { width: this.props.card.width, height: this.props.card.height },
-        this.props.card.id,
-      )
   }
 
   onPinchStart = (measurements: PinchMetrics.Measurements) => {
