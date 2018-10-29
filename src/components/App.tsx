@@ -6,7 +6,6 @@ import Stats from "./Stats"
 
 import "./Board"
 import "./Image"
-import "./NetworkActivity"
 import "./Text"
 import "./Table"
 import "./Workspace"
