@@ -17,13 +17,13 @@ interface State {
 
 export default class Shelf extends React.Component<Props, State> {
   subscription?: Subscription
-  state: State = { offset: 0 }
   isDragging = false
 
   render() {
     const { children } = this.props
+
     return (
-      <Movable map={mapPosition}>
+      <Movable position={{ x: 0, y: -200 }} map={mapPosition}>
         {(ref, { position: { y } }) => (
           <div ref={ref} className={css.Wrapper}>
             <div className={css.FixedTab} />
