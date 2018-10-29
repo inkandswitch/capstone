@@ -23,11 +23,6 @@ export interface RequestActivity {
   docId: string
 }
 
-export interface SetIdentity {
-  type: "SetIdentity"
-  identityUrl: string
-}
-
 export interface ChangeRequest {
   type: "ChangeRequest"
   docId: string
@@ -119,7 +114,6 @@ export type FrontendToBackend =
   | ChangeRequest
   | ActorIdRequest
   | RequestActivity
-  | SetIdentity
 
 export type BackendToFrontend =
   | DocReady

@@ -55,13 +55,6 @@ export default class Store {
     return manager
   }
 
-  setIdentity(identityUrl: string) {
-    this.sendToBackend({
-      type: "SetIdentity",
-      identityUrl,
-    })
-  }
-
   manager(docId: string, actorId?: string): FrontendManager<any> {
     if (this.index[docId]) return this.index[docId]
 

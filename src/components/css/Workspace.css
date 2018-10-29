@@ -5,10 +5,3 @@
   bottom: 0;
   right: 0;
 }
-
-:local(.Peers) {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-}

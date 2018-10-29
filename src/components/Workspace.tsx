@@ -125,14 +125,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     this.importData(e.clipboardData)
   }
 
-  onTapPeer = (identityUrl: string) => {
-    this.props.emit({
-      to: this.props.doc.shelfUrl,
-      type: "ReceiveDocuments",
-      body: { urls: [identityUrl] },
-    })
-  }
-
   importData = (dataTransfer: DataTransfer) => {
     const urlPromises = DataImport.importData(dataTransfer)
     Promise.all(urlPromises).then(urls => {

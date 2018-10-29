@@ -1,5 +1,4 @@
 import * as Debug from "debug"
-import { Change, Patch } from "automerge/backend"
 import { BackendManager } from "../modules/hypermerge/backend"
 import { Hypermerge } from "../modules/hypermerge"
 import * as Base58 from "bs58"
@@ -134,12 +133,6 @@ export default class StoreBackend {
           secretKey: Base58.decode(keys.secretKey),
         }
         this.hypermerge.createDocument(keyPair)
-        break
-      }
-
-      case "SetIdentity": {
-        //        const { identityUrl } = msg
-        //        this.hypermerge.setIdentity(identityUrl)
         break
       }
     }
