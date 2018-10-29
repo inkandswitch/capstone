@@ -2,6 +2,7 @@ import * as React from "react"
 import * as Widget from "./Widget"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
+import * as css from "./css/HTML.css"
 
 const withAvailableWidth = require("react-with-available-width")
 
@@ -31,80 +32,46 @@ class HTML extends React.Component<Props> {
     switch (this.props.mode) {
       case "fullscreen":
         return (
-          <div style={style.Fullscreen}>
+          <div className={css.Fullscreen}>
             <iframe
               frameBorder="0"
-              style={style.Fullscreen__IFrame}
+              className={css.Fullscreen_IFrame}
               srcDoc={this.props.doc.html}
             />
-            <div style={style.Fullscreen__Banner}>{this.props.doc.src}</div>
+            <div className={css.Fullscreen_Banner}>{this.props.doc.src}</div>
           </div>
         )
+
       case "preview":
-      case "embed":
+      case "embed": {
         const contentScale =
           (this.props.availableWidth - 4) / IFRAME_DIMENSIONS.width
+
         const scaleStyle = {
           transform: `scale(${contentScale})`,
           willChange: "transform",
           transformOrigin: "top left",
         }
 
+        const iframeStyle = {
+          width: IFRAME_DIMENSIONS.width,
+          height: IFRAME_DIMENSIONS.height,
+        }
+
         return (
-          <div style={style.Embed}>
+          <div className={css.Embed}>
             <div style={scaleStyle}>
               <iframe
-                style={style.Embed__IFrame}
+                style={iframeStyle}
+                className={css.Embed_IFrame}
                 srcDoc={this.props.doc.html}
               />
             </div>
           </div>
         )
+      }
     }
   }
-}
-
-const style = {
-  Fullscreen__Banner: {
-    background: "#F6F6F6",
-    position: "absolute",
-    height: "30px",
-    bottom: "0px",
-    width: "100%",
-    fontSize: "12px",
-    fontStyle: "medium",
-    textAlign: "center",
-    verticalAlign: "center",
-    lineHeight: "30px",
-    color: "#B4B4B4",
-  } as React.CSSProperties,
-  Embed: {
-    borderRadius: "3px",
-    border: "1px solid black",
-    height: "100%",
-    width: "100%",
-    overflow: "hidden",
-  } as React.CSSProperties,
-  Embed__ScaleWrapper: {
-    transform: "scale(0.25)",
-    transformOrigin: "0 0",
-  },
-  Fullscreen: {
-    width: "100%",
-    height: "100%",
-    overflow: "scroll",
-  } as React.CSSProperties,
-  Fullscreen__IFrame: {
-    width: "100vw",
-    height: "100vh",
-    pointerEvents: "none",
-  } as React.CSSProperties,
-  Embed__IFrame: {
-    width: IFRAME_DIMENSIONS.width + "px",
-    height: IFRAME_DIMENSIONS.height + "px",
-    overflow: "hidden",
-    pointerEvents: "none",
-  } as React.CSSProperties,
 }
 
 export default Widget.create(
