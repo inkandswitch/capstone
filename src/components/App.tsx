@@ -3,6 +3,9 @@ import * as React from "react"
 import Root from "./Root"
 import Content from "./Content"
 import Stats from "./Stats"
+import * as Debug from "debug"
+import * as css from "./css/App.css"
+import "../styles/styles.css"
 
 import "./Board"
 import "./Image"
@@ -10,9 +13,7 @@ import "./Text"
 import "./Table"
 import "./Workspace"
 import "./HTML"
-import "../styles/styles.css"
 
-import * as Debug from "debug"
 const log = Debug("component:app")
 
 type State = {
@@ -109,18 +110,11 @@ export default class App extends React.Component<Props, State> {
 
     return (
       <Root store={Content.store}>
-        <div style={style.App}>
+        <div className={css.App}>
           {Content.env.device === "capstone" ? <Stats /> : null}
           <Content mode="fullscreen" url={url} />
         </div>
       </Root>
     )
   }
-}
-
-const style = {
-  App: {
-    fontFamily: "Roboto, Arial, Helvetica, sans-serif",
-    overflow: "hidden",
-  },
 }
