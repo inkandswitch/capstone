@@ -103,7 +103,7 @@ export class BackendManager extends EventEmitter {
   }
 
   feeds(): Feed<Uint8Array>[] {
-    return this.actorIds().map(actorId => this.hypermerge.feeds.get(actorId)!)
+    return this.actorIds().map(actorId => this.hypermerge.feed(actorId))
   }
 
   broadcast(message: any) {

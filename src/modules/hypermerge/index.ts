@@ -222,7 +222,7 @@ export class Hypermerge {
     )
   }
 
-  private join(actorId: string) {
+  private join = (actorId: string) => {
     const dk = discoveryKey(Base58.decode(actorId))
     if (this.swarm && !this.joined.has(dk)) {
       this.swarm.join(dk)
@@ -230,7 +230,7 @@ export class Hypermerge {
     this.joined.add(dk)
   }
 
-  private leave(actorId: string) {
+  private leave = (actorId: string) => {
     const dk = discoveryKey(Base58.decode(actorId))
     if (this.swarm && this.joined.has(dk)) {
       this.swarm.leave(dk)
@@ -281,6 +281,10 @@ export class Hypermerge {
         ...(this.feedPeers.get(actorId) || []),
       ]),
     )
+  }
+
+  private closeFeed = (actorId: string) => {
+    this.feed(actorId).close()
   }
 
   private initFeed(doc: BackendManager, keys: Keys): Queue<FeedFn> {
@@ -337,6 +341,7 @@ export class Hypermerge {
         this.feeds.delete(dkString)
         this.feedQs.delete(dkString)
         this.feedPeers.delete(actorId)
+        this.feedSeq.delete(actorId)
       })
       doc.emit("feed", feed)
     })
@@ -370,7 +375,10 @@ export class Hypermerge {
     return stream
   }
 
-  releaseHandle(handle: BackendManager) {
-    throw new Error("unimplemented")
+  releaseHandle(doc: BackendManager) {
+    const actorIds = doc.actorIds()
+    this.docs.delete(doc.docId)
+    actorIds.map(this.leave)
+    actorIds.map(this.closeFeed)
   }
 }
