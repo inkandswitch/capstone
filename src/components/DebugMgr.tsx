@@ -1,7 +1,4 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
-//import * as Debug from "debug"
-import * as Link from "../data/Link"
 import Store from "../data/Store"
 
 type Props = {

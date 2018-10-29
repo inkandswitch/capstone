@@ -1,7 +1,6 @@
 import * as DataTransfer from "../logic/DataTransfer"
-import { once, isUndefined, first } from "lodash"
 import Content from "./Content"
-import { AnyEditDoc, ChangeFn } from "automerge/frontend"
+import { ChangeFn } from "automerge/frontend"
 import { isMatch } from "micromatch"
 import * as Link from "../data/Link"
 

@@ -19,9 +19,6 @@ interface State {
   status: string
 }
 
-// TODO: move to store
-type status = "inactive" | "active" | "disconnected"
-
 export default class PeerStatus extends React.Component<Props, State> {
   id = Link.parse(this.props.url).id
   state = { status: "disconnected" }

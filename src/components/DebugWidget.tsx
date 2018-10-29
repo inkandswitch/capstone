@@ -1,8 +1,6 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
 import * as Link from "../data/Link"
 
-import Workspace from "./Workspace"
 import Store from "../data/Store"
 import { Doc, FrontendManager } from "../modules/hypermerge"
 import * as Debug from "debug"
@@ -74,8 +72,6 @@ export default class DebugWidget extends React.Component<Props, State> {
     this.state.manager.removeListener("info", this.infoListener)
 
     const docId = Link.parse(url).id
-    const peers = this.props.store.peerCount[docId] || 0
-    const feeds = this.props.store.feedCount[docId] || 0
     const manager = this.props.store.manager(docId)
     manager.on("doc", this.docListener)
     manager.on("info", this.infoListener)

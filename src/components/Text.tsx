@@ -6,7 +6,6 @@ import * as css from "./css/Text.css"
 import { clamp } from "lodash"
 import {
   breakIntoLines,
-  DEFAULT_CARD_DIMENSION,
   TEXT_MAX_WIDTH,
   TEXT_CARD_LINE_HEIGHT,
 } from "../logic/SizeUtils"
@@ -27,7 +26,6 @@ interface Props extends Widget.Props<Model, State> {
 }
 
 const MAX_SCALE = 3
-const PADDING = 10
 
 class Text extends React.Component<Props> {
   state: State = { lines: [] }

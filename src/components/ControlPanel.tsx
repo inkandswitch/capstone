@@ -1,8 +1,4 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
-import * as Link from "../data/Link"
-
-import FullscreenToggle from "./FullscreenToggle"
 import WorkspaceMgr from "./WorkspaceMgr"
 import DebugWidget from "./DebugWidget"
 import DebugMgr from "./DebugMgr"

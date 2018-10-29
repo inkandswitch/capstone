@@ -1,4 +1,4 @@
-import { Doc, ChangeFn } from "automerge/frontend"
+import { ChangeFn } from "automerge/frontend"
 import * as Debug from "debug"
 import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
@@ -8,11 +8,6 @@ import { FrontendManager } from "../modules/hypermerge/frontend"
 import Queue from "./Queue"
 
 const log = Debug("store:front")
-
-function isId(id: string) {
-  return id.length >= 32 && id.length <= 44
-}
-
 ;(window as any).peek = () => {
   console.log("please use peek() on the backend console")
 }
@@ -74,10 +69,6 @@ export default class Store {
     const manager = new FrontendManager<any>(docId, actorId)
 
     this.index[docId] = manager
-
-    //    manager.on("doc", (doc) => {
-    //      log("DOC", doc)
-    //    })
 
     manager.on("needsActorId", () => {
       log("needsActorId", docId)

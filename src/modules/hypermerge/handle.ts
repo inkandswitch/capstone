@@ -1,5 +1,3 @@
-import * as Debug from "debug"
-
 import { Doc, ChangeFn } from "automerge/frontend"
 
 export default class Handle<T> {

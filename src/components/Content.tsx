@@ -5,7 +5,6 @@ import Store from "../data/Store"
 import Handle from "../data/Handle"
 import * as Reify from "../data/Reify"
 import * as Env from "../data/Env"
-import { once } from "lodash"
 import * as Debug from "debug"
 const log = Debug("component:content")
 

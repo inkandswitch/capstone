@@ -1,6 +1,6 @@
 import { EventEmitter } from "events"
 import * as Backend from "automerge/backend"
-import { Change, Patch, BackDoc } from "automerge/backend"
+import { Change, BackDoc } from "automerge/backend"
 import Queue from "../../data/Queue"
 import { Peer, Feed, EXT, Hypermerge } from "."
 import * as Debug from "debug"

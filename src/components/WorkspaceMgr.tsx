@@ -1,9 +1,6 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
 import * as Link from "../data/Link"
-import Workspace from "./Workspace"
 import Store from "../data/Store"
-import { FrontendManager } from "../modules/hypermerge/frontend"
 import * as Debug from "debug"
 const log = Debug("component:control:workspace")
 
@@ -74,7 +71,6 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
     }
   }
 
-  //  onCopy = (event: React.MouseEvent<HTMLAnchorElement>) => {
   onCopy = (event: any) => {
     this.textarea!.select()
     document.execCommand("copy")

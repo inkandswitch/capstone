@@ -1,7 +1,5 @@
 import * as React from "react"
 
-import * as Debug from "debug"
-
 interface Props {}
 
 export default class FullscreenToggle extends React.Component<Props> {

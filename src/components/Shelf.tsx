@@ -1,8 +1,6 @@
 import * as React from "react"
 import { Subscription } from "rxjs"
-import * as RxOps from "rxjs/operators"
 import * as css from "./css/Shelf.css"
-import * as GPS from "../logic/GPS"
 import Movable from "./Movable"
 
 const MAX_HEIGHT = 600

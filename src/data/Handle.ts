@@ -1,5 +1,4 @@
 import HyperHandle from "../modules/hypermerge/handle"
-import * as Link from "./Link"
 import { ChangeFn, Doc } from "automerge/frontend"
 
 interface Options {

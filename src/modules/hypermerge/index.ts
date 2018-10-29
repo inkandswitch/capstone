@@ -74,7 +74,7 @@ export class Hypermerge {
   feedQs: Map<string, Queue<FeedFn>> = new Map()
   feedPeers: Map<string, Set<Peer>> = new Map()
   docs: Map<string, BackendManager> = new Map()
-  feedSeq: Map<string,number> = new Map()
+  feedSeq: Map<string, number> = new Map()
   ledger: Feed<LedgerData>
   docMetadata: Map<string, string[]> = new Map() // Map of Sets - FIXME
   swarm?: Swarm
@@ -115,7 +115,6 @@ export class Hypermerge {
   createDocument(keys: Keys): BackendManager {
     const docId = Base58.encode(keys.publicKey)
     log("Create", docId)
-    const dk = discoveryKey(keys.publicKey)
     const doc = new BackendManager(this, docId, Backend.init())
 
     this.docs.set(docId, doc)
@@ -200,7 +199,6 @@ export class Hypermerge {
     const feedLength = this.feedSeq.get(actorId) || 0
     const ok = feedLength + 1 === change.seq
     log(`write actor=${actorId} seq=${change.seq} feed=${feedLength} ok=${ok}`)
-    // if (!ok) { throw new Error("seq != feedLength - wtf man") }
     this.feedSeq.set(actorId, feedLength + 1)
     this.getFeed(doc, actorId, feed => {
       feed.append(JsonBuffer.bufferify(change), err => {
@@ -269,10 +267,6 @@ export class Hypermerge {
   actorIds(doc: BackendManager): string[] {
     return this.docMetadata.get(doc.docId) || []
   }
-
-  //  feeds(doc: BackendHandle) : Feed[] {
-  //    return this.actorIds(doc).map(actor => this.feeds.get(dkString))
-  //  }
 
   feed(actorId: string): Feed<Uint8Array> {
     const publicKey = Base58.decode(actorId)

@@ -1,4 +1,3 @@
-import { init, applyPatch } from "automerge/frontend"
 import { once } from "lodash"
 
 var _enable = once(() => {
@@ -13,23 +12,6 @@ var _enable = once(() => {
           let handle = sm.docHandles[docId]
           let connections = handle.connections()
           let peers = handle.peers()
-
-          /*
-            if (flags.includes("c")) {
-              console.log(`%c begin copy...`, "color: green");
-              const el = document.createElement('textarea');
-              el.value = JSON.stringify(global.sm.debugLogs[docId])
-              const len = el.value.length
-              el.setAttribute('readonly', '');
-              el.style.position = 'absolute';
-              el.style.left = '-9999px';
-              document.body.appendChild(el);
-              el.select();
-              document.execCommand('copy');
-              document.body.removeChild(el);
-              console.log(`%c ${len} characters copied to clipboard`, "color: green");
-            }
-*/
 
           if (flags.includes("p")) {
             console.log(`${connections.length} total connections`)
@@ -77,7 +59,6 @@ var _enable = once(() => {
         "%c  peek(docid, 'j') - show a json dump of the document",
         "color: green",
       )
-      //      console.log("%c  peek(docid, 'c') - copy automerge history to clipboard", "color: green")
       console.log(
         "%c  peek(docid, 'p') - show peer and connectivity info",
         "color: green",

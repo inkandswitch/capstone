@@ -2,7 +2,7 @@ import * as React from "react"
 import { AnyDoc } from "automerge/frontend"
 import * as Reify from "../data/Reify"
 import * as Link from "../data/Link"
-import Content, { DocumentActor } from "./Content"
+import Content from "./Content"
 import * as Widget from "./Widget"
 import IdentityBadge from "./IdentityBadge"
 
@@ -60,7 +60,7 @@ export class Identity extends React.Component<Props, State> {
   }
 
   renderFullscreen() {
-    const { name, avatarUrl, documents } = this.props.doc
+    const { name, avatarUrl } = this.props.doc
     const { isEditing } = this.state
     return (
       <div style={style.Identity} onPointerDown={this.onPointerDown}>

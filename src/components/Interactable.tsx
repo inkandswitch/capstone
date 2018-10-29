@@ -5,7 +5,6 @@ import * as RxOps from "rxjs/operators"
 import * as GPS from "../logic/GPS"
 import * as Dragger from "../logic/Dragger"
 import * as Resizer from "../logic/Resizer"
-import { DEFAULT_CARD_DIMENSION } from "../logic/SizeUtils"
 
 interface InteractableProps {
   onStart?: () => void

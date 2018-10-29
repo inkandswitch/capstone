@@ -44,7 +44,6 @@ class HTML extends React.Component<Props> {
       case "embed":
         const contentScale =
           (this.props.availableWidth - 4) / IFRAME_DIMENSIONS.width
-        //const { scale } = this.props
         const scaleStyle = {
           transform: `scale(${contentScale})`,
           willChange: "transform",
