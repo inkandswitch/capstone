@@ -1,9 +1,9 @@
 import * as ws from "ws"
 
-import { Hypermerge } from "./modules/hypermerge"
+import { Hypermerge } from "hypermerge"
 import * as Msg from "./data/StoreMsg"
 import StoreBackend from "./data/StoreBackend"
-import CloudClient from "./modules/discovery-cloud/Client"
+import CloudClient from "discovery-cloud/Client"
 
 const hm = new Hypermerge({ path: "./.data" })
 ;(global as any).hm = hm

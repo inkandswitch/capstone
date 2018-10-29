@@ -10,7 +10,7 @@ import {
   TEXT_CARD_LINE_HEIGHT,
 } from "../logic/SizeUtils"
 
-const withAvailableSize = require("../modules/react-with-available-size")
+const withAvailableSize = require("react-with-available-size")
 
 export interface State {
   lines: string[]

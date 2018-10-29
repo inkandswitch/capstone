@@ -2,7 +2,7 @@ import * as React from "react"
 import * as Link from "../data/Link"
 
 import Store from "../data/Store"
-import { Doc, FrontendManager } from "../modules/hypermerge"
+import { Doc, FrontendManager } from "hypermerge"
 import * as Debug from "debug"
 const log = Debug("component:control:widget")
 

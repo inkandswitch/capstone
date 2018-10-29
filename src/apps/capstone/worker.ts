@@ -2,12 +2,12 @@ import * as Debug from "debug"
 Debug.enable(self.name)
 
 import StoreBackend from "../../data/StoreBackend"
-import { Hypermerge } from "../../modules/hypermerge"
-import CloudClient from "../../modules/discovery-cloud/Client"
+import { Hypermerge } from "hypermerge"
+import CloudClient from "discovery-cloud/Client"
 
 process.hrtime = require("browser-process-hrtime")
 
-let rawf = require("../../modules/random-access-worker-file")
+let rawf = require("random-access-worker-file")
 
 const hm = new Hypermerge({ storage: rawf })
 const store = new StoreBackend(hm)

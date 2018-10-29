@@ -17,7 +17,6 @@ const shared = {
   resolve: {
     alias: {
       "utp-native": "utp",
-      debug: path.resolve("./src/modules/debug"),
       dgram: "chrome-dgram",
       net: "chrome-net",
       "util-deprecate": path.resolve("./stubs/util-deprecate.js"),
@@ -38,7 +37,6 @@ const shared = {
             experimentalWatchApi: true,
           },
         },
-        exclude: /node_modules/,
       },
       {
         test: /\.css$/,

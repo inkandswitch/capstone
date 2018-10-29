@@ -4,7 +4,7 @@ import * as Rx from "rxjs"
 import { keyPair } from "hypercore/lib/crypto"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
-import { FrontendManager } from "../modules/hypermerge/frontend"
+import { FrontendManager } from "hypermerge/frontend"
 import Queue from "./Queue"
 
 const log = Debug("store:front")

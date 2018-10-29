@@ -22,7 +22,7 @@ import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
 
-const withAvailableSize = require("../modules/react-with-available-size")
+const withAvailableSize = require("react-with-available-size")
 
 // TODO: not a constant
 const BOARD_DIMENSIONS = { height: 800, width: 1200 }

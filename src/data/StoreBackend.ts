@@ -1,6 +1,6 @@
 import * as Debug from "debug"
-import { BackendManager } from "../modules/hypermerge/backend"
-import { Hypermerge } from "../modules/hypermerge"
+import { BackendManager } from "hypermerge/backend"
+import { Hypermerge } from "hypermerge"
 import * as Base58 from "bs58"
 import * as Msg from "./StoreMsg"
 import Queue from "./Queue"
