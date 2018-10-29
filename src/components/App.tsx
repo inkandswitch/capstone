@@ -14,7 +14,6 @@ import "./Identity"
 import "./PeerStatus"
 import "./Peer"
 import "./HTML"
-import * as Feedback from "./CommandFeedback"
 import "../styles/styles.css"
 
 import * as Debug from "debug"
@@ -117,7 +116,6 @@ export default class App extends React.Component<Props, State> {
         <div style={style.App}>
           {Content.env.device === "capstone" ? <Stats /> : null}
           <Content mode="fullscreen" url={url} />
-          <Feedback.Renderer />
         </div>
       </Root>
     )
