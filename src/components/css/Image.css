@@ -1,0 +1,9 @@
+:local(.Image) {
+  object-fit: cover;
+  pointer-events: none;
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 3px;
+  border: 1px solid #ebeae6;
+}

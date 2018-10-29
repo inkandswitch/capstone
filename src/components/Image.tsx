@@ -2,6 +2,7 @@ import * as React from "react"
 import { AnyDoc } from "automerge/frontend"
 import * as Widget from "./Widget"
 import * as Reify from "../data/Reify"
+import * as css from "./css/Image.css"
 
 export interface Model {
   src: string
@@ -20,20 +21,8 @@ class Image extends React.Component<Props> {
 
   render() {
     const { src } = this.props.doc
-    return <img style={style.Image} src={src} />
+    return <img className={css.Image} src={src} />
   }
-}
-
-const style = {
-  Image: {
-    objectFit: "cover" as "cover",
-    pointerEvents: "none" as "none",
-    display: "block",
-    height: "100%",
-    width: "100%",
-    borderRadius: "3px",
-    border: "1px solid #EBEAE6",
-  },
 }
 
 export default Widget.create("Image", Image, Image.reify)
