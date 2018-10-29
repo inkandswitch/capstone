@@ -73,13 +73,11 @@ export class BackendManager extends EventEmitter {
     if (this.back) {
       // if we're all setup and dont have an actor - request one
       if (!this.actorId) {
-        log("get actorId now")
         this.actorId = this.hypermerge.initActorFeed(this)
       }
       this.emit("actorId", this.actorId)
     } else {
       // remember we want one for when init happens
-      log("get actorId later")
       this.wantsActor = true
     }
   }
@@ -107,7 +105,6 @@ export class BackendManager extends EventEmitter {
   }
 
   broadcast(message: any) {
-    log("boardcast", message)
     this.peers().forEach(peer => this.message(peer, message))
   }
 
