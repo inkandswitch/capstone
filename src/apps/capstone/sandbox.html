@@ -9,8 +9,37 @@
 
 <body>
   <div id="main"></div>
-  <div id="ControlPanel" style="z-index: 10000000; position: fixed; top: 0; right: 0; bottom: 0; width: 600px; display: none; border-left: 1px solid gray; background-color: white;"></div>
+  <div id="ControlPanel"></div>
   <script type="text/javascript" src="main.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      touch-action: none;
+    }
+
+    #main {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+    }
+
+    #ControlPanel {
+      z-index: 10000000;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 600px;
+      display: none;
+      border-left: 1px solid gray;
+      background-color: white;
+    }
+  </style>
 </body>
 
 </html>

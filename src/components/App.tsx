@@ -5,7 +5,6 @@ import Content from "./Content"
 import Stats from "./Stats"
 import * as Debug from "debug"
 import * as css from "./css/App.css"
-import "../styles/styles.css"
 
 import "./Board"
 import "./Image"
