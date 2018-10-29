@@ -112,15 +112,6 @@ function app(env, name, overrides = {}) {
 module.exports = (env = {}) =>
   [
     app(env, "capstone"),
-    app(env, "tests", {
-      entry: {
-        main: [
-          "./src/apps/tests/main.js",
-          ...glob.sync("./src/**/__tests__/**/*.ts"),
-        ],
-        background: "./src/apps/tests/background.chrome.ts",
-      },
-    }),
     app(env, "clipper", {
       entry: {
         content: ["./src/apps/clipper/content.js"],
