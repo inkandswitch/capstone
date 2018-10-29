@@ -8,7 +8,7 @@ export interface Env {
 export function defaultEnv(): Env {
   return {
     isTouchscreen: navigator.maxTouchPoints > 0,
-    device: navigator.userAgent.includes("CrOS") ? "capstone" : "sidecar",
+    device: "capstone",
   }
 }
 
