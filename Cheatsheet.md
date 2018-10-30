@@ -35,4 +35,3 @@ Install Clipper extension on your Pixelbook. Then from the Chrome web browser:
 * **Drag & drop files from your computer** - Drag images or text files into Capstone to import them on your desktop.
 
 In all cases, the clipped content will land on your shelf. If your shelf isn't visible, pull up from the button of the screen with a finger to reveal. Then drag the card onto a board and manipulate as normal.
-
