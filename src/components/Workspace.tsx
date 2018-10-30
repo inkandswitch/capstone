@@ -15,6 +15,7 @@ import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
 import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
+import ZoomNav from "./ZoomNav"
 
 type NavEntry = { url: string; [extra: string]: any }
 
@@ -95,17 +96,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     return navStack[navStack.length - 1] || { url: rootUrl }
   }
 
-  getPrevious = () => {
-    const { navStack } = this.props.doc
-    if (navStack.length === 0) {
-      return
-    } else if (navStack.length === 1) {
-      return { url: this.props.doc.rootUrl }
-    } else {
-      return navStack[navStack.length - 2]
-    }
-  }
-
   onCopy = (e: ClipboardEvent) => {
     // If an element other than body has focus (e.g. a text card input),
     // don't interfere with normal behavior.
@@ -134,8 +124,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
 
   render() {
     const { doc, env, mode, url } = this.props
-    const { url: currentUrl, ...currentExtra } = this.peek()
-    const previous = this.getPrevious()
 
     if (mode !== "fullscreen") {
       return <div>Embedded workspace: {url}</div>
@@ -156,21 +144,12 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
         <div className={css.Workspace}>
           <GPSInput />
           <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-          {previous ? (
-            <Content
-              key={previous.url + "-previous"} // Force a remount.
-              mode={this.props.mode}
-              url={previous.url}
-              zIndex={-1}
-            />
-          ) : null}
-          <Content
-            key={currentUrl}
-            mode={this.props.mode}
-            url={currentUrl}
-            {...currentExtra}
-            onNavigate={this.push}
-            onNavigateBack={this.pop}
+          <ZoomNav
+            navStack={doc.navStack}
+            rootUrl={doc.rootUrl}
+            mode={mode}
+            onNavForward={this.push}
+            onNavBackward={this.pop}
           />
           <Shelf>
             <Content
