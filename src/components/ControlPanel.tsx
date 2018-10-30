@@ -7,6 +7,7 @@ import EnvMgr from "./EnvMgr"
 
 type State = {
   url: string | null
+  shouldHideFPSCounter: boolean | null
 }
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
 export default class ControlPanel extends React.Component<Props, State> {
   state = {
     url: null,
+    shouldHideFPSCounter: null,
   }
 
   componentDidMount() {
@@ -24,6 +26,14 @@ export default class ControlPanel extends React.Component<Props, State> {
 
       if (message.type == "Control") {
         this.setState({ url: message.url })
+      }
+    })
+
+    this.props.store.fpsToggle().subscribe(message => {
+      if (!message) return
+
+      if (message.type == "Toggle") {
+        this.setState({ shouldHideFPSCounter: message.state })
       }
     })
   }
@@ -42,7 +52,18 @@ export default class ControlPanel extends React.Component<Props, State> {
         ) : (
           " "
         )}
+        <button
+          onClick={this.toggleFPSCounter}
+          style={{ position: "fixed", bottom: 10, right: 10 }}>
+          {this.state.shouldHideFPSCounter
+            ? "Show FPS counter"
+            : "Hide FPS counter"}
+        </button>
       </div>
     )
+  }
+
+  toggleFPSCounter = () => {
+    this.props.store.toggleFPSCounter()
   }
 }

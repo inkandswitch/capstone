@@ -72,6 +72,11 @@ export interface Control {
   url: string | null
 }
 
+export interface Toggle {
+  type: "Toggle"
+  state: boolean
+}
+
 export interface Presence {
   type: "Presence"
   errs: string[]
