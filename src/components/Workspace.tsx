@@ -159,6 +159,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
           {previous ? (
             <Content
               key={previous.url + "-previous"} // Force a remount.
+              noInk
               mode={this.props.mode}
               url={previous.url}
               zIndex={-1}
