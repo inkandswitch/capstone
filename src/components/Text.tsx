@@ -54,9 +54,12 @@ class Text extends React.Component<Props> {
       transformOrigin: "top left",
       transform: `scale(${scale})`,
     }
+    const shouldScroll = this.props.mode === "fullscreen"
     const maxContentWidth = TEXT_MAX_WIDTH * MAX_SCALE
     return (
-      <div className={css.Text}>
+      <div
+        className={css.Text}
+        style={{ overflow: shouldScroll ? "scroll" : "hidden" }}>
         <div
           style={{
             width: "85%",
@@ -70,7 +73,11 @@ class Text extends React.Component<Props> {
               maxContentWidth,
               this.props.availableSize.width * 0.85,
             )}
-            height={this.props.availableSize.height - 10}
+            height={
+              shouldScroll
+                ? TEXT_CARD_LINE_HEIGHT * scale * this.state.lines.length + 100
+                : this.props.availableSize.height - 10
+            }
             style={{ overflow: "hidden" }}>
             {this.state.lines.map((line, idx) => {
               const y = 22 + idx * TEXT_CARD_LINE_HEIGHT
