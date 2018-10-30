@@ -248,19 +248,35 @@ class Board extends React.Component<Props, State> {
   }
 
   onBoardPinchStart = (measurements: PinchMetrics.Measurements) => {
-    if (!this.props.backNavCardTarget) {
-      return
-    }
-    this.setState({
-      pinch: measurements,
-    })
+    return
   }
 
   onBoardPinchMove = (measurements: PinchMetrics.Measurements) => {
-    if (!this.props.backNavCardTarget) {
-      return
+    if (measurements.scale > 1.0) {
+      // Find card we are pinching.
+      const { center } = measurements
+      const card = this.cardAtPoint(center)
+      if (!card) return
+      this.setState({
+        scalingCard: card.id,
+        pinch: measurements,
+      })
+      if (card.z !== this.props.doc.topZ) {
+        const cardId = card.id
+        this.props.change(doc => {
+          const card = doc.cards[cardId]
+          if (!card) return
+          if (card.z === doc.topZ) return
+          card.z = ++doc.topZ
+        })
+      }
+    } else {
+      if (!this.props.backNavCardTarget) {
+        this.setState({ pinch: undefined })
+      } else {
+        this.setState({ pinch: measurements, scalingCard: undefined })
+      }
     }
-    this.setState({ pinch: measurements })
   }
 
   onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
@@ -269,35 +285,12 @@ class Board extends React.Component<Props, State> {
     }
   }
 
-  onPinchStart = (cardId: string, measurements: PinchMetrics.Measurements) => {
-    const card = this.props.doc.cards[cardId]
-    if (!card) {
+  onBoardPinchOutEnd = (measurements: PinchMetrics.Measurements) => {
+    const { scalingCard } = this.state
+    if (!scalingCard) {
       return
     }
-    this.setState({
-      pinch: measurements,
-      scalingCard: cardId,
-    })
-    this.props.change(doc => {
-      const card = doc.cards[cardId]
-      if (!card) return
-      if (card.z === doc.topZ) return
-      card.z = ++doc.topZ
-    })
-  }
-
-  onPinchMove = (cardId: string, measurements: PinchMetrics.Measurements) => {
-    const card = this.props.doc.cards[cardId]
-    if (!card) {
-      return
-    }
-    this.setState({
-      pinch: measurements,
-    })
-  }
-
-  onPinchOutEnd = (cardId: string) => {
-    const card = this.props.doc.cards[cardId]
+    const card = this.props.doc.cards[scalingCard]
     if (!card) {
       return
     }
@@ -314,6 +307,13 @@ class Board extends React.Component<Props, State> {
     // XXX: A trick would be to use the presence of the zIndex prop to unset
     // these state values.
     //this.setState({ pinch: undefined, scalingCard: undefined })
+  }
+
+  cardAtPoint = (point: Point): CardModel | undefined => {
+    const el = document.elementFromPoint(point.x, point.y)
+    const cardEl = el.closest(`.Card`)
+    if (!cardEl || !cardEl.id) return
+    return this.props.doc.cards[cardEl.id]
   }
 
   render() {
@@ -351,7 +351,8 @@ class Board extends React.Component<Props, State> {
           <Pinchable
             onPinchStart={this.onBoardPinchStart}
             onPinchMove={this.onBoardPinchMove}
-            onPinchInEnd={this.onBoardPinchInEnd}>
+            onPinchInEnd={this.onBoardPinchInEnd}
+            onPinchOutEnd={this.onBoardPinchOutEnd}>
             <div
               data-container
               className={css.Board}
@@ -382,9 +383,6 @@ class Board extends React.Component<Props, State> {
                       <Mirrorable cardId={card.id} onMirror={this.onMirror}>
                         <InteractableCard
                           card={card}
-                          onPinchStart={this.onPinchStart}
-                          onPinchMove={this.onPinchMove}
-                          onPinchOutEnd={this.onPinchOutEnd}
                           onDoubleTap={this.onDoubleTap}
                           onDragStart={this.onDragStart}
                           onDragStop={this.onDragStop}
@@ -447,7 +445,6 @@ class Board extends React.Component<Props, State> {
                   <InteractableCard
                     key={card.id}
                     card={card}
-                    onPinchOutEnd={noop}
                     onDragStart={noop}
                     onDragStop={noop}
                     onResizeStop={noop}>
