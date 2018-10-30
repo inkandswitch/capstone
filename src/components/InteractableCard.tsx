@@ -109,6 +109,7 @@ export default class InteractableCard extends React.Component<Props, State> {
           z={z}>
           <Card
             cardId={this.props.card.id}
+            url={this.props.card.url}
             style={style}
             {...omit(rest, [
               "onDoubleTap",

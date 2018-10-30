@@ -4,7 +4,6 @@ import { clamp, noop } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
-import Pinchable from "./Pinchable"
 import EdgeBoardCreator from "./EdgeBoardCreator"
 import Content, {
   DocumentActor,
@@ -247,10 +246,6 @@ class Board extends React.Component<Props, State> {
       })
   }
 
-  onBoardPinchStart = (measurements: PinchMetrics.Measurements) => {
-    return
-  }
-
   onBoardPinchMove = (measurements: PinchMetrics.Measurements) => {
     if (measurements.scale > 1.0) {
       // Find card we are pinching.
@@ -348,70 +343,60 @@ class Board extends React.Component<Props, State> {
         }
 
         return (
-          <Pinchable
-            onPinchStart={this.onBoardPinchStart}
-            onPinchMove={this.onBoardPinchMove}
-            onPinchInEnd={this.onBoardPinchInEnd}
-            onPinchOutEnd={this.onBoardPinchOutEnd}>
-            <div
-              data-container
-              className={css.Board}
-              ref={this.onRef}
-              onDragOver={this.onDragOver}
-              onDrop={this.onDrop}
-              style={style}>
-              {noInk ? null : (
-                <Ink
-                  onInkStroke={this.onInkStroke}
-                  strokes={strokes}
-                  mode={this.props.mode}
-                />
-              )}
-              <TransitionGroup>
-                {Object.values(cards).map(card => {
-                  if (!card) return null
-                  let navScale = 0
-                  if (pinch && scalingCard && scalingCard === card.id) {
-                    navScale = getCardScaleProgress(card, pinch)
-                  }
-                  return (
-                    <CSSTransition
-                      key={card.id}
-                      classNames="Card"
-                      enter={false}
-                      timeout={{ exit: 1 }}>
-                      <Mirrorable cardId={card.id} onMirror={this.onMirror}>
-                        <InteractableCard
-                          card={card}
-                          onDoubleTap={this.onDoubleTap}
-                          onDragStart={this.onDragStart}
-                          onDragStop={this.onDragStop}
-                          onRemoved={this.onRemoved}
-                          onResizeStop={this.onResizeStop}>
-                          <Content
-                            mode="embed"
-                            url={card.url}
-                            scale={navScale}
-                          />
-                        </InteractableCard>
-                      </Mirrorable>
-                    </CSSTransition>
-                  )
-                })}
-              </TransitionGroup>
-
-              <EdgeBoardCreator
-                onBoardCreate={this.onCreateBoard}
-                zIndex={topZ + 1}
+          <div
+            data-container
+            className={css.Board}
+            ref={this.onRef}
+            onDragOver={this.onDragOver}
+            onDrop={this.onDrop}
+            style={style}>
+            {noInk ? null : (
+              <Ink
+                onInkStroke={this.onInkStroke}
+                strokes={strokes}
+                mode={this.props.mode}
               />
-              {backgroundOpacity > 0.0 ? (
-                <div
-                  className={css.FrostedGlass}
-                  style={{ opacity: backgroundOpacity, zIndex: 10000000 }}
-                />
-              ) : null}
-            </div>
-          </Pinchable>
+            )}
+            <TransitionGroup>
+              {Object.values(cards).map(card => {
+                if (!card) return null
+                let navScale = 0
+                if (pinch && scalingCard && scalingCard === card.id) {
+                  navScale = getCardScaleProgress(card, pinch)
+                }
+                return (
+                  <CSSTransition
+                    key={card.id}
+                    classNames="Card"
+                    enter={false}
+                    timeout={{ exit: 1 }}>
+                    <Mirrorable cardId={card.id} onMirror={this.onMirror}>
+                      <InteractableCard
+                        card={card}
+                        onDoubleTap={this.onDoubleTap}
+                        onDragStart={this.onDragStart}
+                        onDragStop={this.onDragStop}
+                        onRemoved={this.onRemoved}
+                        onResizeStop={this.onResizeStop}>
+                        <Content mode="embed" url={card.url} scale={navScale} />
+                      </InteractableCard>
+                    </Mirrorable>
+                  </CSSTransition>
+                )
+              })}
+            </TransitionGroup>
+
+            <EdgeBoardCreator
+              onBoardCreate={this.onCreateBoard}
+              zIndex={topZ + 1}
+            />
+            {backgroundOpacity > 0.0 ? (
+              <div
+                className={css.FrostedGlass}
+                style={{ opacity: backgroundOpacity, zIndex: 10000000 }}
+              />
+            ) : null}
+          </div>
         )
       }
       case "embed": {

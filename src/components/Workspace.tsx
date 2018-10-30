@@ -15,9 +15,7 @@ import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
 import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
-import ZoomNav from "./ZoomNav"
-
-type NavEntry = { url: string; [extra: string]: any }
+import ZoomNav, { NavEntry } from "./ZoomNav"
 
 export interface Model {
   navStack: NavEntry[]
@@ -140,27 +138,20 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
 
     return (
-      <Pinchable onPinchInEnd={this.pop}>
-        <div className={css.Workspace}>
-          <GPSInput />
-          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-          <ZoomNav
-            navStack={doc.navStack}
-            rootUrl={doc.rootUrl}
-            mode={mode}
-            onNavForward={this.push}
-            onNavBackward={this.pop}
-          />
-          <Shelf>
-            <Content
-              mode="fullscreen"
-              noInk
-              color="#f0f0f0"
-              url={doc.shelfUrl}
-            />
-          </Shelf>
-        </div>
-      </Pinchable>
+      <div className={css.Workspace}>
+        <GPSInput />
+        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+        <ZoomNav
+          navStack={doc.navStack}
+          rootUrl={doc.rootUrl}
+          mode={mode}
+          onNavForward={this.push}
+          onNavBackward={this.pop}
+        />
+        <Shelf>
+          <Content mode="fullscreen" noInk color="#f0f0f0" url={doc.shelfUrl} />
+        </Shelf>
+      </div>
     )
   }
 }
