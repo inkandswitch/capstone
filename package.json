@@ -6,15 +6,14 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack --watch",
-    "dev": "yarn --ignore-engines && webpack",
-    "build": "yarn --ignore-engines && webpack --env.mode=production",
+    "dev": "yarn && webpack",
+    "build": "yarn && webpack --env.mode=production",
     "test": "yarn tests",
     "cloud": "yarn repl src/node_modules/discovery-cloud/server.js",
     "repl": "cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache node -r ts-node/register",
-    "clean": "rm -rf dist .data",
+    "clean": "rm -rf dist",
     "format": "prettier --write 'src/**/*.{js,ts,tsx}'",
-    "capstone": "node ./bin/launch.js capstone",
-    "tests": "node ./bin/launch.js tests"
+    "capstone": "node ./bin/launch.js capstone"
   },
   "author": "Ink & Switch",
   "devDependencies": {
