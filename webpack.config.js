@@ -32,6 +32,7 @@ const shared = {
         use: {
           loader: "ts-loader",
           options: {
+            allowTsInNodeModules: true,
             experimentalWatchApi: true,
           },
         },
