@@ -38,7 +38,6 @@
     "cross-env": "^5.2.0",
     "css-loader": "^1.0.0",
     "file-loader": "^1.1.11",
-    "fork-ts-checker-webpack-plugin": "^0.4.10",
     "postcss-loader": "^2.1.6",
     "prettier": "1.14.2",
     "source-map-loader": "^0.2.3",
@@ -82,7 +81,6 @@
     "stats.js": "^0.17.0",
     "tap-browser-el": "^2.0.0",
     "utp": "github:pvh/utp",
-    "webpack-encoding-plugin": "^0.2.1",
     "ws": "^6.1.0"
   }
 }
