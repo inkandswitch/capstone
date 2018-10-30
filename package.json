@@ -45,7 +45,7 @@
     "tap-spec": "^5.0.0",
     "tape": "^4.9.1",
     "tape-watch": "^2.3.0",
-    "ts-loader": "^4.4.2",
+    "ts-loader": "^5.2.2",
     "ts-node": "^7.0.1",
     "typescript": "^3.0.1",
     "webpack": "^4.16.5",
