@@ -2,26 +2,28 @@ import * as React from "react"
 import { Subscription } from "rxjs"
 import * as css from "./css/Shelf.css"
 import Movable from "./Movable"
+import { clamp } from "lodash"
 
 const MAX_HEIGHT = 600
 
 interface Props {
   children: React.ReactNode
-}
-
-interface State {
   offset: number
+  onResize: (position: Point) => void
 }
 
-export default class Shelf extends React.Component<Props, State> {
+export default class Shelf extends React.Component<Props> {
   subscription?: Subscription
   isDragging = false
 
   render() {
-    const { children } = this.props
+    const { children, offset } = this.props
 
     return (
-      <Movable position={{ x: 0, y: -200 }} map={mapPosition}>
+      <Movable
+        position={{ x: 0, y: offset }}
+        map={mapPosition}
+        onMoveEnd={this.onMoveEnd}>
         {(ref, { position: { y } }) => (
           <div ref={ref} className={css.Wrapper}>
             <div className={css.FixedTab} />
@@ -39,8 +41,13 @@ export default class Shelf extends React.Component<Props, State> {
       </Movable>
     )
   }
+
+  onMoveEnd = (position: Point) => {
+    this.props.onResize(position)
+  }
 }
 
 const mapPosition = ({ x, y }: Point) => {
-  return { x, y: Math.min(0, Math.max(-MAX_HEIGHT, y)) }
+  const clampedY = clamp(y, -MAX_HEIGHT, 0)
+  return { x, y: clampedY }
 }
