@@ -7,7 +7,7 @@ import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/ZoomNav.css"
 
 export type NavEntry = { url: string; backZoomTarget?: ZoomTarget }
-export type ZoomTarget = { url: string; position: Point; size: Size }
+export type ZoomTarget = { position: Point; size: Size }
 // Temp name
 export type Zoomie = {
   id: string
@@ -16,8 +16,9 @@ export type Zoomie = {
 }
 
 export const NavContext = React.createContext({
-  addZoomable: (zoomable: Zoomie) => {},
-  removeZoomable: (id: string) => {},
+  getZoomProgress: (id: string): number => 0.0,
+  addZoomable: (zoomable: Zoomie): void => {},
+  removeZoomable: (id: string): void => {},
 })
 
 const VIEWPORT_DIMENSIONS = { height: 800, width: 1200 }
@@ -33,11 +34,29 @@ interface Props {
 interface State {
   pinch?: PinchMetrics.Measurements
   inbound?: string
+  context: {
+    getZoomProgress: (id: string) => number
+    addZoomable: (zoomable: Zoomie) => void
+    removeZoomable: (id: string) => void
+  }
 }
 
 export default class ZoomNav extends React.Component<Props, State> {
-  state: State = { pinch: undefined, inbound: undefined }
   zoomables: { [id: string]: Zoomie } = {}
+
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      pinch: undefined,
+      inbound: undefined,
+      context: {
+        getZoomProgress: this.getZoomProgress,
+        addZoomable: this.addZoomable,
+        removeZoomable: this.removeZoomable,
+      },
+    }
+  }
 
   addZoomable = (zoomable: Zoomie) => {
     this.zoomables[zoomable.id] = zoomable
@@ -49,6 +68,33 @@ export default class ZoomNav extends React.Component<Props, State> {
 
   getZoomable = (id: string) => {
     return this.zoomables[id]
+  }
+
+  getZoomProgress = (id: string) => {
+    const { inbound, pinch } = this.state
+    if (!inbound || !pinch || id !== inbound) {
+      return 0
+    }
+
+    const zoomable = this.zoomables[inbound]
+    if (!zoomable) return 0
+    return this._getZoomProgress(pinch.scale, zoomable)
+  }
+
+  _getZoomProgress = (scale: number, zoomable: Zoomie) => {
+    const { width } = zoomable.zoomTarget.size
+    const maxScale = VIEWPORT_DIMENSIONS.width / width
+    // 1.0 is the minimum, so ignore figure out progress beyond 1.0
+    const adjustedScale = scale - 1.0
+    const adjustedMax = maxScale - 1.0
+    return adjustedScale / adjustedMax
+  }
+
+  getCurrentZoomProgress = (scale: number, zoomTarget: ZoomTarget) => {
+    if (scale >= 1.0) return 1.0
+    const maxScale = 1.0
+    const minScale = zoomTarget.size.width / VIEWPORT_DIMENSIONS.width
+    return (scale - minScale) / (maxScale - minScale)
   }
 
   peek = () => {
@@ -121,6 +167,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     return (
       <NavContext.Provider
         value={{
+          getZoomProgress: this.getZoomProgress,
           addZoomable: this.addZoomable,
           removeZoomable: this.removeZoomable,
         }}>
@@ -149,10 +196,11 @@ export default class ZoomNav extends React.Component<Props, State> {
     return (
       <div style={previousStyle} className={css.Previous}>
         <Content
-          key={previous.url + "-previous"} // Force a remount.
           mode={this.props.mode}
           url={previous.url}
+          scale={previousScale}
           zIndex={-1}
+          zoomProgress={1}
         />
       </div>
     )
@@ -171,6 +219,11 @@ export default class ZoomNav extends React.Component<Props, State> {
             transformOrigin: scaleOrigin,
           }
 
+    const zoomTarget = currentExtra.backZoomTarget
+    const zoomProgress = zoomTarget
+      ? this.getCurrentZoomProgress(scale, zoomTarget)
+      : 1.0
+
     return (
       <Pinchable
         onPinchMove={this.onPinchMove}
@@ -181,6 +234,7 @@ export default class ZoomNav extends React.Component<Props, State> {
             key={currentUrl}
             mode={this.props.mode}
             url={currentUrl}
+            zoomProgress={zoomProgress}
             {...currentExtra}
             onNavigate={this.props.onNavForward}
           />
@@ -302,8 +356,8 @@ export default class ZoomNav extends React.Component<Props, State> {
 export interface ZoomableProps {
   id: string
   url: string
-  position: Point
-  size: Size
+  zoomTarget: ZoomTarget
+  children: (zoomProgress: number) => JSX.Element
 }
 
 export class Zoomable extends React.Component<ZoomableProps> {
@@ -311,17 +365,21 @@ export class Zoomable extends React.Component<ZoomableProps> {
     const { children, ...rest } = this.props
     return (
       <NavContext.Consumer>
-        {ctx => (
-          <WrappedZoomable {...ctx} {...rest}>
-            {this.props.children}
-          </WrappedZoomable>
-        )}
+        {ctx => {
+          const zoomProgress = ctx.getZoomProgress(rest.id)
+          return (
+            <WrappedZoomable {...ctx} {...rest} zoomProgress={zoomProgress}>
+              {this.props.children}
+            </WrappedZoomable>
+          )
+        }}
       </NavContext.Consumer>
     )
   }
 }
 
 export interface WrappedZoomableProps extends ZoomableProps {
+  zoomProgress: number
   addZoomable: (zoomable: Zoomie) => void
   removeZoomable: (id: string) => void
 }
@@ -330,8 +388,13 @@ export class WrappedZoomable extends React.Component<WrappedZoomableProps> {
   static contextType = NavContext
 
   componentDidMount() {
-    const { id, url, position, size } = this.props
-    this.props.addZoomable({ id, url, zoomTarget: { url, position, size } })
+    const { id, url, zoomTarget } = this.props
+    this.props.addZoomable({ id, url, zoomTarget })
+  }
+
+  componentDidUpdate() {
+    const { id, url, zoomTarget } = this.props
+    this.props.addZoomable({ id, url, zoomTarget })
   }
 
   componentWillUnmount() {
@@ -339,10 +402,14 @@ export class WrappedZoomable extends React.Component<WrappedZoomableProps> {
   }
 
   render() {
-    const { id } = this.props
+    const { id, zoomProgress } = this.props
     const props = {
       "data-zoomnav-id": id,
     }
-    return <div {...props}>{this.props.children}</div>
+    return (
+      <div {...props} className={css.Zoomable}>
+        {this.props.children(zoomProgress)}
+      </div>
+    )
   }
 }

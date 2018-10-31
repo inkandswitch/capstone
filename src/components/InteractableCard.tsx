@@ -6,7 +6,6 @@ import * as Link from "../data/Link"
 import * as DataTransfer from "../logic/DataTransfer"
 import Pinchable from "./Pinchable"
 import { DEFAULT_CARD_DIMENSION } from "../logic/SizeUtils"
-import { Zoomable } from "./ZoomNav"
 
 export interface CardModel {
   id: string
@@ -23,7 +22,6 @@ export interface State {
 }
 
 export interface Props {
-  noZoom?: true
   card: CardModel
   onDragStart?: (id: string) => void
   onDragStop?: (x: number, y: number, id: string) => void
@@ -79,7 +77,6 @@ export default class InteractableCard extends React.Component<Props, State> {
 
   render() {
     const {
-      noZoom,
       card: { id, url, x, y, z, width, height },
       children,
       ...rest
@@ -110,45 +107,21 @@ export default class InteractableCard extends React.Component<Props, State> {
           onResize={this.onResize}
           onResizeStop={this.resizeStop}
           z={z}>
-          {noZoom ? (
-            <Card
-              cardId={this.props.card.id}
-              url={this.props.card.url}
-              style={style}
-              {...omit(rest, [
-                "onDoubleTap",
-                "onDragStop",
-                "onResizeStop",
-                "onPinchStart",
-                "onPinchMove",
-                "onPinchOutEnd",
-                "onRemoved",
-              ])}>
-              {children}
-            </Card>
-          ) : (
-            <Zoomable
-              id={id}
-              url={url}
-              position={{ x, y }}
-              size={{ width, height }}>
-              <Card
-                cardId={this.props.card.id}
-                url={this.props.card.url}
-                style={style}
-                {...omit(rest, [
-                  "onDoubleTap",
-                  "onDragStop",
-                  "onResizeStop",
-                  "onPinchStart",
-                  "onPinchMove",
-                  "onPinchOutEnd",
-                  "onRemoved",
-                ])}>
-                {children}
-              </Card>
-            </Zoomable>
-          )}
+          <Card
+            cardId={this.props.card.id}
+            url={this.props.card.url}
+            style={style}
+            {...omit(rest, [
+              "onDoubleTap",
+              "onDragStop",
+              "onResizeStop",
+              "onPinchStart",
+              "onPinchMove",
+              "onPinchOutEnd",
+              "onRemoved",
+            ])}>
+            {children}
+          </Card>
         </Interactable>
       </Pinchable>
     )

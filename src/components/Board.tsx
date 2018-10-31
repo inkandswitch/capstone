@@ -20,6 +20,7 @@ import * as SizeUtils from "../logic/SizeUtils"
 import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
+import { Zoomable } from "./ZoomNav"
 
 const withAvailableSize = require("react-with-available-size")
 
@@ -40,6 +41,7 @@ interface Props extends Widget.Props<Model, WidgetMessage> {
   noInk?: boolean
   zIndex?: number
   color?: string
+  zoomProgress: number
 }
 
 export interface CreateCard extends Message {
@@ -234,12 +236,12 @@ class Board extends React.Component<Props> {
   }
 
   render() {
-    const { noInk, zIndex, color } = this.props
+    const { noInk, zIndex, color, zoomProgress } = this.props
     const { cards, strokes, topZ } = this.props.doc
+    const frostedGlassOpacity = 0.4 * Math.max(0, 1 - zoomProgress)
     switch (this.props.mode) {
       case "fullscreen": {
         // TODO: calc the frosted glass overlay opacity
-        const backgroundOpacity = 0.0 //this.getOverlayOpacity(scale)
 
         // Needed to place the previous board (the back stack board) behind the current board and shelf.
         // isPrevious
@@ -269,9 +271,10 @@ class Board extends React.Component<Props> {
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
-                let navScale = 0
-                // TODO: get overlay opacity for the board we're zooming to.
-                //navScale = getCardScaleProgress(card, pinch)
+                const zoomTarget = {
+                  size: { width: card.width, height: card.height },
+                  position: { x: card.x, y: card.y },
+                }
                 return (
                   <CSSTransition
                     key={card.id}
@@ -286,7 +289,20 @@ class Board extends React.Component<Props> {
                         onDragStop={this.onDragStop}
                         onRemoved={this.onRemoved}
                         onResizeStop={this.onResizeStop}>
-                        <Content mode="embed" url={card.url} scale={navScale} />
+                        <Zoomable
+                          id={card.id}
+                          url={card.url}
+                          zoomTarget={zoomTarget}>
+                          {zoomProgress => {
+                            return (
+                              <Content
+                                mode="embed"
+                                url={card.url}
+                                zoomProgress={zoomProgress}
+                              />
+                            )
+                          }}
+                        </Zoomable>
                       </InteractableCard>
                     </Mirrorable>
                   </CSSTransition>
@@ -298,10 +314,10 @@ class Board extends React.Component<Props> {
               onBoardCreate={this.onCreateBoard}
               zIndex={topZ + 1}
             />
-            {backgroundOpacity > 0.0 ? (
+            {frostedGlassOpacity > 0.0 ? (
               <div
                 className={css.FrostedGlass}
-                style={{ opacity: backgroundOpacity, zIndex: 10000000 }}
+                style={{ opacity: frostedGlassOpacity, zIndex: 10000000 }}
               />
             ) : null}
           </div>
@@ -310,15 +326,11 @@ class Board extends React.Component<Props> {
       case "embed": {
         const contentScale =
           this.props.availableSize.width / BOARD_DIMENSIONS.width
-        let { scale } = this.props
-        if (!scale) scale = 0
         const style = {
           transform: `scale(${contentScale})`,
           willChange: "transform",
           transformOrigin: "top left",
         }
-
-        const backgroundOpacity = this.getOpacity(scale, 0.0, 1.0, 0.4, 0.0)
 
         return (
           <div className={css.Board} ref={this.onRef}>
@@ -331,17 +343,8 @@ class Board extends React.Component<Props> {
             <div style={style}>
               {Object.values(cards).map(card => {
                 if (!card) return null
-                const type = Link.parse(card.url).type
-                if (type === "Board") {
-                }
                 return (
-                  <InteractableCard
-                    noZoom
-                    key={card.id}
-                    card={card}
-                    onDragStart={noop}
-                    onDragStop={noop}
-                    onResizeStop={noop}>
+                  <InteractableCard key={card.id} card={card}>
                     <Content mode="preview" url={card.url} />
                   </InteractableCard>
                 )
@@ -349,7 +352,7 @@ class Board extends React.Component<Props> {
             </div>
             <div
               className={css.FrostedGlass}
-              style={{ opacity: backgroundOpacity }}
+              style={{ opacity: frostedGlassOpacity }}
             />
           </div>
         )
@@ -371,21 +374,8 @@ class Board extends React.Component<Props> {
     })
   }
 
-  getOverlayOpacity(scale: number) {
-    // TODO: reimplement with a ZoomNav content system
-    /*
-    const { scalingCard } = this.state
-    const { backNavCardTarget, doc } = this.props
-    if (scalingCard) {
-      return 0.0
-    } else if (backNavCardTarget) {
-      if (scale >= 1.0) return 0.0
-      const startScale = 1.0
-      const destScale = backNavCardTarget.width / BOARD_DIMENSIONS.width
-      return this.getOpacity(scale, startScale, destScale, 0.0, 0.4)
-    }
-    */
-    return 0.0
+  getOverlayOpacity(zoomProgress: number) {
+    return Math.max(0, 1 - zoomProgress)
   }
 
   getOpacity = (
