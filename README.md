@@ -1,8 +1,27 @@
-# capstone
+# Capstone
 
-Brief usage docs in the [cheatsheet](Cheatsheet.md).
+Capstone is an experimental tool for organizing your thoughts.
+
+It was developed by [Ink & Switch](https://inkandswitch.com).
+
+
+## Overview
+
+Quick overview here.
+
+More context is available in the
+[Capstone blog post](https://inkandswitch.com/capstone).
+
 
 ## Usage
+
+Here's how to use Capstone.
+
+For the full experience, you'll need a Google Pixelbook tablet with a stylus,
+plus a desktop / laptop (anything should work). Later we describe how to run a
+degraaded version with less hardware.
+
+### Installing
 
 On each of your tablet and desktop, clone into `capstone` and run:
 
@@ -23,6 +42,8 @@ When the data format changes, you may need to "Remove" the apps from
 To pair your desktop sidecar with your tablet app, get a console in your tablet
 app (long-press, "Inspect"), and then type:
 
+### Linking
+
 ```js
 > chrome.storage.local.get('workspaceUrl', console.log)
 {workspaceUrl: "capstone://Workspace/..."}
@@ -31,30 +52,18 @@ app (long-press, "Inspect"), and then type:
 Send this URL to your desktop out of band. Open your desktop sidecar, paste the
 URL into given form, and hit Enter.
 
-To use the sidecar:
 
-- Drag files from your desktop into the space with a "+" to add files to your
-  archive.
+### Using
 
-To use the tablet app:
+The seperate [cheatsheet](Cheatsheet.md) describes all the features you can
+use in the app.
 
-- In a document, three-finger-swipe from the top of the screen to open the
-  archive
-- In board or archive, double-tap to navigate into a doc
-- In board, stylus inks by default
-- In board or archive, hold Ctrl to gesture with stylus
-- In archive, gesture a rectangle to create a new board
-- In board, stylus-double-tap to create a new text card
-- In archive or board, gesture an up carrot to copy an item to your shelf
-- In board, gesture a down carrot to place item(s) from your shelf
-- In archive, board, or shelf, gesture an X to remove an item
-- In a document, pinch-zoom-out to navigate back
 
-To send your identity to another user, navigate to your identity card, press
-Ctrl-C, and send the URL copied to your clipboard to the other user out of band.
-They can then Ctrl-V in their archive to make your user card appear.
+## Hacking
 
-## Dev tools
+This sections describes how to develop the Capstone source.
+
+### Dev tools
 
 - `yarn start`: Start the development build
 - `yarn dev`: Run `yarn install` and then build once in development mode
@@ -73,7 +82,7 @@ It should be recommended in the extensions tab of VSCode, and there is
 support for [other editors](https://prettier.io/docs/en/editors.html) as well.
 Otherwise, you can format the code by running `yarn format`.
 
-## Widgets
+### Widgets
 
 Widgets are React components that handle the rendering and construction of a document.
 
@@ -138,11 +147,11 @@ export default Counter extends Widget<Model> {
 Content.register("Counter", Counter) // Register the widget with Content, so other components can render it.
 ```
 
-## Pixelbook Notes
+### Pixelbook Notes
 
 - The linux container in ChromeOS (crostini) is inside a local LAN. Some ports are forwarded by default: `3000, 4200, 5000, 8000, 8008, 8080, 8085, 8888, 9005`
 
-## Debug Tools
+### Debug Tools
 
 In the developer console for the backend process some debug tools are available
 type
@@ -165,7 +174,7 @@ To get more info on a single doc
 
 To get more info on peers and network activity
 
-## Footnotes
+### Footnotes
 
 [<a name="footnote1">1</a>]: `mode` is intended to give the widget a general
 sense of what it can expect about the context it is rendering into. For example,
