@@ -1,21 +1,17 @@
 # Capstone
 
-Capstone is an experimental tool for organizing your thoughts.
-
-It was developed by [Ink & Switch](https://inkandswitch.com).
+Capstone is an experimental tool for organizing your thoughts developed by [Ink & Switch](https://inkandswitch.com).
 
 
 ## Overview
 
-Quick overview here.
+[Quick overview here.]
 
 More context is available in the
-[Capstone blog post](https://inkandswitch.com/capstone).
+[manuscript](https://inkandswitch.com/capstone).
 
 
 ## Usage
-
-Here's how to use Capstone.
 
 For the full experience, you'll need a Google Pixelbook tablet with a stylus,
 plus a desktop / laptop (anything should work). Later we describe how to run a
@@ -27,30 +23,27 @@ On each of your tablet and desktop, clone into `capstone` and run:
 
 ```console
 $ yarn install
-$ yarn start
+$ yarn dev
 ```
 
 Again on each device, open Chrome and go to `chrome://extensions`. Select "Load
-unpacked". Select `capstone/dist/capstone`
+unpacked" and choose `capstone/dist/capstone`, then again for
+`capstone/dist/clipper`.
 
-You should then be able to open Sidecar on your desktop and Capstone on your
-tablet as you would other apps on those platforms.
+This should install "Capstone" as an app and "Capstone Clipper" as a Chrome
+extension on each device.
 
-When the data format changes, you may need to "Remove" the apps from
-`chrome://extensions` and re-install them, clearing your data in the process.
 
 To pair your desktop sidecar with your tablet app, get a console in your tablet
 app (long-press, "Inspect"), and then type:
 
 ### Linking
 
-```js
-> chrome.storage.local.get('workspaceUrl', console.log)
-{workspaceUrl: "capstone://Workspace/..."}
-```
-
-Send this URL to your desktop out of band. Open your desktop sidecar, paste the
-URL into given form, and hit Enter.
+You'll want to link the app on your tablet with the one on your desktop. On
+your tablet, press right-shift to open the debug panel and click "copy" to copy
+the workspace URL. Send this to your desktop out of band (e.g. via email). On
+your desktop, put this URL into your OS clipboard, open the Capstone app, and
+then paste the URL.
 
 
 ### Using
