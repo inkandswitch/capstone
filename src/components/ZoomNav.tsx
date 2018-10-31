@@ -8,6 +8,17 @@ import * as css from "./css/ZoomNav.css"
 
 export type NavEntry = { url: string; backZoomTarget?: ZoomTarget }
 export type ZoomTarget = { url: string; position: Point; size: Size }
+// Temp name
+export type Zoomie = {
+  id: string
+  url: string
+  zoomTarget: ZoomTarget
+}
+
+export const NavContext = React.createContext({
+  addZoomable: (zoomable: Zoomie) => {},
+  removeZoomable: (id: string) => {},
+})
 
 const VIEWPORT_DIMENSIONS = { height: 800, width: 1200 }
 
@@ -21,11 +32,24 @@ interface Props {
 
 interface State {
   pinch?: PinchMetrics.Measurements
-  inbound?: Element
+  inbound?: string
 }
 
 export default class ZoomNav extends React.Component<Props, State> {
   state: State = { pinch: undefined, inbound: undefined }
+  zoomables: { [id: string]: Zoomie } = {}
+
+  addZoomable = (zoomable: Zoomie) => {
+    this.zoomables[zoomable.id] = zoomable
+  }
+
+  removeZoomable = (id: string) => {
+    delete this.zoomables[id]
+  }
+
+  getZoomable = (id: string) => {
+    return this.zoomables[id]
+  }
 
   peek = () => {
     const { navStack, rootUrl } = this.props
@@ -58,7 +82,7 @@ export default class ZoomNav extends React.Component<Props, State> {
         } else {
           this.setState({
             pinch,
-            inbound: zoomable,
+            inbound: zoomable.id,
           })
         }
       }
@@ -87,24 +111,31 @@ export default class ZoomNav extends React.Component<Props, State> {
     if (!pinch) return
     const zoomable = this.findFirstZoomable(pinch.center)
     if (!zoomable) return
-    const attrs = getZoomableAttrs(zoomable)
-    const { url, ...backZoomTarget } = attrs
-    this.props.onNavForward(url!, { backZoomTarget })
+    this.props.onNavForward(zoomable.url, {
+      backZoomTarget: zoomable.zoomTarget,
+    })
     this.setState({ pinch: undefined, inbound: undefined })
   }
 
-  findFirstZoomable = (point: Point): Element | undefined => {
-    const elements = document.elementsFromPoint(point.x, point.y)
-    const firstZoomable = find(elements, el =>
-      el.hasAttribute("data-zoomnav-zoomable"),
+  render() {
+    return (
+      <NavContext.Provider
+        value={{
+          addZoomable: this.addZoomable,
+          removeZoomable: this.removeZoomable,
+        }}>
+        {this.renderPrevious()}
+        {this.renderCurrent()}
+      </NavContext.Provider>
     )
-    return firstZoomable
   }
 
-  render() {
-    const { url: currentUrl, ...currentExtra } = this.peek()
-
+  renderPrevious() {
     const previous = this.getPrevious()
+    if (!previous) {
+      return null
+    }
+
     const previousScale = this.getPreviousScale()
     const previousOrigin = this.getPreviousOrigin()
     const previousStyle: any =
@@ -114,6 +145,21 @@ export default class ZoomNav extends React.Component<Props, State> {
             transform: `scale(${previousScale})`,
             transformOrigin: previousOrigin,
           }
+
+    return (
+      <div style={previousStyle} className={css.Previous}>
+        <Content
+          key={previous.url + "-previous"} // Force a remount.
+          mode={this.props.mode}
+          url={previous.url}
+          zIndex={-1}
+        />
+      </div>
+    )
+  }
+
+  renderCurrent() {
+    const { url: currentUrl, ...currentExtra } = this.peek()
 
     const scale = this.getScale()
     const scaleOrigin = this.getScaleOrigin()
@@ -126,44 +172,41 @@ export default class ZoomNav extends React.Component<Props, State> {
           }
 
     return (
-      <>
-        {previous ? (
-          <div style={previousStyle} className={css.Previous}>
-            <Content
-              key={previous.url + "-previous"} // Force a remount.
-              mode={this.props.mode}
-              url={previous.url}
-              zIndex={-1}
-            />
-          </div>
-        ) : null}
-        <Pinchable
-          onPinchMove={this.onPinchMove}
-          onPinchInEnd={this.onPinchInEnd}
-          onPinchOutEnd={this.onPinchOutEnd}>
-          <div data-zoom-current style={style} className={css.Current}>
-            <Content
-              key={currentUrl}
-              mode={this.props.mode}
-              url={currentUrl}
-              {...currentExtra}
-              onNavigate={this.props.onNavForward}
-              onNavigateBack={this.props.onNavBackward}
-            />
-          </div>
-        </Pinchable>
-      </>
+      <Pinchable
+        onPinchMove={this.onPinchMove}
+        onPinchInEnd={this.onPinchInEnd}
+        onPinchOutEnd={this.onPinchOutEnd}>
+        <div data-zoom-current style={style} className={css.Current}>
+          <Content
+            key={currentUrl}
+            mode={this.props.mode}
+            url={currentUrl}
+            {...currentExtra}
+            onNavigate={this.props.onNavForward}
+          />
+        </div>
+      </Pinchable>
     )
+  }
+
+  findFirstZoomable = (point: Point): Zoomie | undefined => {
+    const elements = document.elementsFromPoint(point.x, point.y)
+    const firstZoomable = find(elements, el =>
+      el.hasAttribute("data-zoomnav-id"),
+    )
+    const zoomableId =
+      firstZoomable && firstZoomable.getAttribute("data-zoomnav-id")
+    return zoomableId ? this.zoomables[zoomableId] : undefined
   }
 
   getScaleOrigin() {
     const { inbound } = this.state
     const { backZoomTarget } = this.peek()
 
-    if (inbound) {
-      const attrs = getZoomableAttrs(inbound)
-      const { x, y } = attrs.position
-      const { width, height } = attrs.size
+    if (inbound && this.zoomables[inbound]) {
+      const zoomTarget = this.zoomables[inbound].zoomTarget
+      const { x, y } = zoomTarget.position
+      const { width, height } = zoomTarget.size
       const origin = {
         x: (x / (VIEWPORT_DIMENSIONS.width - width)) * 100,
         y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
@@ -189,10 +232,9 @@ export default class ZoomNav extends React.Component<Props, State> {
     const { backZoomTarget } = this.peek()
 
     // Zooming towards a card
-    if (pinch && inbound) {
-      const attrs = getZoomableAttrs(inbound)
-      // get relative-scale.
-      const boardScale = attrs.size.width / VIEWPORT_DIMENSIONS.width
+    if (pinch && inbound && this.zoomables[inbound]) {
+      const zoomTarget = this.zoomables[inbound].zoomTarget
+      const boardScale = zoomTarget.size.width / VIEWPORT_DIMENSIONS.width
       const boardScaleMaxScale = 1.0
       const currentBoardScale = clamp(
         pinch.scale * boardScale,
@@ -201,8 +243,6 @@ export default class ZoomNav extends React.Component<Props, State> {
       )
       // translate back to absolute-scale
       return currentBoardScale / boardScale
-      // TODO:
-      // Zooming away from the current board
     } else if (pinch && pinch.scale < 1.0) {
       if (backZoomTarget) {
         const destScale = backZoomTarget.size.width / VIEWPORT_DIMENSIONS.width
@@ -260,6 +300,7 @@ export default class ZoomNav extends React.Component<Props, State> {
 }
 
 export interface ZoomableProps {
+  id: string
   url: string
   position: Point
   size: Size
@@ -267,30 +308,41 @@ export interface ZoomableProps {
 
 export class Zoomable extends React.Component<ZoomableProps> {
   render() {
-    // TODO: hacky
-    const { url, position, size } = this.props
-    const props = {
-      "data-zoomnav-zoomable": true,
-      "data-zoomnav-url": url,
-      "data-zoomnav-x": position.x,
-      "data-zoomnav-y": position.y,
-      "data-zoomnav-width": size.width,
-      "data-zoomnav-height": size.height,
-    }
-    return <div {...props}>{this.props.children}</div>
+    const { children, ...rest } = this.props
+    return (
+      <NavContext.Consumer>
+        {ctx => (
+          <WrappedZoomable {...ctx} {...rest}>
+            {this.props.children}
+          </WrappedZoomable>
+        )}
+      </NavContext.Consumer>
+    )
   }
 }
 
-const getZoomableAttrs = (el: Element) => {
-  return {
-    url: el.getAttribute("data-zoomnav-url"),
-    position: {
-      x: +el.getAttribute("data-zoomnav-x")!,
-      y: +el.getAttribute("data-zoomnav-y")!,
-    },
-    size: {
-      width: +el.getAttribute("data-zoomnav-width")!,
-      height: +el.getAttribute("data-zoomnav-height")!,
-    },
+export interface WrappedZoomableProps extends ZoomableProps {
+  addZoomable: (zoomable: Zoomie) => void
+  removeZoomable: (id: string) => void
+}
+
+export class WrappedZoomable extends React.Component<WrappedZoomableProps> {
+  static contextType = NavContext
+
+  componentDidMount() {
+    const { id, url, position, size } = this.props
+    this.props.addZoomable({ id, url, zoomTarget: { url, position, size } })
+  }
+
+  componentWillUnmount() {
+    this.props.removeZoomable(this.props.id)
+  }
+
+  render() {
+    const { id } = this.props
+    const props = {
+      "data-zoomnav-id": id,
+    }
+    return <div {...props}>{this.props.children}</div>
   }
 }

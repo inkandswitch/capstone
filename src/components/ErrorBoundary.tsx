@@ -5,8 +5,8 @@ interface State {
 }
 
 export default class ErrorBoundary extends React.Component<{}, State> {
-  constructor(props: {}) {
-    super(props)
+  constructor(props: {}, ctx: any) {
+    super(props, ctx)
     this.state = { hasError: false }
   }
 

@@ -35,8 +35,8 @@ export interface Props {
 export default class InteractableCard extends React.Component<Props, State> {
   node?: Element
 
-  constructor(props: Props) {
-    super(props)
+  constructor(props: Props, ctx: any) {
+    super(props, ctx)
 
     this.state = {
       currentSize: { width: props.card.width, height: props.card.height },
@@ -80,7 +80,7 @@ export default class InteractableCard extends React.Component<Props, State> {
   render() {
     const {
       noZoom,
-      card: { url, x, y, z, width, height },
+      card: { id, url, x, y, z, width, height },
       children,
       ...rest
     } = this.props
@@ -127,7 +127,11 @@ export default class InteractableCard extends React.Component<Props, State> {
               {children}
             </Card>
           ) : (
-            <Zoomable url={url} position={{ x, y }} size={{ width, height }}>
+            <Zoomable
+              id={id}
+              url={url}
+              position={{ x, y }}
+              size={{ width, height }}>
               <Card
                 cardId={this.props.card.id}
                 url={this.props.card.url}

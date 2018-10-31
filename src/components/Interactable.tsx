@@ -54,8 +54,8 @@ export default class Interactable extends React.Component<
   private subscription?: Rx.Subscription
   private pointerId?: number
 
-  constructor(props: InteractableProps) {
-    super(props)
+  constructor(props: InteractableProps, ctx: any) {
+    super(props, ctx)
 
     this.state = {
       isResizing: false,

@@ -35,7 +35,6 @@ export interface Model {
 interface Props extends Widget.Props<Model, WidgetMessage> {
   availableSize: Size
   onNavigate?: (url: string, extraProps?: {}) => void
-  onNavigateBack?: () => void
   scale?: number
   backNavCardTarget?: CardModel // Used to target back nav zooming.
   noInk?: boolean
