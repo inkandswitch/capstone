@@ -4,6 +4,7 @@ import DebugWidget from "./DebugWidget"
 import DebugMgr from "./DebugMgr"
 import Store from "../data/Store"
 import EnvMgr from "./EnvMgr"
+import * as css from "./css/ControlPanel.css"
 
 type State = {
   url: string | null
@@ -42,11 +43,11 @@ export default class ControlPanel extends React.Component<Props, State> {
     return (
       <div>
         <DebugMgr {...this.props} />
-        <hr />
+        <hr className={css.Divider} />
         <EnvMgr />
-        <hr />
+        <hr className={css.Divider} />
         <WorkspaceMgr {...this.props} />
-        <hr />
+        <hr className={css.Divider} />
         {this.state.url ? (
           <DebugWidget store={this.props.store} url={this.state.url!} />
         ) : (

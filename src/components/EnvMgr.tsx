@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as Env from "../data/Env"
+import * as css from "./css/ControlPanel.css"
 
 type Props = {}
 
@@ -37,7 +38,12 @@ export default class EnvMgr extends React.Component<Props, State> {
     return (
       <div>
         <div>Enter a new Env:</div>
-        <textarea rows={1} cols={85} onChange={this.onChange} value={env} />
+        <textarea
+          rows={1}
+          className={css.TextField}
+          onChange={this.onChange}
+          value={env}
+        />
         <div>
           <b>{msg}</b>
         </div>
