@@ -274,36 +274,6 @@ class Board extends React.Component<Props, State> {
     }
   }
 
-  onBoardPinchInEnd = (measurements: PinchMetrics.Measurements) => {
-    if (!this.props.backNavCardTarget) {
-      return
-    }
-  }
-
-  onBoardPinchOutEnd = (measurements: PinchMetrics.Measurements) => {
-    const { scalingCard } = this.state
-    if (!scalingCard) {
-      return
-    }
-    const card = this.props.doc.cards[scalingCard]
-    if (!card) {
-      return
-    }
-    this.props.onNavigate &&
-      this.props.onNavigate(card.url, {
-        backNavCardTarget: { ...card },
-      })
-
-    // TODO: we don't reset state here because it causes a flicker of
-    // un-scaled content. Because we can't reset state here, we have to
-    // mount and re-mount at the Workspace level when transitioning a board
-    // from current to previous. We could void the remount if we find a way
-    // to reset state here.
-    // XXX: A trick would be to use the presence of the zIndex prop to unset
-    // these state values.
-    //this.setState({ pinch: undefined, scalingCard: undefined })
-  }
-
   cardAtPoint = (point: Point): CardModel | undefined => {
     const el = document.elementFromPoint(point.x, point.y)
     const cardEl = el.closest(`.Card`)
@@ -325,13 +295,7 @@ class Board extends React.Component<Props, State> {
         const scale = this.getScale()
         const scaleOrigin = this.getScaleOrigin()
         const backgroundOpacity = this.getOverlayOpacity(scale)
-        const style: any =
-          scale === 1
-            ? {}
-            : {
-                transform: `scale(${scale})`,
-                transformOrigin: scaleOrigin,
-              }
+        const style: any = {}
 
         // Needed to place the previous board (the back stack board) behind the current board and shelf.
         // isPrevious
@@ -428,6 +392,7 @@ class Board extends React.Component<Props, State> {
                 }
                 return (
                   <InteractableCard
+                    noZoom
                     key={card.id}
                     card={card}
                     onDragStart={noop}
