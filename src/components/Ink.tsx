@@ -206,7 +206,8 @@ class InkCanvas extends React.Component<CanvasProps, CanvasState> {
     if (!this.props.strokeType) return
     const target = event.target as HTMLElement
     // don't record strokes on the options buttons
-    if (target && target.className.indexOf("Option") >= 0) return
+    if (target && target.className && target.className.indexOf("Option") >= 0)
+      return
     if (event.type == "pointerdown") {
       this.onPanStart(event)
     } else if (event.type == "pointerup" || event.type == "pointercancel") {

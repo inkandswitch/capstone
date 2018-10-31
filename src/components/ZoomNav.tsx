@@ -3,9 +3,11 @@ import * as PinchMetrics from "../logic/PinchMetrics"
 import Pinchable from "./Pinchable"
 import Content, { Mode } from "./Content"
 import { clamp, find } from "lodash"
+import * as SizeUtils from "../logic/SizeUtils"
 import * as css from "./css/ZoomNav.css"
 
-export type NavEntry = { url: string; [extra: string]: any }
+export type NavEntry = { url: string; backZoomTarget?: ZoomTarget }
+export type ZoomTarget = { url: string; position: Point; size: Size }
 
 const VIEWPORT_DIMENSIONS = { height: 800, width: 1200 }
 
@@ -84,10 +86,10 @@ export default class ZoomNav extends React.Component<Props, State> {
     const { pinch } = this.state
     if (!pinch) return
     const zoomable = this.findFirstZoomable(pinch.center)
-    if (!zoomable || !zoomable.hasAttribute("data-zoomnav-url")) return
-    const url = zoomable.getAttribute("data-zoomnav-url")!
-    const rect = zoomable.getBoundingClientRect()
-    this.props.onNavForward(url, { originRect: rect })
+    if (!zoomable) return
+    const attrs = getZoomableAttrs(zoomable)
+    const { url, ...backZoomTarget } = attrs
+    this.props.onNavForward(url!, { backZoomTarget })
     this.setState({ pinch: undefined, inbound: undefined })
   }
 
@@ -101,7 +103,17 @@ export default class ZoomNav extends React.Component<Props, State> {
 
   render() {
     const { url: currentUrl, ...currentExtra } = this.peek()
+
     const previous = this.getPrevious()
+    const previousScale = this.getPreviousScale()
+    const previousOrigin = this.getPreviousOrigin()
+    const previousStyle: any =
+      previousScale === 1
+        ? {}
+        : {
+            transform: `scale(${previousScale})`,
+            transformOrigin: previousOrigin,
+          }
 
     const scale = this.getScale()
     const scaleOrigin = this.getScaleOrigin()
@@ -116,18 +128,20 @@ export default class ZoomNav extends React.Component<Props, State> {
     return (
       <>
         {previous ? (
-          <Content
-            key={previous.url + "-previous"} // Force a remount.
-            mode={this.props.mode}
-            url={previous.url}
-            zIndex={-1}
-          />
+          <div style={previousStyle} className={css.Previous}>
+            <Content
+              key={previous.url + "-previous"} // Force a remount.
+              mode={this.props.mode}
+              url={previous.url}
+              zIndex={-1}
+            />
+          </div>
         ) : null}
         <Pinchable
           onPinchMove={this.onPinchMove}
           onPinchInEnd={this.onPinchInEnd}
           onPinchOutEnd={this.onPinchOutEnd}>
-          <div data-zoom-current style={style} className={css.ZoomNav}>
+          <div data-zoom-current style={style} className={css.Current}>
             <Content
               key={currentUrl}
               mode={this.props.mode}
@@ -144,6 +158,8 @@ export default class ZoomNav extends React.Component<Props, State> {
 
   getScaleOrigin() {
     const { inbound } = this.state
+    const { backZoomTarget } = this.peek()
+
     if (inbound) {
       const attrs = getZoomableAttrs(inbound)
       const { x, y } = attrs.position
@@ -153,20 +169,24 @@ export default class ZoomNav extends React.Component<Props, State> {
         y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
       }
       return `${origin.x}% ${origin.y}%`
+    } else if (backZoomTarget) {
+      const {
+        position: { x, y },
+        size: { height, width },
+      } = backZoomTarget
+      const origin = {
+        x: (x / (VIEWPORT_DIMENSIONS.width - width)) * 100,
+        y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
+      }
+      return `${origin.x}% ${origin.y}%`
     } else {
-      // TODO:
-      //const { x, y, height, width } = backNavCardTarget
-      //const origin = {
-      //  x: (x / (VIEWPORT_DIMENSIONS.width - width)) * 100,
-      //  y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
-      //}
-      //return `${origin.x}% ${origin.y}%`
       return "50% 50%"
     }
   }
 
   getScale() {
     const { pinch, inbound } = this.state
+    const { backZoomTarget } = this.peek()
 
     // Zooming towards a card
     if (pinch && inbound) {
@@ -181,17 +201,11 @@ export default class ZoomNav extends React.Component<Props, State> {
       )
       // translate back to absolute-scale
       return currentBoardScale / boardScale
-    } else {
-      return 1.0
-    }
-
-    /*
       // TODO:
       // Zooming away from the current board
     } else if (pinch && pinch.scale < 1.0) {
-      if (backNavCardTarget) {
-        // absolute-scale
-        const destScale = backNavCardTarget.width / VIEWPORT_DIMENSIONS.width
+      if (backZoomTarget) {
+        const destScale = backZoomTarget.size.width / VIEWPORT_DIMENSIONS.width
         const startScale = 1.0
         return clamp(pinch.scale, destScale, startScale)
       } else {
@@ -204,7 +218,44 @@ export default class ZoomNav extends React.Component<Props, State> {
       }
     }
     return 1.0
-    */
+  }
+
+  getPreviousScale() {
+    const { pinch, inbound } = this.state
+    const { backZoomTarget } = this.peek()
+    if (!pinch || inbound || !backZoomTarget) {
+      return 1.0
+    }
+
+    const boardScale = backZoomTarget.size.width / VIEWPORT_DIMENSIONS.width
+    const minScale = 1.0
+    const maxScale = 1.0 / boardScale
+    const currentBoardScale = clamp(
+      pinch.scale / boardScale,
+      minScale,
+      maxScale,
+    )
+    // translate back to absolute-scale
+    return currentBoardScale
+  }
+
+  getPreviousOrigin() {
+    const { pinch, inbound } = this.state
+    const { backZoomTarget } = this.peek()
+
+    if (!pinch || inbound || !backZoomTarget) {
+      return 1.0
+    }
+
+    const {
+      position: { x, y },
+      size: { height, width },
+    } = backZoomTarget
+    const origin = {
+      x: (x / (VIEWPORT_DIMENSIONS.width - width)) * 100,
+      y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
+    }
+    return `${origin.x}% ${origin.y}%`
   }
 }
 
