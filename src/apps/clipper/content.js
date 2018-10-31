@@ -1,6 +1,6 @@
 import freezeDry from "freeze-dry"
 
-var capstoneExtensionId = "dflegkhjkkcbbnknalnkddcmjpaimcdp"
+var capstoneExtensionId = "gcdcngjcmfebohcjojfbfkmpenlfjcfc"
 
 freezeDry(document, { addMetadata: true }).then(html => {
   const msg = { contentType: "HTML", src: window.location.href, content: html }

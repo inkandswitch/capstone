@@ -1,8 +1,12 @@
 {
   "manifest_version": 2,
   "name": "Capstone",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnyeZHc6KHaMD9OsW2DRJslpxpZ1jKVY3WNGGpRw764rFjMnkTRatnxa5wHt7agV7yYij9aVtRv+PmEHCZ5+f3qqxho6LbM6mPLzPeSNNoAp//n1DYtnj2+E092YhI1PkCi9UVTk+Ro+m7z38f7YNRxWAXKv9qLcL0mNsK9jo2T1QXtD+wXZvAMwQeORcnA84q5LLCOdPEYiogWJwxqd0PlT0suTogoZYNJqBYD7Mw8DRVsRt2kjWdD8kiMuQw0z1nJtvezApure/NcJfhMhBdbzuaxflBVc7XFZ6Oz8C6MmRQZBPJ3xiyHrAS8toDoxgnhH+bWQPFnf4cFBTEOfqmQIDAQAB",
-  "version": "3.2",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgwBmzNW+7aUZOXO7RRFTh3EKLrS36DznsmU9ne2A6fCSQzSUs4AcDdslMvH1aJ4X66MWT2/vd2VHp3lgq6QR1dMTtxfT5HgteVLW3uBCyNYOawP530qfrUhWz4oqoi7AcmAzSEXkq73EyuZHKJnI1R6jfRCLV6GAftSS+oSjcvIqCsBSBstHiVW140u7TYxpaIFuEE31AdrJlTmJMqeHcW/wMqFGUzNs1PWWWvds6tI3Bvgo62MJhFC8th4Do8uYYp3SBdVHCQNmrhUvXdlNfhYfayHKqnsUEhFyx4foIdrgm0bMih31cjI3o8uR481HxgBMfrDKgzR1HCXJhUwT+QIDAQAB",
+  "version": "3.4",
+  "icons": {
+    "16": "icon-16.png",
+    "128": "icon-128.png"
+  },
   "permissions": [
     "background",
     "clipboardRead",
