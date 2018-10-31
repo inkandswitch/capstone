@@ -45,11 +45,14 @@ the workspace URL. Send this to your desktop out of band (e.g. via email). On
 your desktop, put this URL into your OS clipboard, open the Capstone app, and
 then paste the URL.
 
-
 ### Using
 
 The seperate [cheatsheet](Cheatsheet.md) describes all the features you can
 use in the app.
+
+### Running without a Pixelbook
+
+TODO
 
 
 ## Hacking
