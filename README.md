@@ -1,23 +1,51 @@
 # Capstone
 
-Capstone is an experimental tool for organizing your thoughts developed by [Ink & Switch](https://inkandswitch.com).
+Capstone is an experimental tablet+stylus device for creative professionals to
+develop their ideas. We used it as a playground to explore questions about
+digital tools for thinking and explaining, how to bring together desktop and
+touch interface metaphors, and what a power user might want from their digital
+tools in the coming five to ten years.
+
+It was developed by [Ink & Switch](https://inkandswitch.com) as part of our
+research in this area. While we're no longer developing Capstone, we learned a
+lot and wanted to share the code publically.
 
 
 ## Overview
 
-[Quick overview here.]
+Briefly, Capstone works as follows:
 
-More context is available in the
-[manuscript](https://inkandswitch.com/capstone).
+* You bring data into app - web pages, text snippets, and images - via a Chrome
+  extension
+* You organize your data visually on boards in the Capstone tablet app
+* You can additionally write on boards for e.g. free-form notes and drawings
+
+[Screenshot]
 
 
 ## Usage
 
-For the full experience, you'll need a Google Pixelbook tablet with a stylus,
-plus a desktop / laptop (anything should work). Later we describe how to run a
-degraaded version with less hardware.
+The easiest way to get started is with a ChromeOS tablet device, such as the
+[Google Pixelbook](https://store.google.com/product/google_pixelbook). Install
+these two apps on your ChromeOS tablet from the Chrome Web Store:
 
-### Installing
+* [Capstone](https://chrome.google.com/webstore/detail/capstone/gcdcngjcmfebohcjojfbfkmpenlfjcfc)
+* [Capstone Clipper](https://chrome.google.com/webstore/detail/degnaliianmmgfglcggahlojkkacjimh)
+
+Then open the Capstone app and use the Capstone Clipper extension in
+Chrome to bring in content.
+
+The [cheatsheet](Cheatsheet.md) describes how to use the app in detail.
+
+It's possible to run degraded versions of Capstone on other devices - see
+Hacking below.
+
+
+## Hacking
+
+### Linux Subsystem for ChromeOS
+
+### Building
 
 On each of your tablet and desktop, clone into `capstone` and run:
 
@@ -33,7 +61,6 @@ unpacked" and choose `capstone/dist/capstone`, then again for
 This should install "Capstone" as an app and "Capstone Clipper" as a Chrome
 extension on each device.
 
-
 To pair your desktop sidecar with your tablet app, get a console in your tablet
 app (long-press, "Inspect"), and then type:
 
@@ -44,20 +71,6 @@ your tablet, press right-shift to open the debug panel and click "copy" to copy
 the workspace URL. Send this to your desktop out of band (e.g. via email). On
 your desktop, put this URL into your OS clipboard, open the Capstone app, and
 then paste the URL.
-
-### Using
-
-The seperate [cheatsheet](Cheatsheet.md) describes all the features you can
-use in the app.
-
-### Running without a Pixelbook
-
-TODO
-
-
-## Hacking
-
-This sections describes how to develop the Capstone source.
 
 ### Dev tools
 
