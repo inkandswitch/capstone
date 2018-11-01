@@ -37,47 +37,87 @@ Chrome to bring in content.
 
 The [cheatsheet](Cheatsheet.md) describes how to use the app in detail.
 
-It's possible to run degraded versions of Capstone on other devices - see
-Hacking below.
+It's possible to run degraded versions of Capstone on other devices - see below.
 
 
 ## Hacking
 
-### Linux Subsystem for ChromeOS
+### On ChromeOS
 
-### Building
+You can develop Capstone directly on ChromeOS tablets using the experimental
+Linux subsystem.
 
-On each of your tablet and desktop, clone into `capstone` and run:
+Linux is not yet included by default, so first install it according to
+[these instructions](https://developer.android.com/topic/arc/studio#install_linux).
+
+Open the Terminal app and install NodeJS and Yarn. For example:
+
+```console
+$ curl -sL https://nodejs.org/dist/v10.8.0/node-v10.8.0-linux-x64.tar.xz > nodejs.tar.xz
+$ tar xJvf nodejs.tar.xz
+$ export PATH=$HOME/node-v10.8.0-linux-x64/bin:$PATH
+$ echo 'export PATH=$HOME/node-v10.8.0-linux-x64/bin:$PATH' >> ~/.bashrc
+$ npm install -g yarn
+```
+
+Then proceed to "Building from source" below.
+
+### On other devices
+
+You'll need access to a standard NodeJS+Yarn install and a command line, but
+otherwise the instructions in "Building from source" below should work fine. See
+also "Pairing" on how to use two devices (e.g. a ChromeOS tablet and regular
+desktop) at the same time.
+
+Note that running the main Capstone on something other than a ChromeOS tablet
+(including non-ChromeOS tablets like the Surface), will result in a degraded
+and/or buggy experience. But the clipper should work fine anywhere, and even
+the degraded app can be useful in development.
+
+### Building from source
+
+Clone into `capstone` on your development machine (ChromeOS tablet or otherwise)
+and run:
 
 ```console
 $ yarn install
 $ yarn dev
 ```
 
-Again on each device, open Chrome and go to `chrome://extensions`. Select "Load
-unpacked" and choose `capstone/dist/capstone`, then again for
-`capstone/dist/clipper`.
+Build artifacts are emitted to `dist/capstone` and `dist/clipper` for the main
+app and the web clipper extension, respectively.
 
-This should install "Capstone" as an app and "Capstone Clipper" as a Chrome
-extension on each device.
+To install these artifacts, open Chrome, navigate to `chrome://extensions`, and
+select "Load unpacked". Choose `dist/capstone`, then do this again for
+`dist/clipper`. This should install "Capstone" as an app and "Capstone Clipper"
+as a Chrome extensions on that device.
 
-To pair your desktop sidecar with your tablet app, get a console in your tablet
-app (long-press, "Inspect"), and then type:
+You'll need to do this on each device you want to use.
 
-### Linking
+### Pairing
 
-You'll want to link the app on your tablet with the one on your desktop. On
-your tablet, press right-shift to open the debug panel and click "copy" to copy
-the workspace URL. Send this to your desktop out of band (e.g. via email). On
-your desktop, put this URL into your OS clipboard, open the Capstone app, and
-then paste the URL.
+You can link a desktop and tablet app together for a smoother workflow. In
+particular you may want to capture data from your desktop in the course of
+normal web browsing, but read/organize/sketch on your tablet.
+
+Do this, first on your tablet open the Capstone app, press right-shift to
+open the debug panel, and click "copy" to copy the workspace URL. Send this to
+your desktop out of band (e.g. via email). On your desktop, open the Capstone
+app and then paste the URL.
+
+Once that's done, you can e.g. add files to the desktop app and see them
+instantly appear on your tablet, or clip web pages from your desktop and see
+them show up on the tablet.
 
 ### Dev tools
+
+Useful commands:
 
 - `yarn start`: Start the development build
 - `yarn dev`: Run `yarn install` and then build once in development mode
 - `yarn build`: Run `yarn install` and then build once in production mode
-- `yarn build --env.only=capstone`: Run the build for only the capstone app. Also works with `yarn start` and `yarn dev`
+- `yarn build --env.only=capstone`: Run the build for only the capstone app.
+  Also works with `yarn start` and `yarn dev`
 - `yarn clean`: Delete `dist/*` for a clean build
 - `yarn test`: Same as `yarn tests`
 - `yarn repl`: Start a TypeScript REPL
@@ -85,6 +125,8 @@ then paste the URL.
 - `yarn capstone`: Open the "capstone" chrome app. Run `yarn start` first
 - `yarn sidecar`: Open the "sidecar" chrome app. Run `yarn start` first
 - `yarn tests`: Open the "tests" chrome app. Run `yarn start` first
+
+### Code formatting
 
 We're using [`prettier`](https://prettier.io/) for code formatting.
 It should be recommended in the extensions tab of VSCode, and there is
@@ -103,15 +145,11 @@ A widget component is required to accept two props:
   - `"embed"`: the widget is embeded in another document (e.g. on the board).
   - `"preview"`: same as "embed", but the widget should not expect user interaction.
 
-### Using a widget
-
 Given a document URL, a widget can be rendered using `Content`:
 
 ```typescript
 <Content url={url} mode="preview" />
 ```
-
-### Building a widget
 
 Every widget must implement a `static reify(doc)` method which translates a
 free-form document which you hope contains your data into a definitive data
@@ -155,10 +193,6 @@ export default Counter extends Widget<Model> {
 
 Content.register("Counter", Counter) // Register the widget with Content, so other components can render it.
 ```
-
-### Pixelbook Notes
-
-- The linux container in ChromeOS (crostini) is inside a local LAN. Some ports are forwarded by default: `3000, 4200, 5000, 8000, 8008, 8080, 8085, 8888, 9005`
 
 ### Debug Tools
 
@@ -204,4 +238,7 @@ Released under the [MIT license](https://opensource.org/licenses/MIT).
 
 ## Credits
 
-Capstone was created in 2018 by Adam Wiggins, Orion Henry, Peter van Hardenberg, Mark McGranaghan, Gokcen Keskin, Jeff Peterson, Julia Roggatz, and Matt Tognett; with contributions from James Lindenbaum, Martin Kleppmann, and Szymon Kaliski.
+Capstone was created in 2018 by Adam Wiggins, Orion Henry, Peter van Hardenberg,
+Mark McGranaghan, Gokcen Keskin, Jeff Peterson, Julia Roggatz, and Matt Tognett;
+with contributions from James Lindenbaum, Martin Kleppmann, and Szymon Kaliski.
+
