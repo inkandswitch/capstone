@@ -2,6 +2,7 @@ import * as React from "react"
 import * as Link from "../data/Link"
 import Store from "../data/Store"
 import * as Debug from "debug"
+import * as css from "./css/ControlPanel.css"
 const log = Debug("component:control:workspace")
 
 type Props = {
@@ -117,43 +118,55 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
         <div>
           <textarea
             rows={1}
-            cols={85}
+            className={css.TextField}
             readOnly
             ref={textarea => (this.textarea = textarea)}
             value={this.state.url || ""}
           />
-          <a href="#" onClick={this.onCopy}>
-            {this.state.copyText}
-          </a>
+          <div className={css.RightAligned}>
+            <button onClick={this.onCopy}>{this.state.copyText}</button>
+          </div>
         </div>
-        <div>Enter a new workspace url and press Enter:</div>
+        <div style={{ marginTop: "30px" }}>
+          Enter a new workspace url and press Enter:
+        </div>
         <textarea
           rows={1}
-          cols={85}
+          className={css.TextField}
           onChange={this.onUrlChange}
           value={this.state.input}
         />
         <div>{this.state.error}</div>
-        <div>or</div>
-        <button onClick={this.onNewWorkspace}>
-          {" "}
-          Generate A New Workspace{" "}
-        </button>
-        <div> Previous Workspace </div>
-        <ul>
-          {" "}
-          {this.state.history.map((url, index) => (
-            <li key={index}>
-              <a href="#" onClick={this.setUrlFn(url)}>
-                {url}
-              </a>
-              :
-              <a href="#" onClick={this.delUrlFn(index)}>
-                del
-              </a>
-            </li>
-          ))}
-        </ul>
+        <div className={css.RightAligned}>
+          or
+          <button onClick={this.onNewWorkspace}>
+            Generate A New Workspace
+          </button>
+        </div>
+
+        <div style={{ marginTop: "40px" }}> Previous Workspace </div>
+        <table style={{ width: "100%" }}>
+          <tbody>
+            {" "}
+            {this.state.history.map((url, index) => (
+              <tr key={index}>
+                <td
+                  style={{
+                    alignContent: "left",
+                  }}>
+                  <a href="#" onClick={this.setUrlFn(url)}>
+                    {url}
+                  </a>
+                </td>
+                <td>
+                  <a href="#" onClick={this.delUrlFn(index)}>
+                    delete
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
         <code>{this.state.json}</code>
       </div>
     )

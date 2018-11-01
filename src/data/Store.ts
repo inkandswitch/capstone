@@ -22,6 +22,7 @@ export default class Store {
   presence$: Rx.BehaviorSubject<Msg.Presence | null>
   clipper$: Rx.BehaviorSubject<Msg.Clipper | null>
   control$: Rx.BehaviorSubject<Msg.Control>
+  fpsToggle$: Rx.BehaviorSubject<Msg.Toggle>
 
   constructor() {
     log("constructing")
@@ -31,6 +32,10 @@ export default class Store {
     this.control$ = new Rx.BehaviorSubject<Msg.Control>({
       type: "Control",
       url: this.getWorkspace(),
+    })
+    this.fpsToggle$ = new Rx.BehaviorSubject<Msg.Toggle>({
+      type: "Toggle",
+      state: this.shouldHideFPSCounter(),
     })
   }
 
@@ -99,6 +104,10 @@ export default class Store {
     return this.control$
   }
 
+  fpsToggle(): Rx.Observable<Msg.Toggle> {
+    return this.fpsToggle$
+  }
+
   getWorkspace(): string | null {
     return localStorage.workspaceUrl || null
   }
@@ -106,6 +115,19 @@ export default class Store {
   setWorkspace(url: string | null) {
     url ? (localStorage.workspaceUrl = url) : delete localStorage.workspaceUrl
     this.control$.next({ type: "Control", url })
+  }
+
+  shouldHideFPSCounter() {
+    return (
+      localStorage.hideFPSCounter && JSON.parse(localStorage.hideFPSCounter)
+    )
+  }
+
+  toggleFPSCounter() {
+    const oldState =
+      localStorage.hideFPSCounter && JSON.parse(localStorage.hideFPSCounter)
+    localStorage.hideFPSCounter = JSON.stringify(!oldState)
+    this.fpsToggle$.next({ type: "Toggle", state: this.shouldHideFPSCounter() })
   }
 
   activity(id: string): Rx.Observable<Activity> {

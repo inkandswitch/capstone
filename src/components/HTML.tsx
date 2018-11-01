@@ -28,6 +28,12 @@ class HTML extends React.Component<Props> {
     }
   }
 
+  onLoadIFrame(event: React.SyntheticEvent<HTMLIFrameElement>) {
+    const obj = event.target as HTMLIFrameElement
+    if (!obj || !obj.contentWindow) return
+    obj.style.height = obj.contentWindow.document.body.scrollHeight + "px"
+  }
+
   render() {
     switch (this.props.mode) {
       case "fullscreen":
@@ -37,6 +43,7 @@ class HTML extends React.Component<Props> {
               frameBorder="0"
               className={css.Fullscreen_IFrame}
               srcDoc={this.props.doc.html}
+              onLoad={this.onLoadIFrame}
             />
             <div className={css.Fullscreen_Banner}>{this.props.doc.src}</div>
           </div>

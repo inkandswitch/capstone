@@ -17,17 +17,19 @@ const log = Debug("component:app")
 
 type State = {
   url?: string
+  shouldHideFPSCounter?: boolean
 }
 
-type Props = {}
-
-export default class App extends React.Component<Props, State> {
+export default class App extends React.Component<State> {
   state: State = {}
 
   initWorkspace() {
     log("init workspace")
     const url = Content.create("Workspace")
-    this.setState({ url })
+    this.setState({
+      url: url,
+      shouldHideFPSCounter: Content.store.shouldHideFPSCounter(),
+    })
 
     setTimeout(() => {
       // This fn is triggered by the same observable setWorkspace writes to.
@@ -54,6 +56,14 @@ export default class App extends React.Component<Props, State> {
       if (!message || message.url == this.state.url) return
       log("on control msg", message.url)
       this.configWorkspace(message.url)
+    })
+
+    Content.store.fpsToggle().subscribe(message => {
+      if (!message) return
+
+      if (message.type == "Toggle") {
+        this.setState({ shouldHideFPSCounter: message.state })
+      }
     })
 
     Content.store.clipper().subscribe(message => {
@@ -100,7 +110,7 @@ export default class App extends React.Component<Props, State> {
   }
 
   render() {
-    const { url } = this.state
+    const { url, shouldHideFPSCounter } = this.state
     log("render", url)
 
     if (!url) {
@@ -110,7 +120,9 @@ export default class App extends React.Component<Props, State> {
     return (
       <Root store={Content.store}>
         <div className={css.App}>
-          {Content.env.device === "capstone" ? <Stats /> : null}
+          {Content.env.device === "capstone" && !shouldHideFPSCounter ? (
+            <Stats />
+          ) : null}
           <Content mode="fullscreen" url={url} />
         </div>
       </Root>

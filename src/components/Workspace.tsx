@@ -13,7 +13,6 @@ import Content, {
 } from "./Content"
 import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
-import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
 import ZoomNav, { NavEntry } from "./ZoomNav"
 
@@ -21,6 +20,7 @@ export interface Model {
   navStack: NavEntry[]
   rootUrl: string
   shelfUrl: string
+  shelfOffset: number
 }
 
 type WidgetMessage = DocumentCreated | ReceiveDocuments
@@ -59,6 +59,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
       navStack: Reify.array(doc.navStack),
       rootUrl: Reify.string(doc.rootUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
+      shelfOffset: Reify.number(doc.shelfOffset),
     }
   }
 
@@ -67,6 +68,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
       navStack: [],
       rootUrl: Content.create("Board"),
       shelfUrl: Content.create("Board"),
+      shelfOffset: -200,
     }
   }
 
@@ -148,11 +150,21 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
           onNavForward={this.push}
           onNavBackward={this.pop}
         />
-        <Shelf>
+        <Shelf
+          offset={
+            this.props.doc.shelfOffset ? this.props.doc.shelfOffset : -200
+          }
+          onResize={this.onResizeShelf}>
           <Content mode="fullscreen" noInk color="#f0f0f0" url={doc.shelfUrl} />
         </Shelf>
       </div>
     )
+  }
+
+  onResizeShelf = (position: Point) => {
+    this.props.change(doc => {
+      doc.shelfOffset = position.y
+    })
   }
 }
 

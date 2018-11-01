@@ -1,0 +1,27 @@
+:local(.TextField) {
+  position: relative;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 2px;
+  resize: none;
+  white-space: nowrap;
+  overflow: auto;
+}
+
+:local(.Divider) {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #e7e7e7;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+:local(.RightAligned) {
+  float: right;
+  margin-top: 5px;
+}
+
+.TextField::-webkit-scrollbar {
+  display: none;
+}

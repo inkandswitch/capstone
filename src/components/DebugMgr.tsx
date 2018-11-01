@@ -1,5 +1,6 @@
 import * as React from "react"
 import Store from "../data/Store"
+import * as css from "./css/ControlPanel.css"
 
 type Props = {
   store: Store
@@ -47,8 +48,8 @@ export default class DebugMgr extends React.Component<Props, State> {
       <div>
         <div>Enter a new debug filter - * for all:</div>
         <textarea
+          className={css.TextField}
           rows={1}
-          cols={85}
           onChange={this.onDebugChange}
           value={this.state.debug}
         />

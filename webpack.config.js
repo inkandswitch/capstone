@@ -1,7 +1,6 @@
 const path = require("path")
-const EncodingPlugin = require("webpack-encoding-plugin")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
-const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin")
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin")
 const glob = require("glob")
 const env = process.env.NODE_ENV
 
@@ -33,7 +32,7 @@ const shared = {
         use: {
           loader: "ts-loader",
           options: {
-            transpileOnly: true,
+            allowTsInNodeModules: true,
             experimentalWatchApi: true,
           },
         },
@@ -78,6 +77,24 @@ const shared = {
       },
     ],
   },
+  optimization: {
+    minimizer: [
+      new UglifyJsPlugin({
+        parallel: true,
+        uglifyOptions: {
+          warnings: false,
+          parse: {},
+          compress: {},
+          mangle: true, // Note `mangle.properties` is `false` by default.
+          output: { ascii_only: true },
+          toplevel: false,
+          nameCache: null,
+          ie8: false,
+          keep_fnames: false,
+        },
+      }),
+    ],
+  },
 }
 
 function app(env, name, overrides = {}) {
@@ -100,10 +117,12 @@ function app(env, name, overrides = {}) {
     },
 
     plugins: [
-      new CopyWebpackPlugin(["manifest.json", "index.html", "sandbox.html"], {
-        context: `./src/apps/${name}`,
-      }),
-      new ForkTsCheckerWebpackPlugin(),
+      new CopyWebpackPlugin(
+        ["manifest.json", "index.html", "sandbox.html", "icon-*.png"],
+        {
+          context: `./src/apps/${name}`,
+        },
+      ),
     ],
     ...overrides,
   }
@@ -120,9 +139,6 @@ module.exports = (env = {}) =>
       plugins: [
         new CopyWebpackPlugin(["manifest.json"], {
           context: `./src/apps/clipper`,
-        }),
-        new EncodingPlugin({
-          encoding: "ascii",
         }),
       ],
     }),

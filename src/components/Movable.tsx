@@ -7,6 +7,7 @@ export type Ref = React.RefObject<HTMLDivElement>
 
 interface Props {
   position?: Point
+  onMoveEnd?: (position: Point) => void
   map?: (pt: Point) => Point
   children: (ref: Ref, info: State) => React.ReactNode
 }
@@ -74,6 +75,7 @@ export default class Movable extends React.Component<Props, State> {
         if (!this.state.isMoving) return
 
         this.offset = undefined
+        this.props.onMoveEnd && this.props.onMoveEnd(this.state.position)
         this.setState({ isMoving: false })
 
         break

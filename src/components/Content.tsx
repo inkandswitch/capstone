@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as Link from "../data/Link"
-import { AnyDoc, Doc, AnyEditDoc, EditDoc, ChangeFn } from "automerge/frontend"
+import { AnyDoc, Doc, ChangeFn } from "automerge/frontend"
 import Store from "../data/Store"
 import Handle from "../data/Handle"
 import * as Reify from "../data/Reify"
