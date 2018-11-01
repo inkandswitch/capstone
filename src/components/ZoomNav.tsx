@@ -7,15 +7,16 @@ import * as SizeUtils from "../logic/SizeUtils"
 import * as Zoom from "../logic/Zoom"
 import * as css from "./css/ZoomNav.css"
 
-export const ZoomNavIdDataAttr = "data-zoomnav-id"
 const ZOOM_THRESHOLD = 0.4
+export const ZoomNavIdDataAttr = "data-zoomnav-id"
 export type NavEntry = { url: string; backZoomTarget?: Zoom.ZoomTarget }
 export type ZoomableContent = {
+  onZoomStart: () => void
   id: string
   url: string
   zoomTarget: Zoom.ZoomTarget
 }
-type ZoomState = {
+export type ZoomState = {
   zoomable: ZoomableContent
   zoomProgress: number
 }
@@ -130,10 +131,11 @@ export default class ZoomNav extends React.Component<Props, State> {
         }
         const zoomState = {
           zoomable,
-          zoomProgress: this.getZoomProgress(),
+          zoomProgress: this.getZoomInProgress(),
         }
         this.setState({ pinch })
         this.changeZoomState(zoomState)
+        zoomable.onZoomStart()
       } else if (!this.isAtRoot) {
         this.setState({ pinch })
       }
@@ -142,7 +144,7 @@ export default class ZoomNav extends React.Component<Props, State> {
         this.setState({ pinch })
         const updatedZoomState = {
           ...zoomState,
-          zoomProgress: this.getZoomProgress(),
+          zoomProgress: this.getZoomInProgress(),
         }
         this.changeZoomState(updatedZoomState)
       } else {
@@ -159,8 +161,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     const { backZoomTarget } = this.peek()
     if (backZoomTarget) {
       const scale = this.getScale()
-      const zoomProgress = this.getCurrentZoomProgress(scale, backZoomTarget)
-      console.log("zoom progress", zoomProgress)
+      const zoomProgress = this.getZoomOutProgress(scale, backZoomTarget)
       if (zoomProgress < 1 - ZOOM_THRESHOLD) {
         this.props.onNavBackward()
       }
@@ -184,7 +185,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     this.clearZoom()
   }
 
-  getZoomProgress = () => {
+  getZoomInProgress = () => {
     const { zoomState } = this.state.context
     const { pinch } = this.state
     if (!zoomState || !pinch) {
@@ -198,7 +199,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     )
   }
 
-  getCurrentZoomProgress = (scale: number, zoomTarget: Zoom.ZoomTarget) => {
+  getZoomOutProgress = (scale: number, zoomTarget: Zoom.ZoomTarget) => {
     return Zoom.getZoomOutProgress(scale, zoomTarget.size, VIEWPORT_DIMENSIONS)
   }
 
@@ -238,17 +239,18 @@ export default class ZoomNav extends React.Component<Props, State> {
     } = this.state
     const { backZoomTarget } = this.peek()
 
-    // Zooming towards a card
-    // If we don't know where to zoom back to, just zoom towards the middle
-    // of the previous board.
-    if (pinch && zoomState) {
+    if (!pinch) {
+      return 1.0
+    }
+
+    if (zoomState) {
       const { zoomTarget } = zoomState.zoomable
       return Zoom.getScaleUpFromTarget(
         pinch.scale,
         zoomTarget.size,
         VIEWPORT_DIMENSIONS,
       )
-    } else if (pinch && pinch.scale < 1.0) {
+    } else if (pinch.scale < 1.0) {
       if (backZoomTarget) {
         return Zoom.getScaleDownToTarget(
           pinch.scale,
@@ -256,6 +258,7 @@ export default class ZoomNav extends React.Component<Props, State> {
           VIEWPORT_DIMENSIONS,
         )
       } else {
+        // If we don't know the size of the previous Content, just assume a default size.
         return Zoom.getScaleDownToTarget(
           pinch.scale,
           SizeUtils.CARD_DEFAULT_SIZE,
@@ -341,7 +344,7 @@ export default class ZoomNav extends React.Component<Props, State> {
 
     const zoomTarget = currentExtra.backZoomTarget
     const zoomProgress = zoomTarget
-      ? this.getCurrentZoomProgress(scale, zoomTarget)
+      ? this.getZoomOutProgress(scale, zoomTarget)
       : 1.0
 
     return (

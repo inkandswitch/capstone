@@ -222,7 +222,7 @@ class Board extends React.Component<Props> {
     })
   }
 
-  onZoom = (id: string) => {
+  onZoomStart = (id: string) => {
     this.props.change(doc => {
       const card = doc.cards[id]
       if (!card) return
@@ -282,6 +282,7 @@ class Board extends React.Component<Props> {
                         onRemoved={this.onRemoved}
                         onResizeStop={this.onResizeStop}>
                         <Zoomable
+                          onZoomStart={this.onZoomStart}
                           id={card.id}
                           url={card.url}
                           x={card.x}

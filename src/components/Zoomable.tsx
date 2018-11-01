@@ -2,7 +2,7 @@ import * as React from "react"
 import { ZoomNavIdDataAttr, NavContext, ZoomableContent } from "./ZoomNav"
 import * as css from "./css/Zoomable.css"
 
-// Accept props without nesting/object wrapper to avoid shallow comparison
+// Accept props without nesting/object wrapper to avoid shallow comparison update
 export interface ZoomableProps {
   id: string
   url: string
@@ -10,10 +10,11 @@ export interface ZoomableProps {
   y: number
   width: number
   height: number
+  onZoomStart: (id: string) => void
   children: (zoomProgress: number) => JSX.Element
 }
 
-// Class static contextType isn't working :/ Use the render callback instead.
+// Class static contextType isn't working :/ Use a wrapper instead.
 export default class Zoomable extends React.Component<ZoomableProps> {
   render() {
     const { children, ...rest } = this.props
@@ -55,13 +56,22 @@ class WrappedZoomable extends React.PureComponent<WrappedZoomableProps> {
     this.props.removeZoomable(this.props.id)
   }
 
+  onZoomStart = () => {
+    this.props.onZoomStart(this.props.id)
+  }
+
   addZoomable() {
     const { id, url, x, y, height, width } = this.props
     const zoomTarget = {
       size: { width, height },
       position: { x, y },
     }
-    this.props.addZoomable({ id, url, zoomTarget })
+    this.props.addZoomable({
+      id,
+      url,
+      zoomTarget,
+      onZoomStart: this.onZoomStart,
+    })
   }
 
   render() {
