@@ -1,12 +1,15 @@
 import * as React from "react"
 import { ZoomNavIdDataAttr, NavContext, ZoomableContent } from "./ZoomNav"
-import * as Zoom from "../logic/Zoom"
 import * as css from "./css/Zoomable.css"
 
+// Accept props without nesting/object wrapper to avoid shallow comparison
 export interface ZoomableProps {
   id: string
   url: string
-  zoomTarget: Zoom.ZoomTarget
+  x: number
+  y: number
+  width: number
+  height: number
   children: (zoomProgress: number) => JSX.Element
 }
 
@@ -39,16 +42,23 @@ interface WrappedZoomableProps extends ZoomableProps {
   removeZoomable: (id: string) => void
 }
 
-class WrappedZoomable extends React.Component<WrappedZoomableProps> {
-  static contextType = NavContext
-
+class WrappedZoomable extends React.PureComponent<WrappedZoomableProps> {
   componentDidMount() {
-    const { id, url, zoomTarget } = this.props
+    const { id, url, x, y, height, width } = this.props
+    const zoomTarget = {
+      size: { width, height },
+      position: { x, y },
+    }
     this.props.addZoomable({ id, url, zoomTarget })
   }
 
   componentDidUpdate() {
-    const { id, url, zoomTarget } = this.props
+    const { id, url, x, y, height, width } = this.props
+    const zoomTarget = {
+      size: { width, height },
+      position: { x, y },
+    }
+    console.log("update card", id)
     this.props.addZoomable({ id, url, zoomTarget })
   }
 

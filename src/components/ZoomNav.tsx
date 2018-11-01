@@ -132,7 +132,7 @@ export default class ZoomNav extends React.Component<Props, State> {
         }
         const zoomState = {
           zoomable,
-          zoomProgress: this.getZoomInProgress(),
+          zoomProgress: this.getZoomProgress(),
         }
         this.setState({ pinch })
         this.changeZoomState(zoomState)
@@ -141,7 +141,7 @@ export default class ZoomNav extends React.Component<Props, State> {
         this.setState({ pinch })
         const updatedZoomState = {
           ...zoomState,
-          zoomProgress: this.getZoomInProgress(),
+          zoomProgress: this.getZoomProgress(),
         }
         this.changeZoomState(updatedZoomState)
       }
@@ -177,7 +177,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     this.clearZoom()
   }
 
-  getZoomInProgress = () => {
+  getZoomProgress = () => {
     const { zoomState } = this.state.context
     const { pinch } = this.state
     if (!zoomState || !pinch) {
@@ -191,7 +191,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     )
   }
 
-  getZoomOutProgress = (scale: number, zoomTarget: Zoom.ZoomTarget) => {
+  getCurrentZoomProgress = (scale: number, zoomTarget: Zoom.ZoomTarget) => {
     return Zoom.getZoomOutProgress(scale, zoomTarget.size, VIEWPORT_DIMENSIONS)
   }
 
@@ -334,7 +334,7 @@ export default class ZoomNav extends React.Component<Props, State> {
 
     const zoomTarget = currentExtra.backZoomTarget
     const zoomProgress = zoomTarget
-      ? this.getZoomOutProgress(scale, zoomTarget)
+      ? this.getCurrentZoomProgress(scale, zoomTarget)
       : 1.0
 
     return (

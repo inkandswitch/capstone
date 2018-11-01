@@ -1,6 +1,5 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import { clamp } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
@@ -19,7 +18,6 @@ import Ink, { InkStroke } from "./Ink"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
-import * as PinchMetrics from "../logic/PinchMetrics"
 import Zoomable from "./Zoomable"
 
 const withAvailableSize = require("react-with-available-size")
@@ -224,6 +222,14 @@ class Board extends React.Component<Props> {
     })
   }
 
+  onZoom = (id: string) => {
+    this.props.change(doc => {
+      const card = doc.cards[id]
+      if (!card) return
+      card.z = ++doc.topZ
+    })
+  }
+
   onDoubleTap = (id: string) => {
     const card = this.props.doc.cards[id]
     if (!card) {
@@ -236,7 +242,7 @@ class Board extends React.Component<Props> {
   }
 
   render() {
-    const { noInk, zIndex, color, zoomProgress } = this.props
+    const { noInk, color, zoomProgress } = this.props
     const { cards, strokes, topZ } = this.props.doc
     const frostedGlassOpacity = 0.4 * Math.max(0, 1 - zoomProgress)
     switch (this.props.mode) {
@@ -261,10 +267,6 @@ class Board extends React.Component<Props> {
             <TransitionGroup>
               {Object.values(cards).map(card => {
                 if (!card) return null
-                const zoomTarget = {
-                  size: { width: card.width, height: card.height },
-                  position: { x: card.x, y: card.y },
-                }
                 return (
                   <CSSTransition
                     key={card.id}
@@ -282,7 +284,10 @@ class Board extends React.Component<Props> {
                         <Zoomable
                           id={card.id}
                           url={card.url}
-                          zoomTarget={zoomTarget}>
+                          x={card.x}
+                          y={card.y}
+                          width={card.width}
+                          height={card.height}>
                           {zoomProgress => {
                             return (
                               <Content
