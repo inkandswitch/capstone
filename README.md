@@ -184,3 +184,11 @@ interactive controls in this mode.
 
 `mode` is not explicitly saying anything about the _size_ of the widget, which
 will likely be provided via a separate prop.
+
+## License
+
+Released under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Credits
+
+Capstone was created in 2018 by Adam Wiggins, Orion Henry, Peter van Hardenberg, Mark McGranaghan, Gokcen Keskin, Jeff Peterson, Julia Roggatz, and Matt Tognett; with contributions from James Lindenbaum, Martin Kleppmann, and Szymon Kaliski.
