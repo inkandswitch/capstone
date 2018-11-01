@@ -44,26 +44,24 @@ interface WrappedZoomableProps extends ZoomableProps {
 
 class WrappedZoomable extends React.PureComponent<WrappedZoomableProps> {
   componentDidMount() {
-    const { id, url, x, y, height, width } = this.props
-    const zoomTarget = {
-      size: { width, height },
-      position: { x, y },
-    }
-    this.props.addZoomable({ id, url, zoomTarget })
+    this.addZoomable()
   }
 
   componentDidUpdate() {
-    const { id, url, x, y, height, width } = this.props
-    const zoomTarget = {
-      size: { width, height },
-      position: { x, y },
-    }
-    console.log("update card", id)
-    this.props.addZoomable({ id, url, zoomTarget })
+    this.addZoomable()
   }
 
   componentWillUnmount() {
     this.props.removeZoomable(this.props.id)
+  }
+
+  addZoomable() {
+    const { id, url, x, y, height, width } = this.props
+    const zoomTarget = {
+      size: { width, height },
+      position: { x, y },
+    }
+    this.props.addZoomable({ id, url, zoomTarget })
   }
 
   render() {

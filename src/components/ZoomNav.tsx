@@ -8,8 +8,8 @@ import * as Zoom from "../logic/Zoom"
 import * as css from "./css/ZoomNav.css"
 
 export const ZoomNavIdDataAttr = "data-zoomnav-id"
+const ZOOM_THRESHOLD = 0.4
 export type NavEntry = { url: string; backZoomTarget?: Zoom.ZoomTarget }
-// Temp name
 export type ZoomableContent = {
   id: string
   url: string
@@ -158,11 +158,19 @@ export default class ZoomNav extends React.Component<Props, State> {
     }
   }
 
-  onPinchInEnd = () => {
+  onPinchInEnd = (pinch: PinchMetrics.Measurements) => {
     if (this.isAtRoot) {
       return
     }
-    this.props.onNavBackward()
+    const { backZoomTarget } = this.peek()
+    if (backZoomTarget) {
+      const scale = this.getScale()
+      const zoomProgress = this.getCurrentZoomProgress(scale, backZoomTarget)
+      console.log("zoom progress", zoomProgress)
+      if (zoomProgress < 1 - ZOOM_THRESHOLD) {
+        this.props.onNavBackward()
+      }
+    }
     this.clearZoom()
   }
 
@@ -170,10 +178,12 @@ export default class ZoomNav extends React.Component<Props, State> {
     const { zoomState } = this.state.context
     if (!zoomState) return
 
-    const { zoomable } = zoomState
-    this.props.onNavForward(zoomable.url, {
-      backZoomTarget: zoomable.zoomTarget,
-    })
+    const { zoomProgress, zoomable } = zoomState
+    if (zoomProgress > ZOOM_THRESHOLD) {
+      this.props.onNavForward(zoomable.url, {
+        backZoomTarget: zoomable.zoomTarget,
+      })
+    }
     this.clearZoom()
   }
 
