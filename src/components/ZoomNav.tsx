@@ -2,23 +2,34 @@ import * as React from "react"
 import * as PinchMetrics from "../logic/PinchMetrics"
 import Pinchable from "./Pinchable"
 import Content, { Mode } from "./Content"
-import { clamp, find } from "lodash"
+import { find } from "lodash"
 import * as SizeUtils from "../logic/SizeUtils"
+import * as Zoom from "../logic/Zoom"
 import * as css from "./css/ZoomNav.css"
 
-export type NavEntry = { url: string; backZoomTarget?: ZoomTarget }
-export type ZoomTarget = { position: Point; size: Size }
+export const ZoomNavIdDataAttr = "data-zoomnav-id"
+export type NavEntry = { url: string; backZoomTarget?: Zoom.ZoomTarget }
 // Temp name
 export type Zoomie = {
   id: string
   url: string
-  zoomTarget: ZoomTarget
+  zoomTarget: Zoom.ZoomTarget
+}
+type ZoomState = {
+  zoomable: Zoomie
+  zoomProgress: number
+  scale: number
 }
 
-export const NavContext = React.createContext({
-  getZoomProgress: (id: string): number => 0.0,
-  addZoomable: (zoomable: Zoomie): void => {},
-  removeZoomable: (id: string): void => {},
+interface NavContext {
+  zoomState?: ZoomState
+  addZoomable: (zoomable: Zoomie) => void
+  removeZoomable: (id: string) => void
+}
+export const NavContext = React.createContext<NavContext>({
+  zoomState: undefined,
+  addZoomable: zoomable => {},
+  removeZoomable: id => {},
 })
 
 const VIEWPORT_DIMENSIONS = { height: 800, width: 1200 }
@@ -33,9 +44,8 @@ interface Props {
 
 interface State {
   pinch?: PinchMetrics.Measurements
-  inbound?: string
   context: {
-    getZoomProgress: (id: string) => number
+    zoomState?: ZoomState
     addZoomable: (zoomable: Zoomie) => void
     removeZoomable: (id: string) => void
   }
@@ -49,9 +59,8 @@ export default class ZoomNav extends React.Component<Props, State> {
 
     this.state = {
       pinch: undefined,
-      inbound: undefined,
       context: {
-        getZoomProgress: this.getZoomProgress,
+        zoomState: undefined,
         addZoomable: this.addZoomable,
         removeZoomable: this.removeZoomable,
       },
@@ -71,30 +80,21 @@ export default class ZoomNav extends React.Component<Props, State> {
   }
 
   getZoomProgress = (id: string) => {
-    const { inbound, pinch } = this.state
-    if (!inbound || !pinch || id !== inbound) {
+    const { zoomState } = this.state.context
+    const { pinch } = this.state
+    if (!zoomState || !pinch || zoomState.zoomable.id !== id) {
       return 0
     }
-
-    const zoomable = this.zoomables[inbound]
-    if (!zoomable) return 0
-    return this._getZoomProgress(pinch.scale, zoomable)
+    const { zoomTarget } = zoomState.zoomable
+    return Zoom.getZoomInProgress(
+      pinch.scale,
+      zoomTarget.size,
+      VIEWPORT_DIMENSIONS,
+    )
   }
 
-  _getZoomProgress = (scale: number, zoomable: Zoomie) => {
-    const { width } = zoomable.zoomTarget.size
-    const maxScale = VIEWPORT_DIMENSIONS.width / width
-    // 1.0 is the minimum, so ignore figure out progress beyond 1.0
-    const adjustedScale = scale - 1.0
-    const adjustedMax = maxScale - 1.0
-    return adjustedScale / adjustedMax
-  }
-
-  getCurrentZoomProgress = (scale: number, zoomTarget: ZoomTarget) => {
-    if (scale >= 1.0) return 1.0
-    const maxScale = 1.0
-    const minScale = zoomTarget.size.width / VIEWPORT_DIMENSIONS.width
-    return (scale - minScale) / (maxScale - minScale)
+  getCurrentZoomProgress = (scale: number, zoomTarget: Zoom.ZoomTarget) => {
+    return Zoom.getZoomOutProgress(scale, zoomTarget.size, VIEWPORT_DIMENSIONS)
   }
 
   peek = () => {
@@ -117,29 +117,60 @@ export default class ZoomNav extends React.Component<Props, State> {
     return this.peek().url === this.props.rootUrl
   }
 
+  changeZoomState(zoomState?: ZoomState) {
+    this.setState({
+      context: {
+        zoomState,
+        addZoomable: this.addZoomable,
+        removeZoomable: this.removeZoomable,
+      },
+    })
+  }
+
+  clearZoom() {
+    this.setState({
+      pinch: undefined,
+      context: {
+        zoomState: undefined,
+        addZoomable: this.addZoomable,
+        removeZoomable: this.removeZoomable,
+      },
+    })
+  }
+
   onPinchMove = (pinch: PinchMetrics.Measurements) => {
+    const { zoomState } = this.state.context
+    // If zooming in.
     if (pinch.scale > 1.0) {
-      if (this.state.inbound) {
-        this.setState({ pinch })
-      } else {
+      // init zoom state
+      if (!zoomState) {
         const zoomable = this.findFirstZoomable(pinch.center)
         if (!zoomable) {
-          this.setState({ pinch: undefined, inbound: undefined })
-        } else {
-          this.setState({
-            pinch,
-            inbound: zoomable.id,
-          })
+          this.clearZoom()
+          return
         }
+        const zoomState = {
+          zoomable,
+          scale: 0,
+          zoomProgress: 0,
+        }
+        this.setState({ pinch })
+        this.changeZoomState(zoomState)
+        // update zoom state
+      } else {
+        this.setState({ pinch })
+        const updatedZoomState = { ...zoomState }
+        this.changeZoomState(updatedZoomState)
       }
+      // If zooming out
     } else {
       if (this.isAtRoot) {
-        this.setState({ pinch: undefined, inbound: undefined })
+        this.clearZoom()
       } else {
-        this.setState({
-          pinch,
-          inbound: undefined,
-        })
+        this.setState({ pinch })
+        if (zoomState) {
+          this.changeZoomState(undefined)
+        }
       }
     }
   }
@@ -149,28 +180,114 @@ export default class ZoomNav extends React.Component<Props, State> {
       return
     }
     this.props.onNavBackward()
-    this.setState({ pinch: undefined, inbound: undefined })
+    this.clearZoom()
   }
 
   onPinchOutEnd = () => {
-    const { pinch } = this.state
-    if (!pinch) return
-    const zoomable = this.findFirstZoomable(pinch.center)
-    if (!zoomable) return
+    const { zoomState } = this.state.context
+    if (!zoomState) return
+
+    const { zoomable } = zoomState
     this.props.onNavForward(zoomable.url, {
       backZoomTarget: zoomable.zoomTarget,
     })
-    this.setState({ pinch: undefined, inbound: undefined })
+    this.clearZoom()
+  }
+
+  getPreviousScale() {
+    // Previous scale should begin scaled up, and scale down to 1.0 as we zoom away
+    // from a Content.
+    const { pinch } = this.state
+    const { backZoomTarget } = this.peek()
+    if (!pinch || !backZoomTarget) {
+      return 1.0
+    }
+    const scale = Zoom.getScaleDownToTarget(
+      pinch.scale,
+      backZoomTarget.size,
+      VIEWPORT_DIMENSIONS,
+    )
+    // Scale up one more time.
+    return scale * Zoom.getScaleRatio(backZoomTarget.size, VIEWPORT_DIMENSIONS)
+  }
+
+  getPreviousOrigin() {
+    const { pinch } = this.state
+    const { backZoomTarget } = this.peek()
+    if (!pinch || !backZoomTarget) {
+      return 1.0
+    }
+    // The previous origin is always based on the back zoom target where we want the
+    // current Content to end up.
+    const origin = Zoom.getOrigin(backZoomTarget, VIEWPORT_DIMENSIONS)
+    return `${origin.x}% ${origin.y}%`
+  }
+
+  getScale() {
+    const {
+      pinch,
+      context: { zoomState },
+    } = this.state
+    const { backZoomTarget } = this.peek()
+
+    // Zooming towards a card
+    // If we don't know where to zoom back to, just zoom towards the middle
+    // of the previous board.
+    if (pinch && zoomState) {
+      const { zoomTarget } = zoomState.zoomable
+      return Zoom.getScaleUpFromTarget(
+        pinch.scale,
+        zoomTarget.size,
+        VIEWPORT_DIMENSIONS,
+      )
+    } else if (pinch && pinch.scale < 1.0) {
+      if (backZoomTarget) {
+        return Zoom.getScaleDownToTarget(
+          pinch.scale,
+          backZoomTarget.size,
+          VIEWPORT_DIMENSIONS,
+        )
+      } else {
+        return Zoom.getScaleDownToTarget(
+          pinch.scale,
+          SizeUtils.CARD_DEFAULT_SIZE,
+          VIEWPORT_DIMENSIONS,
+        )
+      }
+    }
+    return 1.0
+  }
+
+  getScaleOrigin() {
+    const { backZoomTarget } = this.peek()
+    const { zoomState } = this.state.context
+
+    // If zooming in, compute the origin based on the zoom target we're zooming towards.
+    // Else, if we have a back zoom target, compute the origin based on that back target.
+    // Otherwise, if we have no zoom target, default to 50% 50%
+    let origin = { x: 50, y: 50 }
+    if (zoomState) {
+      const { zoomTarget } = zoomState.zoomable
+      origin = Zoom.getOrigin(zoomTarget, VIEWPORT_DIMENSIONS)
+    } else if (backZoomTarget) {
+      origin = Zoom.getOrigin(backZoomTarget, VIEWPORT_DIMENSIONS)
+    }
+    return `${origin.x}% ${origin.y}%`
+  }
+
+  findFirstZoomable = (point: Point): Zoomie | undefined => {
+    const elements = document.elementsFromPoint(point.x, point.y)
+    const firstZoomable = find(elements, el =>
+      el.hasAttribute(ZoomNavIdDataAttr),
+    )
+    const zoomableId =
+      firstZoomable && firstZoomable.getAttribute(ZoomNavIdDataAttr)
+    return zoomableId ? this.zoomables[zoomableId] : undefined
   }
 
   render() {
     return (
-      <NavContext.Provider
-        value={{
-          getZoomProgress: this.getZoomProgress,
-          addZoomable: this.addZoomable,
-          removeZoomable: this.removeZoomable,
-        }}>
+      <NavContext.Provider value={this.state.context}>
         {this.renderPrevious()}
         {this.renderCurrent()}
       </NavContext.Provider>
@@ -185,13 +302,11 @@ export default class ZoomNav extends React.Component<Props, State> {
 
     const previousScale = this.getPreviousScale()
     const previousOrigin = this.getPreviousOrigin()
-    const previousStyle: any =
-      previousScale === 1
-        ? {}
-        : {
-            transform: `scale(${previousScale})`,
-            transformOrigin: previousOrigin,
-          }
+    const previousStyle: any = { zIndex: -1 }
+    if (previousScale !== 1) {
+      previousStyle.transform = `scale(${previousScale})`
+      previousStyle.transformOrigin = previousOrigin
+    }
 
     return (
       <div style={previousStyle} className={css.Previous}>
@@ -199,7 +314,6 @@ export default class ZoomNav extends React.Component<Props, State> {
           mode={this.props.mode}
           url={previous.url}
           scale={previousScale}
-          zIndex={-1}
           zoomProgress={1}
         />
       </div>
@@ -211,13 +325,11 @@ export default class ZoomNav extends React.Component<Props, State> {
 
     const scale = this.getScale()
     const scaleOrigin = this.getScaleOrigin()
-    const style: any =
-      scale === 1
-        ? {}
-        : {
-            transform: `scale(${scale})`,
-            transformOrigin: scaleOrigin,
-          }
+    const style: any = {}
+    if (scale !== 1) {
+      style.transform = `scale(${scale})`
+      style.transformOrigin = scaleOrigin
+    }
 
     const zoomTarget = currentExtra.backZoomTarget
     const zoomProgress = zoomTarget
@@ -240,176 +352,6 @@ export default class ZoomNav extends React.Component<Props, State> {
           />
         </div>
       </Pinchable>
-    )
-  }
-
-  findFirstZoomable = (point: Point): Zoomie | undefined => {
-    const elements = document.elementsFromPoint(point.x, point.y)
-    const firstZoomable = find(elements, el =>
-      el.hasAttribute("data-zoomnav-id"),
-    )
-    const zoomableId =
-      firstZoomable && firstZoomable.getAttribute("data-zoomnav-id")
-    return zoomableId ? this.zoomables[zoomableId] : undefined
-  }
-
-  getScaleOrigin() {
-    const { inbound } = this.state
-    const { backZoomTarget } = this.peek()
-
-    if (inbound && this.zoomables[inbound]) {
-      const zoomTarget = this.zoomables[inbound].zoomTarget
-      const { x, y } = zoomTarget.position
-      const { width, height } = zoomTarget.size
-      const origin = {
-        x: (x / (VIEWPORT_DIMENSIONS.width - width)) * 100,
-        y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
-      }
-      return `${origin.x}% ${origin.y}%`
-    } else if (backZoomTarget) {
-      const {
-        position: { x, y },
-        size: { height, width },
-      } = backZoomTarget
-      const origin = {
-        x: (x / (VIEWPORT_DIMENSIONS.width - width)) * 100,
-        y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
-      }
-      return `${origin.x}% ${origin.y}%`
-    } else {
-      return "50% 50%"
-    }
-  }
-
-  getScale() {
-    const { pinch, inbound } = this.state
-    const { backZoomTarget } = this.peek()
-
-    // Zooming towards a card
-    if (pinch && inbound && this.zoomables[inbound]) {
-      const zoomTarget = this.zoomables[inbound].zoomTarget
-      const boardScale = zoomTarget.size.width / VIEWPORT_DIMENSIONS.width
-      const boardScaleMaxScale = 1.0
-      const currentBoardScale = clamp(
-        pinch.scale * boardScale,
-        boardScale,
-        boardScaleMaxScale,
-      )
-      // translate back to absolute-scale
-      return currentBoardScale / boardScale
-    } else if (pinch && pinch.scale < 1.0) {
-      if (backZoomTarget) {
-        const destScale = backZoomTarget.size.width / VIEWPORT_DIMENSIONS.width
-        const startScale = 1.0
-        return clamp(pinch.scale, destScale, startScale)
-      } else {
-        // If we don't know where to zoom back to, just zoom towards the middle
-        // of the previous board.
-        const destScale =
-          SizeUtils.CARD_DEFAULT_SIZE.width / VIEWPORT_DIMENSIONS.width
-        const startScale = 1.0
-        return clamp(pinch.scale, destScale, startScale)
-      }
-    }
-    return 1.0
-  }
-
-  getPreviousScale() {
-    const { pinch, inbound } = this.state
-    const { backZoomTarget } = this.peek()
-    if (!pinch || inbound || !backZoomTarget) {
-      return 1.0
-    }
-
-    const boardScale = backZoomTarget.size.width / VIEWPORT_DIMENSIONS.width
-    const minScale = 1.0
-    const maxScale = 1.0 / boardScale
-    const currentBoardScale = clamp(
-      pinch.scale / boardScale,
-      minScale,
-      maxScale,
-    )
-    // translate back to absolute-scale
-    return currentBoardScale
-  }
-
-  getPreviousOrigin() {
-    const { pinch, inbound } = this.state
-    const { backZoomTarget } = this.peek()
-
-    if (!pinch || inbound || !backZoomTarget) {
-      return 1.0
-    }
-
-    const {
-      position: { x, y },
-      size: { height, width },
-    } = backZoomTarget
-    const origin = {
-      x: (x / (VIEWPORT_DIMENSIONS.width - width)) * 100,
-      y: (y / (VIEWPORT_DIMENSIONS.height - height)) * 100,
-    }
-    return `${origin.x}% ${origin.y}%`
-  }
-}
-
-export interface ZoomableProps {
-  id: string
-  url: string
-  zoomTarget: ZoomTarget
-  children: (zoomProgress: number) => JSX.Element
-}
-
-export class Zoomable extends React.Component<ZoomableProps> {
-  render() {
-    const { children, ...rest } = this.props
-    return (
-      <NavContext.Consumer>
-        {ctx => {
-          const zoomProgress = ctx.getZoomProgress(rest.id)
-          return (
-            <WrappedZoomable {...ctx} {...rest} zoomProgress={zoomProgress}>
-              {this.props.children}
-            </WrappedZoomable>
-          )
-        }}
-      </NavContext.Consumer>
-    )
-  }
-}
-
-export interface WrappedZoomableProps extends ZoomableProps {
-  zoomProgress: number
-  addZoomable: (zoomable: Zoomie) => void
-  removeZoomable: (id: string) => void
-}
-
-export class WrappedZoomable extends React.Component<WrappedZoomableProps> {
-  static contextType = NavContext
-
-  componentDidMount() {
-    const { id, url, zoomTarget } = this.props
-    this.props.addZoomable({ id, url, zoomTarget })
-  }
-
-  componentDidUpdate() {
-    const { id, url, zoomTarget } = this.props
-    this.props.addZoomable({ id, url, zoomTarget })
-  }
-
-  componentWillUnmount() {
-    this.props.removeZoomable(this.props.id)
-  }
-
-  render() {
-    const { id, zoomProgress } = this.props
-    const props = {
-      "data-zoomnav-id": id,
-    }
-    return (
-      <div {...props} className={css.Zoomable}>
-        {this.props.children(zoomProgress)}
-      </div>
     )
   }
 }

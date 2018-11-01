@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import { clamp, noop } from "lodash"
+import { clamp } from "lodash"
 import * as Widget from "./Widget"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
@@ -20,7 +20,7 @@ import * as SizeUtils from "../logic/SizeUtils"
 import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import * as PinchMetrics from "../logic/PinchMetrics"
-import { Zoomable } from "./ZoomNav"
+import Zoomable from "./Zoomable"
 
 const withAvailableSize = require("react-with-available-size")
 
@@ -241,17 +241,7 @@ class Board extends React.Component<Props> {
     const frostedGlassOpacity = 0.4 * Math.max(0, 1 - zoomProgress)
     switch (this.props.mode) {
       case "fullscreen": {
-        // TODO: calc the frosted glass overlay opacity
-
-        // Needed to place the previous board (the back stack board) behind the current board and shelf.
-        // isPrevious
-        const style: any = {}
-        if (zIndex) {
-          style.zIndex = zIndex
-        }
-        if (color) {
-          style.backgroundColor = color
-        }
+        const style = color ? { backgroundColor: color } : {}
 
         return (
           <div
@@ -373,37 +363,6 @@ class Board extends React.Component<Props> {
       doc.strokes.push(stroke)
     })
   }
-
-  getOverlayOpacity(zoomProgress: number) {
-    return Math.max(0, 1 - zoomProgress)
-  }
-
-  getOpacity = (
-    scale: number,
-    startScale: number,
-    destScale: number,
-    lowerBound: number,
-    upperBound: number,
-  ) => {
-    const value =
-      lowerBound +
-      ((upperBound - lowerBound) / (destScale - startScale)) *
-        (scale - startScale)
-    return clamp(value, 0.0, 1.0)
-  }
-}
-
-function getCardScaleProgress(
-  card: CardModel,
-  pinchMeasurements: PinchMetrics.Measurements,
-) {
-  const { scale } = pinchMeasurements
-  const { width } = card
-  const maxScale = BOARD_DIMENSIONS.width / width
-  // 1.0 is the minimum, so ignore figure out progress beyond 1.0
-  const adjustedScale = scale - 1.0
-  const adjustedMax = maxScale - 1.0
-  return adjustedScale / adjustedMax
 }
 
 export default Widget.create(
