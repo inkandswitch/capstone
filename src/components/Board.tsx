@@ -237,7 +237,10 @@ class Board extends React.Component<Props> {
     }
     this.props.onNavigate &&
       this.props.onNavigate(card.url, {
-        backNavCardTarget: { ...card },
+        backZoomTarget: {
+          size: { width: card.width, height: card.height },
+          position: { x: card.x, y: card.y },
+        },
       })
   }
 
