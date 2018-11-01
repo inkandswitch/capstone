@@ -10,20 +10,19 @@ import * as css from "./css/ZoomNav.css"
 export const ZoomNavIdDataAttr = "data-zoomnav-id"
 export type NavEntry = { url: string; backZoomTarget?: Zoom.ZoomTarget }
 // Temp name
-export type Zoomie = {
+export type ZoomableContent = {
   id: string
   url: string
   zoomTarget: Zoom.ZoomTarget
 }
 type ZoomState = {
-  zoomable: Zoomie
+  zoomable: ZoomableContent
   zoomProgress: number
-  scale: number
 }
 
 interface NavContext {
   zoomState?: ZoomState
-  addZoomable: (zoomable: Zoomie) => void
+  addZoomable: (zoomable: ZoomableContent) => void
   removeZoomable: (id: string) => void
 }
 export const NavContext = React.createContext<NavContext>({
@@ -46,13 +45,13 @@ interface State {
   pinch?: PinchMetrics.Measurements
   context: {
     zoomState?: ZoomState
-    addZoomable: (zoomable: Zoomie) => void
+    addZoomable: (zoomable: ZoomableContent) => void
     removeZoomable: (id: string) => void
   }
 }
 
 export default class ZoomNav extends React.Component<Props, State> {
-  zoomables: { [id: string]: Zoomie } = {}
+  zoomables: { [id: string]: ZoomableContent } = {}
 
   constructor(props: Props) {
     super(props)
@@ -67,7 +66,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     }
   }
 
-  addZoomable = (zoomable: Zoomie) => {
+  addZoomable = (zoomable: ZoomableContent) => {
     this.zoomables[zoomable.id] = zoomable
   }
 
@@ -77,24 +76,6 @@ export default class ZoomNav extends React.Component<Props, State> {
 
   getZoomable = (id: string) => {
     return this.zoomables[id]
-  }
-
-  getZoomProgress = (id: string) => {
-    const { zoomState } = this.state.context
-    const { pinch } = this.state
-    if (!zoomState || !pinch || zoomState.zoomable.id !== id) {
-      return 0
-    }
-    const { zoomTarget } = zoomState.zoomable
-    return Zoom.getZoomInProgress(
-      pinch.scale,
-      zoomTarget.size,
-      VIEWPORT_DIMENSIONS,
-    )
-  }
-
-  getCurrentZoomProgress = (scale: number, zoomTarget: Zoom.ZoomTarget) => {
-    return Zoom.getZoomOutProgress(scale, zoomTarget.size, VIEWPORT_DIMENSIONS)
   }
 
   peek = () => {
@@ -151,15 +132,17 @@ export default class ZoomNav extends React.Component<Props, State> {
         }
         const zoomState = {
           zoomable,
-          scale: 0,
-          zoomProgress: 0,
+          zoomProgress: this.getZoomInProgress(),
         }
         this.setState({ pinch })
         this.changeZoomState(zoomState)
         // update zoom state
       } else {
         this.setState({ pinch })
-        const updatedZoomState = { ...zoomState }
+        const updatedZoomState = {
+          ...zoomState,
+          zoomProgress: this.getZoomInProgress(),
+        }
         this.changeZoomState(updatedZoomState)
       }
       // If zooming out
@@ -192,6 +175,24 @@ export default class ZoomNav extends React.Component<Props, State> {
       backZoomTarget: zoomable.zoomTarget,
     })
     this.clearZoom()
+  }
+
+  getZoomInProgress = () => {
+    const { zoomState } = this.state.context
+    const { pinch } = this.state
+    if (!zoomState || !pinch) {
+      return 0
+    }
+    const { zoomTarget } = zoomState.zoomable
+    return Zoom.getZoomInProgress(
+      pinch.scale,
+      zoomTarget.size,
+      VIEWPORT_DIMENSIONS,
+    )
+  }
+
+  getZoomOutProgress = (scale: number, zoomTarget: Zoom.ZoomTarget) => {
+    return Zoom.getZoomOutProgress(scale, zoomTarget.size, VIEWPORT_DIMENSIONS)
   }
 
   getPreviousScale() {
@@ -275,7 +276,7 @@ export default class ZoomNav extends React.Component<Props, State> {
     return `${origin.x}% ${origin.y}%`
   }
 
-  findFirstZoomable = (point: Point): Zoomie | undefined => {
+  findFirstZoomable = (point: Point): ZoomableContent | undefined => {
     const elements = document.elementsFromPoint(point.x, point.y)
     const firstZoomable = find(elements, el =>
       el.hasAttribute(ZoomNavIdDataAttr),
@@ -333,7 +334,7 @@ export default class ZoomNav extends React.Component<Props, State> {
 
     const zoomTarget = currentExtra.backZoomTarget
     const zoomProgress = zoomTarget
-      ? this.getCurrentZoomProgress(scale, zoomTarget)
+      ? this.getZoomOutProgress(scale, zoomTarget)
       : 1.0
 
     return (

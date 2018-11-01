@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ZoomNavIdDataAttr, NavContext, Zoomie } from "./ZoomNav"
+import { ZoomNavIdDataAttr, NavContext, ZoomableContent } from "./ZoomNav"
 import * as Zoom from "../logic/Zoom"
 import * as css from "./css/Zoomable.css"
 
@@ -35,7 +35,7 @@ export default class Zoomable extends React.Component<ZoomableProps> {
 
 interface WrappedZoomableProps extends ZoomableProps {
   zoomProgress: number
-  addZoomable: (zoomable: Zoomie) => void
+  addZoomable: (zoomable: ZoomableContent) => void
   removeZoomable: (id: string) => void
 }
 
