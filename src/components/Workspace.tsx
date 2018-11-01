@@ -13,10 +13,8 @@ import Content, {
 } from "./Content"
 import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
-import Pinchable from "./Pinchable"
 import * as css from "./css/Workspace.css"
-
-type NavEntry = { url: string; [extra: string]: any }
+import ZoomNav, { NavEntry } from "./ZoomNav"
 
 export interface Model {
   navStack: NavEntry[]
@@ -98,17 +96,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     return navStack[navStack.length - 1] || { url: rootUrl }
   }
 
-  getPrevious = () => {
-    const { navStack } = this.props.doc
-    if (navStack.length === 0) {
-      return
-    } else if (navStack.length === 1) {
-      return { url: this.props.doc.rootUrl }
-    } else {
-      return navStack[navStack.length - 2]
-    }
-  }
-
   onCopy = (e: ClipboardEvent) => {
     // If an element other than body has focus (e.g. a text card input),
     // don't interfere with normal behavior.
@@ -137,8 +124,6 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
 
   render() {
     const { doc, env, mode, url } = this.props
-    const { url: currentUrl, ...currentExtra } = this.peek()
-    const previous = this.getPrevious()
 
     if (mode !== "fullscreen") {
       return <div>Embedded workspace: {url}</div>
@@ -155,41 +140,24 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     }
 
     return (
-      <Pinchable onPinchInEnd={this.pop}>
-        <div className={css.Workspace}>
-          <GPSInput />
-          <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
-          {previous ? (
-            <Content
-              key={previous.url + "-previous"} // Force a remount.
-              noInk
-              mode={this.props.mode}
-              url={previous.url}
-              zIndex={-1}
-            />
-          ) : null}
-          <Content
-            key={currentUrl}
-            mode={this.props.mode}
-            url={currentUrl}
-            {...currentExtra}
-            onNavigate={this.push}
-            onNavigateBack={this.pop}
-          />
-          <Shelf
-            offset={
-              this.props.doc.shelfOffset ? this.props.doc.shelfOffset : -200
-            }
-            onResize={this.onResizeShelf}>
-            <Content
-              mode="fullscreen"
-              noInk
-              color="#f0f0f0"
-              url={doc.shelfUrl}
-            />
-          </Shelf>
-        </div>
-      </Pinchable>
+      <div className={css.Workspace}>
+        <GPSInput />
+        <Clipboard onCopy={this.onCopy} onPaste={this.onPaste} />
+        <ZoomNav
+          navStack={doc.navStack}
+          rootUrl={doc.rootUrl}
+          mode={mode}
+          onNavForward={this.push}
+          onNavBackward={this.pop}
+        />
+        <Shelf
+          offset={
+            this.props.doc.shelfOffset ? this.props.doc.shelfOffset : -200
+          }
+          onResize={this.onResizeShelf}>
+          <Content mode="fullscreen" noInk color="#f0f0f0" url={doc.shelfUrl} />
+        </Shelf>
+      </div>
     )
   }
 

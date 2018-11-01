@@ -12,7 +12,7 @@ export default class Card extends React.Component<Props> {
   render() {
     const { cardId, children, ...rest } = this.props
     return (
-      <div className={css.Card} id={cardId} {...rest}>
+      <div className={css.Card + " Card"} id={cardId} {...rest}>
         {children}
       </div>
     )
