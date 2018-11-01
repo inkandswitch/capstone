@@ -121,10 +121,8 @@ export default class ZoomNav extends React.Component<Props, State> {
 
   onPinchMove = (pinch: PinchMetrics.Measurements) => {
     const { zoomState } = this.state.context
-    // If zooming in.
-    if (pinch.scale > 1.0) {
-      // init zoom state
-      if (!zoomState) {
+    if (!this.state.pinch) {
+      if (pinch.scale > 1.0) {
         const zoomable = this.findFirstZoomable(pinch.center)
         if (!zoomable) {
           this.clearZoom()
@@ -136,30 +134,26 @@ export default class ZoomNav extends React.Component<Props, State> {
         }
         this.setState({ pinch })
         this.changeZoomState(zoomState)
-        // update zoom state
-      } else {
+      } else if (!this.isAtRoot) {
+        this.setState({ pinch })
+      }
+    } else {
+      if (zoomState) {
         this.setState({ pinch })
         const updatedZoomState = {
           ...zoomState,
           zoomProgress: this.getZoomProgress(),
         }
         this.changeZoomState(updatedZoomState)
-      }
-      // If zooming out
-    } else {
-      if (this.isAtRoot) {
-        this.clearZoom()
       } else {
         this.setState({ pinch })
-        if (zoomState) {
-          this.changeZoomState(undefined)
-        }
       }
     }
   }
 
   onPinchInEnd = (pinch: PinchMetrics.Measurements) => {
-    if (this.isAtRoot) {
+    if (this.isAtRoot || this.state.context.zoomState) {
+      this.clearZoom()
       return
     }
     const { backZoomTarget } = this.peek()
@@ -176,7 +170,10 @@ export default class ZoomNav extends React.Component<Props, State> {
 
   onPinchOutEnd = () => {
     const { zoomState } = this.state.context
-    if (!zoomState) return
+    if (!zoomState) {
+      this.clearZoom()
+      return
+    }
 
     const { zoomProgress, zoomable } = zoomState
     if (zoomProgress > ZOOM_THRESHOLD) {
