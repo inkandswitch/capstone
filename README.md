@@ -19,7 +19,9 @@ Briefly, Capstone works as follows:
 - You organize your data visually on boards in the Capstone tablet app
 - You can additionally write on boards for e.g. free-form notes and drawings
 
-[Screenshot]
+A screenshot showing the app in a trip planning use case:
+
+![Screenshot](https://github.com/inkandswitch/capstone/blob/master/screenshot.png?raw=true)
 
 ## Usage
 
