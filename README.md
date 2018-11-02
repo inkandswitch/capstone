@@ -10,18 +10,16 @@ It was developed by [Ink & Switch](https://inkandswitch.com) as part of our
 research in this area. While we're no longer developing Capstone, we learned a
 lot and wanted to share the code publically.
 
-
 ## Overview
 
 Briefly, Capstone works as follows:
 
-* You bring data into app - web pages, text snippets, and images - via a Chrome
+- You bring data into app - web pages, text snippets, and images - via a Chrome
   extension
-* You organize your data visually on boards in the Capstone tablet app
-* You can additionally write on boards for e.g. free-form notes and drawings
+- You organize your data visually on boards in the Capstone tablet app
+- You can additionally write on boards for e.g. free-form notes and drawings
 
 [Screenshot]
-
 
 ## Usage
 
@@ -29,8 +27,8 @@ The easiest way to get started is with a ChromeOS tablet device, such as the
 [Google Pixelbook](https://store.google.com/product/google_pixelbook). Install
 these two apps on your ChromeOS tablet from the Chrome Web Store:
 
-* [Capstone](https://chrome.google.com/webstore/detail/capstone/gcdcngjcmfebohcjojfbfkmpenlfjcfc)
-* [Capstone Clipper](https://chrome.google.com/webstore/detail/degnaliianmmgfglcggahlojkkacjimh)
+- [Capstone](https://chrome.google.com/webstore/detail/capstone/gcdcngjcmfebohcjojfbfkmpenlfjcfc)
+- [Capstone Clipper](https://chrome.google.com/webstore/detail/degnaliianmmgfglcggahlojkkacjimh)
 
 Then open the Capstone app and use the Capstone Clipper extension in
 Chrome to bring in content.
@@ -38,7 +36,6 @@ Chrome to bring in content.
 The [cheatsheet](Cheatsheet.md) describes how to use the app in detail.
 
 It's possible to run degraded versions of Capstone on other devices - see below.
-
 
 ## Hacking
 
@@ -194,6 +191,12 @@ export default Counter extends Widget<Model> {
 Content.register("Counter", Counter) // Register the widget with Content, so other components can render it.
 ```
 
+### Actors
+
+The capstone project contains a partially implemented “Actor” system. Actors are a means of manipulating documents independent of (for the most part) the React/UI hiearchy. Actors send and receive messages which have a "topic" and are addressed to specific documents. Actors are generally implemented per-plugin and provide plugin-specific logic for manipulating documents. For example, the `BoardActor` provided by the `Board` plugin will handle a `ReceiveDocuments` message by adding those documents to a board as card.
+
+Widgets can communicate with the Actor system via their `emit` prop. `emit` acts as a pre-addressed message `send` function - all messages sent from the Widget are automatically addressed to the Widget’s own document and sent to the Actor provided by the widget’s plugin.
+
 ### Debug Tools
 
 In the developer console for the backend process some debug tools are available
@@ -241,4 +244,3 @@ Released under the [MIT license](https://opensource.org/licenses/MIT).
 Capstone was created in 2018 by Adam Wiggins, Orion Henry, Peter van Hardenberg,
 Mark McGranaghan, Gokcen Keskin, Jeff Peterson, Julia Roggatz, and Matt Tognett;
 with contributions from James Lindenbaum, Martin Kleppmann, and Szymon Kaliski.
-
