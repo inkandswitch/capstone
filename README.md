@@ -193,7 +193,7 @@ Content.register("Counter", Counter) // Register the widget with Content, so oth
 
 ### Actors
 
-The capstone project contains a partially implemented “Actor” system. Actors are a means of manipulating documents independent of (for the most part) the React/UI hiearchy. Actors send and receive messages which have a "topic" and are addressed to specific documents. Actors are generally implemented per-plugin and provide plugin-specific logic for manipulating documents. For example, the `BoardActor` provided by the `Board` plugin will handle a `ReceiveDocuments` message by adding those documents to a board as card.
+The capstone project contains a partially implemented “Actor” system. Actors are a means of manipulating documents independent of the React/UI hiearchy (for the most part - Widget components can send messages to Actors). Actors send and receive messages which have a "topic" and are addressed to specific documents. Actors are generally implemented per-plugin and provide plugin-specific logic for manipulating documents. For example, the `BoardActor` provided by the `Board` plugin will handle a `ReceiveDocuments` message by adding those documents to a board as card.
 
 Widgets can communicate with the Actor system via their `emit` prop. `emit` acts as a pre-addressed message `send` function - all messages sent from the Widget are automatically addressed to the Widget’s own document and sent to the Actor provided by the widget’s plugin.
 
