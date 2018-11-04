@@ -146,7 +146,6 @@ export default class WorkspaceMgr extends React.Component<Props, State> {
         <div style={{ marginTop: "40px" }}> Previous Workspace </div>
         <table style={{ width: "100%" }}>
           <tbody>
-            {" "}
             {this.state.history.map((url, index) => (
               <tr key={index}>
                 <td

@@ -1,11 +1,10 @@
 import * as React from "react"
-import * as PinchMetrics from "../logic/PinchMetrics"
-import Pinchable from "./Pinchable"
+import { PinchMetrics, Pinchable } from "gps"
 import Content, { Mode } from "capstone/Content"
 import { find } from "lodash"
-import * as SizeUtils from "../logic/SizeUtils"
-import * as Zoom from "../logic/Zoom"
-import * as css from "./css/ZoomNav.css"
+import { SizeUtils } from "capstone"
+import * as Zoom from "./Zoom"
+import * as css from "./ZoomNav.css"
 
 const ZOOM_THRESHOLD = 0.4
 export const ZoomNavIdDataAttr = "data-zoomnav-id"

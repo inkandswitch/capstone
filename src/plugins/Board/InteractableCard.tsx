@@ -1,10 +1,9 @@
 import * as React from "react"
-import Interactable from "./Interactable"
 import Card from "./Card"
 import { omit } from "lodash"
 import { Link, DataTransfer } from "capstone"
-import Pinchable from "./Pinchable"
-import { DEFAULT_CARD_DIMENSION } from "../logic/SizeUtils"
+import { Pinchable, Interactable } from "gps"
+import { DEFAULT_CARD_DIMENSION } from "capstone/SizeUtils"
 
 export interface CardModel {
   id: string

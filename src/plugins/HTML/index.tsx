@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Reify, Widget } from "capstone"
 import { AnyDoc } from "automerge/frontend"
-import * as css from "./css/HTML.css"
+import * as css from "./HTML.css"
 
 const withAvailableWidth = require("react-with-available-width")
 

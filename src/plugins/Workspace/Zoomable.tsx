@@ -1,6 +1,6 @@
 import * as React from "react"
 import { ZoomNavIdDataAttr, NavContext, ZoomableContent } from "./ZoomNav"
-import * as css from "./css/Zoomable.css"
+import * as css from "./Zoomable.css"
 
 // Accept props without nesting/object wrapper to avoid shallow comparison update
 export interface ZoomableProps {

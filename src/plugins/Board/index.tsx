@@ -1,7 +1,7 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import { DataImport, Link, Reify, Widget, UUID } from "capstone"
-import Mirrorable from "./Mirrorable"
+import { DataImport, Link, Reify, Widget, UUID, SizeUtils } from "capstone"
+import Mirrorable from "gps/Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
 import EdgeBoardCreator from "./EdgeBoardCreator"
 import Content, {
@@ -12,9 +12,8 @@ import Content, {
 } from "capstone/Content"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import Ink, { InkStroke } from "./Ink"
-import * as SizeUtils from "../logic/SizeUtils"
-import * as css from "./css/Board.css"
-import Zoomable from "./Zoomable"
+import * as css from "./Board.css"
+import Zoomable from "../Workspace/Zoomable" // HACK
 
 const withAvailableSize = require("react-with-available-size")
 

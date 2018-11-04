@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Subscription } from "rxjs"
-import * as css from "./css/Shelf.css"
-import Movable from "./Movable"
+import * as css from "./Shelf.css"
+import { Movable } from "gps"
 import { clamp } from "lodash"
 
 const MAX_HEIGHT = 600

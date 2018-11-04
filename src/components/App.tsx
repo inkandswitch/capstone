@@ -6,12 +6,7 @@ import Stats from "./Stats"
 import * as Debug from "debug"
 import * as css from "./css/App.css"
 
-import "./Board"
-import "./Image"
-import "./Text"
-import "./Table"
-import "./Workspace"
-import "./HTML"
+import "../plugins"
 
 const log = Debug("component:app")
 

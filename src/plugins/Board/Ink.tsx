@@ -1,10 +1,10 @@
 import * as React from "react"
 import * as Rx from "rxjs"
-import * as Frame from "../logic/Frame"
+import * as Frame from "./Frame"
 import classnames from "classnames"
-import * as css from "./css/Ink.css"
+import * as css from "./Ink.css"
 import { Portal } from "react-portal"
-import * as GPS from "gps"
+import GPS from "gps"
 import * as RxOps from "rxjs/operators"
 import * as Content from "capstone/Content"
 

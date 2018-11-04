@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as css from "./css/Card.css"
+import * as css from "./Card.css"
 
 export const CARD_WIDTH = 398
 

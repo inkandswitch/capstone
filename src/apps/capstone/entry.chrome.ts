@@ -1,4 +1,5 @@
-import { Msg, Queue } from "capstone"
+import * as Msg from "capstone/Msg"
+import Queue from "capstone/Queue"
 
 const webview = document.getElementById("webview")! as HTMLIFrameElement
 

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { AnyDoc } from "automerge/frontend"
 import { Widget, Reify } from "capstone"
-import * as css from "./css/Image.css"
+import * as css from "./Image.css"
 
 export interface Model {
   src: string

@@ -1,13 +1,13 @@
 import * as React from "react"
 import { Widget, Reify } from "capstone"
 import { AnyDoc } from "automerge/frontend"
-import * as css from "./css/Text.css"
+import * as css from "./Text.css"
 import { clamp } from "lodash"
 import {
   breakIntoLines,
   TEXT_MAX_WIDTH,
   TEXT_CARD_LINE_HEIGHT,
-} from "../logic/SizeUtils"
+} from "capstone/SizeUtils"
 
 const withAvailableSize = require("react-with-available-size")
 

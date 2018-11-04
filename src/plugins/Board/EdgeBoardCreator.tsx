@@ -1,11 +1,10 @@
 import * as React from "react"
-import * as GPS from "gps"
 import * as RxOps from "rxjs/operators"
-import * as css from "./css/EdgeBoardCreator.css"
-import * as boardCss from "./css/Board.css"
-import * as DragMetrics from "../logic/DragMetrics"
+import * as css from "./EdgeBoardCreator.css"
+import * as boardCss from "./Board.css"
+import GPS, { DragMetrics } from "gps"
 import * as Rx from "rxjs"
-import { CARD_DEFAULT_SIZE } from "../logic/SizeUtils"
+import { CARD_DEFAULT_SIZE } from "capstone/SizeUtils"
 
 type Edge = "left" | "right"
 

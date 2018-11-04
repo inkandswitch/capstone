@@ -10,7 +10,7 @@ import Content, {
 } from "capstone/Content"
 import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
-import * as css from "./css/Workspace.css"
+import * as css from "./Workspace.css"
 import ZoomNav, { NavEntry } from "./ZoomNav"
 
 export interface Model {

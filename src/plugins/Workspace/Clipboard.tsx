@@ -1,5 +1,4 @@
-import * as React from "react"
-import Handler from "./Handler"
+import { Handler } from "capstone"
 
 interface Props {
   onCut?: (event: ClipboardEvent) => void
