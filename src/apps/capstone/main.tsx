@@ -1,14 +1,8 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import App from "../../components/App"
-import Store from "../../data/Store"
-import * as Msg from "../../data/StoreMsg"
-import Queue from "../../data/Queue"
-import Content from "../../components/Content"
+import { Content, Msg, Store } from "capstone"
 import { setupControlPanel, toggleControl } from "./control"
-
-import * as Debug from "debug"
-const log = Debug("main")
 
 const store = new Store()
 const worker = new (Worker as any)("worker.js", {

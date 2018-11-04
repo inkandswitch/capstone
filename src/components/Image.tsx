@@ -1,7 +1,6 @@
 import * as React from "react"
 import { AnyDoc } from "automerge/frontend"
-import * as Widget from "./Widget"
-import * as Reify from "../data/Reify"
+import { Widget, Reify } from "capstone"
 import * as css from "./css/Image.css"
 
 export interface Model {

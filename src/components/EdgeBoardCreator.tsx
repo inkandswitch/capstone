@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as GPS from "../logic/GPS"
+import * as GPS from "gps"
 import * as RxOps from "rxjs/operators"
 import * as css from "./css/EdgeBoardCreator.css"
 import * as boardCss from "./css/Board.css"

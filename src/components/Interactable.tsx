@@ -2,7 +2,7 @@ import classNames from "classnames"
 import * as React from "react"
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
-import * as GPS from "../logic/GPS"
+import * as GPS from "gps"
 import * as Dragger from "../logic/Dragger"
 import * as Resizer from "../logic/Resizer"
 

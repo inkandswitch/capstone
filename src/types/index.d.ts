@@ -1,5 +1,4 @@
-import Content from "../components/Content"
-import * as StoreMsg from "../data/StoreMsg"
+import { Content, Msg } from "capstone"
 
 declare global {
   interface Window {

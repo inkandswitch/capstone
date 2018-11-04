@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as Rx from "rxjs"
 import * as RxOps from "rxjs/operators"
-import * as GPS from "../logic/GPS"
+import * as GPS from "gps"
 import { some } from "lodash"
 import * as ReactDOM from "react-dom"
 import * as PinchMetrics from "../logic/PinchMetrics"

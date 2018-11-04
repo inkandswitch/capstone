@@ -1,5 +1,5 @@
 import { AnyDoc } from "automerge/frontend"
-import * as Link from "../data/Link"
+import { Link } from "capstone"
 
 export const DEFAULT_CARD_DIMENSION = 192
 export const CARD_DEFAULT_SIZE = {

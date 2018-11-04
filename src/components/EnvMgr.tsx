@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as Env from "../data/Env"
+import { Env } from "capstone"
 import * as css from "./css/ControlPanel.css"
 
 type Props = {}

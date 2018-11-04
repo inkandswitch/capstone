@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import * as GPS from "../logic/GPS"
+import * as GPS from "gps"
 import * as Rx from "rxjs"
 
 export interface Props {

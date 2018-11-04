@@ -1,7 +1,6 @@
 import * as React from "react"
-import * as Widget from "./Widget"
+import { Widget, Reify } from "capstone"
 import { AnyDoc } from "automerge/frontend"
-import * as Reify from "../data/Reify"
 
 export interface Model {
   header: any[]

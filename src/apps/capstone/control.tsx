@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import ControlPanel from "../../components/ControlPanel"
-import Store from "../../data/Store"
+import { Store } from "capstone"
 
 let ControlPanelDOM: null | HTMLElement = null
 

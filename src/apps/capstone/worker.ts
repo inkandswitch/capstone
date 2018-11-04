@@ -1,7 +1,7 @@
 import * as Debug from "debug"
 Debug.enable(self.name)
 
-import StoreBackend from "../../data/StoreBackend"
+import StoreBackend from "capstone/StoreBackend"
 import { Hypermerge } from "hypermerge"
 import CloudClient from "discovery-cloud/Client"
 

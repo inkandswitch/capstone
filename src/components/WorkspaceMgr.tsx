@@ -1,6 +1,5 @@
 import * as React from "react"
-import * as Link from "../data/Link"
-import Store from "../data/Store"
+import { Link, Store } from "capstone"
 import * as Debug from "debug"
 import * as css from "./css/ControlPanel.css"
 const log = Debug("component:control:workspace")

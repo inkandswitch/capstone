@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as PinchMetrics from "../logic/PinchMetrics"
 import Pinchable from "./Pinchable"
-import Content, { Mode } from "./Content"
+import Content, { Mode } from "capstone/Content"
 import { find } from "lodash"
 import * as SizeUtils from "../logic/SizeUtils"
 import * as Zoom from "../logic/Zoom"

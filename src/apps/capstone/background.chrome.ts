@@ -1,6 +1,6 @@
-import { defaultEnv } from "../../data/Env"
+import { Env } from "capstone"
 
-const env = defaultEnv()
+const env = Env.defaultEnv()
 
 const windowParams: chrome.app.CreateWindowOptions = {
   id: "main",

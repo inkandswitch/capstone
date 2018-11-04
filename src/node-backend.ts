@@ -1,8 +1,8 @@
 import * as ws from "ws"
 
 import { Hypermerge } from "hypermerge"
-import * as Msg from "./data/StoreMsg"
-import StoreBackend from "./data/StoreBackend"
+import { Msg } from "capstone"
+import StoreBackend from "capstone/StoreBackend"
 import CloudClient from "discovery-cloud/Client"
 
 const hm = new Hypermerge({ path: "./.data" })

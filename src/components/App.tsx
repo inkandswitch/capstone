@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import Root from "./Root"
-import Content from "./Content"
+import { Content } from "capstone"
 import Stats from "./Stats"
 import * as Debug from "debug"
 import * as css from "./css/App.css"

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Subscription } from "rxjs"
 import * as RxOps from "rxjs/operators"
-import * as GPS from "../logic/GPS"
+import * as GPS from "gps"
 
 export type Ref = React.RefObject<HTMLDivElement>
 

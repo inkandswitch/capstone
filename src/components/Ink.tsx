@@ -4,9 +4,9 @@ import * as Frame from "../logic/Frame"
 import classnames from "classnames"
 import * as css from "./css/Ink.css"
 import { Portal } from "react-portal"
-import * as GPS from "../logic/GPS"
+import * as GPS from "gps"
 import * as RxOps from "rxjs/operators"
-import * as Content from "./Content"
+import * as Content from "capstone/Content"
 
 export interface PenPoint {
   x: number

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CSSTransition, TransitionGroup } from "react-transition-group"
-import * as Widget from "./Widget"
+import { DataImport, Link, Reify, Widget, UUID } from "capstone"
 import Mirrorable from "./Mirrorable"
 import InteractableCard, { CardModel } from "./InteractableCard"
 import EdgeBoardCreator from "./EdgeBoardCreator"
@@ -9,14 +9,10 @@ import Content, {
   Message,
   ReceiveDocuments,
   DocumentCreated,
-} from "./Content"
-import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
-import * as UUID from "../data/UUID"
+} from "capstone/Content"
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import Ink, { InkStroke } from "./Ink"
 import * as SizeUtils from "../logic/SizeUtils"
-import * as DataImport from "./DataImport"
 import * as css from "./css/Board.css"
 import Zoomable from "./Zoomable"
 

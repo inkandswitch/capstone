@@ -2,7 +2,7 @@ import * as React from "react"
 import WorkspaceMgr from "./WorkspaceMgr"
 import DebugWidget from "./DebugWidget"
 import DebugMgr from "./DebugMgr"
-import Store from "../data/Store"
+import { Store } from "capstone"
 import EnvMgr from "./EnvMgr"
 import * as css from "./css/ControlPanel.css"
 

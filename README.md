@@ -182,8 +182,8 @@ A basic widget looks like this:
 
 ```typescript
 import * as React from "react"
-import Content from "./Content"
-import Widget, { Doc, AnyDoc } from "./Widget"
+import Content from "capstone/Content"
+import Widget, { Doc, AnyDoc } from "capstone/Widget"
 
 // These are the properties we expect our document to include
 interface Model {

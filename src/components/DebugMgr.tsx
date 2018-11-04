@@ -1,5 +1,5 @@
 import * as React from "react"
-import Store from "../data/Store"
+import { Store } from "capstone"
 import * as css from "./css/ControlPanel.css"
 
 type Props = {

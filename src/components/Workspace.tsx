@@ -1,16 +1,13 @@
 import * as React from "react"
-import * as Widget from "./Widget"
-import * as Reify from "../data/Reify"
-import * as Link from "../data/Link"
-import * as DataImport from "./DataImport"
-import GPSInput from "./GPSInput"
+import { DataImport, Link, Reify, Widget } from "capstone"
+import GPSInput from "gps/Input"
 import { AnyDoc } from "automerge/frontend"
 import Content, {
   DocumentActor,
   FullyFormedMessage,
   DocumentCreated,
   ReceiveDocuments,
-} from "./Content"
+} from "capstone/Content"
 import Clipboard from "./Clipboard"
 import Shelf from "./Shelf"
 import * as css from "./css/Workspace.css"
