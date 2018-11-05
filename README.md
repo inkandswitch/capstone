@@ -8,7 +8,7 @@ tools in the coming five to ten years.
 
 It was developed by [Ink & Switch](https://inkandswitch.com) as part of our
 research in this area. While we're no longer developing Capstone, we learned a
-lot and wanted to share the code publically.
+lot and wanted to share the code publicly.
 
 ## Overview
 
@@ -115,7 +115,7 @@ Capstone uses a rendezvous-style cloud server to implement discovery and
 experienced with a true peer-to-peer stack.) By default, installs of the
 app use a shared cloud server we run on Heroku.
 
-You can alternatly deploy your own cloud server:
+You can alternately deploy your own cloud server:
 
 ```console
 $ TODO
@@ -162,7 +162,7 @@ A widget component is required to accept two props:
 - `url` is a document URL of the form: `capstone://Image/5M23ked3t3UBQGDS5uDqWVNsffebBhmo3PjguECRt7xH/HDP`
 - `mode` is a string enum informing the widget how it's expected to render<sup>[1](#footnote1)</sup>. Possible values are:
   - `"fullscreen"`: the widget is full screen.
-  - `"embed"`: the widget is embeded in another document (e.g. on the board).
+  - `"embed"`: the widget is embedded in another document (e.g. on the board).
   - `"preview"`: same as "embed", but the widget should not expect user interaction.
 
 Given a document URL, a widget can be rendered using `Content`:
@@ -217,7 +217,7 @@ Content.register("Counter", Counter) // Register the widget with Content, so oth
 ### Actors
 
 The capstone project contains a partially implemented “Actor” system. Actors
-are a means of manipulating documents independent of the React/UI hiearchy
+are a means of manipulating documents independent of the React/UI hierarchy
 (for the most part - Widget components can send messages to Actors). Actors
 send and receive messages which have a "topic" and are addressed to specific
 documents. Actors are generally implemented per-plugin and provide plugin-
