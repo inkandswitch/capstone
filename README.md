@@ -108,6 +108,26 @@ Once that's done, you can e.g. add files to the desktop app and see them
 instantly appear on your tablet, or clip web pages from your desktop and see
 them show up on the tablet.
 
+### Cloud server
+
+Capstone uses a rendezvous-style cloud server to implement discovery and
+"peer-to-peer" messaging. (This was a workaround for technical issues we
+experienced with a true peer-to-peer stack.) By default, installs of the
+app use a shared cloud server we run on Heroku.
+
+You can alternatly deploy your own cloud server:
+
+```console
+$ TODO
+```
+
+To configure an instance of your Capstone app to use a custom cloud server,
+instead of the default one:
+
+```console
+$ TODO
+```
+
 ### Dev tools
 
 Useful commands:
@@ -120,10 +140,11 @@ Useful commands:
 - `yarn clean`: Delete `dist/*` for a clean build
 - `yarn test`: Same as `yarn tests`
 - `yarn repl`: Start a TypeScript REPL
+- `yarn cloud`: Run a development cloud server on localhost
 - `yarn format`: Format all `src/*` code with prettier
-- `yarn capstone`: Open the "capstone" chrome app. Run `yarn start` first
-- `yarn sidecar`: Open the "sidecar" chrome app. Run `yarn start` first
-- `yarn tests`: Open the "tests" chrome app. Run `yarn start` first
+- `yarn capstone`: Open the "capstone" Chrome app. Run `yarn start` first
+- `yarn clipper`: Open the "clipper" Chrome app. Run `yarn start` first
+- `yarn tests`: Open the "tests" Chrome app. Run `yarn start` first
 
 ### Code formatting
 
@@ -195,9 +216,19 @@ Content.register("Counter", Counter) // Register the widget with Content, so oth
 
 ### Actors
 
-The capstone project contains a partially implemented “Actor” system. Actors are a means of manipulating documents independent of the React/UI hiearchy (for the most part - Widget components can send messages to Actors). Actors send and receive messages which have a "topic" and are addressed to specific documents. Actors are generally implemented per-plugin and provide plugin-specific logic for manipulating documents. For example, the `BoardActor` provided by the `Board` plugin will handle a `ReceiveDocuments` message by adding those documents to a board as card.
+The capstone project contains a partially implemented “Actor” system. Actors
+are a means of manipulating documents independent of the React/UI hiearchy
+(for the most part - Widget components can send messages to Actors). Actors
+send and receive messages which have a "topic" and are addressed to specific
+documents. Actors are generally implemented per-plugin and provide plugin-
+specific logic for manipulating documents. For example, the `BoardActor`
+provided by the `Board` plugin will handle a `ReceiveDocuments` message by
+adding those documents to a board as card.
 
-Widgets can communicate with the Actor system via their `emit` prop. `emit` acts as a pre-addressed message `send` function - all messages sent from the Widget are automatically addressed to the Widget’s own document and sent to the Actor provided by the widget’s plugin.
+Widgets can communicate with the Actor system via their `emit` prop. `emit`
+acts as a pre-addressed message `send` function - all messages sent from the
+Widget are automatically addressed to the Widget’s own document and sent to the
+Actor provided by the widget’s plugin.
 
 ### Debug Tools
 
