@@ -30,9 +30,8 @@ import * as Link from "../../data/Link"
 import Store from "../../data/Store"
 import StoreBackend from "../../data/StoreBackend"
 
-import CloudClient from "../../modules/discovery-cloud/Client"
-import { FrontendHandle } from "../../modules/hypermerge/frontend"
-import { Hypermerge } from "../../modules/hypermerge"
+import CloudClient from "discovery-cloud/Client"
+import { Hypermerge, FrontendManager } from "hypermerge"
 
 import "./Bot" // we have local bot implementation since the Capstone one uses css imports
 import * as Board from "../../components/Board"
@@ -50,16 +49,14 @@ Content.store.sendQueue.subscribe(msg => storeBackend.onMessage(msg))
 hm.joinSwarm(
   new CloudClient({
     url: "wss://discovery-cloud.herokuapp.com",
-    // url: "ws://localhost:8080",
     id: hm.id,
     stream: hm.stream,
   }),
 )
 
 hm.ready.then(hm => {
-  Content.open(
-    workspace,
-    once((workspace: Doc<Workspace.Model>) => {
+  Content.open<Workspace.Model>(workspace)
+    .once(workspace => {
       const boardUrl =
         workspace.navStack.length > 0
           ? last(workspace.navStack)
@@ -72,9 +69,8 @@ hm.ready.then(hm => {
 
       console.log(`Using board: ${boardUrl}`)
 
-      const boardHandle = Content.open(
-        boardUrl,
-        once((doc: any) => {
+      const boardHandle = Content.open<Board.Model>(boardUrl as string).once(
+        doc => {
           const botExists = !!doc.cards[botId]
 
           console.log("board doc", doc)
@@ -82,51 +78,47 @@ hm.ready.then(hm => {
           if (botExists) {
             console.log(`Updating bot ${botId}`)
 
-            // update
-            const botHandle = Content.open(
-              doc.cards[botId].url,
-              once((doc: any) => {
-                console.log("bot doc", doc)
-              }),
-            )
+            const botUrl = doc.cards[botId]!.url
 
-            botHandle(bot => {
-              bot.code = code
-            })
+            if (!botUrl) return
+
+            // update
+            const botHandle = Content.open(botUrl)
+              .change(bot => {
+                bot.code = code
+              })
+              .close()
           } else {
             console.log(`creating new bot: ${botId}`)
 
             // create
             const botUrl = Content.create("Bot")
 
-            const botHandle = Content.open(
-              botUrl,
-              once((doc: any) => {
-                console.log("bot doc", doc)
-              }),
-            )
+            const botHandle = Content.open(botUrl)
+              .change(doc => {
+                doc.id = botId
+                doc.code = code
+              })
+              .close()
 
-            botHandle(doc => {
-              doc.id = botId
-              doc.code = code
-            })
+            boardHandle
+              .change(board => {
+                const card = {
+                  id: botId,
+                  z: 0,
+                  x: 0,
+                  y: 0,
+                  width: 200,
+                  height: 200,
+                  url: botUrl,
+                }
 
-            boardHandle((board: Doc<Board.Model>) => {
-              const card = {
-                id: botId,
-                z: 0,
-                x: 0,
-                y: 0,
-                width: 200,
-                height: 200,
-                url: botUrl,
-              }
-
-              board.cards[botId] = card
-            })
+                board.cards[botId] = card
+              })
+              .close()
           }
-        }),
+        },
       )
-    }),
-  )
+    })
+    .close()
 })

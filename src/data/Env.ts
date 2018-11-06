@@ -5,10 +5,22 @@ export interface Env {
   device: "capstone" | "sidecar"
 }
 
+declare global {
+  namespace NodeJS {
+    interface Global {
+      navigator: any
+    }
+  }
+}
+
 export function defaultEnv(): Env {
   return {
-    isTouchscreen: navigator.maxTouchPoints > 0,
-    device: navigator.userAgent.includes("CrOS") ? "capstone" : "sidecar",
+    isTouchscreen: global.navigator ? navigator.maxTouchPoints > 0 : false,
+    device: global.navigator
+      ? navigator.userAgent.includes("CrOS")
+        ? "capstone"
+        : "sidecar"
+      : "sidecar",
   }
 }
 

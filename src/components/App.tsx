@@ -14,9 +14,7 @@ import "./Workspace"
 import "./HTML"
 import "./Bot"
 
-import * as Feedback from "./CommandFeedback"
 import * as Workspace from "./Workspace"
-import GlobalKeyboard from "./GlobalKeyboard"
 
 const log = Debug("component:app")
 

@@ -12,6 +12,7 @@ import Content, {
 import Handle from "../data/Handle"
 import { once, last } from "lodash"
 import { Model as BoardModel } from "./Board"
+import { Model as WorkspaceModel } from "./Workspace"
 import * as Link from "../data/Link"
 
 export interface Props<T = {}, M = never> {
@@ -59,40 +60,36 @@ export function create<T, M extends Message = never>(
     }
 
     componentDidMount() {
-      this.handle = Content.open<T>(this.props.url, (doc: any) => {
+      this.handle = Content.open<T>(this.props.url).once((doc: any) => {
         this.setState({ doc }, () => {
           if (Link.parse(this.props.url).type === "Bot") return
 
+          const workspaceUrl = Content.store && Content.store.getWorkspace()
+          if (!workspaceUrl) return
+
           // send AnyChange to bot(s) on current board
-          Content.open(
-            Content.workspaceUrl,
-            once(workspace => {
-              const boardUrl =
-                workspace.navStack.length > 0
-                  ? last(workspace.navStack)
-                  : workspace.rootUrl
+          Content.open<WorkspaceModel>(workspaceUrl).once(workspace => {
+            const boardUrl =
+              workspace.navStack.length > 0
+                ? last(workspace.navStack)
+                : workspace.rootUrl
 
-              Content.open(
-                boardUrl,
-                once((board: BoardModel) => {
-                  Object.values(board.cards).forEach(card => {
-                    if (
-                      !card ||
-                      (card && card.url && card.url.indexOf("Bot") < 0)
-                    )
-                      return
+            if (!boardUrl) return
 
-                    Content.send({
-                      type: "AnyChange",
-                      body: doc,
-                      from: this.props.url,
-                      to: card.url,
-                    })
-                  })
-                }),
-              )
-            }),
-          )
+            Content.open<BoardModel>(boardUrl as string).once(board => {
+              Object.values(board.cards).forEach(card => {
+                if (!card || (card && card.url && card.url.indexOf("Bot") < 0))
+                  return
+
+                Content.send({
+                  type: "AnyChange",
+                  body: doc,
+                  from: this.props.url,
+                  to: card.url,
+                })
+              })
+            })
+          })
         })
       })
     }
