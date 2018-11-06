@@ -68,6 +68,7 @@ class HTML extends React.Component<Props> {
           <div className={css.Embed}>
             <div style={scaleStyle}>
               <iframe
+                frameBorder="0"
                 style={iframeStyle}
                 className={css.Embed_IFrame}
                 srcDoc={this.props.doc.html}
