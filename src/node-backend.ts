@@ -1,7 +1,7 @@
 import * as ws from "ws"
 
 import { Hypermerge } from "hypermerge"
-import { Msg } from "capstone"
+import * as Msg from "capstone/Msg"
 import StoreBackend from "capstone/StoreBackend"
 import CloudClient from "discovery-cloud/Client"
 
