@@ -13,6 +13,7 @@ import Content, {
 import { EditDoc, AnyDoc } from "automerge/frontend"
 import Ink, { InkStroke } from "./Ink"
 import * as css from "./Board.css"
+import * as cardCss from "./Card.css"
 import Zoomable from "../Workspace/Zoomable" // HACK
 
 const withAvailableSize = require("react-with-available-size")
@@ -268,7 +269,7 @@ class Board extends React.Component<Props> {
                 return (
                   <CSSTransition
                     key={card.id}
-                    classNames="Card"
+                    classNames={cardCss.Card}
                     enter={false}
                     timeout={{ exit: 1 }}>
                     <Mirrorable cardId={card.id} onMirror={this.onMirror}>

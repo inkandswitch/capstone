@@ -39,7 +39,10 @@ const shared = {
       },
       {
         test: /\.css$/,
-        include: [path.resolve(__dirname, "src/components")],
+        include: [
+          path.resolve(__dirname, "src/components"),
+          path.resolve(__dirname, "src/plugins"),
+        ],
         use: [
           "style-loader",
           {
@@ -53,7 +56,10 @@ const shared = {
       },
       {
         test: /\.css$/,
-        exclude: [path.resolve(__dirname, "src/components")],
+        exclude: [
+          path.resolve(__dirname, "src/components"),
+          path.resolve(__dirname, "src/plugins"),
+        ],
         use: [
           "style-loader",
           {
