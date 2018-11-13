@@ -16,6 +16,7 @@ import ZoomNav, { NavEntry } from "./ZoomNav"
 export interface Model {
   navStack: NavEntry[]
   rootUrl: string
+  replUrl: string
   shelfUrl: string
   shelfOffset: number
 }
@@ -55,6 +56,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     return {
       navStack: Reify.array(doc.navStack),
       rootUrl: Reify.string(doc.rootUrl),
+      replUrl: Reify.string(doc.replUrl),
       shelfUrl: Reify.link(doc.shelfUrl),
       shelfOffset: Reify.number(doc.shelfOffset),
     }
@@ -64,6 +66,7 @@ class Workspace extends React.Component<Widget.Props<Model, WidgetMessage>> {
     return {
       navStack: [],
       rootUrl: Content.create("Board"),
+      replUrl: Content.create("REPL"),
       shelfUrl: Content.create("Board"),
       shelfOffset: -200,
     }

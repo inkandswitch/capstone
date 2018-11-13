@@ -161,6 +161,12 @@ class Board extends React.Component<Props> {
       card.x = x
       card.y = y
       card.z = ++doc.topZ
+
+      if (window.hooks.onCardDragEnded) {
+        console.log("HOOK!")
+        window.hooks.onCardDragEnded(card)
+        console.log("AFTER", card)
+      }
     })
   }
 
@@ -252,6 +258,7 @@ class Board extends React.Component<Props> {
           <div
             data-container
             className={css.Board}
+            id="Board"
             ref={this.onRef}
             onDragOver={this.onDragOver}
             onDrop={this.onDrop}
@@ -328,7 +335,7 @@ class Board extends React.Component<Props> {
         }
 
         return (
-          <div className={css.Board} ref={this.onRef}>
+          <div className={css.Board} ref={this.onRef} id="Board">
             <Ink
               onInkStroke={this.onInkStroke}
               strokes={strokes}
@@ -355,7 +362,7 @@ class Board extends React.Component<Props> {
       case "preview": {
         return (
           <div>
-            <div className={css.Board} />
+            <div className={css.Board} id="Board" />
             <div className={css.FrostedGlass} />
           </div>
         )

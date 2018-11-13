@@ -5,10 +5,14 @@ import { Content } from "capstone"
 import Stats from "./Stats"
 import * as Debug from "debug"
 import * as css from "./css/App.css"
+import * as Board from "../plugins/Board"
+import * as UUID from "capstone/UUID"
 
 import "../plugins"
 
 const log = Debug("component:app")
+
+window.hooks = {}
 
 type State = {
   url?: string
@@ -24,6 +28,24 @@ export default class App extends React.Component<State> {
     this.setState({
       url: url,
       shouldHideFPSCounter: Content.store.shouldHideFPSCounter(),
+    })
+
+    Content.once(url, workspace => {
+      if (!workspace.rootUrl) return
+
+      Content.change<Board.Model>(workspace.rootUrl as string, rootBoard => {
+        const id = UUID.create()
+
+        rootBoard.cards[id] = {
+          id,
+          url: workspace.replUrl as string,
+          x: 100,
+          y: 100,
+          z: 1,
+          width: 300,
+          height: 500,
+        }
+      })
     })
 
     setTimeout(() => {
