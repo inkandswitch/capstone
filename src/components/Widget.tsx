@@ -60,26 +60,35 @@ export function create<T, M extends Message = never>(
     }
 
     componentDidMount() {
-      this.handle = Content.open<T>(this.props.url).once((doc: any) => {
-        this.setState({ doc }, () => {
-          if (Link.parse(this.props.url).type === "Bot") return
+      this.handle = Content.open<T>(this.props.url).subscribe((doc: any) => {
+        this.setState({ doc })
 
-          const workspaceUrl = Content.store && Content.store.getWorkspace()
-          if (!workspaceUrl) return
+        if (Link.parse(this.props.url).type === "Bot") return
 
-          // send AnyChange to bot(s) on current board
-          Content.open<WorkspaceModel>(workspaceUrl).once(workspace => {
-            const boardUrl =
-              workspace.navStack.length > 0
-                ? last(workspace.navStack)
-                : workspace.rootUrl
+        const workspaceUrl = Content.store && Content.store.getWorkspace()
+        if (!workspaceUrl) return
 
-            if (!boardUrl) return
+        // send AnyChange to bot(s) on current board
+        Content.open<WorkspaceModel>(workspaceUrl).once(workspace => {
+          const boardUrl =
+            workspace.navStack.length > 0
+              ? last(workspace.navStack)!.url
+              : workspace.rootUrl
 
-            Content.open<BoardModel>(boardUrl as string).once(board => {
-              Object.values(board.cards).forEach(card => {
-                if (!card || (card && card.url && card.url.indexOf("Bot") < 0))
-                  return
+          if (!boardUrl) return
+
+          Content.open<BoardModel>(boardUrl).once(board => {
+            Object.values(board.cards).forEach(card => {
+              if (!card || (card && card.url && card.url.indexOf("Bot") < 0))
+                return
+
+              setTimeout(() => {
+                console.log({
+                  type: "AnyChange",
+                  body: doc,
+                  from: this.props.url,
+                  to: card.url,
+                })
 
                 Content.send({
                   type: "AnyChange",
@@ -87,7 +96,7 @@ export function create<T, M extends Message = never>(
                   from: this.props.url,
                   to: card.url,
                 })
-              })
+              }, 200)
             })
           })
         })

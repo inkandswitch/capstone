@@ -55,70 +55,64 @@ hm.joinSwarm(
 )
 
 hm.ready.then(hm => {
-  Content.open<Workspace.Model>(workspace)
-    .once(workspace => {
-      const boardUrl =
-        workspace.navStack.length > 0
-          ? last(workspace.navStack)
-          : workspace.rootUrl
+  console.log("Ready!")
 
-      if (!boardUrl) {
-        console.log("Can't find a board, exiting...")
-        return
-      }
+  Content.open<Workspace.Model>(workspace).once(workspace => {
+    console.log("Opened workspace", workspace)
 
-      console.log(`Using board: ${boardUrl}`)
+    const boardUrl =
+      workspace.navStack.length > 0
+        ? last(workspace.navStack)!.url
+        : workspace.rootUrl
 
-      const boardHandle = Content.open<Board.Model>(boardUrl as string).once(
-        doc => {
-          const botExists = !!doc.cards[botId]
+    if (!boardUrl) {
+      console.log("Can't find a board, exiting...")
+      return
+    }
 
-          console.log("board doc", doc)
+    console.log(`Using board: ${boardUrl}`)
 
-          if (botExists) {
-            console.log(`Updating bot ${botId}`)
+    const boardHandle = Content.open<Board.Model>(boardUrl).once(doc => {
+      const botExists = !!doc.cards[botId]
 
-            const botUrl = doc.cards[botId]!.url
+      // console.log("board doc", doc)
 
-            if (!botUrl) return
+      if (botExists) {
+        console.log(`Updating bot ${botId}`)
 
-            // update
-            const botHandle = Content.open(botUrl)
-              .change(bot => {
-                bot.code = code
-              })
-              .close()
-          } else {
-            console.log(`creating new bot: ${botId}`)
+        const botUrl = doc.cards[botId]!.url
 
-            // create
-            const botUrl = Content.create("Bot")
+        if (!botUrl) return
 
-            const botHandle = Content.open(botUrl)
-              .change(doc => {
-                doc.id = botId
-                doc.code = code
-              })
-              .close()
+        // update
+        const botHandle = Content.open(botUrl).change(bot => {
+          bot.code = code
+        })
+      } else {
+        console.log(`Creating new bot: ${botId}`)
 
-            boardHandle
-              .change(board => {
-                const card = {
-                  id: botId,
-                  z: 0,
-                  x: 0,
-                  y: 0,
-                  width: 200,
-                  height: 200,
-                  url: botUrl,
-                }
+        // create
+        const botUrl = Content.create("Bot")
 
-                board.cards[botId] = card
-              })
-              .close()
+        const botHandle = Content.open(botUrl).change(doc => {
+          doc.id = botId
+          doc.code = code
+        })
+
+        boardHandle.change(board => {
+          const card = {
+            id: botId,
+            z: 0,
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 200,
+            url: botUrl,
           }
-        },
-      )
+
+          board.cards[botId] = card
+        })
+      }
     })
-    .close()
+  })
 })

@@ -18,6 +18,8 @@ import * as Workspace from "./Workspace"
 
 const log = Debug("component:app")
 
+require("events").EventEmitter.prototype._maxListeners = 1000
+
 type State = {
   url?: string
   shouldHideFPSCounter?: boolean

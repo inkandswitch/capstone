@@ -75,6 +75,8 @@ class BotActor extends DocumentActor<Model, AnyChange> {
     if (!bot || !bot.autonomous) return
     if (!message.from) return
 
+    console.log("GOT ANYCHANGE", message)
+
     const { type } = Link.parse(message.from)
     bot.autonomous[type] && bot.autonomous[type]()
   }
@@ -133,7 +135,7 @@ class Bot extends React.Component<Props, State> {
       <div className={css.Bot}>
         <h3>{this.props.doc.id}</h3>
 
-        <pre>{this.state.lastUpdate}</pre>
+        {/*<pre>{this.state.lastUpdate}</pre>*/}
 
         {isAutonomuos && <h4>(autonomous)</h4>}
 
