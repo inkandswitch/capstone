@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+../../../node_modules/.bin/cross-env TS_NODE_FILES=1 TS_NODE_CACHE_DIRECTORY=.cache TS_NODE_SKIP_IGNORE=1 node -r ts-node/register ./repl.ts $@

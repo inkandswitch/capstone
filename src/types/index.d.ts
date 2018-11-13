@@ -1,10 +1,15 @@
 import { Content, Msg } from "capstone"
 
+interface Hooks {
+  onCardDragEnded?: Function
+}
+
 declare global {
   interface Window {
     Content: typeof Content
     visualViewport: VisualViewport
     requestIdleCallback: (cb: () => void, options?: { timeout: number }) => void
+    hooks: Hooks
   }
 
   interface PointerEvent {
